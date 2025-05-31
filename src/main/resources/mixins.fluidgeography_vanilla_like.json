@@ -1,0 +1,15 @@
+{
+  "package": "top.qiguaiaaaa.fluidgeography.mixin.vanilla",
+  "required": true,
+  "compatibilityLevel": "JAVA_8",
+  "setSourceFile": true,
+  "refmap": "mixins.fluidgeography.refmap.json",
+  "mixins": [
+    "BlockDynamicLiquidMixin",
+    "BlockFluidClassicMixin",
+    "BlockLiquidMixin",
+    "BlockStaticLiquidMixin"
+  ],
+  "client": [
+  ]
+}

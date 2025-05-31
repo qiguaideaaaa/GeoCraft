@@ -1,0 +1,16 @@
+{
+  "package": "top.qiguaiaaaa.fluidgeography.mixin",
+  "required": true,
+  "compatibilityLevel": "JAVA_8",
+  "setSourceFile": true,
+  "refmap": "mixins.fluidgeography.refmap.json",
+  "mixins": [
+    "common.BlockAccessor",
+    "common.BlockLiquidAccessor",
+    "common.BlockFluidBaseAccessor",
+    "common.ItemAccessor",
+    "common.item.ItemGlassBottleMixin"
+  ],
+  "client": [
+  ]
+}

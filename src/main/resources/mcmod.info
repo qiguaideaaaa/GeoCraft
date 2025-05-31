@@ -1,0 +1,16 @@
+[
+{
+  "modid": "fluidgeography",
+  "name": "Fluid Geography",
+  "description": "让MC中的流体更符合现实地理！\nA great mod that makes fluid more geographical.",
+  "version": "@version@",
+  "mcversion": "@mcVersion@",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["QiguaiAAAA"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": ["mixinbooter"]
+}
+]
