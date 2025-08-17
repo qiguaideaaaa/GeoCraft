@@ -7,16 +7,16 @@ import net.minecraftforge.common.capabilities.Capability;
 
 import javax.annotation.Nullable;
 
-public class LowerAtmosphereStorage implements Capability.IStorage<LowerAtmosphere> {
+public class DefaultAtmosphereStorage implements Capability.IStorage<DefaultAtmosphere> {
 
     @Nullable
     @Override
-    public NBTBase writeNBT(Capability<LowerAtmosphere> capability, LowerAtmosphere instance, EnumFacing side) {
+    public NBTBase writeNBT(Capability<DefaultAtmosphere> capability, DefaultAtmosphere instance, EnumFacing side) {
         return instance.serializeNBT();
     }
 
     @Override
-    public void readNBT(Capability<LowerAtmosphere> capability, LowerAtmosphere instance, EnumFacing side, NBTBase nbt) {
+    public void readNBT(Capability<DefaultAtmosphere> capability, DefaultAtmosphere instance, EnumFacing side, NBTBase nbt) {
         if (nbt instanceof NBTTagCompound) {
             instance.deserializeNBT((NBTTagCompound) nbt);
         }

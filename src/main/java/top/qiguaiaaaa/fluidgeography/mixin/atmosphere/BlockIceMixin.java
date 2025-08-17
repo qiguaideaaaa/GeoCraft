@@ -25,10 +25,10 @@ public class BlockIceMixin {
         if(worldIn.getLightFor(EnumSkyBlock.SKY,pos) == 0) return;
         Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(worldIn,pos);
         if(atmosphere == null) return;
-        double temp = atmosphere.getTemperature(pos);
+        double temp = atmosphere.get温度(pos,false);
         if(temp > AtmosphereTemperature.ICE_POINT){
             this.turnIntoWater(worldIn,pos);
-            atmosphere.addHeatQuantity(-(AtmosphereUtil.WATER_MELT_LATENT_HEAT_PER_QUANTA*8));
+            atmosphere.add低层大气热量(-(AtmosphereUtil.WATER_MELT_LATENT_HEAT_PER_QUANTA*8));
         }
     }
     @Shadow

@@ -1,9 +1,16 @@
 package top.qiguaiaaaa.fluidgeography.api.atmosphere.property;
 
+import net.minecraft.util.ResourceLocation;
+import top.qiguaiaaaa.fluidgeography.api.FGInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.GroundTemperatureState;
 
 public class GroundTemperature extends AtmosphereProperty{
     public static final GroundTemperature GROUND_TEMPERATURE = new GroundTemperature();
+
+    public GroundTemperature() {
+        super(false,false);
+        setRegistryName(new ResourceLocation(FGInfo.getModId(),"ground_temperature"));
+    }
 
     @Override
     public GroundTemperatureState getStateInstance() {

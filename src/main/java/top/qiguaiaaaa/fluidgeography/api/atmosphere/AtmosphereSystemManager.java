@@ -5,6 +5,7 @@ import com.google.common.collect.HashBiMap;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.chunk.Chunk;
 
 import javax.annotation.Nullable;
 
@@ -30,6 +31,18 @@ public class AtmosphereSystemManager {
         IAtmosphereSystem system = getAtmosphereSystem(world);
         if(system == null) return null;
         return system.getAtmosphere(pos);
+    }
+
+    /**
+     * 获取指定区块的大气
+     * @param chunk 区块
+     * @return 如果大气不存在或未初始化，则返回null。正常情况下返回大气。
+     */
+    @Nullable
+    public static Atmosphere getAtmosphere(Chunk chunk){
+        IAtmosphereSystem system = getAtmosphereSystem(chunk.getWorld());
+        if(system == null) return null;
+        return system.getAtmosphere(chunk);
     }
     @Nullable
     private static WorldServer getValidWorld(World world){

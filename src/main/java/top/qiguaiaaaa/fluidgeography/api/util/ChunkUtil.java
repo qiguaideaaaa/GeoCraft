@@ -9,6 +9,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.fluidgeography.api.configs.AtmosphereConfig;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Underlying;
+import top.qiguaiaaaa.fluidgeography.api.util.math.Altitude;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,7 +26,14 @@ public final class ChunkUtil {
         }
         return ((float) totalHeight)/heightMap.length;
     }
-    public static Underlying getUnderlying(Chunk chunk,double averageHeight){
+
+    /**
+     * 获取指定区块的下垫面
+     * @param chunk 区块
+     * @param averageHeight 平均海拔
+     * @return 下垫面
+     */
+    public static Underlying getUnderlying(Chunk chunk, Altitude averageHeight){
         long heatCapacity = 0;
         double averageReflectivity = 0,averageEmissivity = 0;
         for(int x=0;x<16;x++){

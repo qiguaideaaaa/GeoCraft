@@ -29,7 +29,7 @@ public class AtmosphereSystem implements IAtmosphereSystem {
         Collection<Chunk> loadedChunks = world.getChunkProvider().getLoadedChunks();
         for (Chunk chunk:loadedChunks) {
             if(world.getWorldTime()%60 != Math.abs(chunk.x+chunk.z)%60) continue;
-            LowerAtmosphere atmosphere = chunk.getCapability(LowerAtmosphere.LOWER_ATMOSPHERE,null);
+            DefaultAtmosphere atmosphere = chunk.getCapability(DefaultAtmosphere.LOWER_ATMOSPHERE,null);
             if(atmosphere == null) continue;
             if(!atmosphere.isInitialised()) atmosphere.initialise(chunk,atmosphereWorldInfo);
             if(atmosphere.isInitialised())  atmosphere.updateTick(chunk);
@@ -40,8 +40,13 @@ public class AtmosphereSystem implements IAtmosphereSystem {
             updateBlocks(chunk);
         }
     }
+
+    /**
+     * 处理下雨等事件
+     * @param chunk
+     */
     protected void updateBlocks(Chunk chunk){
-        LowerAtmosphere atmosphere = chunk.getCapability(LowerAtmosphere.LOWER_ATMOSPHERE,null);
+        DefaultAtmosphere atmosphere = chunk.getCapability(DefaultAtmosphere.LOWER_ATMOSPHERE,null);
         if(atmosphere == null || !atmosphere.isInitialised()) return;
         int x = chunk.x * 16;
         int z = chunk.z * 16;
@@ -58,7 +63,7 @@ public class AtmosphereSystem implements IAtmosphereSystem {
 
         if (BaseUtil.getRandomResult(world.rand,freezePossibility) && AtmosphereUtil.canWaterFreeze(world,pos,true)) {
             world.setBlockState(pos, Blocks.ICE.getDefaultState());
-            atmosphere.addHeatQuantity(WATER_MELT_LATENT_HEAT_PER_QUANTA*8);
+            atmosphere.add低层大气热量(WATER_MELT_LATENT_HEAT_PER_QUANTA*8);
         }
 
         if(!BaseUtil.getRandomResult(world.rand,rainPossibility)){
@@ -72,15 +77,29 @@ public class AtmosphereSystem implements IAtmosphereSystem {
 
         world.getBlockState(pos).getBlock().fillWithRain(world, pos);
     }
+
+    /**
+     * 获取某一处的大气
+     * @param pos 位置
+     * @return 大气
+     */
     @Nullable
     @Override
     public Atmosphere getAtmosphere(BlockPos pos){
         if(!world.isAreaLoaded(pos,1)) return null;
         Chunk chunk = world.getChunk(pos);
-        Atmosphere atmosphere = chunk.getCapability(LowerAtmosphere.LOWER_ATMOSPHERE,null);
+        return getAtmosphere(chunk);
+    }
+
+    @Nullable
+    @Override
+    public Atmosphere getAtmosphere(Chunk chunk) {
+        if(!chunk.isLoaded()) return null;
+        Atmosphere atmosphere = chunk.getCapability(DefaultAtmosphere.LOWER_ATMOSPHERE,null);
         if(atmosphere != null && atmosphere.isInitialised()) return atmosphere;
         return null;
     }
+
     @Override
     public AtmosphereWorldInfo getAtmosphereWorldInfo() {
         return atmosphereWorldInfo;

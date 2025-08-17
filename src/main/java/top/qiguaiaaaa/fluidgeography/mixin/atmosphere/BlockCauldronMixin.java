@@ -24,14 +24,14 @@ public class BlockCauldronMixin {
         }
         Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(worldIn,pos);
         if(atmosphere == null) return;
-        if(atmosphere.getWaterAmount() <333) return;
-        float temp = atmosphere.getTemperature(pos);
+        if(atmosphere.get水量() <333) return;
+        float temp = atmosphere.get温度(pos,true);
 
         if (temp< AtmosphereTemperature.ICE_POINT) return;
 
         IBlockState iblockstate = worldIn.getBlockState(pos);
         if (iblockstate.getValue(BlockCauldron.LEVEL) < 3) {
-            if(!atmosphere.addWaterAmount(-333)) return;
+            if(!atmosphere.add水量(-333)) return;
             worldIn.setBlockState(pos, iblockstate.cycleProperty(BlockCauldron.LEVEL), 2);
         }
     }

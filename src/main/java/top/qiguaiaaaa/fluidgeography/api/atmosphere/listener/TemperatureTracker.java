@@ -11,10 +11,12 @@ import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereTemperatu
 public class TemperatureTracker extends InformationLoggingTracker {
     public TemperatureTracker(FileLogger logger, int time) {
         super(logger, time);
+        logger.println("Time,Lower T,Ground T");
     }
     @Override
     public void notifyListener(Atmosphere atmosphere) {
-        String msg = String.format("%d,%f",atmosphere.getAtmosphereWorldInfo().getWorld().getTotalWorldTime(),atmosphere.getTemperature()- AtmosphereTemperature.ICE_POINT);
+        String msg = String.format("%d,%f,%f",atmosphere.getAtmosphereWorldInfo().getWorld().getTotalWorldTime(),atmosphere.get低层大气温度()- AtmosphereTemperature.ICE_POINT,
+                atmosphere.get地表温度()-AtmosphereTemperature.ICE_POINT);
         logger.println(msg);
         FGInfo.getLogger().info("track atmosphere temp ({})",msg);
         nowTime++;

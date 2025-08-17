@@ -8,14 +8,10 @@ import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.IAtmosphereState;
 
 public abstract class AtmosphereProperty extends IForgeRegistryEntry.Impl<AtmosphereProperty> {
-    protected boolean windEffect = false;
-    protected boolean flowable = false;
-
-    public void setWindEffect(boolean windEffect) {
+    protected final boolean windEffect;
+    protected final boolean flowable;
+    public AtmosphereProperty(boolean windEffect,boolean flowable){
         this.windEffect = windEffect;
-    }
-
-    public void setFlowable(boolean flowable) {
         this.flowable = flowable;
     }
 
@@ -29,6 +25,7 @@ public abstract class AtmosphereProperty extends IForgeRegistryEntry.Impl<Atmosp
 
     /**
      * 计算A区块朝向B区块的风速在这一属性上的分量
+     * 若windEffect为true则会调用
      * @param a A区块的大气
      * @param b B区块的大气
      * @param direction B相对A的方向
@@ -40,6 +37,7 @@ public abstract class AtmosphereProperty extends IForgeRegistryEntry.Impl<Atmosp
 
     /**
      * 当大气流动的时候
+     * 若flowable为true则会调用
      * @param from 源大气
      * @param to 朝向大气
      * @param direction 朝向方位

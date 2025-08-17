@@ -10,26 +10,26 @@ public abstract class AbstractTemperatureState implements IAtmosphereState{
         this.temperature = temp;
     }
 
-    public float getTemperature() {
+    public float get() {
         return temperature;
     }
 
-    public void setTemperature(float temperature) {
+    public void set(float temperature) {
         if(temperature <0) temperature = 0;
         this.temperature = temperature;
     }
-    public void setTemperature(AbstractTemperatureState temperature){
-        this.temperature = temperature.getTemperature();
+    public void set(AbstractTemperatureState temp){
+        this.temperature = temp.temperature;
     }
 
-    public void addTemperature(double temp){
+    public void add(double temp){
         this.temperature += temp;
         if(temperature<0) temperature = 0;
     }
 
-    public void addHeatQuantity(double Q,long heatCapacity){
-        double tempChange = Q/heatCapacity;
-        this.addTemperature(tempChange);
+    public void add热量(double Q, long 热容){
+        double tempChange = Q/热容;
+        this.add(tempChange);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package top.qiguaiaaaa.fluidgeography.command;
 
+import net.minecraft.block.material.Material;
 import net.minecraft.command.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.EnumFacing;
@@ -16,10 +17,14 @@ import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.listener.InformationLoggingTracker;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.listener.WaterTracker;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Underlying;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.TemperatureState;
+import top.qiguaiaaaa.fluidgeography.api.configs.AtmosphereConfig;
 import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.ChunkUtil;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.listener.TemperatureTracker;
 import top.qiguaiaaaa.fluidgeography.api.util.io.FileLogger;
+import top.qiguaiaaaa.fluidgeography.api.util.math.Altitude;
+import top.qiguaiaaaa.fluidgeography.atmosphere.model.NewAtmosphereModel;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -27,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil.ATMOSPHERE_ENERGY_RADIATION_LOSS_CONSTANT;
+import static top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil.*;
 
 public class CommandAtmosphere extends ExtendedCommand {
     public static final String ATMOSPHERE_COMMAND_NAME = "atmosphere";
@@ -68,10 +73,11 @@ public class CommandAtmosphere extends ExtendedCommand {
             super.execute(server,sender,args);
         } else{
             Atmosphere atmosphere = getAtmosphere(world,pos.getX(),pos.getZ());
-            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic",pos.getX(),pos.getZ());
-            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.1",atmosphere.getWaterAmount());
-            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.2",atmosphere.getTemperature());
-            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.4",atmosphere.getWindSpeed(pos));
+            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic",pos.getX(),Altitude.get物理海拔(pos.getY()),pos.getZ());
+            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.1",atmosphere.get水量());
+            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.2",atmosphere.get低层大气温度());
+            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.3",atmosphere.get地表温度());
+            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.4",atmosphere.getAtmosphereWorldInfo().getModel().getWind(atmosphere,pos));
         }
     }
     protected static Atmosphere getAtmosphere(World world,int x,int z) throws CommandException {
@@ -137,13 +143,18 @@ public class CommandAtmosphere extends ExtendedCommand {
                 atmosphere = getAtmosphere(world,x,z);
             }
             if("water".equalsIgnoreCase(args[0])){
-                atmosphere.setWaterAmount((int) value);
+                atmosphere.set水量((int) value);
                 notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.set.water",x,z,(int) value);
                 return;
             }
             if("temp".equalsIgnoreCase(args[0])){
-                atmosphere.setTemperature((float) value);
+                atmosphere.set低层大气温度((float) value);
                 notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.set.temp",x,z, (float) value);
+                return;
+            }
+            if("ground_temp".equalsIgnoreCase(args[0])){
+                atmosphere.set地表温度((float) value);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.set.ground_temp",x,z, (float) value);
                 return;
             }
             if("debug".equalsIgnoreCase(args[0])){
@@ -156,7 +167,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         @Override
         public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
             if (args.length == 1) {
-                return getListOfStringsMatchingLastWord(args, "water","temp");
+                return getListOfStringsMatchingLastWord(args, "water","temp","ground_temp");
             } else if(args.length >= 3 && args.length <= 4){
                 return getTabCompletionCoordinateXZ(args,2,targetPos);
             }
@@ -188,8 +199,8 @@ public class CommandAtmosphere extends ExtendedCommand {
                     throw new CommandException("fluidgeography.command.chunk_error.unloaded",x,z);
                 }
                 Chunk chunk = world.getChunk(targetPos);
-                atmosphere.resetTemperature(chunk);
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.reset.temp",x,z, atmosphere.getTemperature());
+                atmosphere.重置温度(chunk);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.reset.temp",x,z, atmosphere.get低层大气温度());
                 return;
             }
             throw new WrongUsageException(getUsage(sender));
@@ -238,15 +249,20 @@ public class CommandAtmosphere extends ExtendedCommand {
             }
 
             if("water".equalsIgnoreCase(args[0])){
-                if(!atmosphere.addWaterAmount((int) value)){
-                    throw new NumberInvalidException("commands.generic.num.tooSmall", value, -atmosphere.getWaterAmount());
+                if(!atmosphere.add水量((int) value)){
+                    throw new NumberInvalidException("commands.generic.num.tooSmall", value, -atmosphere.get水量());
                 }
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.add.water",x,z,atmosphere.getWaterAmount());
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.add.water",x,z,atmosphere.get水量());
                 return;
             }
             if("temp".equalsIgnoreCase(args[0])){
-                atmosphere.addTemperature(value);
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.add.temp",x,z, atmosphere.getTemperature());
+                atmosphere.add低层大气温度(value);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.add.temp",x,z, atmosphere.get低层大气温度());
+                return;
+            }
+            if("ground_temp".equalsIgnoreCase(args[0])){
+                atmosphere.add地表温度(value);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.add.ground_temp",x,z, atmosphere.get地表温度());
                 return;
             }
             throw new WrongUsageException(getUsage(sender));
@@ -265,7 +281,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         @Override
         public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
             if (args.length == 1) {
-                return getListOfStringsMatchingLastWord(args, "water","temp");
+                return getListOfStringsMatchingLastWord(args, "water","temp","ground_temp");
             } else if(args.length >= 3 && args.length <= 4){
                 return getTabCompletionCoordinateXZ(args,3,targetPos);
             }
@@ -293,7 +309,7 @@ public class CommandAtmosphere extends ExtendedCommand {
                     atmosphere = getAtmosphere(world,x,z);
                 }
 
-                float temp = atmosphere.getTemperature(new BlockPos(x,y,z));
+                float temp = atmosphere.get温度(new BlockPos(x,y,z),world.getBlockState(new BlockPos(x,y,z)).getMaterial() == Material.AIR);
                 notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.block_temp",x,y,z,temp);
                 sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int)temp);
                 return;
@@ -309,18 +325,82 @@ public class CommandAtmosphere extends ExtendedCommand {
                 atmosphere = getAtmosphere(world,x,z);
             }
             if("water".equalsIgnoreCase(args[0])){
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.water",x,z,atmosphere.getWaterAmount());
-                sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,atmosphere.getWaterAmount());
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.water",x,z,atmosphere.get水量());
+                sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,atmosphere.get水量());
                 return;
             }
             if("temp".equalsIgnoreCase(args[0])){
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.temp",x,z, atmosphere.getTemperature());
-                sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int) atmosphere.getTemperature());
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.temp",x,z, atmosphere.get低层大气温度());
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.ground_temp",x,z, atmosphere.get地表温度());
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.radiation_loss", TemperatureState.getTemperatureChange(atmosphere.getAtmosphereWorldInfo().getWorld(),atmosphere,atmosphere.get下垫面()));
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.radiation_loss", NewAtmosphereModel.getAtmosphereTemperatureLoss(atmosphere));
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.radiation_loss", NewAtmosphereModel.getGroundTemperatureLoss(atmosphere));
+                return;
+            }
+            if("test".equalsIgnoreCase(args[0])){
+                WorldInfo worldInfo = atmosphere.getAtmosphereWorldInfo().getWorld().getWorldInfo();
+                Underlying 下垫面 = atmosphere.get下垫面();
+                double 太阳辐射透过率 = get大气透过率(atmosphere,worldInfo);
+                double 太阳短波辐射 = getSunEnergyPerChunk(worldInfo)*(1-下垫面.平均返照率)*太阳辐射透过率;
+
+                notifyCommandListener(sender,this, String.format("Sun radiation %f Q = %f * %f * %f", 太阳短波辐射,getSunEnergyPerChunk(worldInfo),(1-下垫面.平均返照率),太阳辐射透过率));
+
+                // 地面长波辐射
+                double 地面辐射损失系数 = AtmosphereConfig.GROUND_RADIATION_LOSS_RATE.getValue().value;
+                double 地面长波辐射 = 每大气刻损失能量常数 * Math.pow(atmosphere.get地表温度(), 4) * 下垫面.平均发射率*地面辐射损失系数;
+
+                notifyCommandListener(sender,this,"Ground radiation:"+地面长波辐射+" Q");
+
+                // 云层和大气的辐射
+                double 吸收系数 = 0.01;
+                double 云量 = 1-太阳辐射透过率;
+                double 云层回辐射 = 每大气刻损失能量常数 * Math.pow(atmosphere.get低层大气温度(), 4) * 云量;
+                double 云层高度 = 1500;
+                double 云层回辐射到达地面比例 = 0.5 * Math.exp(
+                        -吸收系数 *
+                                AtmosphereUtil.get低层大气密度(下垫面.get地面平均海拔().get物理海拔()+云层高度)
+                                * 云层高度)
+                        * (1 - 0.5 * 云量);
+
+                notifyCommandListener(sender,this, String.format("Cloud radiation %f Q = %f * 0.5 * Math.exp(-%f * %f * %f )*(1-0.5* %f )", 云层回辐射*云层回辐射到达地面比例,云层回辐射,吸收系数,AtmosphereUtil.get低层大气密度(下垫面.get地面平均海拔().get物理海拔()+云层高度),云层高度,云量));
+
+                // 大气辐射
+                double 大气发射率 = get大气发射率(atmosphere);
+                double 大气辐射 = 每大气刻损失能量常数 * Math.pow(atmosphere.get低层大气温度(), 4) * 大气发射率 * (1.0 - 云量);
+                double 大气回辐射到达地面比例 = 0.5 * Math.exp(
+                        -吸收系数 *
+                                AtmosphereUtil.get低层大气密度(下垫面.get地面平均海拔().get物理海拔()+ FinalFactors.低层大气厚度)
+                                * 云层高度)
+                        * FinalFactors.低层大气厚度
+                        * (1 - 0.5 * 云量);
+                notifyCommandListener(sender,this, String.format("Atmosphere radiation %f Q = %f * 0.5 * Math.exp(-%f * %f * %f )*(1-0.5* %f )",大气辐射*大气回辐射到达地面比例,大气辐射,吸收系数,AtmosphereUtil.get低层大气密度(下垫面.get地面平均海拔().get物理海拔()+云层高度),云层高度,云量));
+
+                double 地面净辐射损失 = (地面长波辐射 - (云层回辐射*云层回辐射到达地面比例 + 大气辐射*大气回辐射到达地面比例));
+                double 大气净辐射损失 = 云层回辐射+大气辐射-
+                        地面长波辐射*AtmosphereUtil.大气吸收系数(
+                                FinalFactors.低层大气厚度,
+                                get低层大气平均密度(下垫面.get地面平均海拔().get物理海拔()),
+                                1);
+                notifyCommandListener(sender,this, String.format("Ground radiation loss (%f K) %f Q = (%f - (%f + %f))",地面净辐射损失/atmosphere.get下垫面().热容,地面净辐射损失,地面长波辐射,云层回辐射*云层回辐射到达地面比例,大气辐射*大气回辐射到达地面比例));
+                notifyCommandListener(sender,this, String.format("Atmosphere radiation loss (%f K) %f Q = %f + %f - %f*%f",大气净辐射损失/atmosphere.get低层大气热容(),大气净辐射损失,云层回辐射,大气辐射,地面长波辐射,AtmosphereUtil.大气吸收系数(
+                        FinalFactors.低层大气厚度,
+                        get低层大气平均密度(下垫面.get地面平均海拔().get物理海拔()),
+                        1)));
+                return;
+            }
+            if("low_temp".equalsIgnoreCase(args[0])){
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.temp",x,z, atmosphere.get低层大气温度());
+                sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int) atmosphere.get低层大气温度());
+                return;
+            }
+            if("ground_temp".equalsIgnoreCase(args[0])){
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.ground_temp",x,z, atmosphere.get地表温度());
+                sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int) atmosphere.get地表温度());
                 return;
             }
             if("basic_temp".equalsIgnoreCase(args[0])){
                 Chunk chunk = getValidChunk(world,x,z);
-                float tempBase = atmosphere.getTemperatureBase(chunk);
+                float tempBase = atmosphere.getAtmosphereWorldInfo().getModel().getInitTemperature(atmosphere,chunk);
                 notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.basic_temp",x,z, tempBase);
                 sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int) tempBase);
                 return;
@@ -334,21 +414,21 @@ public class CommandAtmosphere extends ExtendedCommand {
             }
             if("underlying".equalsIgnoreCase(args[0])){
                 Chunk chunk = getValidChunk(world,x,z);
-                Underlying underlying = ChunkUtil.getUnderlying(chunk,63);
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.underlying",x,z,underlying.heatCapacity,underlying.averageReflectivity,underlying.averageEmissivity);
+                Underlying underlying = ChunkUtil.getUnderlying(chunk,new Altitude(63));
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.underlying",x,atmosphere.get下垫面().get地面平均海拔().toString(),z,underlying.热容,underlying.平均返照率,underlying.平均发射率);
                 return;
             }
             if("heat_volume".equalsIgnoreCase(args[0])){
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.heat_volume",x,z,atmosphere.getHeatCapacity());
-                sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int) atmosphere.getHeatCapacity());
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.heat_volume",x,z,atmosphere.get低层大气热容());
+                sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int) atmosphere.get低层大气热容());
                 return;
             }
             if("water_pressure".equalsIgnoreCase(args[0])){
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.water_pressure",x,z,AtmosphereUtil.getAtmosphereWaterPressure(atmosphere)*0.01);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.water_pressure",x,z,AtmosphereUtil.get大气水汽压(atmosphere)*0.01);
                 return;
             }
             if("emissivity".equalsIgnoreCase(args[0])){
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.water_pressure",x,z,AtmosphereUtil.getAtmosphereEmissivity(atmosphere));
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.water_pressure",x,z,AtmosphereUtil.get大气发射率(atmosphere));
                 return;
             }
             if("biome".equalsIgnoreCase(args[0])){
@@ -358,8 +438,8 @@ public class CommandAtmosphere extends ExtendedCommand {
                 return;
             }
             if("average_height".equalsIgnoreCase(args[0])){
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.basic_temp",x,z, atmosphere.getUnderlying().getAverageHeight());
-                sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int) atmosphere.getUnderlying().getAverageHeight());
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.basic_temp",x,z, atmosphere.get下垫面().toString());
+                sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int) atmosphere.get下垫面().get地面平均海拔().get());
                 return;
             }
             throw new WrongUsageException(getUsage(sender));
@@ -378,7 +458,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         @Override
         public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
             if (args.length == 1) {
-                return getListOfStringsMatchingLastWord(args, "water","temp","basic_temp","block_temp","wind","underlying","heat_volume");
+                return getListOfStringsMatchingLastWord(args, "water","temp","low_temp","ground_temp","basic_temp","block_temp","wind","underlying","heat_volume");
             }if(args.length == 4) {
                 if ("block_temp".equals(args[0])) {
                     return getTabCompletionCoordinate(args, 2, targetPos);
@@ -412,7 +492,7 @@ public class CommandAtmosphere extends ExtendedCommand {
             if("radiation".equalsIgnoreCase(args[0])){
                 notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.util.radiation",
                         pos.getX(),pos.getZ(),
-                        AtmosphereUtil.getHeatEnergyRadiationLoss(atmosphere,AtmosphereUtil.getCloudInsulationEffect(atmosphere,info)));
+                        AtmosphereUtil.getHeatEnergyRadiationLoss(atmosphere,AtmosphereUtil.get大气透过率(atmosphere,info)));
                 return;
             }
             throw new WrongUsageException(getUsage(sender));

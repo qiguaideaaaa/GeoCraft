@@ -11,11 +11,6 @@ public class GroundTemperatureState extends AbstractTemperatureState{
     }
 
     @Override
-    public void onUpdate(Atmosphere atmosphere, Chunk chunk) {
-
-    }
-
-    @Override
     public AtmosphereProperty getProperty() {
         return GroundTemperature.GROUND_TEMPERATURE;
     }

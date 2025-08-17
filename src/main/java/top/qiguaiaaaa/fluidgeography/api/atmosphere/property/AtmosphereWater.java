@@ -11,7 +11,7 @@ import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.WaterState;
 public class AtmosphereWater extends AtmosphereProperty{
     public static final AtmosphereWater WATER = new AtmosphereWater();
     protected AtmosphereWater() {
-        setFlowable(true);
+        super(false,true);
         setRegistryName(new ResourceLocation(FGInfo.getModId(),"water"));
     }
 
@@ -20,17 +20,17 @@ public class AtmosphereWater extends AtmosphereProperty{
         double windSpeedSize = windSpeed.dotProduct(new Vec3d(direction.getDirectionVec()));
         if(windSpeedSize >0){ //主动扩散
             int waterTransferAmount = getWaterTransferAmount(from,windSpeedSize);
-            to.addWaterAmount(waterTransferAmount);
-            if(!from.addWaterAmount(-waterTransferAmount)){
-                from.setWaterAmount(0);
+            to.add水量(waterTransferAmount);
+            if(!from.add水量(-waterTransferAmount)){
+                from.set水量(0);
             }
         }else if(windSpeedSize<0){ //被动扩散
-            if(to.getWaterAmount()>= from.getWaterAmount()) return;
+            if(to.get水量()>= from.get水量()) return;
             int waterTransferAmount = getWaterSpreadAmount(from,to);
             if(waterTransferAmount<=0) return;
-            to.addWaterAmount(waterTransferAmount);
-            if(!from.addWaterAmount(-waterTransferAmount)){
-                from.setWaterAmount(0);
+            to.add水量(waterTransferAmount);
+            if(!from.add水量(-waterTransferAmount)){
+                from.set水量(0);
             }
         }
     }
@@ -41,14 +41,14 @@ public class AtmosphereWater extends AtmosphereProperty{
     }
 
     public static int getWaterTransferAmount(Atmosphere a, double windSpeed){
-        int waterAmount = a.getWaterAmount();
+        int waterAmount = a.get水量();
         double expectedTransferAmount = waterAmount*0.2;
         double transferAmount = Math.min(Math.log((windSpeed+17)/17)/Math.log(17)*expectedTransferAmount,expectedTransferAmount);
         return (int) transferAmount;
     }
 
     public static int getWaterSpreadAmount(Atmosphere a, Atmosphere b){
-        int waterAmountDiff = a.getWaterAmount()-b.getWaterAmount();
+        int waterAmountDiff = a.get水量()-b.get水量();
         if(waterAmountDiff == 0) return 0;
         return (int) (waterAmountDiff*0.1);
     }

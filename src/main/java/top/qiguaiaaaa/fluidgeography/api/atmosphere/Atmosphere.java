@@ -7,6 +7,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.NoiseGeneratorPerlin;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.listener.IAtmosphereListener;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereProperty;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.AtmosphereStates;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.IAtmosphereState;
 
 import java.util.Random;
@@ -14,56 +15,73 @@ import java.util.Set;
 
 public interface Atmosphere {
     NoiseGeneratorPerlin TEMPERATURE_NOISE = new NoiseGeneratorPerlin(new Random(1234L), 1);
+
+    /**
+     * 大气初始化
+     * @param chunk 大气所在区块
+     * @param info 大气世界信息
+     */
     void initialise(Chunk chunk, AtmosphereWorldInfo info);
 
     //******************
     // Getter And Setter
     //******************
-    boolean addWaterAmount(int addAmount);
+    boolean add水量(int addAmount);
 
-    void addTemperature(double temp);
+    void add低层大气温度(double temp);
 
-    void addHeatQuantity(double Q);
+    void add地表温度(double temp);
 
+    void add低层大气热量(double Q);
+    void add地表热量(double Q);
+
+    /**
+     * 增加大气监听器
+     * @param listener 一个监听器
+     */
     void addListener(IAtmosphereListener listener);
 
+    /**
+     * 移除指定的监听器
+     * @param listener 指定监听器
+     */
     void removeListener(IAtmosphereListener listener);
 
-    void setWaterAmount(int waterAmount);
+    void set水量(int waterAmount);
 
-    void setTemperature(float temperature);
+    void set低层大气温度(float temperature);
+    void set地表温度(float temperature);
 
     void setAtmosphereWorldInfo(AtmosphereWorldInfo worldInfo);
 
-    void resetTemperature(Chunk chunk);
+    void 重置温度(Chunk chunk);
 
     Vec3d getWindSpeed(EnumFacing direction);
 
-    Vec3d getWindSpeed(BlockPos pos);
-
     AtmosphereWorldInfo getAtmosphereWorldInfo();
 
-    long getTickTimes();
+    long get低层大气热容();
 
-    long getHeatCapacity();
-
+    /**
+     * 返回降雨强度,应当介于0~100之间
+     * @return 表示降雨强度的值
+     */
     double getRainStrong();
 
-    Underlying getUnderlying();
+    Underlying get下垫面();
 
-    int getWaterAmount();
+    int get水量();
 
-    float getTemperature();
+    float get低层大气温度();
 
-    float getTemperature(BlockPos pos);
-
-    float getTemperatureBase(Chunk chunk);
+    float get温度(BlockPos pos,boolean isAir);
+    float get地表温度();
 
     Set<IAtmosphereListener> getListeners();
 
-    <T extends IAtmosphereState> T getState(AtmosphereProperty property);
+    AtmosphereStates getStates();
 
-    IAtmosphereState createState(AtmosphereProperty property);
 
     boolean isInitialised();
+    long tickTime();
 }

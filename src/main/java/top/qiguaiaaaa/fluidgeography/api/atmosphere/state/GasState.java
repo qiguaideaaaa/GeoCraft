@@ -14,7 +14,7 @@ import javax.annotation.Nullable;
 
 public abstract class GasState implements IAtmosphereState, IFluidHandler {
     protected final Fluid gas;
-    protected int amount = 0;
+    protected int amount;
     public GasState(Fluid fluid, int amount){
         this.gas = fluid;
         this.amount = amount;
@@ -35,12 +35,13 @@ public abstract class GasState implements IAtmosphereState, IFluidHandler {
         return amount;
     }
 
+    /**
+     * 获取气体对应的Forge流体
+     * @return Forge流体
+     */
     public Fluid getGas() {
         return gas;
     }
-
-    @Override
-    public void onUpdate(Atmosphere atmosphere, Chunk chunk) {}
 
     @Override
     public NBTBase serializeNBT() {

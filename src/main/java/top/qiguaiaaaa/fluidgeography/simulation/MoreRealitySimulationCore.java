@@ -32,8 +32,8 @@ public class MoreRealitySimulationCore {
             return state;
         }
         if(meta >=8) return null;
-        if(!atmosphere.addWaterAmount(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME)) return state;
-        atmosphere.addHeatQuantity(-(AtmosphereUtil.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA));
+        if(!atmosphere.add水量(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME)) return state;
+        atmosphere.add低层大气热量(-(AtmosphereUtil.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA));
         if(meta == 7) return null;
         state = state.withProperty(LEVEL,meta+1);
         return state;
@@ -58,7 +58,7 @@ public class MoreRealitySimulationCore {
         }
         if(!AtmosphereUtil.canPlaceSnow(world,pos)) return state;
         int quanta = 8-meta;
-        atmosphere.addHeatQuantity(AtmosphereUtil.WATER_MELT_LATENT_HEAT_PER_QUANTA*quanta);
+        atmosphere.add低层大气热量(AtmosphereUtil.WATER_MELT_LATENT_HEAT_PER_QUANTA*quanta);
         return Blocks.SNOW_LAYER.getDefaultState().withProperty(BlockSnow.LAYERS,quanta);
     }
 
@@ -99,8 +99,8 @@ public class MoreRealitySimulationCore {
     public static boolean canRainAt(World world,BlockPos pos){
         Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world, pos);
         if(atmosphere == null) return false;
-        if(atmosphere.getWaterAmount()<FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME) return false;
-        float temp = atmosphere.getTemperature(pos);
+        if(atmosphere.get水量()<FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME) return false;
+        float temp = atmosphere.get温度(pos,true);
         if (!(temp < AtmosphereTemperature.ICE_POINT) && !(temp > AtmosphereTemperature.BOILED_POINT)) {
             if (pos.getY() >= 0 && pos.getY() < 256) {
                 IBlockState state = world.getBlockState(pos);

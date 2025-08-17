@@ -14,7 +14,7 @@ public class WaterTracker extends InformationLoggingTracker{
 
     @Override
     public void notifyListener(Atmosphere atmosphere) {
-        String msg = String.format("%d,%d",atmosphere.getAtmosphereWorldInfo().getWorld().getTotalWorldTime(),atmosphere.getWaterAmount());
+        String msg = String.format("%d,%d",atmosphere.getAtmosphereWorldInfo().getWorld().getTotalWorldTime(),atmosphere.get水量());
         logger.println(msg);
         FGInfo.getLogger().info("track atmosphere water ({} mB)",msg);
         nowTime++;

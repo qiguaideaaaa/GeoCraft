@@ -6,8 +6,8 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.registries.IForgeRegistry;
 import top.qiguaiaaaa.fluidgeography.api.FGAtmosphereProperties;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.*;
-import top.qiguaiaaaa.fluidgeography.atmosphere.LowerAtmosphere;
-import top.qiguaiaaaa.fluidgeography.atmosphere.LowerAtmosphereStorage;
+import top.qiguaiaaaa.fluidgeography.atmosphere.DefaultAtmosphere;
+import top.qiguaiaaaa.fluidgeography.atmosphere.DefaultAtmosphereStorage;
 import top.qiguaiaaaa.fluidgeography.api.configs.SimulationConfig;
 import top.qiguaiaaaa.fluidgeography.api.event.EventFactory;
 import top.qiguaiaaaa.fluidgeography.api.simulation.SimulationMode;
@@ -15,10 +15,12 @@ import top.qiguaiaaaa.fluidgeography.api.simulation.SimulationMode;
 public final class RegistryHandler {
     public static void registerAtmosphereProperties(RegistryEvent.Register<AtmosphereProperty> event){
         IForgeRegistry<AtmosphereProperty> registry =event.getRegistry();
+        registry.register(GroundTemperature.GROUND_TEMPERATURE);
         registry.register(AtmosphereTemperature.TEMPERATURE);
         registry.register(AtmosphereWater.WATER);
         registry.register(AtmosphereCarbonDioxide.CARBON_DIOXIDE);
 
+        FGAtmosphereProperties.GROUND_TEMPERATURE = GroundTemperature.GROUND_TEMPERATURE;
         FGAtmosphereProperties.TEMPERATURE = AtmosphereTemperature.TEMPERATURE;
         FGAtmosphereProperties.WATER = AtmosphereWater.WATER;
     }
@@ -56,6 +58,6 @@ public final class RegistryHandler {
         EventFactory.EVENT_BUS.register(handler);
     }
     public static void registerCapability(){
-        CapabilityManager.INSTANCE.register(LowerAtmosphere.class,new LowerAtmosphereStorage(), LowerAtmosphere::new);
+        CapabilityManager.INSTANCE.register(DefaultAtmosphere.class,new DefaultAtmosphereStorage(), DefaultAtmosphere::new);
     }
 }

@@ -113,7 +113,7 @@ public final class AtmosphereConfig {
     public static final ConfigItem<ConfigInteger> DEFAULT_UNDERLYING_EMISSIVITY = new ConfigItem<>(CATEGORY_ATMOSPHERE,
             "underlyingDefaultEmissivity",new ConfigInteger(86),"下垫面默认发射率");
     public static final ConfigItem<ConfigDouble> GROUND_RADIATION_LOSS_RATE = new ConfigItem<>(CATEGORY_ATMOSPHERE,"radiationLossRate",
-            new ConfigDouble(0.101),"地表因热辐射直接射向宇宙空间而损失的热量的比例，默认为0.17");
+            new ConfigDouble(0.5),"地表热辐射损失的系数，默认为0.5");
     public static final ConfigItem<ConfigBoolean> ALLOW_CAULDRON_GET_INFINITE_WATER = new ConfigItem<>(CATEGORY_ATMOSPHERE,"allowCauldronGetInfiniteWater",
             new ConfigBoolean(false),"是否允许炼药锅接无限量的水，即在接水时不会消耗大气水");
     public static final ConfigItem<ConfigInteger> ATMOSPHERE_UNDERLYING_RECALCULATE_GAP = new ConfigItem<>(CATEGORY_ATMOSPHERE,

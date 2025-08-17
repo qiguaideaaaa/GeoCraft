@@ -19,8 +19,8 @@ public class VanillaSimulationCore {
         if(!BaseUtil.getRandomResult(rand,AtmosphereUtil.getWaterEvaporatePossibility(atmosphere))){
             return;
         }
-        if(!atmosphere.addWaterAmount(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME)) return;
-        atmosphere.addHeatQuantity(-(AtmosphereUtil.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA));
+        if(!atmosphere.add水量(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME)) return;
+        atmosphere.add低层大气热量(-(AtmosphereUtil.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA));
     }
 
 }

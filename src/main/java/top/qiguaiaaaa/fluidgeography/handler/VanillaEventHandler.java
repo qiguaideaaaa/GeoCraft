@@ -28,7 +28,7 @@ public final class VanillaEventHandler {
         World world = event.getWorld();
         BlockPos randPos = event.getRandPos();
         if (AtmosphereUtil.canSnowAt(world,randPos, true)) {
-            if(atmosphere.addWaterAmount(-FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME)){
+            if(atmosphere.add水量(-FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME)){
                 event.setResult(Event.Result.ALLOW);
                 event.setState(Blocks.SNOW_LAYER.getDefaultState());
             }

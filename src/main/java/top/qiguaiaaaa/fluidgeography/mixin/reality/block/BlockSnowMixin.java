@@ -65,10 +65,10 @@ public class BlockSnowMixin {
         }
         if(worldIn.getLightFor(EnumSkyBlock.SKY,pos) == 0) return;
         if(atmosphere == null) return;
-        float temp = atmosphere.getTemperature(pos);
+        float temp = atmosphere.get温度(pos,false);
         if(temp > AtmosphereTemperature.ICE_POINT){
             this.turnIntoWater(worldIn,pos,atmosphere,8-layer);
-            atmosphere.addHeatQuantity(-(AtmosphereUtil.WATER_MELT_LATENT_HEAT_PER_QUANTA*layer));
+            atmosphere.add低层大气热量(-(AtmosphereUtil.WATER_MELT_LATENT_HEAT_PER_QUANTA*layer));
         }
     }
     protected boolean tryFallDown(World world,BlockPos pos,IBlockState state){
@@ -95,7 +95,7 @@ public class BlockSnowMixin {
     protected void turnIntoWater(World worldIn, BlockPos pos, @Nullable Atmosphere atmosphere, int level) {
         if (worldIn.provider.doesWaterVaporize()) {
             if(atmosphere != null){
-                atmosphere.addWaterAmount((8-level)* FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME);
+                atmosphere.add水量((8-level)* FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME);
             }
             worldIn.setBlockToAir(pos);
         } else {

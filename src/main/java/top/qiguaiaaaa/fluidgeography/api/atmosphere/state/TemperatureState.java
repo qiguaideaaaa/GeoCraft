@@ -31,23 +31,21 @@ public class TemperatureState extends AbstractTemperatureState {
     @Override
     public void onUpdate(Atmosphere atmosphere, Chunk chunk){
         if(atmosphere.getAtmosphereWorldInfo().isTemperatureConstant()) return;
-        double temperatureChange = getTemperatureChange(atmosphere.getAtmosphereWorldInfo().getWorld(),atmosphere,atmosphere.getUnderlying());
-        this.addTemperature(temperatureChange);
+        double temperatureChange = getTemperatureChange(atmosphere.getAtmosphereWorldInfo().getWorld(),atmosphere,atmosphere.get下垫面());
+        this.add(temperatureChange);
     }
-
+    @Deprecated
     public static double getTemperatureChange(WorldServer world, Atmosphere atmosphere, Underlying underlying){
         WorldInfo worldInfo = world.getWorldInfo();
-        double cloudInsulationEffect = getCloudInsulationEffect(atmosphere,worldInfo);
-        double receiveQ = getSunEnergyPerChunk(worldInfo)*(1-underlying.averageReflectivity)*cloudInsulationEffect
+        double cloudInsulationEffect = get大气透过率(atmosphere,worldInfo);
+        double receiveQ = getSunEnergyPerChunk(worldInfo)*(1-underlying.平均返照率)*cloudInsulationEffect
                 - getHeatEnergyRadiationLoss(atmosphere,cloudInsulationEffect);
-        return receiveQ/atmosphere.getHeatCapacity();
+        return receiveQ/(atmosphere.get低层大气热容()+underlying.热容);
     }
-    public void recalculate(Chunk chunk , Underlying underlying){
-        this.setTemperature(calculateBaseTemperature(chunk,underlying));
-    }
+
     public static float calculateBaseTemperature(Chunk chunk , Underlying underlying){
         Biome mainBiome = ChunkUtil.getMainBiome(chunk);
-        float biomeTemp = mainBiome.getTemperature(new BlockPos((chunk.x<<4)+8, underlying.getAverageHeight(),(chunk.z<<4)+8));
+        float biomeTemp = mainBiome.getTemperature(new BlockPos((chunk.x<<4)+8, underlying.get地面平均海拔().get(),(chunk.z<<4)+8));
         if(biomeTemp <= 0.15){
             return AtmosphereTemperature.ICE_POINT +(biomeTemp*TEMPERATURE_MULTI)-TEMPERATURE_TRANSFER_OFFSET-10;
         }else{

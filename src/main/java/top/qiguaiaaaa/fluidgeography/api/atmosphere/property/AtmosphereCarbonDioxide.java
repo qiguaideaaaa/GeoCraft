@@ -13,6 +13,7 @@ public class AtmosphereCarbonDioxide extends AtmosphereProperty{
     public static final AtmosphereCarbonDioxide CARBON_DIOXIDE = new AtmosphereCarbonDioxide();
 
     protected AtmosphereCarbonDioxide(){
+        super(false,true);
         setRegistryName(new ResourceLocation(FGInfo.getModId(),"carbon_dioxide"));
     }
 

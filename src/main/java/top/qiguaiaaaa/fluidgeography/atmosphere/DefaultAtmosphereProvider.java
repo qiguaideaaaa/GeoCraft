@@ -8,13 +8,13 @@ import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class LowerAtmosphereProvider implements ICapabilitySerializable<NBTTagCompound> {
-    private final LowerAtmosphere instance;
-    private final Capability<LowerAtmosphere> capability;
+public class DefaultAtmosphereProvider implements ICapabilitySerializable<NBTTagCompound> {
+    private final DefaultAtmosphere instance;
+    private final Capability<DefaultAtmosphere> capability;
 
-    public LowerAtmosphereProvider() {
-        this.instance = new LowerAtmosphere();
-        this.capability = LowerAtmosphere.LOWER_ATMOSPHERE;
+    public DefaultAtmosphereProvider() {
+        this.instance = new DefaultAtmosphere();
+        this.capability = DefaultAtmosphere.LOWER_ATMOSPHERE;
     }
 
     @Override

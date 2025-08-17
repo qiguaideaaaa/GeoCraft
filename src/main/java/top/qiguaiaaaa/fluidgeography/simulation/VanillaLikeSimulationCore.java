@@ -27,8 +27,8 @@ public class VanillaLikeSimulationCore {
         if(!world.isAreaLoaded(pos,1)) return false;
         Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world,pos);
         if(atmosphere == null) return false;
-        if(atmosphere.getWaterAmount()< Fluid.BUCKET_VOLUME) return false;
-        float temp = atmosphere.getTemperature(pos);
+        if(atmosphere.get水量()< Fluid.BUCKET_VOLUME) return false;
+        float temp = atmosphere.get温度(pos,true);
         if (!(temp < AtmosphereTemperature.ICE_POINT) && !(temp > AtmosphereTemperature.BOILED_POINT)) {
             IBlockState state = world.getBlockState(pos);
             if(FluidUtil.getFluid(state) != FluidRegistry.WATER) return false;
