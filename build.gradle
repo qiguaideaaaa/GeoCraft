@@ -26,12 +26,12 @@ archivesBaseName = 'fluidgeography'
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
 ext {
-    profile = project['env']
+   // profile = project['env']
 }
 
 def loadGroovyConfig(){
     def configFile = file('config.groovy')
-    new ConfigSlurper(profile).parse(configFile.toURL()).toProperties()
+   // new ConfigSlurper(profile).parse(configFile.toURL()).toProperties()
 }
 
 processResources {

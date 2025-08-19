@@ -8,11 +8,11 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.util.INBTSerializable;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereStates;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Underlying;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.*;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.*;
 import top.qiguaiaaaa.fluidgeography.api.event.EventFactory;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.listener.IAtmosphereListener;
 import top.qiguaiaaaa.fluidgeography.api.util.ChunkUtil;
@@ -45,7 +45,7 @@ public class DefaultAtmosphere implements INBTSerializable<NBTTagCompound>, Atmo
     @Override
     public void initialise(Chunk chunk, AtmosphereWorldInfo info){
         this.setAtmosphereWorldInfo(info);
-        this.states.set下垫面(ChunkUtil.getUnderlying(chunk, states.get下垫面().get地面平均海拔()));
+        this.states.set下垫面(Underlying.getUnderlying(chunk, states.get下垫面().get地面平均海拔()));
 
         this.states.get下垫面().更新平均海拔(chunk,info);
 

@@ -13,19 +13,11 @@ import net.minecraft.world.storage.WorldInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereSystemManager;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Underlying;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereTemperature;
-import top.qiguaiaaaa.fluidgeography.api.configs.AtmosphereConfig;
-import top.qiguaiaaaa.fluidgeography.api.util.math.Altitude;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.TemperatureProperty;
 
 public final class AtmosphereUtil {
-    public static final int SUN_CONSTANT = 1361;
-    public static final double 每大气刻损失能量常数 = 5.67*(Math.pow(10,-8))*256*216;
-    public static final double 每大气刻单位区块获得能量 = SUN_CONSTANT *256*216;
-    public static final int WATER_MELT_LATENT_HEAT_PER_QUANTA = 41750000;
-    public static final int WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA = 283250000;
-    public static final double WATER_MOLAR_MASS = 0.01801528;
     public static double getSunEnergyPerChunk(WorldInfo worldInfo){
-        return Math.sin(getSunHeight(worldInfo))* 每大气刻单位区块获得能量;
+        return Math.sin(getSunHeight(worldInfo))* FinalFactors.每大气刻单位区块获得能量;
     }
     /**
      * 获取太阳高度角
@@ -44,116 +36,18 @@ public final class AtmosphereUtil {
     public static double getSunHeightDegree(WorldInfo worldInfo){
         return getSunHeight(worldInfo)/Math.PI*180;
     }
-    public static double getHeatEnergyRadiationLoss(Atmosphere atmosphere,double 太阳辐射透过率){
-        Underlying underlying = atmosphere.get下垫面();
-        double groundRadiation = 每大气刻损失能量常数 *Math.pow(atmosphere.get低层大气温度(),4) *underlying.平均发射率;
-//        double 地面温度 = atmosphere.get地表温度();
-//
-//        // 地面长波辐射 (W/m²)
-//        double 地面长波辐射 = 每大气刻损失能量常数 * Math.pow(地面温度, 4) * underlying.平均发射率;
-//
-//        // 云层和大气的回辐射 (假设低层温度代表云温)
-//        double 低层大气温度 = atmosphere.get低层大气温度();
-//        double 云层发射率 = 1-太阳辐射透过率;
-//        double 云层回辐射 = 每大气刻损失能量常数 * Math.pow(低层大气温度, 4) * 云层发射率;
-//
-//        // 大气回辐射（晴天时主要来源）
-//        double 大气发射率 = get大气发射率(atmosphere);
-//        double 大气回辐射 = 每大气刻损失能量常数 * Math.pow(低层大气温度, 4) * 大气发射率 * (1.0 - 云层发射率);
-//
-//        // 地面净辐射损失 = 地面辐射 - (云回辐射 + 大气回辐射)
-//        double 地面净辐射损失 = 地面长波辐射 - (云层回辐射 + 大气回辐射);
-//
-//        // 地面辐射损失率系数（游戏调参用）
-//        double 地面辐射损失系数 = AtmosphereConfig.GROUND_RADIATION_LOSS_RATE.getValue().value;
-//
-//        return 地面净辐射损失 * 地面辐射损失系数;
-        return (groundRadiation *AtmosphereConfig.GROUND_RADIATION_LOSS_RATE.getValue().value
-                +groundRadiation*(1 - AtmosphereConfig.GROUND_RADIATION_LOSS_RATE.getValue().value)*get大气发射率(atmosphere)*0.4)
-                *太阳辐射透过率;
-    }
-
-    /**
-     * 获取大气发射率
-     */
-    public static double get大气发射率(Atmosphere atmosphere){
-        double 水汽压 = get大气水汽压(atmosphere)*0.01; // hPa
-        double 云量 = 1- get大气透过率(atmosphere,atmosphere.getAtmosphereWorldInfo().getWorld().getWorldInfo());
-        double 海拔 = atmosphere.get下垫面().get地面平均海拔().get物理海拔();
-
-        // 基础发射率
-        double 发射率 = 0.74 + 0.0049 * 水汽压;
-
-        // 云修正
-        发射率 *= (1 + 0.22 * 云量);
-
-        // 海拔修正
-        double 尺度高度 = 8000.0;
-        double 海拔因子 = Math.exp(-海拔 / 尺度高度);
-        发射率 *= 海拔因子;
-
-        // 限制范围
-        return MathHelper.clamp(发射率, 0.01, 1.0);
-        //return MathHelper.clamp(0.75*Math.pow((get大气水汽压(atmosphere)*0.01)/atmosphere.get低层大气温度(),0.166),0.01,1.0);
-    }
 
     /**
      * 获得大气水汽压
      * @return 大气水汽压，单位帕 Pa
      */
     public static double get大气水汽压(Atmosphere atmosphere){
-        return atmosphere.get水量()*FinalFactors.气体常数*atmosphere.get低层大气温度()/(WATER_MOLAR_MASS*256*getAtmosphereHeight(atmosphere.get下垫面()));
+        return atmosphere.get水量()*FinalFactors.气体常数*atmosphere.get低层大气温度()/(FinalFactors.WATER_MOLAR_MASS*256*getAtmosphereHeight(atmosphere.get下垫面()));
     }
     public static double getAtmosphereHeight(Underlying underlying){
         return FinalFactors.对流层顶海拔-underlying.get地面平均海拔().get物理海拔();
     }
-    public static double getWaterEvaporatePossibility(Atmosphere atmosphere){
-        if(atmosphere.get低层大气温度()>= AtmosphereTemperature.BOILED_POINT) return 1;
-        double possibility = 1.0d;
-        possibility *= Math.pow(1.07,atmosphere.get低层大气温度() - AtmosphereTemperature.ICE_POINT)/Math.pow(1.07,100);
-        possibility *= Math.sqrt(1-Math.pow(atmosphere.get水量()/1024.0,2)/1000.0);
-        possibility *= 0.5;
-        return possibility;
-    }
-    public static double getRainPossibility(Atmosphere atmosphere, BlockPos pos){
-        float temp = atmosphere.get温度(pos,true);
-        if(temp>= AtmosphereTemperature.BOILED_POINT) return 0;
-        if(temp<= AtmosphereTemperature.ICE_POINT-100) return 1;
-        double strong = atmosphere.getRainStrong();
-        return strong/(strong+16384);
-    }
 
-    /**
-     * 获得大气透过率
-     * @param atmosphere 大气
-     * @param worldInfo 世界信息
-     * @return 大气透过率，云越薄越趋近于1
-     */
-    public static double get大气透过率(Atmosphere atmosphere, WorldInfo worldInfo) {
-        double strong = atmosphere.getRainStrong(); // 0 = 无云, ~100 = 极强降雨
-        double sunHeight = getSunHeight(worldInfo);
-
-        double sunSin = Math.sin(sunHeight);
-        sunSin = Math.max(sunSin, 0.0001); // 避免日出日落趋近于0
-
-        // 基础光学厚度（云量贡献）
-        // 在无雨时, strong=0 → τ接近0, 在大雨时 τ很大
-        double 云量贡献;
-        if (worldInfo.isRaining()) {
-            云量贡献 = 0.3 + (strong / (strong + 5.0)) * 3.0; // 厚云 + 雨滴
-        } else {
-            云量贡献 = (strong / (strong + 30.0)) * 2.0; // 稀薄云层
-        }
-
-        // 路径长度修正: 太阳越低，光路径越长 → 削弱更多
-        double pathFactor = 1.0 / sunSin;
-
-        // Beer–Lambert 定律: 透过率 = exp(-τ * 路径系数)
-        double transmittance = Math.exp(-云量贡献 * pathFactor);
-
-        // 限制范围在 [0,1]
-        return Math.max(0.0, Math.min(1.0, transmittance));
-    }
     public static double get低层大气密度(double 物理海拔) {
         if (物理海拔 < 0) 物理海拔 = 0;
         if (物理海拔 > 11000) 物理海拔 = 11000;
@@ -180,13 +74,6 @@ public final class AtmosphereUtil {
         return MathHelper.clamp(f, 0.0, 1.0);
     }
 
-    public static float getFreezePossibility(Atmosphere atmosphere, BlockPos pos){
-        float temp = atmosphere.get温度(pos,false);
-        if(temp>= AtmosphereTemperature.ICE_POINT) return 0;
-        if(temp< AtmosphereTemperature.ICE_POINT-100) return 1;
-        float diff = AtmosphereTemperature.ICE_POINT-temp;
-        return (diff/100)*0.94f+0.06f;
-    }
     public static boolean isWater(World world, BlockPos pos) {
         return world.getBlockState(pos).getMaterial() == Material.WATER;
     }
@@ -215,7 +102,7 @@ public final class AtmosphereUtil {
         Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world, pos);
         if(atmosphere == null) return world.canSnowAtBody(pos,checkLight);
         if(atmosphere.get水量()< FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME) return false;
-        if (atmosphere.get温度(pos,true) >= AtmosphereTemperature.ICE_POINT) {
+        if (atmosphere.get温度(pos,true) >= TemperatureProperty.ICE_POINT) {
             return false;
         } else if (!checkLight) {
             return true;
@@ -241,7 +128,7 @@ public final class AtmosphereUtil {
         Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world, pos);
         if(atmosphere == null) return world.canBlockFreezeBody(pos,neighborWaterCheck);
 
-        if (atmosphere.get温度(pos,false) < AtmosphereTemperature.ICE_POINT) {
+        if (atmosphere.get温度(pos,false) < TemperatureProperty.ICE_POINT) {
             if (pos.getY() < 0 || pos.getY() >= 256)
                 return false;
             IBlockState state = world.getBlockState(pos);
@@ -261,13 +148,17 @@ public final class AtmosphereUtil {
         return false;
     }
     public static final class FinalFactors {
-        public static final int 对流层顶海拔 =17000;
-        public static final double 斯特藩_玻尔兹曼常数 = 5.670374419e-8; // 斯特藩-玻尔兹曼常数 W·m^-2·K^-4
-        public static final double 低层大气厚度 = 2000.0;
         public static final double 大气单元边长 = 16.0;
-        public static final double 大气单元底面积 = 大气单元边长 * 大气单元边长; // 256 m²
-        public static final double 低层大气单元体积 = 低层大气厚度 * 大气单元底面积; // 2000*16*16
-
+        public static final double 大气单元底面积 = 大气单元边长 * 大气单元边长;
+        public static final double 低层大气厚度 = 2000.0;
+        public static final double 低层大气单元体积 = 低层大气厚度 * 大气单元底面积;
+        public static final int 对流层顶海拔 =17000;
+        public static final int 太阳常数 = 1361;
+        public static final double 斯特藩_玻尔兹曼常数 = 5.670374419e-8; // 斯特藩-玻尔兹曼常数 W·m^-2·K^-4
+        public static final double 每大气刻单位区块获得能量 = 太阳常数 *大气单元底面积*216;
+        public static final double 每大气刻损失能量常数 = 斯特藩_玻尔兹曼常数*大气单元底面积*216;
+        public static final int WATER_MELT_LATENT_HEAT_PER_QUANTA = 41750000;
+        public static final int WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA = 283250000;
         // 质量吸收系数
         public static final double κ_低层 = 1.6e-4;   // m²/kg
         public static final double κ_高层 = 8.0e-5;   // m²/kg
@@ -283,5 +174,7 @@ public final class AtmosphereUtil {
         public static final double 气体常数  = 8.314462618;  // FE/(mol·K)
         public static final double 干空气比热容 = 287; // FE/(kg·K)
         public static final double 干空气摩尔质量 = 0.0289644;    // kg/mol
+        public static final double WATER_MOLAR_MASS = 0.01801528;
+
     }
 }

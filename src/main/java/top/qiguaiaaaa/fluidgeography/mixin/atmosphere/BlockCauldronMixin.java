@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereSystemManager;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereTemperature;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.TemperatureProperty;
 import top.qiguaiaaaa.fluidgeography.api.configs.AtmosphereConfig;
 
 @Mixin(value = BlockCauldron.class)
@@ -27,7 +27,7 @@ public class BlockCauldronMixin {
         if(atmosphere.get水量() <333) return;
         float temp = atmosphere.get温度(pos,true);
 
-        if (temp< AtmosphereTemperature.ICE_POINT) return;
+        if (temp< TemperatureProperty.ICE_POINT) return;
 
         IBlockState iblockstate = worldIn.getBlockState(pos);
         if (iblockstate.getValue(BlockCauldron.LEVEL) < 3) {

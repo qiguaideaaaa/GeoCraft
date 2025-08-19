@@ -1,55 +1,47 @@
 package top.qiguaiaaaa.fluidgeography.api.atmosphere.state;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldServer;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.storage.WorldInfo;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.Underlying;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereTemperature;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereProperty;
-import top.qiguaiaaaa.fluidgeography.api.util.ChunkUtil;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTPrimitive;
+import net.minecraft.nbt.NBTTagFloat;
 
-import static top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil.*;
-
-public class TemperatureState extends AbstractTemperatureState {
-    protected static final int TEMPERATURE_MULTI = 30;
-    protected static final int TEMPERATURE_TRANSFER_OFFSET = 3;
+public abstract class TemperatureState implements IAtmosphereState{
+    protected float temperature;
     public TemperatureState(float temp){
-        super(temp);
+        this.temperature = temp;
     }
-    @Override
-    public AtmosphereProperty getProperty() {
-        return AtmosphereTemperature.TEMPERATURE;
+
+    public float get() {
+        return temperature;
+    }
+
+    public void set(float temperature) {
+        if(temperature <0) temperature = 0;
+        this.temperature = temperature;
+    }
+    public void set(TemperatureState temp){
+        this.temperature = temp.temperature;
+    }
+
+    public void add(double temp){
+        this.temperature += temp;
+        if(temperature<0) temperature = 0;
+    }
+
+    public void add热量(double Q, long 热容){
+        double tempChange = Q/热容;
+        this.add(tempChange);
     }
 
     @Override
-    public String getNBTTagKey() {
-        return "temp";
-    }
-    @Override
-    public void onUpdate(Atmosphere atmosphere, Chunk chunk){
-        if(atmosphere.getAtmosphereWorldInfo().isTemperatureConstant()) return;
-        double temperatureChange = getTemperatureChange(atmosphere.getAtmosphereWorldInfo().getWorld(),atmosphere,atmosphere.get下垫面());
-        this.add(temperatureChange);
-    }
-    @Deprecated
-    public static double getTemperatureChange(WorldServer world, Atmosphere atmosphere, Underlying underlying){
-        WorldInfo worldInfo = world.getWorldInfo();
-        double cloudInsulationEffect = get大气透过率(atmosphere,worldInfo);
-        double receiveQ = getSunEnergyPerChunk(worldInfo)*(1-underlying.平均返照率)*cloudInsulationEffect
-                - getHeatEnergyRadiationLoss(atmosphere,cloudInsulationEffect);
-        return receiveQ/(atmosphere.get低层大气热容()+underlying.热容);
+    public NBTTagFloat serializeNBT() {
+        return new NBTTagFloat(temperature);
     }
 
-    public static float calculateBaseTemperature(Chunk chunk , Underlying underlying){
-        Biome mainBiome = ChunkUtil.getMainBiome(chunk);
-        float biomeTemp = mainBiome.getTemperature(new BlockPos((chunk.x<<4)+8, underlying.get地面平均海拔().get(),(chunk.z<<4)+8));
-        if(biomeTemp <= 0.15){
-            return AtmosphereTemperature.ICE_POINT +(biomeTemp*TEMPERATURE_MULTI)-TEMPERATURE_TRANSFER_OFFSET-10;
-        }else{
-            return AtmosphereTemperature.ICE_POINT +(biomeTemp*TEMPERATURE_MULTI)-TEMPERATURE_TRANSFER_OFFSET;
+    @Override
+    public void deserializeNBT(NBTBase nbt) {
+        if(nbt instanceof NBTPrimitive){
+            this.temperature = ((NBTPrimitive) nbt).getFloat();
         }
     }
+
 }

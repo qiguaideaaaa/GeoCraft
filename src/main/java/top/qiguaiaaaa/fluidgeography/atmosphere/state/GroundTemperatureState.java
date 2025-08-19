@@ -1,11 +1,10 @@
-package top.qiguaiaaaa.fluidgeography.api.atmosphere.state;
+package top.qiguaiaaaa.fluidgeography.atmosphere.state;
 
-import net.minecraft.world.chunk.Chunk;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereProperty;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.GroundTemperature;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.TemperatureState;
+import top.qiguaiaaaa.fluidgeography.atmosphere.property.GroundTemperature;
 
-public class GroundTemperatureState extends AbstractTemperatureState{
+public class GroundTemperatureState extends TemperatureState {
     public GroundTemperatureState(float temp) {
         super(temp);
     }

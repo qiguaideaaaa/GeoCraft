@@ -10,7 +10,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.BlockFluidFinite;
 import net.minecraftforge.fluids.Fluid;
-import top.qiguaiaaaa.fluidgeography.api.util.FlowChoice;
+import top.qiguaiaaaa.fluidgeography.api.util.math.FlowChoice;
 import top.qiguaiaaaa.fluidgeography.util.FluidOperationUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.FluidUtil;
 

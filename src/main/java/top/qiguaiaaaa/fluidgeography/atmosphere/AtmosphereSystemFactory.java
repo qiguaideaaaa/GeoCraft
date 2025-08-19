@@ -10,7 +10,6 @@ import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereWorldType;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.IAtmosphereSystem;
 import top.qiguaiaaaa.fluidgeography.api.configs.AtmosphereConfig;
-import top.qiguaiaaaa.fluidgeography.atmosphere.model.DefaultAtmosphereModel;
 import top.qiguaiaaaa.fluidgeography.atmosphere.model.NewAtmosphereModel;
 
 import javax.annotation.Nullable;

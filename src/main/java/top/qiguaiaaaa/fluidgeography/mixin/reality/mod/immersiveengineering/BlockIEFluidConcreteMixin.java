@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import top.qiguaiaaaa.fluidgeography.util.FluidOperationUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.FluidUtil;
 import top.qiguaiaaaa.fluidgeography.mixin.common.BlockFluidBaseAccessor;
-import top.qiguaiaaaa.fluidgeography.api.util.FlowChoice;
+import top.qiguaiaaaa.fluidgeography.api.util.math.FlowChoice;
 import top.qiguaiaaaa.fluidgeography.util.mixinapi.IMoreRealityBlockFluidBase;
 
 import java.util.*;

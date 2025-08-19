@@ -7,7 +7,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.capability.wrappers.FluidBlockWrapper;
 import top.qiguaiaaaa.fluidgeography.api.util.FluidUtil;
-import top.qiguaiaaaa.fluidgeography.api.util.FlowChoice;
+import top.qiguaiaaaa.fluidgeography.api.util.math.FlowChoice;
 
 import java.util.ArrayList;
 import java.util.Comparator;

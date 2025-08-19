@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.fluidgeography.api.atmosphere.property;
+package top.qiguaiaaaa.fluidgeography.atmosphere.property;
 
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
@@ -6,15 +6,14 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.Chunk;
 import top.qiguaiaaaa.fluidgeography.api.FGInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.TemperatureState;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.TemperatureProperty;
+import top.qiguaiaaaa.fluidgeography.atmosphere.state.LowerAtmosphereTemperatureState;
 import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
 
-public class AtmosphereTemperature extends AtmosphereProperty {
-    public static final AtmosphereTemperature TEMPERATURE = new AtmosphereTemperature();
-    public static final int BOILED_POINT = 373;
-    public static final int ICE_POINT = 273;
+public class LowerAtmosphereTemperature extends TemperatureProperty {
+    public static final LowerAtmosphereTemperature TEMPERATURE = new LowerAtmosphereTemperature();
 
-    protected AtmosphereTemperature(){
+    protected LowerAtmosphereTemperature(){
         super(true,true);
         setRegistryName(new ResourceLocation(FGInfo.getModId(),"temperature"));
     }
@@ -40,8 +39,8 @@ public class AtmosphereTemperature extends AtmosphereProperty {
     }
 
     @Override
-    public TemperatureState getStateInstance() {
-        return new TemperatureState(-100);
+    public LowerAtmosphereTemperatureState getStateInstance() {
+        return new LowerAtmosphereTemperatureState(-100);
     }
 
     /**

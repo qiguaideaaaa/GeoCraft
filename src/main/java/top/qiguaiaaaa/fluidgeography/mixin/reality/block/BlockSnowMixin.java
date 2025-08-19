@@ -18,9 +18,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereSystemManager;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.TemperatureProperty;
 import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.FluidUtil;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereTemperature;
 
 import javax.annotation.Nullable;
 import java.util.Random;
@@ -66,9 +66,9 @@ public class BlockSnowMixin {
         if(worldIn.getLightFor(EnumSkyBlock.SKY,pos) == 0) return;
         if(atmosphere == null) return;
         float temp = atmosphere.get温度(pos,false);
-        if(temp > AtmosphereTemperature.ICE_POINT){
+        if(temp > TemperatureProperty.ICE_POINT){
             this.turnIntoWater(worldIn,pos,atmosphere,8-layer);
-            atmosphere.add低层大气热量(-(AtmosphereUtil.WATER_MELT_LATENT_HEAT_PER_QUANTA*layer));
+            atmosphere.add低层大气热量(-(AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA*layer));
         }
     }
     protected boolean tryFallDown(World world,BlockPos pos,IBlockState state){

@@ -1,10 +1,11 @@
-package top.qiguaiaaaa.fluidgeography.api.atmosphere.property;
+package top.qiguaiaaaa.fluidgeography.atmosphere.property;
 
 import net.minecraft.util.ResourceLocation;
 import top.qiguaiaaaa.fluidgeography.api.FGInfo;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.GroundTemperatureState;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.TemperatureProperty;
+import top.qiguaiaaaa.fluidgeography.atmosphere.state.GroundTemperatureState;
 
-public class GroundTemperature extends AtmosphereProperty{
+public class GroundTemperature extends TemperatureProperty {
     public static final GroundTemperature GROUND_TEMPERATURE = new GroundTemperature();
 
     public GroundTemperature() {

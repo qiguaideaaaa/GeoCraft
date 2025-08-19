@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereSystemManager;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.TemperatureProperty;
 import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereTemperature;
 
 import java.util.Random;
 
@@ -26,9 +26,9 @@ public class BlockIceMixin {
         Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(worldIn,pos);
         if(atmosphere == null) return;
         double temp = atmosphere.get温度(pos,false);
-        if(temp > AtmosphereTemperature.ICE_POINT){
+        if(temp > TemperatureProperty.ICE_POINT){
             this.turnIntoWater(worldIn,pos);
-            atmosphere.add低层大气热量(-(AtmosphereUtil.WATER_MELT_LATENT_HEAT_PER_QUANTA*8));
+            atmosphere.add低层大气热量(-(AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA*8));
         }
     }
     @Shadow

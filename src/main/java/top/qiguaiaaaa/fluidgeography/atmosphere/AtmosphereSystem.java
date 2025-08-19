@@ -15,7 +15,7 @@ import top.qiguaiaaaa.fluidgeography.util.BaseUtil;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil.WATER_MELT_LATENT_HEAT_PER_QUANTA;
+import static top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA;
 
 public class AtmosphereSystem implements IAtmosphereSystem {
     protected final WorldServer world;
@@ -58,8 +58,8 @@ public class AtmosphereSystem implements IAtmosphereSystem {
 
         if (!world.isAreaLoaded(pos, 1)) return;
 
-        double rainPossibility = isRaining?AtmosphereUtil.getRainPossibility(atmosphere,randPos):0;
-        float freezePossibility = AtmosphereUtil.getFreezePossibility(atmosphere,randPos);
+        double rainPossibility = isRaining?atmosphereWorldInfo.getModel().getRainPossibility(atmosphere,randPos):0;
+        double freezePossibility = atmosphereWorldInfo.getModel().getFreezePossibility(atmosphere,randPos);
 
         if (BaseUtil.getRandomResult(world.rand,freezePossibility) && AtmosphereUtil.canWaterFreeze(world,pos,true)) {
             world.setBlockState(pos, Blocks.ICE.getDefaultState());

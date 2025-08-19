@@ -1,5 +1,7 @@
 package top.qiguaiaaaa.fluidgeography.api.util.math;
 
+import net.minecraft.world.chunk.Chunk;
+
 public class Altitude {
     /**
      * 游戏海拔，单位为格
@@ -54,5 +56,14 @@ public class Altitude {
     @Override
     public String toString() {
         return get物理海拔()+" m [ "+val+" ]";
+    }
+
+    public static Altitude getAverageHeight(Chunk chunk){
+        int totalHeight = 0;
+        int[] heightMap = chunk.getHeightMap();
+        for (int j : heightMap) {
+            totalHeight += j;
+        }
+        return new Altitude(((float) totalHeight)/heightMap.length);
     }
 }

@@ -26,7 +26,7 @@ import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.fluidgeography.api.configs.SimulationConfig;
 import top.qiguaiaaaa.fluidgeography.util.FluidOperationUtil;
 import top.qiguaiaaaa.fluidgeography.util.mixinapi.IVanillaFlowChecker;
-import top.qiguaiaaaa.fluidgeography.api.util.FlowChoice;
+import top.qiguaiaaaa.fluidgeography.api.util.math.FlowChoice;
 import top.qiguaiaaaa.fluidgeography.mixin.common.BlockLiquidAccessor;
 import top.qiguaiaaaa.fluidgeography.util.mixinapi.FluidSettable;
 import top.qiguaiaaaa.fluidgeography.api.util.FluidUtil;
@@ -247,7 +247,7 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
             }
             Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(worldIn,currentPos);
             if(atmosphere == null) return;
-            atmosphere.add低层大气热量(frozenQuanta* AtmosphereUtil.WATER_MELT_LATENT_HEAT_PER_QUANTA);
+            atmosphere.add低层大气热量(frozenQuanta* AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA);
             return;
         }
         int belowQuanta = FluidUtil.getFluidQuanta(worldIn,currentPos.down(),downState);

@@ -3,9 +3,8 @@ package top.qiguaiaaaa.fluidgeography.api.atmosphere.model;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.Chunk;
-import org.spongepowered.asm.mixin.injection.At;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.AtmosphereStates;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereStates;
 import top.qiguaiaaaa.fluidgeography.api.util.math.Altitude;
 
 /**
@@ -52,4 +51,40 @@ public interface IAtmosphereModel {
      * @return 风速向量
      */
     Vec3d getWind(Atmosphere atmosphere, BlockPos pos);
+
+    /**
+     * 获取水蒸发的概率
+     * @param atmosphere 大气
+     * @return 一个介于0~1的值，表示概率
+     */
+    double getWaterEvaporatePossibility(Atmosphere atmosphere,BlockPos pos);
+
+    /**
+     * 获取降雨概率
+     * @param atmosphere 大气
+     * @param pos 降雨位置
+     * @return 一个介于0~1的值，表示概率
+     */
+    double getRainPossibility(Atmosphere atmosphere, BlockPos pos);
+
+    /**
+     * 获取冻结概率
+     * @param atmosphere 大气
+     * @param pos 冻结位置
+     * @return 一个介于0~1的值，表示概率
+     */
+    double getFreezePossibility(Atmosphere atmosphere, BlockPos pos);
+
+    /**
+     * 获取低层大气辐射发射率
+     * @param atmosphere 大气
+     * @return 一个介于0~1的值，表示发射率
+     */
+    double get低层大气发射率(Atmosphere atmosphere);
+    /**
+     * 获得大气透过率
+     * @param atmosphere 大气
+     * @return 大气透过率，0~1，云越薄越趋近于1
+     */
+    double get大气透过率(Atmosphere atmosphere);
 }

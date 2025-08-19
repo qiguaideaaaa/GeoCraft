@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.fluidgeography.api.atmosphere.property;
+package top.qiguaiaaaa.fluidgeography.atmosphere.property;
 
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
@@ -6,9 +6,10 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.Chunk;
 import top.qiguaiaaaa.fluidgeography.api.FGInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.WaterState;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.GasProperty;
+import top.qiguaiaaaa.fluidgeography.atmosphere.state.WaterState;
 
-public class AtmosphereWater extends AtmosphereProperty{
+public class AtmosphereWater extends GasProperty {
     public static final AtmosphereWater WATER = new AtmosphereWater();
     protected AtmosphereWater() {
         super(false,true);

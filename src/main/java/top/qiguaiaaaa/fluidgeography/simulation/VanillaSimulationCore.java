@@ -16,11 +16,11 @@ public class VanillaSimulationCore {
         if(world.getLightFor(EnumSkyBlock.SKY,pos) == 0) return;
         Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world,pos);
         if(atmosphere == null) return;
-        if(!BaseUtil.getRandomResult(rand,AtmosphereUtil.getWaterEvaporatePossibility(atmosphere))){
+        if(!BaseUtil.getRandomResult(rand,atmosphere.getAtmosphereWorldInfo().getModel().getWaterEvaporatePossibility(atmosphere,pos))){
             return;
         }
         if(!atmosphere.add水量(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME)) return;
-        atmosphere.add低层大气热量(-(AtmosphereUtil.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA));
+        atmosphere.add低层大气热量(-(AtmosphereUtil.FinalFactors.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA));
     }
 
 }

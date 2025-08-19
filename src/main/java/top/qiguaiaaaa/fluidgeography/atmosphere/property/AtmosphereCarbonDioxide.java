@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.fluidgeography.api.atmosphere.property;
+package top.qiguaiaaaa.fluidgeography.atmosphere.property;
 
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
@@ -6,10 +6,11 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.Chunk;
 import top.qiguaiaaaa.fluidgeography.api.FGInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.CarbonDioxideState;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.IAtmosphereState;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.GasProperty;
+import top.qiguaiaaaa.fluidgeography.atmosphere.state.CarbonDioxideState;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.GasState;
 
-public class AtmosphereCarbonDioxide extends AtmosphereProperty{
+public class AtmosphereCarbonDioxide extends GasProperty {
     public static final AtmosphereCarbonDioxide CARBON_DIOXIDE = new AtmosphereCarbonDioxide();
 
     protected AtmosphereCarbonDioxide(){
@@ -23,7 +24,7 @@ public class AtmosphereCarbonDioxide extends AtmosphereProperty{
     }
 
     @Override
-    public IAtmosphereState getStateInstance() {
+    public GasState getStateInstance() {
         return new CarbonDioxideState(0);
     }
 }

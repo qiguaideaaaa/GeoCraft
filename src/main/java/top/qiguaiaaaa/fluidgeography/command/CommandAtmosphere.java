@@ -15,16 +15,14 @@ import top.qiguaiaaaa.fluidgeography.api.FGInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereSystemManager;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.listener.InformationLoggingTracker;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.listener.WaterTracker;
+import top.qiguaiaaaa.fluidgeography.atmosphere.listener.WaterTracker;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Underlying;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.TemperatureState;
 import top.qiguaiaaaa.fluidgeography.api.configs.AtmosphereConfig;
 import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.ChunkUtil;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.listener.TemperatureTracker;
+import top.qiguaiaaaa.fluidgeography.atmosphere.listener.TemperatureTracker;
 import top.qiguaiaaaa.fluidgeography.api.util.io.FileLogger;
 import top.qiguaiaaaa.fluidgeography.api.util.math.Altitude;
-import top.qiguaiaaaa.fluidgeography.atmosphere.model.NewAtmosphereModel;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -332,29 +330,26 @@ public class CommandAtmosphere extends ExtendedCommand {
             if("temp".equalsIgnoreCase(args[0])){
                 notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.temp",x,z, atmosphere.get低层大气温度());
                 notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.ground_temp",x,z, atmosphere.get地表温度());
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.radiation_loss", TemperatureState.getTemperatureChange(atmosphere.getAtmosphereWorldInfo().getWorld(),atmosphere,atmosphere.get下垫面()));
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.radiation_loss", NewAtmosphereModel.getAtmosphereTemperatureLoss(atmosphere));
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.radiation_loss", NewAtmosphereModel.getGroundTemperatureLoss(atmosphere));
                 return;
             }
             if("test".equalsIgnoreCase(args[0])){
                 WorldInfo worldInfo = atmosphere.getAtmosphereWorldInfo().getWorld().getWorldInfo();
                 Underlying 下垫面 = atmosphere.get下垫面();
-                double 太阳辐射透过率 = get大气透过率(atmosphere,worldInfo);
+                double 太阳辐射透过率 = atmosphere.getAtmosphereWorldInfo().getModel().get大气透过率(atmosphere);
                 double 太阳短波辐射 = getSunEnergyPerChunk(worldInfo)*(1-下垫面.平均返照率)*太阳辐射透过率;
 
                 notifyCommandListener(sender,this, String.format("Sun radiation %f Q = %f * %f * %f", 太阳短波辐射,getSunEnergyPerChunk(worldInfo),(1-下垫面.平均返照率),太阳辐射透过率));
 
                 // 地面长波辐射
                 double 地面辐射损失系数 = AtmosphereConfig.GROUND_RADIATION_LOSS_RATE.getValue().value;
-                double 地面长波辐射 = 每大气刻损失能量常数 * Math.pow(atmosphere.get地表温度(), 4) * 下垫面.平均发射率*地面辐射损失系数;
+                double 地面长波辐射 = FinalFactors.每大气刻损失能量常数 * Math.pow(atmosphere.get地表温度(), 4) * 下垫面.平均发射率*地面辐射损失系数;
 
                 notifyCommandListener(sender,this,"Ground radiation:"+地面长波辐射+" Q");
 
                 // 云层和大气的辐射
                 double 吸收系数 = 0.01;
                 double 云量 = 1-太阳辐射透过率;
-                double 云层回辐射 = 每大气刻损失能量常数 * Math.pow(atmosphere.get低层大气温度(), 4) * 云量;
+                double 云层回辐射 = FinalFactors.每大气刻损失能量常数 * Math.pow(atmosphere.get低层大气温度(), 4) * 云量;
                 double 云层高度 = 1500;
                 double 云层回辐射到达地面比例 = 0.5 * Math.exp(
                         -吸收系数 *
@@ -365,8 +360,8 @@ public class CommandAtmosphere extends ExtendedCommand {
                 notifyCommandListener(sender,this, String.format("Cloud radiation %f Q = %f * 0.5 * Math.exp(-%f * %f * %f )*(1-0.5* %f )", 云层回辐射*云层回辐射到达地面比例,云层回辐射,吸收系数,AtmosphereUtil.get低层大气密度(下垫面.get地面平均海拔().get物理海拔()+云层高度),云层高度,云量));
 
                 // 大气辐射
-                double 大气发射率 = get大气发射率(atmosphere);
-                double 大气辐射 = 每大气刻损失能量常数 * Math.pow(atmosphere.get低层大气温度(), 4) * 大气发射率 * (1.0 - 云量);
+                double 大气发射率 = atmosphere.getAtmosphereWorldInfo().getModel().get低层大气发射率(atmosphere);
+                double 大气辐射 = FinalFactors.每大气刻损失能量常数 * Math.pow(atmosphere.get低层大气温度(), 4) * 大气发射率 * (1.0 - 云量);
                 double 大气回辐射到达地面比例 = 0.5 * Math.exp(
                         -吸收系数 *
                                 AtmosphereUtil.get低层大气密度(下垫面.get地面平均海拔().get物理海拔()+ FinalFactors.低层大气厚度)
@@ -414,7 +409,7 @@ public class CommandAtmosphere extends ExtendedCommand {
             }
             if("underlying".equalsIgnoreCase(args[0])){
                 Chunk chunk = getValidChunk(world,x,z);
-                Underlying underlying = ChunkUtil.getUnderlying(chunk,new Altitude(63));
+                Underlying underlying = Underlying.getUnderlying(chunk,new Altitude(63));
                 notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.underlying",x,atmosphere.get下垫面().get地面平均海拔().toString(),z,underlying.热容,underlying.平均返照率,underlying.平均发射率);
                 return;
             }
@@ -428,7 +423,7 @@ public class CommandAtmosphere extends ExtendedCommand {
                 return;
             }
             if("emissivity".equalsIgnoreCase(args[0])){
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.water_pressure",x,z,AtmosphereUtil.get大气发射率(atmosphere));
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.water_pressure",x,z,atmosphere.getAtmosphereWorldInfo().getModel().get低层大气发射率(atmosphere));
                 return;
             }
             if("biome".equalsIgnoreCase(args[0])){
@@ -489,12 +484,6 @@ public class CommandAtmosphere extends ExtendedCommand {
                         AtmosphereUtil.getSunEnergyPerChunk(info));
                 return;
             }
-            if("radiation".equalsIgnoreCase(args[0])){
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.util.radiation",
-                        pos.getX(),pos.getZ(),
-                        AtmosphereUtil.getHeatEnergyRadiationLoss(atmosphere,AtmosphereUtil.get大气透过率(atmosphere,info)));
-                return;
-            }
             throw new WrongUsageException(getUsage(sender));
         }
 
@@ -511,7 +500,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         @Override
         public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
             if (args.length == 1){
-                return getListOfStringsMatchingLastWord(args, "sun","radiation");
+                return getListOfStringsMatchingLastWord(args, "sun");
             }
             return Collections.emptyList();
         }

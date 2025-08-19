@@ -6,9 +6,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.NoiseGeneratorPerlin;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.listener.IAtmosphereListener;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereProperty;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.AtmosphereStates;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.IAtmosphereState;
 
 import java.util.Random;
 import java.util.Set;

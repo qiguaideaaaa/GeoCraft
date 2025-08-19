@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.fluidgeography.api.util;
+package top.qiguaiaaaa.fluidgeography.api.util.math;
 
 import net.minecraft.util.EnumFacing;
 

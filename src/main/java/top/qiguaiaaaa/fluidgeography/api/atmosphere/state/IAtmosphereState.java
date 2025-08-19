@@ -8,14 +8,10 @@ import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereProperty;
 
 public interface IAtmosphereState extends INBTSerializable<NBTBase> {
     /**
-     * 分步模拟大气时，状态的更新，不涉及物质或能量迁移
+     * 初始化状态
      * @param atmosphere 大气
-     * @param chunk 区块
      */
-    @Deprecated
-    default void onUpdate(Atmosphere atmosphere, Chunk chunk){
-    }
-
+    default void initialise(Atmosphere atmosphere){}
     /**
      * 获得该大气状态对应的属性
      * @return 大气属性

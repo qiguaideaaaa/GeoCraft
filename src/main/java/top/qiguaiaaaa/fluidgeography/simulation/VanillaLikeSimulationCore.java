@@ -9,9 +9,9 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereSystemManager;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.TemperatureProperty;
 import top.qiguaiaaaa.fluidgeography.api.util.ChunkUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.FluidUtil;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereTemperature;
 
 public class VanillaLikeSimulationCore {
     /**
@@ -29,7 +29,7 @@ public class VanillaLikeSimulationCore {
         if(atmosphere == null) return false;
         if(atmosphere.get水量()< Fluid.BUCKET_VOLUME) return false;
         float temp = atmosphere.get温度(pos,true);
-        if (!(temp < AtmosphereTemperature.ICE_POINT) && !(temp > AtmosphereTemperature.BOILED_POINT)) {
+        if (!(temp < TemperatureProperty.ICE_POINT) && !(temp > TemperatureProperty.BOILED_POINT)) {
             IBlockState state = world.getBlockState(pos);
             if(FluidUtil.getFluid(state) != FluidRegistry.WATER) return false;
             if(state.getValue(BlockLiquid.LEVEL) != 1) return false;
