@@ -3,6 +3,8 @@ package top.qiguaiaaaa.fluidgeography.api.atmosphere.state;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTPrimitive;
 import net.minecraft.nbt.NBTTagFloat;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereProperty;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.TemperatureProperty;
 
 public abstract class TemperatureState implements IAtmosphereState{
     protected float temperature;
@@ -31,6 +33,9 @@ public abstract class TemperatureState implements IAtmosphereState{
         double tempChange = Q/热容;
         this.add(tempChange);
     }
+
+    @Override
+    public abstract TemperatureProperty getProperty() ;
 
     @Override
     public NBTTagFloat serializeNBT() {

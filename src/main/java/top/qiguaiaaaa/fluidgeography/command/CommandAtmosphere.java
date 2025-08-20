@@ -479,7 +479,7 @@ public class CommandAtmosphere extends ExtendedCommand {
             if("sun".equalsIgnoreCase(args[0])){
                 notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.util.sun");
                 notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.util.sun.1",
-                        AtmosphereUtil.getSunHeightDegree(info));
+                        AtmosphereUtil.getSunHeight(info).getDegree());
                 notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.util.sun.2",
                         AtmosphereUtil.getSunEnergyPerChunk(info));
                 return;

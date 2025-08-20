@@ -4,17 +4,18 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.Chunk;
+import top.qiguaiaaaa.fluidgeography.api.FGFluids;
 import top.qiguaiaaaa.fluidgeography.api.FGInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.GasProperty;
 import top.qiguaiaaaa.fluidgeography.atmosphere.state.CarbonDioxideState;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.GasState;
 
-public class AtmosphereCarbonDioxide extends GasProperty {
-    public static final AtmosphereCarbonDioxide CARBON_DIOXIDE = new AtmosphereCarbonDioxide();
+public class CarbonDioxide extends GasProperty {
+    public static final CarbonDioxide CARBON_DIOXIDE = new CarbonDioxide();
 
-    protected AtmosphereCarbonDioxide(){
-        super(false,true);
+    protected CarbonDioxide(){
+        super(FGFluids.CARBON_DIOXIDE,false,true);
         setRegistryName(new ResourceLocation(FGInfo.getModId(),"carbon_dioxide"));
     }
 

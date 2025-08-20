@@ -22,7 +22,7 @@ public class LowerAtmosphereTemperatureState extends TemperatureState {
         super(temp);
     }
     @Override
-    public AtmosphereProperty getProperty() {
+    public LowerAtmosphereTemperature getProperty() {
         return LowerAtmosphereTemperature.TEMPERATURE;
     }
 

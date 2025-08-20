@@ -10,7 +10,7 @@ public class GroundTemperatureState extends TemperatureState {
     }
 
     @Override
-    public AtmosphereProperty getProperty() {
+    public GroundTemperature getProperty() {
         return GroundTemperature.GROUND_TEMPERATURE;
     }
 

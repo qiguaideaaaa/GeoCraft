@@ -1,6 +1,7 @@
 package top.qiguaiaaaa.fluidgeography.atmosphere.state;
 
 import net.minecraftforge.fluids.FluidRegistry;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.GasProperty;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.GasState;
 import top.qiguaiaaaa.fluidgeography.atmosphere.property.AtmosphereWater;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereProperty;
@@ -11,7 +12,7 @@ public class WaterState extends GasState {
     }
 
     @Override
-    public AtmosphereProperty getProperty() {
+    public GasProperty getProperty() {
         return AtmosphereWater.WATER;
     }
 

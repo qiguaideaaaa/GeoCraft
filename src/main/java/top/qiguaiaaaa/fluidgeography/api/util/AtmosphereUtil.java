@@ -14,27 +14,20 @@ import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereSystemManager;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Underlying;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.TemperatureProperty;
+import top.qiguaiaaaa.fluidgeography.api.util.math.Degree;
 
 public final class AtmosphereUtil {
     public static double getSunEnergyPerChunk(WorldInfo worldInfo){
-        return Math.sin(getSunHeight(worldInfo))* FinalFactors.每大气刻单位区块获得能量;
+        return Math.sin(getSunHeight(worldInfo).getRadian())* FinalFactors.每大气刻单位区块获得能量;
     }
     /**
      * 获取太阳高度角
      * @return 太阳高度角,单位为rad
      */
-    public static double getSunHeight(WorldInfo worldInfo){
+    public static Degree getSunHeight(WorldInfo worldInfo){
         long dayTime= (worldInfo.getWorldTime()+6000)%24000;
-        if(dayTime<6000 || dayTime>18000) return 0;
-        return (Math.PI*((6000-Math.abs(12000-dayTime))/6000.0d))/2.0;
-    }
-
-    /**
-     * 获取太阳高度角，单位为角度
-     * @return 太阳高度角，单位为角度
-     */
-    public static double getSunHeightDegree(WorldInfo worldInfo){
-        return getSunHeight(worldInfo)/Math.PI*180;
+        if(dayTime<6000 || dayTime>18000) return new Degree(0);
+        return new Degree((Math.PI*((6000-Math.abs(12000-dayTime))/6000.0d))/2.0,true);
     }
 
     /**

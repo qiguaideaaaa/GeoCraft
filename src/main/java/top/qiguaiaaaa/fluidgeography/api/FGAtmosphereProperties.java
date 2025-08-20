@@ -7,4 +7,5 @@ public final class FGAtmosphereProperties {
     public static TemperatureProperty LOWER_ATMOSPHERE_TEMPERATURE;
     public static TemperatureProperty GROUND_TEMPERATURE;
     public static GasProperty WATER;
+    public static GasProperty CARBON_DIOXIDE;
 }

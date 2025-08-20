@@ -6,9 +6,12 @@ import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.FluidTankProperties;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereProperty;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.GasProperty;
 
 import javax.annotation.Nullable;
 
@@ -34,6 +37,9 @@ public abstract class GasState implements IAtmosphereState, IFluidHandler {
     public int getAmount() {
         return amount;
     }
+
+    @Override
+    public abstract GasProperty getProperty() ;
 
     /**
      * 获取气体对应的Forge流体
@@ -83,27 +89,15 @@ public abstract class GasState implements IAtmosphereState, IFluidHandler {
         return new FluidStack(gas,drainedInFact);
     }
 
-    public class GasStateFluidTankProperties implements IFluidTankProperties{
+    public class GasStateFluidTankProperties extends FluidTankProperties {
 
-        @Nullable
+        public GasStateFluidTankProperties() {
+            super(null, 99999999,true,true);
+        }
+
         @Override
         public FluidStack getContents() {
-            return null;
-        }
-
-        @Override
-        public int getCapacity() {
-            return 0;
-        }
-
-        @Override
-        public boolean canFill() {
-            return true;
-        }
-
-        @Override
-        public boolean canDrain() {
-            return true;
+            return new FluidStack(gas,getAmount());
         }
 
         @Override

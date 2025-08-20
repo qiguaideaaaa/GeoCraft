@@ -20,6 +20,7 @@ import top.qiguaiaaaa.fluidgeography.api.configs.AtmosphereConfig;
 import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.ChunkUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.math.Altitude;
+import top.qiguaiaaaa.fluidgeography.api.util.math.Degree;
 import top.qiguaiaaaa.fluidgeography.api.util.math.ExtendedChunkPos;
 import top.qiguaiaaaa.fluidgeography.atmosphere.AtmospherePropertyManager;
 import top.qiguaiaaaa.fluidgeography.atmosphere.state.LowerAtmosphereTemperatureState;
@@ -193,9 +194,9 @@ public class NewAtmosphereModel implements IAtmosphereModel {
     public double get大气透过率(Atmosphere atmosphere) {
         WorldInfo worldInfo = atmosphere.getAtmosphereWorldInfo().getWorld().getWorldInfo();
         double strong = atmosphere.getRainStrong(); // 0 = 无云, ~100 = 极强降雨
-        double sunHeight = getSunHeight(worldInfo);
+        Degree sunHeight = getSunHeight(worldInfo);
 
-        double sunSin = Math.sin(sunHeight);
+        double sunSin = Math.sin(sunHeight.getRadian());
         sunSin = Math.max(sunSin, 0.0001); // 避免日出日落趋近于0
 
         // 基础光学厚度（云量贡献）
