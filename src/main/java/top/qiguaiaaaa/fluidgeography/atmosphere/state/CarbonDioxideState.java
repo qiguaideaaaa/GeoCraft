@@ -12,6 +12,11 @@ public class CarbonDioxideState extends GasState {
     }
 
     @Override
+    public boolean isInitialised() {
+        return true;
+    }
+
+    @Override
     public GasProperty getProperty() {
         return FGAtmosphereProperties.CARBON_DIOXIDE;
     }

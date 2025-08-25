@@ -9,6 +9,7 @@ import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryBuilder;
 import top.qiguaiaaaa.fluidgeography.FluidGeography;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereProperty;
+import top.qiguaiaaaa.fluidgeography.util.registry.ServerOnlyRegistryBuilder;
 
 import java.util.*;
 
@@ -23,8 +24,7 @@ public final class AtmospherePropertyManager {
     @SubscribeEvent
     public static void onNewRegistryEvent(RegistryEvent.NewRegistry registry){
         if(isLoaded) return;
-        properties = new RegistryBuilder<AtmosphereProperty>()
-                .setName(NAME)
+        properties = new ServerOnlyRegistryBuilder<AtmosphereProperty>()
                 .setType(AtmosphereProperty.class)
                 .create();
         RegistryEvent<AtmosphereProperty> event = new RegistryEvent.Register<>(NAME,properties);

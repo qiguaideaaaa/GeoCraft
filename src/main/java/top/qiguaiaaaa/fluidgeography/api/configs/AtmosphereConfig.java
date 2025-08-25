@@ -117,7 +117,7 @@ public final class AtmosphereConfig {
     public static final ConfigItem<ConfigBoolean> ALLOW_CAULDRON_GET_INFINITE_WATER = new ConfigItem<>(CATEGORY_ATMOSPHERE,"allowCauldronGetInfiniteWater",
             new ConfigBoolean(false),"是否允许炼药锅接无限量的水，即在接水时不会消耗大气水");
     public static final ConfigItem<ConfigInteger> ATMOSPHERE_UNDERLYING_RECALCULATE_GAP = new ConfigItem<>(CATEGORY_ATMOSPHERE,
-            "atmosphereUnderlyingRecalculateGap",new ConfigInteger(15),"大气重新计算下垫面性质的间隔时间，单位为大气刻");
+            "atmosphereUnderlyingRecalculateGap",new ConfigInteger(60),"大气重新计算下垫面性质的间隔时间，单位为大气刻");
 
     private static int getBlockValue(IBlockState state,MapConfigItem<ConfigBlock,ConfigInteger> item,int defaultValue){
         Block block = state.getBlock();

@@ -12,4 +12,7 @@ public abstract class TemperatureProperty extends AtmosphereProperty{
 
     @Override
     public abstract TemperatureState getStateInstance() ;
+    public static double toCelsiusFromKelvin(double temperature){
+        return temperature-TemperatureProperty.ICE_POINT;
+    }
 }

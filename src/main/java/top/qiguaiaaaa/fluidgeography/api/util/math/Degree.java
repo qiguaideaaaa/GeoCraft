@@ -1,21 +1,16 @@
 package top.qiguaiaaaa.fluidgeography.api.util.math;
 
 public class Degree{
+    public static final Degree ZERO = new Degree(0);
+    public static final Degree RIGHT_ANGLE = new Degree(90);
     //角度制
-    protected double degree;
+    protected final double degree;
 
     /**
      * @param degree 角度制角度
      */
     public Degree(double degree){
         this(degree,false);
-    }
-
-    public void setDegree(double degree) {
-        this.degree = degree;
-    }
-    public void setRadian(double radian){
-        this.degree = toDegree(radian);
     }
 
     public double getDegree() {

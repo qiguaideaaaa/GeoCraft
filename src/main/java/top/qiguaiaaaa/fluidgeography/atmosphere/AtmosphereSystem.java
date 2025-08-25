@@ -9,8 +9,8 @@ import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.IAtmosphereSystem;
 import top.qiguaiaaaa.fluidgeography.api.event.EventFactory;
-import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.fluidgeography.util.BaseUtil;
+import top.qiguaiaaaa.fluidgeography.util.WaterUtil;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -58,12 +58,12 @@ public class AtmosphereSystem implements IAtmosphereSystem {
 
         if (!world.isAreaLoaded(pos, 1)) return;
 
-        double rainPossibility = isRaining?atmosphereWorldInfo.getModel().getRainPossibility(atmosphere,randPos):0;
-        double freezePossibility = atmosphereWorldInfo.getModel().getFreezePossibility(atmosphere,randPos);
+        double rainPossibility = isRaining?WaterUtil.getRainPossibility(atmosphere,randPos):0;
+        double freezePossibility = WaterUtil.getFreezePossibility(atmosphere,randPos);
 
-        if (BaseUtil.getRandomResult(world.rand,freezePossibility) && AtmosphereUtil.canWaterFreeze(world,pos,true)) {
+        if (BaseUtil.getRandomResult(world.rand,freezePossibility) && WaterUtil.canWaterFreeze(world,pos,true)) {
             world.setBlockState(pos, Blocks.ICE.getDefaultState());
-            atmosphere.add低层大气热量(WATER_MELT_LATENT_HEAT_PER_QUANTA*8);
+            atmosphere.putHeat(WATER_MELT_LATENT_HEAT_PER_QUANTA*8,pos);
         }
 
         if(!BaseUtil.getRandomResult(world.rand,rainPossibility)){

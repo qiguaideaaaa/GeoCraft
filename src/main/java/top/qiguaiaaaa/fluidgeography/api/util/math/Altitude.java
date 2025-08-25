@@ -52,6 +52,8 @@ public class Altitude {
     public static double get游戏海拔(double 物理海拔){
         return (物理海拔/64)+63;
     }
+    public static double to游戏高度(double 物理高度){return 物理高度/64;}
+    public static double to物理高度(double 游戏高度){return 游戏高度*64;}
 
     @Override
     public String toString() {

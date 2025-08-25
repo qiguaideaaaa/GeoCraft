@@ -1,56 +1,110 @@
 package top.qiguaiaaaa.fluidgeography.atmosphere;
 
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.util.INBTSerializable;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereStates;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereWorldInfo;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.Underlying;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.*;
-import top.qiguaiaaaa.fluidgeography.api.event.EventFactory;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereSystemManager;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereWorldInfo;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.AtmosphereLayer;
+import top.qiguaiaaaa.fluidgeography.atmosphere.layer.*;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.listener.IAtmosphereListener;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereProperty;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.raypack.HeatPack;
+import top.qiguaiaaaa.fluidgeography.api.event.EventFactory;
+import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.ChunkUtil;
-import top.qiguaiaaaa.fluidgeography.api.util.math.Altitude;
+import top.qiguaiaaaa.fluidgeography.api.util.math.Degree;
+import top.qiguaiaaaa.fluidgeography.api.util.math.ExtendedChunkPos;
+import top.qiguaiaaaa.fluidgeography.atmosphere.state.DefaultTemperatureState;
 
 import java.util.*;
+
+import static top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil.getSunEnergyPerChunk;
 
 public class DefaultAtmosphere implements INBTSerializable<NBTTagCompound>, Atmosphere {
     @CapabilityInject(DefaultAtmosphere.class)
     public static Capability<DefaultAtmosphere> LOWER_ATMOSPHERE;
     protected AtmosphereWorldInfo worldInfo = null;
     protected long tickTimes = 0;
-    protected final AtmosphereStates states = new AtmosphereStates(this,new Underlying(Underlying.默认热容,0,0.9));
+    //** 大气层 **//
+    protected Underlying underlying = new Underlying(this);
+    protected GroundAtmosphereLayer groundAtmosphereLayer = new GroundAtmosphereLayer(this);
+    protected MiddleAtmosphereLayer middleAtmosphereLayer = new MiddleAtmosphereLayer(this);
+    protected HighAtmosphereLayer highAtmosphereLayer = new HighAtmosphereLayer(this);
+    protected final List<AtmosphereLayer> layers = new ArrayList<>();
+    protected final Map<AtmosphereLayer,Vec3d> 下风 = new HashMap<>();
     protected final Set<IAtmosphereListener> listeners = new HashSet<>();
 
     public DefaultAtmosphere(){
-        for(EnumFacing facing:ChunkUtil.HORIZONTALS){
-            states.getWinds().put(facing,Vec3d.ZERO);
-        }
+        layers.add(underlying);
+        layers.add(groundAtmosphereLayer);
+        layers.add(middleAtmosphereLayer);
+        layers.add(highAtmosphereLayer);
+        underlying.setUpperLayer(groundAtmosphereLayer);
+        groundAtmosphereLayer.setLowerLayer(underlying);
+        groundAtmosphereLayer.setUpperLayer(middleAtmosphereLayer);
+        middleAtmosphereLayer.setLowerLayer(groundAtmosphereLayer);
+        middleAtmosphereLayer.setUpperLayer(highAtmosphereLayer);
+        highAtmosphereLayer.setLowerLayer(middleAtmosphereLayer);
     }
 
     public void updateTick(Chunk chunk){
         tickTimes++;
-        this.worldInfo.getModel().run(this, states,chunk);
+
+        //太阳辐射从太空射入
+        if(!worldInfo.isWorldClosed()){
+            getTopLayer().sendHeat(
+                    new HeatPack(HeatPack.HeatType.SHORT_WAVE,getSunEnergyPerChunk(worldInfo.getWorld().getWorldInfo())),
+                    AtmosphereUtil.calculateSunDirection(AtmosphereUtil.getSunHeight(worldInfo.getWorld().getWorldInfo()), Degree.ZERO));
+        }
+        //处理相邻大气
+        ExtendedChunkPos chunkPos = new ExtendedChunkPos(chunk.x,chunk.z);
+        final Map<EnumFacing, Triple<Atmosphere,Chunk,EnumFacing>> neighbors = new EnumMap<>(EnumFacing.class);
+        final WorldServer world = worldInfo.getWorld();
+        for(EnumFacing facing: ChunkUtil.HORIZONTALS){
+            ExtendedChunkPos facingPos = chunkPos.offset(facing);
+            if(!world.isAreaLoaded(facingPos.getBlock(8,64,8),1)) continue;
+            Chunk neighborChunk = world.getChunk(facingPos.x,facingPos.z);
+            Atmosphere neighborAtmosphere = AtmosphereSystemManager.getAtmosphere(neighborChunk);
+            if(neighborAtmosphere == null) continue;
+            Triple<Atmosphere,Chunk,EnumFacing> triple = new ImmutableTriple<>(neighborAtmosphere,neighborChunk,facing);
+            neighbors.put(facing,triple);
+        }
+        //从下往上依次更新
+        for(AtmosphereLayer layer:layers){
+            layer.tick(chunk,neighbors);
+        }
         //更新Listener
         this.updateListeners();
         //Post Event
         EventFactory.afterAtmosphereUpdate(chunk,this);
     }
+
+    public void set下风(QiguaiAtmosphereLayer layer){
+        下风.put(layer,layer.getWind(EnumFacing.DOWN));
+    }
+
+    public Vec3d get下风(AtmosphereLayer layer){
+        Vec3d res = 下风.get(layer);
+        return res == null?Vec3d.ZERO:res;
+    }
+
     @Override
     public void initialise(Chunk chunk, AtmosphereWorldInfo info){
         this.setAtmosphereWorldInfo(info);
-        this.states.set下垫面(Underlying.getUnderlying(chunk, states.get下垫面().get地面平均海拔()));
-
-        this.states.get下垫面().更新平均海拔(chunk,info);
-
-        states.update低层大气热容();
-
+        for(AtmosphereLayer layer:layers){
+            layer.initialise(chunk);
+        }
         initProperties(chunk);
         if(isInitialised()) return;
         重置温度(chunk);
@@ -70,38 +124,37 @@ public class DefaultAtmosphere implements INBTSerializable<NBTTagCompound>, Atmo
 
     @Override
     public NBTTagCompound serializeNBT() {
-        return states.serializeNBT();
+        NBTTagCompound compound = new NBTTagCompound();
+        for(AtmosphereLayer layer:layers){
+            compound.setTag(layer.getTagName(),layer.serializeNBT());
+        }
+        return compound;
     }
 
     @Override
     public void deserializeNBT(NBTTagCompound nbt) {
-        states.deserializeNBT(nbt);
+        for(AtmosphereLayer layer:layers){
+            NBTBase base = nbt.getTag(layer.getTagName());
+            if(!(base instanceof NBTTagCompound)) throw new IllegalArgumentException("NBT of Atmosphere Layer "+layer.getTagName()+" isn't a valid compound tag!");
+            layer.deserializeNBT((NBTTagCompound) base);
+        }
     }
     //******************
     // Getter And Setter
     //******************
     @Override
-    public boolean add水量(int addAmount){
-        return states.getWaterState().addAmount(addAmount);
-    }
-    @Override
-    public void add低层大气温度(double temp){
-        states.get低层大气温度().add(temp);
+    public boolean addSteam(int addAmount, BlockPos pos){
+        return getLayer(pos).addSteam(pos,addAmount);
     }
 
     @Override
-    public void add地表温度(double temp) {
-        states.get地表温度().add(temp);
+    public boolean addWater(int amount, BlockPos pos) {
+        return getAtmosphereLayer(pos).addWater(pos,amount);
     }
 
     @Override
-    public void add低层大气热量(double Q){
-        states.get低层大气温度().add热量(Q,states.get低层大气热容());
-    }
-
-    @Override
-    public void add地表热量(double Q) {
-        states.get地表温度().add热量(Q,states.get下垫面().热容);
+    public void putHeat(double Q, BlockPos pos){
+        getAtmosphereLayer(pos).putHeat(Q,pos);
     }
 
     @Override
@@ -113,34 +166,24 @@ public class DefaultAtmosphere implements INBTSerializable<NBTTagCompound>, Atmo
     public void removeListener(IAtmosphereListener listener){
         listeners.remove(listener);
     }
-    @Override
-    public void set水量(int waterAmount) {
-        states.getWaterState().setAmount(waterAmount);
-    }
-    @Override
-    public void set低层大气温度(float temperature) {
-        this.states.get低层大气温度().set(temperature);
-    }
-
-    @Override
-    public void set地表温度(float temperature) {
-        this.states.get地表温度().set(temperature);
-    }
 
     @Override
     public void setAtmosphereWorldInfo(AtmosphereWorldInfo worldInfo) {
         if(worldInfo == null) return;
         this.worldInfo = worldInfo;
     }
-    @Override
+    /**
+     * 将大气温度设置为初始值
+     * @param chunk 大气所在区块
+     */
     public void 重置温度(Chunk chunk){
-        states.get下垫面().更新平均海拔(chunk,worldInfo);
-        states.get低层大气温度().set(worldInfo.getModel().getInitTemperature(this,chunk));
-        states.get地表温度().set(states.get低层大气温度());
+        underlying.updateAltitude(chunk);
+        groundAtmosphereLayer.getTemperature().set(DefaultTemperatureState.calculateBaseTemperature(chunk,underlying));
+        underlying.getTemperature().set(groundAtmosphereLayer.getTemperature());
     }
     @Override
-    public Vec3d getWindSpeed(EnumFacing direction){
-        return states.getWindSpeed(direction);
+    public Vec3d getWind(BlockPos pos){
+        return getLayer(pos).getWind(pos);
     }
     @Override
     public AtmosphereWorldInfo getAtmosphereWorldInfo() {
@@ -150,10 +193,34 @@ public class DefaultAtmosphere implements INBTSerializable<NBTTagCompound>, Atmo
     public long tickTime() {
         return tickTimes;
     }
+
     @Override
-    public long get低层大气热容() {
-        return states.get低层大气热容();
+    public AtmosphereLayer getLayer(BlockPos pos) {
+        AtmosphereLayer res = null;
+        for (AtmosphereLayer layer : layers) {
+            if (pos.getY() < layer.getBeginY()) break;
+            res = layer;
+        }
+        if(res == null) return getBottomLayer();
+        return res;
     }
+
+    public AtmosphereLayer getAtmosphereLayer(BlockPos pos){
+        AtmosphereLayer res = getLayer(pos);
+        if(res == underlying) res = underlying.getUpperLayer();
+        return res;
+    }
+
+    @Override
+    public AtmosphereLayer getTopLayer() {
+        return layers.get(layers.size()-1);
+    }
+
+    @Override
+    public AtmosphereLayer getBottomLayer() {
+        return layers.get(0);
+    }
+
     @Override
     public double getRainStrong(){
         double 水汽量 = get水量(); // 单位: m³（换算成液态水体积）
@@ -176,31 +243,33 @@ public class DefaultAtmosphere implements INBTSerializable<NBTTagCompound>, Atmo
         return 强度;
     }
     @Override
-    public Underlying get下垫面() {
-        return states.get下垫面().copy();
+    public Underlying getUnderlying() {
+        return underlying;
     }
     @Override
     public int get水量() {
-        return states.getWaterState().getAmount();
-    }
-    @Override
-    public float get低层大气温度() {
-        return states.get低层大气温度().get();
-    }
-    @Override
-    public float get温度(BlockPos pos,boolean isAir){
-        if(pos.getY()<= states.get下垫面().get地面平均海拔().get()){
-            if(isAir) return get低层大气温度();
-            else return get地表温度();
-        }
-        float temp = worldInfo.getModel().getTemperature(this,new Altitude(pos.getY()));
-        float noise = (float)(TEMPERATURE_NOISE.getValue((float)pos.getX() / 8.0f, (float)pos.getZ() / 8.0f) * 4.0d);
-        return (float) Math.max(temp - noise*0.05,3);
+        return groundAtmosphereLayer.getWater().getAmount();
     }
 
     @Override
-    public float get地表温度() {
-        return states.get地表温度().get();
+    public double getWaterPressure(BlockPos pos) {
+        return getLayer(pos).getWaterPressure(pos);
+    }
+    /**
+     * 获取大气指定位置的气压
+     * @param pos 位置
+     * @return 气压,单位Pa
+     */
+    @Override
+    public double getPressure(BlockPos pos) {
+        return getLayer(pos).getPressure(pos);
+    }
+
+    @Override
+    public float getTemperature(BlockPos pos, boolean notAir){
+        double 平均海拔 = underlying.getAltitude().get();
+        if(notAir && pos.getY()-平均海拔<=10) return underlying.getTemperature().get();
+        return getAtmosphereLayer(pos).getTemperature(pos,notAir);
     }
 
     @Override
@@ -209,12 +278,10 @@ public class DefaultAtmosphere implements INBTSerializable<NBTTagCompound>, Atmo
     }
 
     @Override
-    public AtmosphereStates getStates() {
-        return states;
-    }
-
-    @Override
     public boolean isInitialised(){
-        return this.states.get低层大气温度().get() >= 0 && worldInfo != null;
+        for(AtmosphereLayer layer:layers){
+            if(!layer.isInitialise()) return false;
+        }
+        return true;
     }
 }

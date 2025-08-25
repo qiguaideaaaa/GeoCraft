@@ -30,11 +30,11 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.event.atmosphere.AtmosphereUpdateEvent;
 import top.qiguaiaaaa.fluidgeography.api.event.block.StaticLiquidUpdateEvent;
-import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.fluidgeography.util.FluidOperationUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.FluidUtil;
 import top.qiguaiaaaa.fluidgeography.api.event.player.FillGlassBottleEvent.FillGlassBottleOnFluidEvent;
 import top.qiguaiaaaa.fluidgeography.simulation.MoreRealitySimulationCore;
+import top.qiguaiaaaa.fluidgeography.util.WaterUtil;
 import top.qiguaiaaaa.fluidgeography.util.wrappers.InfiniteFluidBucketWrapper;
 
 import java.util.Objects;
@@ -192,13 +192,13 @@ public final class MoreRealityEventHandler {
         Atmosphere atmosphere = event.getAtmosphere();
         World world = event.getWorld();
         BlockPos randPos = event.getRandPos();
-        if (AtmosphereUtil.canSnowAt(world,randPos, true)) {
-            if(atmosphere.add水量(-FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME)){
+        if (WaterUtil.canSnowAt(world,randPos, true)) {
+            if(atmosphere.addSteam(-FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos)){
                 event.setResult(Event.Result.ALLOW);
                 event.setState(Blocks.SNOW_LAYER.getDefaultState());
             }
         }else if(MoreRealitySimulationCore.canRainAt(world,randPos)){
-            if(atmosphere.add水量(-FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME)) {
+            if(atmosphere.addSteam(-FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos)) {
                 event.setResult(Event.Result.ALLOW);
                 event.setState(Blocks.FLOWING_WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,7));
             }

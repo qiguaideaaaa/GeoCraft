@@ -3,14 +3,11 @@ package top.qiguaiaaaa.fluidgeography.api.atmosphere.state;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTPrimitive;
 import net.minecraft.nbt.NBTTagInt;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.FluidTankProperties;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereProperty;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.GasProperty;
 
 import javax.annotation.Nullable;
@@ -87,6 +84,11 @@ public abstract class GasState implements IAtmosphereState, IFluidHandler {
         int drainedInFact = (this.amount- maxDrain <0)?this.amount: maxDrain;
         if(doDrain) addAmount(-drainedInFact);
         return new FluidStack(gas,drainedInFact);
+    }
+
+    @Override
+    public String toString() {
+        return amount+"";
     }
 
     public class GasStateFluidTankProperties extends FluidTankProperties {

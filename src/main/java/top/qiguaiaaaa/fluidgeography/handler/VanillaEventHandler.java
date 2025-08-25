@@ -10,9 +10,9 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.event.atmosphere.AtmosphereUpdateEvent;
 import top.qiguaiaaaa.fluidgeography.api.event.block.StaticLiquidUpdateEvent;
-import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.FluidUtil;
 import top.qiguaiaaaa.fluidgeography.simulation.VanillaSimulationCore;
+import top.qiguaiaaaa.fluidgeography.util.WaterUtil;
 
 public final class VanillaEventHandler {
     @SubscribeEvent(priority = EventPriority.HIGH)
@@ -27,8 +27,8 @@ public final class VanillaEventHandler {
         Atmosphere atmosphere = event.getAtmosphere();
         World world = event.getWorld();
         BlockPos randPos = event.getRandPos();
-        if (AtmosphereUtil.canSnowAt(world,randPos, true)) {
-            if(atmosphere.add水量(-FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME)){
+        if (WaterUtil.canSnowAt(world,randPos, true)) {
+            if(atmosphere.addSteam(-FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos)){
                 event.setResult(Event.Result.ALLOW);
                 event.setState(Blocks.SNOW_LAYER.getDefaultState());
             }

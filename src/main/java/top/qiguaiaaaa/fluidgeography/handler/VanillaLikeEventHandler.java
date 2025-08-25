@@ -11,11 +11,11 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.event.atmosphere.AtmosphereUpdateEvent;
 import top.qiguaiaaaa.fluidgeography.api.event.block.StaticLiquidUpdateEvent;
-import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.FluidUtil;
 import top.qiguaiaaaa.fluidgeography.simulation.VanillaLikeSimulationCore;
 import top.qiguaiaaaa.fluidgeography.simulation.VanillaSimulationCore;
 import top.qiguaiaaaa.fluidgeography.util.BaseUtil;
+import top.qiguaiaaaa.fluidgeography.util.WaterUtil;
 
 public final class VanillaLikeEventHandler{
     @SubscribeEvent(priority = EventPriority.HIGH)
@@ -30,15 +30,15 @@ public final class VanillaLikeEventHandler{
         Atmosphere atmosphere = event.getAtmosphere();
         World world = event.getWorld();
         BlockPos randPos = event.getRandPos();
-        if (AtmosphereUtil.canSnowAt(world,randPos, true)) {
-            if(atmosphere.add水量(-FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME)){
+        if (WaterUtil.canSnowAt(world,randPos, true)) {
+            if(atmosphere.addSteam(-FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos)){
                 event.setResult(Event.Result.ALLOW);
                 event.setState(Blocks.SNOW_LAYER.getDefaultState());
             }
         }
         if(!BaseUtil.getRandomResult(world.rand,event.getRainPossibility())) return;
         if(VanillaLikeSimulationCore.canRainAt(world,randPos.down())){
-            if(atmosphere.add水量(-Fluid.BUCKET_VOLUME)){
+            if(atmosphere.addSteam(-Fluid.BUCKET_VOLUME,randPos)){
                 //因为不是更新指定的位置,所以不设置结果
                 world.setBlockState(randPos.down(),Blocks.FLOWING_WATER.getDefaultState());
             }

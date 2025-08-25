@@ -11,23 +11,23 @@ import top.qiguaiaaaa.fluidgeography.atmosphere.DefaultAtmosphereStorage;
 import top.qiguaiaaaa.fluidgeography.api.configs.SimulationConfig;
 import top.qiguaiaaaa.fluidgeography.api.event.EventFactory;
 import top.qiguaiaaaa.fluidgeography.api.simulation.SimulationMode;
+import top.qiguaiaaaa.fluidgeography.atmosphere.property.AtmosphereSteam;
 import top.qiguaiaaaa.fluidgeography.atmosphere.property.CarbonDioxide;
 import top.qiguaiaaaa.fluidgeography.atmosphere.property.AtmosphereWater;
-import top.qiguaiaaaa.fluidgeography.atmosphere.property.GroundTemperature;
-import top.qiguaiaaaa.fluidgeography.atmosphere.property.LowerAtmosphereTemperature;
+import top.qiguaiaaaa.fluidgeography.atmosphere.property.DefaultTemperature;
 
 public final class RegistryHandler {
     public static void registerAtmosphereProperties(RegistryEvent.Register<AtmosphereProperty> event){
         IForgeRegistry<AtmosphereProperty> registry =event.getRegistry();
-        registry.register(GroundTemperature.GROUND_TEMPERATURE);
-        registry.register(LowerAtmosphereTemperature.TEMPERATURE);
+        registry.register(DefaultTemperature.TEMPERATURE);
         registry.register(AtmosphereWater.WATER);
+        registry.register(AtmosphereSteam.STEAM);
         registry.register(CarbonDioxide.CARBON_DIOXIDE);
 
-        FGAtmosphereProperties.GROUND_TEMPERATURE = GroundTemperature.GROUND_TEMPERATURE;
-        FGAtmosphereProperties.LOWER_ATMOSPHERE_TEMPERATURE = LowerAtmosphereTemperature.TEMPERATURE;
+        FGAtmosphereProperties.TEMPERATURE = DefaultTemperature.TEMPERATURE;
         FGAtmosphereProperties.WATER = AtmosphereWater.WATER;
         FGAtmosphereProperties.CARBON_DIOXIDE = CarbonDioxide.CARBON_DIOXIDE;
+        FGAtmosphereProperties.STEAM = AtmosphereSteam.STEAM;
     }
     public static void registerEventHandler(){
         SimulationMode mode = SimulationConfig.SIMULATION_MODE.getValue();

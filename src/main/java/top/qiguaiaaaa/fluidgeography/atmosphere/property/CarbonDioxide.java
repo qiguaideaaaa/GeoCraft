@@ -20,11 +20,6 @@ public class CarbonDioxide extends GasProperty {
     }
 
     @Override
-    public void onAtmosphereFlow(Atmosphere from, Chunk fromChunk, Atmosphere to, Chunk toChunk, EnumFacing direction, Vec3d windSpeed) {
-
-    }
-
-    @Override
     public GasState getStateInstance() {
         return new CarbonDioxideState(0);
     }

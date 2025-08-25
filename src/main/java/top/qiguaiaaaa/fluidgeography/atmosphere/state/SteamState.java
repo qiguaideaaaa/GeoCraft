@@ -3,12 +3,11 @@ package top.qiguaiaaaa.fluidgeography.atmosphere.state;
 import net.minecraftforge.fluids.FluidRegistry;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.GasProperty;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.GasState;
-import top.qiguaiaaaa.fluidgeography.atmosphere.property.AtmosphereWater;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereProperty;
+import top.qiguaiaaaa.fluidgeography.atmosphere.property.AtmosphereSteam;
 
-public class WaterState extends GasState {
-    public WaterState(int amount) {
-        super(FluidRegistry.WATER,amount);
+public class SteamState extends GasState {
+    public SteamState(int amount) {
+        super(FluidRegistry.WATER, amount);
     }
 
     @Override
@@ -18,11 +17,11 @@ public class WaterState extends GasState {
 
     @Override
     public GasProperty getProperty() {
-        return AtmosphereWater.WATER;
+        return AtmosphereSteam.STEAM;
     }
 
     @Override
     public String getNBTTagKey() {
-        return "water";
+        return "steam";
     }
 }

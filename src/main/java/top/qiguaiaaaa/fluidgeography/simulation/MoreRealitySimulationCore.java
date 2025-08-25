@@ -14,6 +14,7 @@ import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.TemperatureProperty
 import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.FluidUtil;
 import top.qiguaiaaaa.fluidgeography.util.BaseUtil;
+import top.qiguaiaaaa.fluidgeography.util.WaterUtil;
 
 import javax.annotation.Nullable;
 import java.util.Random;
@@ -32,8 +33,8 @@ public class MoreRealitySimulationCore {
             return state;
         }
         if(meta >=8) return null;
-        if(!atmosphere.add水量(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME)) return state;
-        atmosphere.add低层大气热量(-(AtmosphereUtil.FinalFactors.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA));
+        if(!atmosphere.addSteam(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,pos)) return state;
+        atmosphere.putHeat(-(AtmosphereUtil.FinalFactors.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA),pos);
         if(meta == 7) return null;
         state = state.withProperty(LEVEL,meta+1);
         return state;
@@ -44,7 +45,7 @@ public class MoreRealitySimulationCore {
         if(meta >=8) return state;
         Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world, pos);
         if(atmosphere == null) return state;
-        double possibility  = atmosphere.getAtmosphereWorldInfo().getModel().getFreezePossibility(atmosphere,pos);
+        double possibility  = WaterUtil.getFreezePossibility(atmosphere,pos);
         if(possibility <= 0) return state;
         if(meta == 7) possibility = Math.min(possibility*8,1);
         else if(meta == 6) possibility = Math.min(possibility*4,1);
@@ -53,17 +54,17 @@ public class MoreRealitySimulationCore {
             return state;
         }
         if(meta == 0){
-            if(!AtmosphereUtil.canWaterFreeze(world,pos,true)) return state;
+            if(!WaterUtil.canWaterFreeze(world,pos,true)) return state;
             return Blocks.ICE.getDefaultState();
         }
-        if(!AtmosphereUtil.canPlaceSnow(world,pos)) return state;
+        if(!WaterUtil.canPlaceSnow(world,pos)) return state;
         int quanta = 8-meta;
-        atmosphere.add低层大气热量(AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA*quanta);
+        atmosphere.putHeat(AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA*quanta,pos);
         return Blocks.SNOW_LAYER.getDefaultState().withProperty(BlockSnow.LAYERS,quanta);
     }
 
-    public static double getWaterEvaporatePossibility(World world,BlockPos pos,IBlockState state,Atmosphere atmosphere){
-        double possibility = atmosphere.getAtmosphereWorldInfo().getModel().getWaterEvaporatePossibility(atmosphere,pos);
+    public static double getWaterEvaporatePossibility(World world, BlockPos pos, IBlockState state, Atmosphere atmosphere){
+        double possibility = WaterUtil.getWaterEvaporatePossibility(atmosphere,pos);
         if(!world.isAreaLoaded(pos,1)) return possibility;
 
         int meta = state.getValue(LEVEL);
@@ -100,7 +101,7 @@ public class MoreRealitySimulationCore {
         Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world, pos);
         if(atmosphere == null) return false;
         if(atmosphere.get水量()<FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME) return false;
-        float temp = atmosphere.get温度(pos,true);
+        float temp = atmosphere.getTemperature(pos);
         if (!(temp < TemperatureProperty.ICE_POINT) && !(temp > TemperatureProperty.BOILED_POINT)) {
             if (pos.getY() >= 0 && pos.getY() < 256) {
                 IBlockState state = world.getBlockState(pos);

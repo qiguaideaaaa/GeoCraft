@@ -1,10 +1,11 @@
 package top.qiguaiaaaa.fluidgeography.api.atmosphere;
 
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.NoiseGeneratorPerlin;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.AtmosphereLayer;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.UnderlyingLayer;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.listener.IAtmosphereListener;
 
 import java.util.Random;
@@ -23,14 +24,16 @@ public interface Atmosphere {
     //******************
     // Getter And Setter
     //******************
-    boolean add水量(int addAmount);
+    boolean addSteam(int addAmount, BlockPos pos);
 
-    void add低层大气温度(double temp);
+    boolean addWater(int amount, BlockPos pos);
 
-    void add地表温度(double temp);
-
-    void add低层大气热量(double Q);
-    void add地表热量(double Q);
+    /**
+     * 向大气提供或从大气吸收热量
+     * @param Q 提供或吸收的热量。正为提供，负为吸收。
+     * @param pos 提供者或吸收着的位置
+     */
+    void putHeat(double Q, BlockPos pos);
 
     /**
      * 增加大气监听器
@@ -44,41 +47,47 @@ public interface Atmosphere {
      */
     void removeListener(IAtmosphereListener listener);
 
-    void set水量(int waterAmount);
-
-    void set低层大气温度(float temperature);
-    void set地表温度(float temperature);
-
     void setAtmosphereWorldInfo(AtmosphereWorldInfo worldInfo);
 
-    void 重置温度(Chunk chunk);
-
-    Vec3d getWindSpeed(EnumFacing direction);
+    /**
+     * 获取大气指定位置的风速
+     * @param pos 方块位置,为游戏位置
+     * @return 风速向量
+     */
+    Vec3d getWind(BlockPos pos);
 
     AtmosphereWorldInfo getAtmosphereWorldInfo();
-
-    long get低层大气热容();
 
     /**
      * 返回降雨强度,应当介于0~100之间
      * @return 表示降雨强度的值
      */
+    @Deprecated
     double getRainStrong();
-
-    Underlying get下垫面();
-
+    @Deprecated
     int get水量();
-
-    float get低层大气温度();
-
-    float get温度(BlockPos pos,boolean isAir);
-    float get地表温度();
+    /**
+     * 获得某位置的大气水汽压
+     * @return 大气水汽压，单位帕 Pa
+     */
+    double getWaterPressure(BlockPos pos);
+    /**
+     * 获取指定位置的气压
+     * @return 气压，单位Pa
+     */
+    double getPressure(BlockPos pos);
+    default float getTemperature(BlockPos pos){
+        return getTemperature(pos,false);
+    }
+    float getTemperature(BlockPos pos, boolean notAir);
 
     Set<IAtmosphereListener> getListeners();
 
-    AtmosphereStates getStates();
-
-
     boolean isInitialised();
     long tickTime();
+
+    AtmosphereLayer getLayer(BlockPos pos);
+    AtmosphereLayer getTopLayer();
+    AtmosphereLayer getBottomLayer();
+    UnderlyingLayer getUnderlying();
 }

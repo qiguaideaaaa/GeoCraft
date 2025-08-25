@@ -12,8 +12,20 @@ public abstract class TemperatureState implements IAtmosphereState{
         this.temperature = temp;
     }
 
+    /**
+     * 获取温度值
+     * @return 温度，单位为开尔文 K
+     */
     public float get() {
         return temperature;
+    }
+
+    /**
+     * 获取摄氏度单位下的温度
+     * @return 温度，单位摄氏度
+     */
+    public final float getCelsius(){
+        return temperature-TemperatureProperty.ICE_POINT;
     }
 
     public void set(float temperature) {
@@ -29,7 +41,7 @@ public abstract class TemperatureState implements IAtmosphereState{
         if(temperature<0) temperature = 0;
     }
 
-    public void add热量(double Q, long 热容){
+    public void add热量(double Q, double 热容){
         double tempChange = Q/热容;
         this.add(tempChange);
     }
@@ -49,4 +61,8 @@ public abstract class TemperatureState implements IAtmosphereState{
         }
     }
 
+    @Override
+    public String toString() {
+        return temperature+"";
+    }
 }
