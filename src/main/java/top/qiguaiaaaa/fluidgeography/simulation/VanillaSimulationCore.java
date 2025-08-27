@@ -21,7 +21,7 @@ public class VanillaSimulationCore {
             return;
         }
         if(!atmosphere.addSteam(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,pos)) return;
-        atmosphere.putHeat(-(AtmosphereUtil.FinalFactors.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA),pos);
+        atmosphere.getUnderlying().drawHeat(AtmosphereUtil.FinalFactors.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA,pos);
     }
 
 }

@@ -36,15 +36,15 @@ public class ConfigInit {
         //** IE Config
         registerConfigItem(enableSupportForIE);
 
+        registerConfigItem(ENABLE_DETAIL_LOGGING);
         registerConfigItem(CONSTANT_TEMP_DIMENSIONS);
         registerConfigItem(CLOSED_DIMENSIONS);
         registerConfigItem(SPECIFIC_HEAT_CAPACITIES);
         registerConfigItem(UNDERLYING_REFLECTIVITY);
-        registerConfigItem(GROUND_RADIATION_LOSS_RATE);
         registerConfigItem(DEFAULT_UNDERLYING_EMISSIVITY);
         registerConfigItem(UNDERLYING_EMISSIVITY);
         registerConfigItem(ALLOW_CAULDRON_GET_INFINITE_WATER);
-        registerConfigItem(ATMOSPHERE_UNDERLYING_RECALCULATE_GAP);;
+        registerConfigItem(ATMOSPHERE_UNDERLYING_RECALCULATE_GAP);
         hasLoaded = true;
     }
 }

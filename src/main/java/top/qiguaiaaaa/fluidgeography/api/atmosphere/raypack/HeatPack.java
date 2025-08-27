@@ -1,8 +1,5 @@
 package top.qiguaiaaaa.fluidgeography.api.atmosphere.raypack;
 
-/**
- *
- */
 public class HeatPack implements RayPack{
     protected double heat;
     protected final HeatType type;
@@ -13,9 +10,10 @@ public class HeatPack implements RayPack{
     public HeatPack(HeatType type, double raw){
         this.type = type;
         this.heat = Math.max(raw,0);
+        if(Double.isInfinite(raw) || Double.isNaN(raw)) throw new RuntimeException("Heat quantity can't be NaN!");
     }
     public boolean isEmpty(){
-        return heat < 1;
+        return heat < 20;
     }
     public double getHeat() {
         return heat;

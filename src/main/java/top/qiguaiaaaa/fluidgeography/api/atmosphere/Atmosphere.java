@@ -5,35 +5,83 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.NoiseGeneratorPerlin;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.AtmosphereLayer;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.Layer;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.UnderlyingLayer;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.listener.IAtmosphereListener;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.TemperatureProperty;
 
+import javax.annotation.Nullable;
 import java.util.Random;
-import java.util.Set;
 
 public interface Atmosphere {
     NoiseGeneratorPerlin TEMPERATURE_NOISE = new NoiseGeneratorPerlin(new Random(1234L), 1);
 
-    /**
-     * 大气初始化
-     * @param chunk 大气所在区块
-     * @param info 大气世界信息
-     */
     void initialise(Chunk chunk, AtmosphereWorldInfo info);
 
-    //******************
-    // Getter And Setter
-    //******************
+    boolean isInitialised();
+
+    long tickTime();
+
     boolean addSteam(int addAmount, BlockPos pos);
 
     boolean addWater(int amount, BlockPos pos);
 
     /**
-     * 向大气提供或从大气吸收热量
+     * 在指定位置吸收液态水
+     * @param amount 期望吸收的量
+     * @param pos 位置
+     * @param test 是否为测试
+     * @return 实际吸收的量
+     */
+    int drainWater(int amount, BlockPos pos, boolean test);
+
+    /**
+     * 获取大气温度，绝对不能返回地面温度
+     * @param pos 位置
+     * @return 大气温度
+     */
+    default float getAtmosphereTemperature(BlockPos pos){
+        return getTemperature(pos,false);
+    }
+
+    /**
+     * 获取温度
+     * @param pos 位置
+     * @param notAir 是否不为大气温度
+     * @return 返回对应位置的温度。若指定位置没有可用温度,则返回 {@link TemperatureProperty#UNAVAILABLE}
+     */
+    float getTemperature(BlockPos pos, boolean notAir);
+
+    /**
+     * 向大气提供或从大气吸收热量,不会操作也不应该操作到下垫面
      * @param Q 提供或吸收的热量。正为提供，负为吸收。
      * @param pos 提供者或吸收着的位置
      */
     void putHeat(double Q, BlockPos pos);
+
+    /**
+     * 获取大气指定位置的风速
+     * @param pos 方块位置,为游戏位置
+     * @return 风速向量
+     */
+    Vec3d getWind(BlockPos pos);
+
+    /**
+     * 获得某位置的大气水汽压
+     * @return 大气水汽压，单位帕 Pa。若无可用气压，则返回 0
+     */
+    double getWaterPressure(BlockPos pos);
+
+    /**
+     * 获取大气指定位置的气压
+     * @param pos 位置
+     * @return 气压,单位Pa。若无可用气压，则返回 0
+     */
+    double getPressure(BlockPos pos);
+
+    void setAtmosphereWorldInfo(AtmosphereWorldInfo worldInfo);
+
+    AtmosphereWorldInfo getAtmosphereWorldInfo();
 
     /**
      * 增加大气监听器
@@ -47,47 +95,32 @@ public interface Atmosphere {
      */
     void removeListener(IAtmosphereListener listener);
 
-    void setAtmosphereWorldInfo(AtmosphereWorldInfo worldInfo);
+    Layer getLayer(BlockPos pos);
 
     /**
-     * 获取大气指定位置的风速
-     * @param pos 方块位置,为游戏位置
-     * @return 风速向量
+     * 获取顶端层级
+     * @return 顶端层级
      */
-    Vec3d getWind(BlockPos pos);
+    Layer getTopLayer();
 
-    AtmosphereWorldInfo getAtmosphereWorldInfo();
+    /**
+     * 获取底端层级
+     * @return 底端层级
+     */
+    Layer getBottomLayer();
+
+    /**
+     * 获取底端大气层级
+     * @return 底端大气层级
+     */
+    @Nullable
+    AtmosphereLayer getBottomAtmosphereLayer();
+
+    UnderlyingLayer getUnderlying();
 
     /**
      * 返回降雨强度,应当介于0~100之间
      * @return 表示降雨强度的值
      */
-    @Deprecated
     double getRainStrong();
-    @Deprecated
-    int get水量();
-    /**
-     * 获得某位置的大气水汽压
-     * @return 大气水汽压，单位帕 Pa
-     */
-    double getWaterPressure(BlockPos pos);
-    /**
-     * 获取指定位置的气压
-     * @return 气压，单位Pa
-     */
-    double getPressure(BlockPos pos);
-    default float getTemperature(BlockPos pos){
-        return getTemperature(pos,false);
-    }
-    float getTemperature(BlockPos pos, boolean notAir);
-
-    Set<IAtmosphereListener> getListeners();
-
-    boolean isInitialised();
-    long tickTime();
-
-    AtmosphereLayer getLayer(BlockPos pos);
-    AtmosphereLayer getTopLayer();
-    AtmosphereLayer getBottomLayer();
-    UnderlyingLayer getUnderlying();
 }

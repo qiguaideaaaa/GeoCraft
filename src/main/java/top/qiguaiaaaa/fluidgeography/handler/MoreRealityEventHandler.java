@@ -193,15 +193,13 @@ public final class MoreRealityEventHandler {
         World world = event.getWorld();
         BlockPos randPos = event.getRandPos();
         if (WaterUtil.canSnowAt(world,randPos, true)) {
-            if(atmosphere.addSteam(-FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos)){
-                event.setResult(Event.Result.ALLOW);
-                event.setState(Blocks.SNOW_LAYER.getDefaultState());
-            }
+            atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos,false);
+            event.setResult(Event.Result.ALLOW);
+            event.setState(Blocks.SNOW_LAYER.getDefaultState());
         }else if(MoreRealitySimulationCore.canRainAt(world,randPos)){
-            if(atmosphere.addSteam(-FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos)) {
-                event.setResult(Event.Result.ALLOW);
-                event.setState(Blocks.FLOWING_WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,7));
-            }
+            atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos,false);
+            event.setResult(Event.Result.ALLOW);
+            event.setState(Blocks.FLOWING_WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,7));
         }
     }
     public static void onPostInit(FMLPostInitializationEvent event){

@@ -14,7 +14,7 @@ public class DefaultAtmosphereProvider implements ICapabilitySerializable<NBTTag
 
     public DefaultAtmosphereProvider() {
         this.instance = new DefaultAtmosphere();
-        this.capability = DefaultAtmosphere.LOWER_ATMOSPHERE;
+        this.capability = DefaultAtmosphere.DEFAULT_ATMOSPHERE;
     }
 
     @Override

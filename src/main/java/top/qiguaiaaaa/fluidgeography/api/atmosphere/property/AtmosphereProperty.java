@@ -6,12 +6,12 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.AtmosphereLayer;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.IAtmosphereState;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.GeographyState;
 
-public abstract class AtmosphereProperty extends IForgeRegistryEntry.Impl<AtmosphereProperty> {
+public abstract class AtmosphereProperty extends GeographyProperty {
     protected final boolean windEffect;
     protected final boolean flowable;
-    public AtmosphereProperty(boolean windEffect,boolean flowable){
+    public AtmosphereProperty(boolean windEffect, boolean flowable){
         this.windEffect = windEffect;
         this.flowable = flowable;
     }
@@ -59,10 +59,4 @@ public abstract class AtmosphereProperty extends IForgeRegistryEntry.Impl<Atmosp
      * 当大气初始化的时候
      */
     public void onAtmosphereInitialise(Atmosphere atmosphere, Chunk chunk){}
-
-    /**
-     * 获取对应大气状态的Instance
-     * @return 一个符合该属性的大气状态
-     */
-    public abstract IAtmosphereState getStateInstance();
 }

@@ -9,12 +9,15 @@ import net.minecraftforge.fluids.FluidRegistry;
 import top.qiguaiaaaa.fluidgeography.api.FGInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.AtmosphereLayer;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.GasProperty;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.GasState;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.Layer;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.FluidProperty;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.FluidState;
+import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
+import top.qiguaiaaaa.fluidgeography.api.util.math.Altitude;
 import top.qiguaiaaaa.fluidgeography.atmosphere.state.WaterState;
 import top.qiguaiaaaa.fluidgeography.util.MathUtil;
 
-public class AtmosphereWater extends GasProperty {
+public class AtmosphereWater extends FluidProperty {
     public static final AtmosphereWater WATER = new AtmosphereWater();
     protected AtmosphereWater() {
         super(FluidRegistry.WATER,false,true);
@@ -23,19 +26,49 @@ public class AtmosphereWater extends GasProperty {
 
     @Override
     public void onFlow(AtmosphereLayer from, Chunk fromChunk, Atmosphere to, Chunk toChunk, EnumFacing direction, Vec3d windSpeed) {
-        if (to.getUnderlying().getAltitude().get() > from.getBeginY()+from.getDepth()) return;
-        GasState water = from.getWater();
+        double fromTop = from.getBeginY()+from.getDepth();
+        if (to.getUnderlying().getAltitude().get() > fromTop) return;
+        FluidState water = from.getWater();
         if(water == null) return;
+        BlockPos centerPos = new BlockPos(0,from.getBeginY()+from.getDepth()/2,0);
         double speed = MathUtil.获得带水平正负方向的速度(windSpeed,direction);
-        if(speed<=0) return;
-        int transferAmount = getWaterTransferAmount(water.getAmount()/4.0,speed);
-        if(water.addAmount(-transferAmount)){
-            to.addWater(transferAmount,new BlockPos(0,from.getBeginY()+from.getDepth()/2,0));
+        if(speed>1e-5){
+            int transferAmount = getWaterTransferAmount(water.getAmount()/4.0,speed);
+            if(water.addAmount(-transferAmount)){
+                to.addWater(transferAmount,centerPos);
+            }
+        }else if(speed<-1e-5){
+            Layer layer = to.getLayer(centerPos);
+            if(!(layer instanceof AtmosphereLayer)) return;
+            FluidState toWater = layer.getWater();
+            if(toWater == null) return;
+            int transferAmount = getWaterTransferAmount(toWater.getAmount()
+                    *Math.min((fromTop-layer.getBeginY())/from.getDepth(),1)/4.0,
+                    -speed);
+            if(toWater.addAmount(-transferAmount)){
+                water.addAmount(transferAmount);
+            }
+        }
+
+    }
+
+    @Override
+    public void onConvect(AtmosphereLayer lower, AtmosphereLayer upper, double speed) {
+        if(speed>0 && speed<2) return;
+        FluidState from = lower.getWater(),to = upper.getWater();
+        if(from == null || to == null) return;
+        double dis = Altitude.to物理高度(upper.getBeginY()+upper.getDepth()/2-(lower.getBeginY()+lower.getDepth()/2));
+        int waterTransferAmount = getWaterTransferAmountVertically(from.getAmount()/ AtmosphereUtil.FinalFactors.大气单元底面积,(speed-2)/4, dis);
+        if(from.addAmount(-waterTransferAmount)){
+            to.addAmount(waterTransferAmount);
         }
     }
 
-    public static int getWaterTransferAmount(double totalAmount,double windSpeed){
+    public static int getWaterTransferAmount(double totalAmount, double windSpeed){
         return (int) (Math.max(windSpeed/16,1)*totalAmount);
+    }
+    public static int getWaterTransferAmountVertically(double totalAmount, double windSpeed,double distance){
+        return (int) (totalAmount*windSpeed/(windSpeed+distance)*216); //时间步长
     }
 
     @Override

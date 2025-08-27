@@ -11,7 +11,7 @@ public final class AtmosphereUtil {
     }
     /**
      * 获取太阳高度角
-     * @return 太阳高度角,单位为rad
+     * @return 太阳高度角
      */
     public static Degree getSunHeight(WorldInfo worldInfo){
         long dayTime= (worldInfo.getWorldTime()+6000)%24000;
@@ -42,7 +42,7 @@ public final class AtmosphereUtil {
 
     /**
      * 使用Tetens公式计算指定温度下的饱和水汽压
-     * @param temperature 温度
+     * @param temperature 温度，单位K
      * @return 饱和水汽压，单位为帕 Pa
      */
     public static double 计算饱和水汽压(double temperature){
@@ -59,11 +59,12 @@ public final class AtmosphereUtil {
         public static final double 每大气刻单位区块获得能量 = 太阳常数 *大气单元底面积*216;
         public static final double 每大气刻损失能量常数 = 斯特藩_玻尔兹曼常数*大气单元底面积*216;
         public static final int WATER_MELT_LATENT_HEAT_PER_QUANTA = 41750000;
-        public static final int WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA = 283250000;
+        public static final int 水汽化热 = 2266*1000; //FE/kg
+        public static final int WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA = 水汽化热*125;
 
-        public static final double 质量消光系数_云 = 5000.0;
+        public static final double 质量消光系数_云 = 0.1;
         public static final double 质量消光系数_气体 = 1e-5;
-        public static final double 质量消光系数_水汽 = 0.03;
+        public static final double 质量消光系数_水汽 = 0.005;
         // 标准大气常数（对流层内）
         public static final double 海平面气压 = 101325.0;    // Pa
         public static final double 重力加速度 = 9.80665;      // m/s²

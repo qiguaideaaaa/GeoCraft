@@ -18,6 +18,8 @@ import top.qiguaiaaaa.fluidgeography.api.configs.value.number.ConfigInteger;
 
 public final class AtmosphereConfig {
     public static final String CATEGORY_ATMOSPHERE = "atmosphere";
+    public static final ConfigItem<ConfigBoolean> ENABLE_DETAIL_LOGGING = new ConfigItem<>(CATEGORY_ATMOSPHERE,"enableDetailLogging",
+            new ConfigBoolean(false),"开启详细的大气日志记录",true);
     public static final CollectionConfigItem<ConfigInteger, ConfigHashSet<ConfigInteger>> CONSTANT_TEMP_DIMENSIONS = new CollectionConfigItem<>(CATEGORY_ATMOSPHERE,
             "constantTempDimensions", new ConfigHashSet<>(
                     new ConfigInteger(1),
@@ -112,8 +114,6 @@ public final class AtmosphereConfig {
                     "下垫面在热红外波段的发射率");
     public static final ConfigItem<ConfigInteger> DEFAULT_UNDERLYING_EMISSIVITY = new ConfigItem<>(CATEGORY_ATMOSPHERE,
             "underlyingDefaultEmissivity",new ConfigInteger(86),"下垫面默认发射率");
-    public static final ConfigItem<ConfigDouble> GROUND_RADIATION_LOSS_RATE = new ConfigItem<>(CATEGORY_ATMOSPHERE,"radiationLossRate",
-            new ConfigDouble(0.5),"地表热辐射损失的系数，默认为0.5");
     public static final ConfigItem<ConfigBoolean> ALLOW_CAULDRON_GET_INFINITE_WATER = new ConfigItem<>(CATEGORY_ATMOSPHERE,"allowCauldronGetInfiniteWater",
             new ConfigBoolean(false),"是否允许炼药锅接无限量的水，即在接水时不会消耗大气水");
     public static final ConfigItem<ConfigInteger> ATMOSPHERE_UNDERLYING_RECALCULATE_GAP = new ConfigItem<>(CATEGORY_ATMOSPHERE,

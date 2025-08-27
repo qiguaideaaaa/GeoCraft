@@ -9,7 +9,6 @@ public class DefaultTemperature extends TemperatureProperty {
     public static final DefaultTemperature TEMPERATURE = new DefaultTemperature();
 
     protected DefaultTemperature(){
-        super(false,false);
         setRegistryName(new ResourceLocation(FGInfo.getModId(),"temperature"));
     }
 

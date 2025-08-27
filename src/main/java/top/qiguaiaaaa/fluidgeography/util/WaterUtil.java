@@ -27,19 +27,14 @@ public final class WaterUtil {
         final double 交换系数 = 1.0e-7;
         final int 时间步长 = 216;
         final int 单层水质量 = FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
-        double temp = atmosphere.getTemperature(pos,true);
+        double temp = atmosphere.getUnderlying().getTemperature(pos);
         if(temp>= TemperatureProperty.BOILED_POINT) return 1;
         double 水汽压 = atmosphere.getWaterPressure(pos);
-        double 饱和水汽压 = AtmosphereUtil.计算饱和水汽压(atmosphere.getTemperature(pos));
+        double 饱和水汽压 = AtmosphereUtil.计算饱和水汽压(atmosphere.getAtmosphereTemperature(pos));
         double 水汽压差 = Math.max(饱和水汽压 - 水汽压, 0);
         double 通量_kg每平米每秒 = 交换系数 * 水汽压差;
         double 期望质量 = 通量_kg每平米每秒 * 时间步长;
         return  1.0 - Math.exp(-期望质量 / 单层水质量);
-//        double possibility = 1.0d;
-//        possibility *= Math.pow(1.07,temp - TemperatureProperty.ICE_POINT)/Math.pow(1.07,100);
-//        possibility *= Math.sqrt(1-Math.pow(atmosphere.getWaterPressure(pos)/1024.0,2)/1000.0);
-//        possibility *= 0.5;
-//        return possibility;
     }
 
     /**
@@ -49,11 +44,12 @@ public final class WaterUtil {
      * @return 一个介于0~1的值，表示概率
      */
     public static double getRainPossibility(Atmosphere atmosphere, BlockPos pos) {
-        float temp = atmosphere.getTemperature(pos);
+        float temp = atmosphere.getAtmosphereTemperature(pos);
+        if(temp <= TemperatureProperty.UNAVAILABLE) return 0;
         if(temp>= TemperatureProperty.BOILED_POINT) return 0;
         if(temp<= TemperatureProperty.ICE_POINT-100) return 1;
         double strong = atmosphere.getRainStrong();
-        return strong/(strong+16384);
+        return strong/(strong+4096);
     }
 
     /**
@@ -93,8 +89,8 @@ public final class WaterUtil {
     public static boolean canSnowAt(World world,BlockPos pos, boolean checkLight) {
         Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world, pos);
         if(atmosphere == null) return world.canSnowAtBody(pos,checkLight);
-        if(atmosphere.get水量()< FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME) return false;
-        if (atmosphere.getTemperature(pos) >= TemperatureProperty.ICE_POINT) {
+        if(atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,pos,true)< FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME) return false;
+        if (atmosphere.getAtmosphereTemperature(pos) >= TemperatureProperty.ICE_POINT) {
             return false;
         } else if (!checkLight) {
             return true;

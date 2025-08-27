@@ -6,7 +6,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.Chunk;
 import org.apache.commons.lang3.tuple.Triple;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.UnderlyingLayer;
 import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.math.Altitude;
 import top.qiguaiaaaa.fluidgeography.atmosphere.DefaultAtmosphere;
@@ -28,8 +27,8 @@ public class HighAtmosphereLayer extends QiguaiAtmosphereLayer{
 
     @Override
     public void 更新缓存() {
-        super.更新缓存();
         this.起始高度 = atmosphere.getUnderlying().getAltitude().get()+相对起始高度;
+        super.更新缓存();
     }
 
     @Override
@@ -37,16 +36,16 @@ public class HighAtmosphereLayer extends QiguaiAtmosphereLayer{
         double 地面海拔 = atmosphere.getUnderlying().getAltitude().get();
         double 相对海拔 = pos.getY()-地面海拔;
         if(相对海拔< 相对起始高度-0.1){
-            if(lowerLayer == null) return temperature.get();
-            return lowerLayer.getTemperature(pos,notAir);
+            if(isLowerLayerValid) return low.getTemperature(pos,notAir);
+            return temperature.get();
         }
         if(相对海拔>getTopY()){
-            if(upperLayer == null) return getTemperature(new BlockPos(pos.getX(),地面海拔+getDepth()-0.01,pos.getZ()),notAir);
-            return upperLayer.getTemperature(pos,notAir);
+            if(isUpperLayerValid) return up.getTemperature(pos,notAir);
+            return getTemperature(new BlockPos(pos.getX(),地面海拔+getDepth()-0.01,pos.getZ()),notAir);
         }
         double temp;
-        if(相对海拔< 第二温度过渡开始高度+第二温度过渡区间长度 && lowerLayer != null){
-            double 过渡区开始温度 = lowerLayer.getTemperature(new BlockPos(pos.getX(),地面海拔+ 第二温度过渡开始高度,pos.getZ()),false);
+        if(相对海拔< 第二温度过渡开始高度+第二温度过渡区间长度 && isLowerLayerValid){
+            double 过渡区开始温度 = low.getTemperature(new BlockPos(pos.getX(),地面海拔+ 第二温度过渡开始高度,pos.getZ()),false);
             double 过渡区结束温度 = temperature.get();
             temp = (过渡区结束温度-过渡区开始温度)/第二温度过渡区间长度*(相对海拔-第二温度过渡开始高度)+过渡区开始温度;
         } else {
@@ -79,8 +78,8 @@ public class HighAtmosphereLayer extends QiguaiAtmosphereLayer{
 
     @Override
     public Vec3d 计算下风速() {
-        if(lowerLayer == null || lowerLayer instanceof UnderlyingLayer) return Vec3d.ZERO;
-        double 散度垂直运动贡献 = 散度()*Altitude.to物理高度(getDepth())*0.1*0.01;
+        if(!isLowerLayerValid) return Vec3d.ZERO;
+        double 散度垂直运动贡献 = 散度()*Altitude.to物理高度(getDepth())*0.1*0.002;
         return new Vec3d(0,散度垂直运动贡献,0);
     }
 
@@ -88,8 +87,21 @@ public class HighAtmosphereLayer extends QiguaiAtmosphereLayer{
     protected void 对流() {}
 
     @Override
+    public void initialise(Chunk chunk) {
+        if(!temperature.isInitialised()){
+            if(lowerLayer == null || !lowerLayer.isInitialise()){
+                temperature.set(240);
+            }else{
+                temperature.set((float) (lowerLayer.getTemperature().get()-
+                        Altitude.to物理高度(lowerLayer.getDepth())* AtmosphereUtil.FinalFactors.对流层温度直减率));
+            }
+        }
+        super.initialise(chunk);
+    }
+
+    @Override
     public void tick(Chunk chunk, Map<EnumFacing, Triple<Atmosphere, Chunk, EnumFacing>> neighbors) {
         super.tick(chunk, neighbors);
-        ((DefaultAtmosphere)atmosphere).set下风(this);
+        ((DefaultAtmosphere)atmosphere).setDownWind(this);
     }
 }

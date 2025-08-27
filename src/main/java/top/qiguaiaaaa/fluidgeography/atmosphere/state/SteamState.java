@@ -1,22 +1,17 @@
 package top.qiguaiaaaa.fluidgeography.atmosphere.state;
 
 import net.minecraftforge.fluids.FluidRegistry;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.GasProperty;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.GasState;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.FluidProperty;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.FluidState;
 import top.qiguaiaaaa.fluidgeography.atmosphere.property.AtmosphereSteam;
 
-public class SteamState extends GasState {
+public class SteamState extends FluidState {
     public SteamState(int amount) {
         super(FluidRegistry.WATER, amount);
     }
 
     @Override
-    public boolean isInitialised() {
-        return true;
-    }
-
-    @Override
-    public GasProperty getProperty() {
+    public FluidProperty getProperty() {
         return AtmosphereSteam.STEAM;
     }
 

@@ -3,13 +3,16 @@ package top.qiguaiaaaa.fluidgeography.atmosphere.layer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.chunk.Chunk;
 import org.apache.commons.lang3.tuple.Triple;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereWorldInfo;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.AtmosphereLayer;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.UnderlyingLayer;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.TemperatureProperty;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.raypack.HeatPack;
 import top.qiguaiaaaa.fluidgeography.api.configs.AtmosphereConfig;
 import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
@@ -23,9 +26,10 @@ import java.util.Map;
 import static top.qiguaiaaaa.fluidgeography.api.util.ChunkUtil.getSameLiquidDepth;
 
 public class Underlying extends UnderlyingLayer {
-    protected long heatCapacity;
     public double 平均返照率;
     public double 平均发射率;
+    protected double 周围区块最高平均海拔 = -100000;
+    boolean afterFirstTick = false;
 
 
     public Underlying(Atmosphere atmosphere) {
@@ -74,22 +78,45 @@ public class Underlying extends UnderlyingLayer {
     @Override
     public void initialise(Chunk chunk) {
         updateAltitude(chunk);
+        周围区块最高平均海拔 = altitude.get();
         super.initialise(chunk);
     }
 
     @Override
     public void tick(Chunk chunk, Map<EnumFacing, Triple<Atmosphere,Chunk,EnumFacing>> neighbors) {
-        if(!atmosphere.getAtmosphereWorldInfo().isTemperatureConstant()){
-            double 地面辐射损失系数 = AtmosphereConfig.GROUND_RADIATION_LOSS_RATE.getValue().value;
-            double 地面长波辐射 = AtmosphereUtil.FinalFactors.每大气刻损失能量常数 * Math.pow(temperature.get(), 4) * 平均发射率*地面辐射损失系数;
-            temperature.add热量(-地面长波辐射,heatCapacity);
-            if(upperLayer == null) return;
-            upperLayer.sendHeat(new HeatPack(HeatPack.HeatType.LONG_WAVE,地面长波辐射), EnumFacing.UP);
+        if(!afterFirstTick){
+            周围区块最高平均海拔 = altitude.get();
+            for(Triple<Atmosphere,Chunk,EnumFacing> neighbor:neighbors.values()){
+                周围区块最高平均海拔 = Math.max(周围区块最高平均海拔,neighbor.getLeft().getUnderlying().getAltitude().get());
+            }
+            afterFirstTick = true;
         }
+        if(atmosphere.getAtmosphereWorldInfo().isTemperatureConstant()) return;
+
         if(!atmosphere.getAtmosphereWorldInfo().isWorldClosed() &&
                 atmosphere.tickTime() % AtmosphereConfig.ATMOSPHERE_UNDERLYING_RECALCULATE_GAP.getValue().value == 0 ){
             update(chunk);
+            周围区块最高平均海拔 = altitude.get();
+            for(Triple<Atmosphere,Chunk,EnumFacing> neighbor:neighbors.values()){
+                周围区块最高平均海拔 = Math.max(周围区块最高平均海拔,neighbor.getLeft().getUnderlying().getAltitude().get());
+            }
         }
+
+        double 地面长波辐射 = AtmosphereUtil.FinalFactors.每大气刻损失能量常数 * Math.pow(temperature.get(), 4) * 平均发射率;
+        temperature.add热量(-地面长波辐射,heatCapacity);
+        if(upperLayer == null) return;
+        upperLayer.sendHeat(new HeatPack(HeatPack.HeatType.LONG_WAVE,地面长波辐射), EnumFacing.UP);
+
+        //接触式热量传递
+        if(!(upperLayer instanceof AtmosphereLayer)) return;
+        double tempMin = Math.min(temperature.get(),upperLayer.getTemperature().get());
+        double tempDiff = temperature.get()-upperLayer.getTemperature().get();
+        double 传递热量 = Math.min(heatCapacity,upperLayer.getHeatCapacity())*
+                MathHelper.clamp(
+                MathHelper.clamp(tempDiff,-tempMin/8,tempMin/8) *Math.min(获取上面平均风速()+1,20) /32
+                        ,-Math.abs(tempDiff)/3,Math.abs(tempDiff)/3);
+        temperature.add热量(-传递热量,heatCapacity);
+        upperLayer.putHeat(传递热量,null);
     }
 
     @Override
@@ -101,14 +128,14 @@ public class Underlying extends UnderlyingLayer {
         if(direction.y<0){
             switch (pack.getType()){
                 case SHORT_WAVE:
-                    temperature.add热量(pack.drawHeat(pack.getHeat()*平均返照率),heatCapacity);
+                    temperature.add热量(pack.drawHeat(pack.getHeat()*(1-平均返照率)),heatCapacity);
                     break;
                 case LONG_WAVE:
                     temperature.add热量(pack.drawHeat(pack.getHeat()),heatCapacity);
                     break;
             }
             if(upperLayer == null) return;
-            upperLayer.sendHeat(pack,new Vec3i(direction.x,-direction.y,direction.z));
+            upperLayer.sendHeat(pack,new Vec3d(direction.x,-direction.y,direction.z));
         }else if(direction.y >0){
             if(upperLayer == null) return;
             upperLayer.sendHeat(pack,direction);
@@ -122,7 +149,22 @@ public class Underlying extends UnderlyingLayer {
     }
 
     @Override
+    public float getTemperature(BlockPos pos) {
+        if(pos.getY()<=周围区块最高平均海拔) return temperature.get();
+        double 高差 = pos.getY()-周围区块最高平均海拔;
+        return (float) Math.max(temperature.get()-高差* AtmosphereUtil.FinalFactors.对流层温度直减率/2, TemperatureProperty.MIN);
+    }
+
+    @Override
     public String getTagName() {
         return "g";
+    }
+
+    protected double 获取上面平均风速(){
+        if(!(upperLayer instanceof AtmosphereLayer)) return 0;
+        AtmosphereLayer layer = (AtmosphereLayer) upperLayer;
+        double wind = layer.getWind(new BlockPos(4,altitude.get(),4)).length()+layer.getWind(new BlockPos(4,altitude.get(),8)).length()
+                +layer.getWind(new BlockPos(8,altitude.get(),4)).length()+layer.getWind(new BlockPos(8,altitude.get(),8)).length();
+        return wind/4;
     }
 }

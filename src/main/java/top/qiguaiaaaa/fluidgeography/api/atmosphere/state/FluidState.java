@@ -8,15 +8,16 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.FluidTankProperties;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.GasProperty;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.Layer;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.FluidProperty;
 
 import javax.annotation.Nullable;
 
-public abstract class GasState implements IAtmosphereState, IFluidHandler {
-    protected final Fluid gas;
+public abstract class FluidState implements GeographyState, IFluidHandler {
+    protected final Fluid fluid;
     protected int amount;
-    public GasState(Fluid fluid, int amount){
-        this.gas = fluid;
+    public FluidState(Fluid fluid, int amount){
+        this.fluid = fluid;
         this.amount = amount;
     }
 
@@ -36,14 +37,24 @@ public abstract class GasState implements IAtmosphereState, IFluidHandler {
     }
 
     @Override
-    public abstract GasProperty getProperty() ;
+    public void initialise(Layer layer) {
+        this.amount = 0;
+    }
+
+    @Override
+    public boolean isInitialised() {
+        return amount>=0;
+    }
+
+    @Override
+    public abstract FluidProperty getProperty() ;
 
     /**
      * 获取气体对应的Forge流体
      * @return Forge流体
      */
-    public Fluid getGas() {
-        return gas;
+    public Fluid getFluid() {
+        return fluid;
     }
 
     @Override
@@ -65,7 +76,7 @@ public abstract class GasState implements IAtmosphereState, IFluidHandler {
 
     @Override
     public int fill(FluidStack resource, boolean doFill) {
-        if(resource.getFluid() != gas) return 0;
+        if(resource.getFluid() != fluid) return 0;
         if(this.amount + resource.amount <0) return 0;
         if(doFill) addAmount(resource.amount);
         return resource.amount;
@@ -74,7 +85,7 @@ public abstract class GasState implements IAtmosphereState, IFluidHandler {
     @Nullable
     @Override
     public FluidStack drain(FluidStack resource, boolean doDrain) {
-        if(resource.getFluid() != gas) return null;
+        if(resource.getFluid() != fluid) return null;
         return drain(resource.amount,doDrain);
     }
 
@@ -83,7 +94,7 @@ public abstract class GasState implements IAtmosphereState, IFluidHandler {
     public FluidStack drain(int maxDrain, boolean doDrain) {
         int drainedInFact = (this.amount- maxDrain <0)?this.amount: maxDrain;
         if(doDrain) addAmount(-drainedInFact);
-        return new FluidStack(gas,drainedInFact);
+        return new FluidStack(fluid,drainedInFact);
     }
 
     @Override
@@ -99,17 +110,17 @@ public abstract class GasState implements IAtmosphereState, IFluidHandler {
 
         @Override
         public FluidStack getContents() {
-            return new FluidStack(gas,getAmount());
+            return new FluidStack(fluid,getAmount());
         }
 
         @Override
         public boolean canFillFluidType(FluidStack fluidStack) {
-            return fluidStack.getFluid() == gas;
+            return fluidStack.getFluid() == fluid;
         }
 
         @Override
         public boolean canDrainFluidType(FluidStack fluidStack) {
-            return fluidStack.getFluid() == gas;
+            return fluidStack.getFluid() == fluid;
         }
     }
 }

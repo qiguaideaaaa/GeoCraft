@@ -4,34 +4,44 @@ import net.minecraft.block.material.Material;
 import net.minecraft.command.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.storage.WorldInfo;
+import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.logging.log4j.Logger;
+import top.qiguaiaaaa.fluidgeography.api.FGAtmosphereProperties;
 import top.qiguaiaaaa.fluidgeography.api.FGInfo;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereSystemManager;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereSystemManager;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.IAtmosphereSystem;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.AtmosphereLayer;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.Layer;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.UnderlyingLayer;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.listener.InformationLoggingTracker;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.GasState;
-import top.qiguaiaaaa.fluidgeography.atmosphere.DefaultAtmosphere;
-import top.qiguaiaaaa.fluidgeography.atmosphere.listener.WaterTracker;
-import top.qiguaiaaaa.fluidgeography.atmosphere.layer.Underlying;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.FluidProperty;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.GeographyProperty;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.FluidState;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.GeographyState;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.TemperatureState;
 import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
-import top.qiguaiaaaa.fluidgeography.api.util.ChunkUtil;
-import top.qiguaiaaaa.fluidgeography.atmosphere.listener.TemperatureTracker;
 import top.qiguaiaaaa.fluidgeography.api.util.io.FileLogger;
 import top.qiguaiaaaa.fluidgeography.api.util.math.Altitude;
+import top.qiguaiaaaa.fluidgeography.atmosphere.GeographyPropertyManager;
+import top.qiguaiaaaa.fluidgeography.atmosphere.DefaultAtmosphere;
+import top.qiguaiaaaa.fluidgeography.atmosphere.layer.Underlying;
+import top.qiguaiaaaa.fluidgeography.atmosphere.listener.FluidTracker;
+import top.qiguaiaaaa.fluidgeography.atmosphere.listener.TemperatureTracker;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class CommandAtmosphere extends ExtendedCommand {
     public static final String ATMOSPHERE_COMMAND_NAME = "atmosphere";
@@ -39,6 +49,7 @@ public class CommandAtmosphere extends ExtendedCommand {
     public CommandAtmosphere(){
         this.registerSubCommand(new AddCommand(this));
         this.registerSubCommand(new SetCommand(this));
+        this.registerSubCommand(new StopCommand(this));
         this.registerSubCommand(new ResetCommand(this));
         this.registerSubCommand(new QueryCommand(this));
         this.registerSubCommand(new UtilCommand(this));
@@ -72,11 +83,23 @@ public class CommandAtmosphere extends ExtendedCommand {
             super.execute(server,sender,args);
         } else{
             Atmosphere atmosphere = getAtmosphere(world,pos.getX(),pos.getZ());
-            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic",pos.getX(),Altitude.get物理海拔(pos.getY()),pos.getZ());
-            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.1",atmosphere.getLayer(pos).getWater());
-            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.2",atmosphere.getTemperature(pos));
-            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.3",atmosphere.getUnderlying().getTemperature());
-            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.4",atmosphere.getWind(pos));
+            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic",TextFormatting.AQUA,pos.getX(),Altitude.get物理海拔(pos.getY()),pos.getZ());
+            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.1",
+                    atmosphere.getPressure(pos),
+                    atmosphere.getWaterPressure(pos),
+                    atmosphere.getAtmosphereTemperature(pos)
+            );
+            notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.2",atmosphere.getWind(pos));
+            for(Layer layer = atmosphere.getBottomLayer(); layer != null; layer = layer.getUpperLayer()){
+                notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.3",
+                        layer.getTagName(),layer.getBeginY(),layer.getBeginY()+layer.getDepth());
+                notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.4",layer.getTemperature());
+                FluidState steam = (layer instanceof AtmosphereLayer)?((AtmosphereLayer)layer).getSteam():null;
+                FluidState water = layer.getWater();
+                notifyCommandListener(sender,this, "fluidgeography.command.atmosphere.query.basic.5",
+                        steam==null?"NULL":steam,water==null?"NULL":water);
+            }
+
         }
     }
     protected static Atmosphere getAtmosphere(World world, int x, int z) throws CommandException {
@@ -85,6 +108,35 @@ public class CommandAtmosphere extends ExtendedCommand {
             throw new CommandException("fluidgeography.command.atmosphere.nonexistent.there",new Object());
         }
         return atmosphere;
+    }
+    protected static Layer getAtmosphereLayer(Atmosphere atmosphere,int height) throws CommandException {
+        Layer layer = atmosphere.getLayer(new BlockPos(0,height,0));
+        if(layer == null){
+            throw new CommandException("fluidgeography.command.atmosphere.layer.null");
+        }
+        return layer;
+    }
+    protected static List<String> getPropertyList(){
+        Set<ResourceLocation> locations = GeographyPropertyManager.getProperties().getKeys();
+        List<String> strings = new ArrayList<>();
+        for(ResourceLocation location:locations){
+            strings.add(location.toString());
+        }
+        return strings;
+    }
+    protected static GeographyProperty getProperty(ResourceLocation location) throws CommandException {
+        GeographyProperty property= GeographyPropertyManager.getProperties().getValue(location);
+        if(property == null){
+            throw new CommandException("fluidgeography.command.atmosphere.property.not_found",location);
+        }
+        return property;
+    }
+    protected static GeographyState getState(GeographyProperty property, Layer layer) throws CommandException {
+        GeographyState state = layer.getState(property);
+        if(state == null){
+            throw new CommandException("fluidgeography.command.atmosphere.property.null2",property.getRegistryName());
+        }
+        return state;
     }
     public static abstract class AtmosphereSubCommand extends SubCommand{
 
@@ -97,10 +149,11 @@ public class CommandAtmosphere extends ExtendedCommand {
             World world = sender.getEntityWorld();
             BlockPos pos = sender.getPosition();
             Atmosphere atmosphere = getAtmosphere(world,pos.getX(),pos.getZ());
-            this.execute(server,world,pos,atmosphere,sender,args);
+            Layer layer = getAtmosphereLayer(atmosphere,pos.getY());
+            this.execute(server,world,pos,atmosphere,layer,sender,args);
         }
 
-        public abstract void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere, ICommandSender sender, String[] args) throws CommandException;
+        public abstract void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException;
 
         public static Chunk getValidChunk(World world,int x,int z) throws CommandException {
             BlockPos targetPos = new BlockPos(x,63,z);
@@ -127,7 +180,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         }
 
         @Override
-        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere, ICommandSender sender, String[] args) throws CommandException{
+        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException{
             if(args.length<2 || args.length>4 || args.length == 3) throw new WrongUsageException(getUsage(sender));
 
             double value;
@@ -140,29 +193,55 @@ public class CommandAtmosphere extends ExtendedCommand {
                 x = (int) coordinateArgX.getResult();
                 z = (int) coordinateArgZ.getResult();
                 atmosphere = getAtmosphere(world,x,z);
+                layer = getAtmosphereLayer(atmosphere,pos.getY());
             }
-            if("water".equalsIgnoreCase(args[0])){
-                GasState steam = atmosphere.getLayer(pos).getSteam();
+            notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.layer_inf",layer.getTagName(),
+                    layer.getBeginY(),layer.getBeginY()+layer.getDepth());
+            if("steam".equalsIgnoreCase(args[0])){
+                FluidState steam = (layer instanceof AtmosphereLayer)?((AtmosphereLayer)layer).getSteam():null;
                 if(steam == null){
-                    return;
+                    throw new CommandException("fluidgeography.command.atmosphere.property.null");
                 }
                 steam.setAmount((int)value);
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.set.water",x,z,(int) value);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.set.steam",x,pos.getY(),z,(int) value);
+                return;
+            }
+            if("water".equalsIgnoreCase(args[0])){
+                FluidState water = layer.getWater();
+                if(water == null){
+                    throw new CommandException("fluidgeography.command.atmosphere.property.null");
+                }
+                water.setAmount((int)value);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.set.water",x,pos.getY(),z,(int) value);
                 return;
             }
             if("temp".equalsIgnoreCase(args[0])){
-                atmosphere.getLayer(pos).getTemperature().set((float) value);
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.set.temp",x,z, (float) value);
-                return;
-            }
-            if("ground_temp".equalsIgnoreCase(args[0])){
-                atmosphere.getUnderlying().getTemperature().set((float) value);
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.set.ground_temp",x,z, (float) value);
+                layer.getTemperature().set((float) value);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.set.temp",x,pos.getY(),z, (float) value);
                 return;
             }
             if("debug".equalsIgnoreCase(args[0])){
-                if(value>0) notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.set.debug",x,z);
+                if(!(atmosphere instanceof DefaultAtmosphere)){
+                    throw new CommandException("fluidgeography.command.atmosphere.unknown");
+                }
+                DefaultAtmosphere a = (DefaultAtmosphere) atmosphere;
+                a.setDebug(value>0);
+                if(value>0) notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.set.debug",x,z,a.isDebug());
                 return;
+            }
+            ResourceLocation location = new ResourceLocation(args[0]);
+            GeographyProperty property= getProperty(location);
+            GeographyState state = getState(property,layer);
+            if(state instanceof FluidState){
+                FluidState gas = (FluidState) state;
+                gas.setAmount((int) value);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.set.gas",x,pos.getY(),z,gas.getAmount());
+                return;
+            }
+            if(state instanceof TemperatureState){
+                TemperatureState temperature = (TemperatureState) state;
+                temperature.set((float) value);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.set.temp2",x,pos.getY(),z,temperature.get());
             }
             throw new WrongUsageException(getUsage(sender));
         }
@@ -170,20 +249,57 @@ public class CommandAtmosphere extends ExtendedCommand {
         @Override
         public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
             if (args.length == 1) {
-                return getListOfStringsMatchingLastWord(args, "water","temp","ground_temp");
+                List<String> res = getPropertyList();
+                res.addAll(getListOfStringsMatchingLastWord(args, "water","temp","ground_temp"));
+                return res;
             } else if(args.length >= 3 && args.length <= 4){
                 return getTabCompletionCoordinateXZ(args,2,targetPos);
             }
             return Collections.emptyList();
         }
     }
+    public static class StopCommand extends AtmosphereSubCommand {
+        protected StopCommand(ICommand father) {
+            super(father);
+        }
+
+        @Override
+        public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
+            World world = sender.getEntityWorld();
+            IAtmosphereSystem system = AtmosphereSystemManager.getAtmosphereSystem(world);
+            if(system == null) throw new CommandException("fluidgeography.command.atmosphere_system.null");
+            system.setStop(!system.isStopped());
+            notifyCommandListener(sender, this, "fluidgeography.command.atmosphere.reset.temp",system.isStopped() , 0, 0);
+        }
+
+        @Override
+        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) {}
+        @Override
+        public String getName() {
+            return "stop";
+        }
+
+        @Override
+        public String getUsage(ICommandSender sender) {
+            return "/atmosphere stop";
+        }
+
+        @Override
+        public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
+            if (args.length == 1) {
+                return getListOfStringsMatchingLastWord(args, "stop");
+            }
+            return Collections.emptyList();
+        }
+    }
+
     public static class ResetCommand extends AtmosphereSubCommand{
         protected ResetCommand(ICommand father) {
             super(father);
         }
 
         @Override
-        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere, ICommandSender sender, String[] args) throws CommandException {
+        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer,ICommandSender sender, String[] args) throws CommandException {
             if(args.length<1 || args.length>3 || args.length == 2) throw new WrongUsageException(getUsage(sender));
 
             int x = pos.getX(),z = pos.getZ();
@@ -203,8 +319,8 @@ public class CommandAtmosphere extends ExtendedCommand {
                 Chunk chunk = world.getChunk(targetPos);
                 if(atmosphere instanceof DefaultAtmosphere){
                     ((DefaultAtmosphere)atmosphere).重置温度(chunk);
-                }else throw new WrongUsageException("Unknown atmosphere class!");
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.reset.temp",x,z, atmosphere.getTemperature(pos));
+                }else throw new CommandException("fluidgeography.command.atmosphere.unknown");
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.reset.temp",x,z, atmosphere.getAtmosphereTemperature(pos));
                 return;
             }
             throw new WrongUsageException(getUsage(sender));
@@ -237,7 +353,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         }
 
         @Override
-        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere, ICommandSender sender, String[] args) throws CommandException {
+        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer,ICommandSender sender, String[] args) throws CommandException {
             if(args.length<2 || args.length>4 || args.length == 3) throw new WrongUsageException(getUsage(sender));
 
             double value;
@@ -250,33 +366,53 @@ public class CommandAtmosphere extends ExtendedCommand {
                 x = (int) coordinateArgX.getResult();
                 z = (int) coordinateArgZ.getResult();
                 atmosphere = getAtmosphere(world,x,z);
+                layer = getAtmosphereLayer(atmosphere,pos.getY());
             }
-            AtmosphereLayer layer = atmosphere.getLayer(pos);
-            if(layer == null) throw new CommandException("fluidgeography.command.atmosphere.nonexistent.there");
-            if("water".equalsIgnoreCase(args[0])){
-                GasState steam = layer.getSteam();
-                if(steam == null) return;
-                if(!layer.addSteam(pos,(int) value)){
+            notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.layer_inf",layer.getTagName(),
+                    layer.getBeginY(),layer.getBeginY()+layer.getDepth());
+            if("steam".equalsIgnoreCase(args[0])){
+                FluidState steam = (layer instanceof AtmosphereLayer)?((AtmosphereLayer)layer).getSteam():null;
+                if(steam == null) throw new CommandException("fluidgeography.command.atmosphere.property.null");
+                if(!steam.addAmount((int) value)){
                     throw new NumberInvalidException("commands.generic.num.tooSmall", value, -steam.getAmount());
                 }
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.add.water",x,z,steam);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.add.water",x,pos.getY(),z,steam);
+                return;
+            }
+            if("water".equalsIgnoreCase(args[0])){
+                FluidState water = layer.getWater();
+                if(water == null) throw new CommandException("fluidgeography.command.atmosphere.property.null");
+                if(!water.addAmount((int) value)){
+                    throw new NumberInvalidException("commands.generic.num.tooSmall", value, -water.getAmount());
+                }
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.add.water",x,pos.getY(),z,water);
                 return;
             }
             if("temp".equalsIgnoreCase(args[0])){
-                if(layer instanceof Underlying){
-                    layer = layer.getUpperLayer();
-                    if(layer == null) throw new CommandException("fluidgeography.command.atmosphere.nonexistent.there");
-                }
                 layer.getTemperature().add(value);
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.add.temp",x,z, layer.getTemperature());
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.add.temp",x,pos.getY(),z, layer.getTemperature());
                 return;
             }
-            if("ground_temp".equalsIgnoreCase(args[0])){
-                atmosphere.getUnderlying().getTemperature().add(value);
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.add.ground_temp",x,z, atmosphere.getUnderlying().getTemperature());
+            if("heat".equalsIgnoreCase(args[0])){
+                layer.putHeat(value,new BlockPos(x,pos.getY(),z));
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.add.temp",x,pos.getY(),z, layer.getTemperature());
                 return;
             }
-            throw new WrongUsageException(getUsage(sender));
+            ResourceLocation location = new ResourceLocation(args[0]);
+            GeographyProperty property= getProperty(location);
+            GeographyState state = getState(property,layer);
+            if(state instanceof FluidState){
+                FluidState gas = (FluidState) state;
+                gas.addAmount((int) value);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.add.gas",x,pos.getY(),z,gas.getAmount());
+                return;
+            }
+            if(state instanceof TemperatureState){
+                TemperatureState temperature = (TemperatureState) state;
+                temperature.add(value);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.add.temp2",x,pos.getY(),z,temperature.get());
+            }
+            throw new CommandException("fluidgeography.command.atmosphere.property.unknown");
         }
 
         @Override
@@ -292,7 +428,9 @@ public class CommandAtmosphere extends ExtendedCommand {
         @Override
         public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
             if (args.length == 1) {
-                return getListOfStringsMatchingLastWord(args, "water","temp","ground_temp");
+                List<String> res = getPropertyList();
+                res.addAll(getListOfStringsMatchingLastWord(args, "steam","water","temp","heat"));
+                return res;
             } else if(args.length >= 3 && args.length <= 4){
                 return getTabCompletionCoordinateXZ(args,3,targetPos);
             }
@@ -306,7 +444,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         }
 
         @Override
-        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere, ICommandSender sender, String[] args) throws CommandException {
+        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException {
             if(args.length<1) throw new WrongUsageException(getUsage(sender));
             if(args.length>4) throw new WrongUsageException("fluidgeography.command.atmosphere.query.usage.xyz");
             int x = pos.getX(),y=pos.getY(),z = pos.getZ();
@@ -334,32 +472,26 @@ public class CommandAtmosphere extends ExtendedCommand {
                 x = (int) coordinateArgX.getResult();
                 z = (int) coordinateArgZ.getResult();
                 atmosphere = getAtmosphere(world,x,z);
+                layer = getAtmosphereLayer(atmosphere,pos.getY());
             }
-            AtmosphereLayer layer = atmosphere.getLayer(pos);
-            if(layer == null) throw new CommandException("fluidgeography.command.atmosphere.nonexistent.there");
-            if("water".equalsIgnoreCase(args[0])){
-                GasState steam = layer.getSteam();
-                if(steam == null) return;
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.water",x,z,steam);
+            notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.layer_inf",layer.getTagName(),
+                    layer.getBeginY(),layer.getBeginY()+layer.getDepth());
+            if("steam".equalsIgnoreCase(args[0])){
+                FluidState steam = (layer instanceof AtmosphereLayer)?((AtmosphereLayer)layer).getSteam():null;
+                if(steam == null) throw new CommandException("fluidgeography.command.atmosphere.property.null");
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.steam",x,y,z,steam);
                 sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,steam.getAmount());
                 return;
             }
-            if("temp".equalsIgnoreCase(args[0])){
-                if(layer instanceof Underlying){
-                    layer = layer.getUpperLayer();
-                }
-                if(layer != null)
-                    notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.temp",x,z,layer.getTemperature() );
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.ground_temp",x,z,atmosphere.getUnderlying().getTemperature());
+            if("water".equalsIgnoreCase(args[0])){
+                FluidState water = layer.getWater();
+                if(water == null) throw new CommandException("fluidgeography.command.atmosphere.property.null");
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.water",x,y,z,water);
+                sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,water.getAmount());
                 return;
             }
-            if("low_temp".equalsIgnoreCase(args[0])){
-                if(layer instanceof Underlying){
-                    layer = layer.getUpperLayer();
-                }
-                if(layer == null) return;
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.temp",x,z,layer.getTemperature());
-                sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int) layer.getTemperature().get());
+            if("temp".equalsIgnoreCase(args[0])){
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.temp",x,y,z,layer.getTemperature() );
                 return;
             }
             if("ground_temp".equalsIgnoreCase(args[0])){
@@ -367,18 +499,14 @@ public class CommandAtmosphere extends ExtendedCommand {
                 sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int) atmosphere.getUnderlying().getTemperature().get());
                 return;
             }
-//            if("basic_temp".equalsIgnoreCase(args[0])){
-//                Chunk chunk = getValidChunk(world,x,z);
-//                float tempBase = atmosphere.getAtmosphereWorldInfo().getModel().getInitTemperature(atmosphere,chunk);
-//                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.basic_temp",x,z, tempBase);
-//                sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int) tempBase);
-//                return;
-//            }
             if("wind".equalsIgnoreCase(args[0])){
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.wind.north",x,z,layer.getWind(pos).dotProduct(new Vec3d(EnumFacing.NORTH.getDirectionVec())));
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.wind.east",x,z,layer.getWind(pos).dotProduct(new Vec3d(EnumFacing.EAST.getDirectionVec())));
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.wind.south",x,z,layer.getWind(pos).dotProduct(new Vec3d(EnumFacing.SOUTH.getDirectionVec())));
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.wind.west",x,z,layer.getWind(pos).dotProduct(new Vec3d(EnumFacing.WEST.getDirectionVec())));
+                Vec3d wind = atmosphere.getWind(pos);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.wind.north",x,y,z,wind.dotProduct(new Vec3d(EnumFacing.NORTH.getDirectionVec())));
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.wind.east",x,y,z,wind.dotProduct(new Vec3d(EnumFacing.EAST.getDirectionVec())));
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.wind.south",x,y,z,wind.dotProduct(new Vec3d(EnumFacing.SOUTH.getDirectionVec())));
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.wind.west",x,y,z,wind.dotProduct(new Vec3d(EnumFacing.WEST.getDirectionVec())));
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.wind.west",x,y,z,wind.dotProduct(new Vec3d(EnumFacing.UP.getDirectionVec())));
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.wind.west",x,y,z,wind.dotProduct(new Vec3d(EnumFacing.DOWN.getDirectionVec())));
                 return;
             }
             if("underlying".equalsIgnoreCase(args[0])){
@@ -386,28 +514,21 @@ public class CommandAtmosphere extends ExtendedCommand {
                 Underlying underlying;
                 if(underlying1 instanceof Underlying){
                     underlying = (Underlying) underlying1;
-                }else throw new WrongUsageException("invalid Underlying!");
+                }else throw new CommandException("fluidgeography.command.atmosphere.unknown_underlying");
                 notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.underlying",x,underlying.getAltitude(),z,underlying.getHeatCapacity(),underlying.平均返照率,underlying.平均发射率);
                 return;
             }
             if("heat_volume".equalsIgnoreCase(args[0])){
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.heat_volume",x,z,layer.getHeatCapacity());
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.heat_volume",x,y,z,layer.getHeatCapacity());
                 sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int) layer.getHeatCapacity());
                 return;
             }
             if("water_pressure".equalsIgnoreCase(args[0])){
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.water_pressure",x,z,atmosphere.getWaterPressure(pos)*0.01);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.water_pressure",x,y,z,atmosphere.getWaterPressure(pos)*0.01);
                 return;
             }
-            if("biome".equalsIgnoreCase(args[0])){
-                Chunk chunk = getValidChunk(world,x,z);
-                Biome mainBiome = ChunkUtil.getMainBiome(chunk);
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.basic_temp",x,z, mainBiome.getBiomeName());
-                return;
-            }
-            if("average_height".equalsIgnoreCase(args[0])){
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.basic_temp",x,z, atmosphere.getUnderlying());
-                sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int) atmosphere.getUnderlying().getAltitude().get());
+            if("pressure".equalsIgnoreCase(args[0])){
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.query.pressure",x,y,z,atmosphere.getPressure(pos)*0.01);
                 return;
             }
             throw new WrongUsageException(getUsage(sender));
@@ -426,7 +547,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         @Override
         public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
             if (args.length == 1) {
-                return getListOfStringsMatchingLastWord(args, "water","temp","low_temp","ground_temp","basic_temp","block_temp","wind","underlying","heat_volume");
+                return getListOfStringsMatchingLastWord(args, "water","steam","temp","water_pressure","pressure","ground_temp","block_temp","wind","underlying","heat_volume");
             }if(args.length == 4) {
                 if ("block_temp".equals(args[0])) {
                     return getTabCompletionCoordinate(args, 2, targetPos);
@@ -446,7 +567,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         }
 
         @Override
-        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere, ICommandSender sender, String[] args) throws CommandException {
+        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException {
             if(args.length != 1) throw new WrongUsageException(getUsage(sender));
             WorldInfo info = world.getWorldInfo();
             if("sun".equalsIgnoreCase(args[0])){
@@ -456,6 +577,12 @@ public class CommandAtmosphere extends ExtendedCommand {
                 notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.util.sun.2",
                         AtmosphereUtil.getSunEnergyPerChunk(info));
                 return;
+            }
+            if("property".equalsIgnoreCase(args[0])){
+                IForgeRegistry<GeographyProperty> registry = GeographyPropertyManager.getProperties();
+                for(GeographyProperty property:registry){
+                    notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.util.property",property.getRegistryName());
+                }
             }
             throw new WrongUsageException(getUsage(sender));
         }
@@ -473,7 +600,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         @Override
         public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
             if (args.length == 1){
-                return getListOfStringsMatchingLastWord(args, "sun");
+                return getListOfStringsMatchingLastWord(args, "sun","property");
             }
             return Collections.emptyList();
         }
@@ -485,33 +612,46 @@ public class CommandAtmosphere extends ExtendedCommand {
         }
 
         @Override
-        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere, ICommandSender sender, String[] args) throws CommandException {
-            if(args.length<3 || args.length>5 || args.length == 4) throw new WrongUsageException(getUsage(sender));
+        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException {
+            if(args.length<3 || args.length>6 || args.length == 4 || args.length == 5) throw new WrongUsageException(getUsage(sender));
 
             int time;
             String fileName = args[2];
             if(fileName.trim().isEmpty()) throw new WrongUsageException(getUsage(sender));
-            int x = pos.getX(),z = pos.getZ();
+            int x = pos.getX(),y = pos.getY(),z = pos.getZ();
 
             time = parseInt(args[1],1);
-            if(args.length == 5){
+            if(args.length == 6){
                 CoordinateArg coordinateArgX = parseCoordinate(pos.getX(),args[3],false);
-                CoordinateArg coordinateArgZ = parseCoordinate(pos.getZ(),args[4],false);
+                CoordinateArg coordinateArgY = parseCoordinate(pos.getY(),args[4],false);
+                CoordinateArg coordinateArgZ = parseCoordinate(pos.getZ(),args[5],false);
                 x = (int) coordinateArgX.getResult();
+                y = (int) coordinateArgY.getResult();
                 z = (int) coordinateArgZ.getResult();
                 atmosphere = getAtmosphere(world,x,z);
             }
             if("temp".equalsIgnoreCase(args[0])){
-                InformationLoggingTracker tracker = createInformationTracker(atmosphere, TemperatureTracker::new,fileName, FGInfo.getLogger(),time);
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.track.temp",x,z,tracker.getId());
+                InformationLoggingTracker tracker = createInformationTracker(atmosphere, TemperatureTracker::new,fileName, FGInfo.getLogger(),new BlockPos(x,y,z),time);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.track.temp",x,y,z,tracker.getId());
                 return;
             }
             if("water".equalsIgnoreCase(args[0])){
-                InformationLoggingTracker tracker = createInformationTracker(atmosphere, WaterTracker::new,fileName, FGInfo.getLogger(),time);
-                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.track.water",x,z,tracker.getId());
+                InformationLoggingTracker tracker = createFluidTracker(atmosphere,fileName, FGInfo.getLogger(), FGAtmosphereProperties.WATER,new BlockPos(x,y,z),time);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.track.water",x,y,z,tracker.getId());
                 return;
             }
-            throw new WrongUsageException(getUsage(sender));
+            if("steam".equalsIgnoreCase(args[0])){
+                InformationLoggingTracker tracker = createFluidTracker(atmosphere,fileName, FGInfo.getLogger(), FGAtmosphereProperties.STEAM,new BlockPos(x,y,z),time);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.track.water",x,y,z,tracker.getId());
+                return;
+            }
+            ResourceLocation location = new ResourceLocation(args[0]);
+            GeographyProperty property= getProperty(location);
+            if(property instanceof FluidProperty){
+                InformationLoggingTracker tracker = createFluidTracker(atmosphere,fileName,FGInfo.getLogger(),(FluidProperty) property,new BlockPos(x,y,z),time);
+                notifyCommandListener(sender,this,"fluidgeography.command.atmosphere.track.gas",x,y,z,tracker.getId(),property.getRegistryName());
+            }
+            throw new CommandException("fluidgeography.command.atmosphere.property.unknown");
         }
 
         @Override
@@ -527,17 +667,30 @@ public class CommandAtmosphere extends ExtendedCommand {
         @Override
         public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
             if (args.length == 1){
-                return getListOfStringsMatchingLastWord(args, "temp","water");
+                List<String> res = getPropertyList();
+                res.addAll(getListOfStringsMatchingLastWord(args, "temp","water","steam"));
+                return res;
             } else if(args.length >= 4 && args.length <= 5){
-                return getTabCompletionCoordinateXZ(args,3,targetPos);
+                return getTabCompletionCoordinate(args,3,targetPos);
             }
             return Collections.emptyList();
         }
 
-        public static InformationLoggingTracker createInformationTracker(Atmosphere atmosphere, InformationLoggingTrackerFactory factory, String fileName, Logger logger, int time) throws CommandException {
+        public static InformationLoggingTracker createInformationTracker(Atmosphere atmosphere, InformationLoggingTrackerFactory factory, String fileName, Logger logger,BlockPos pos, int time) throws CommandException {
             InformationLoggingTracker tracker;
             try {
-                tracker = factory.getInstance(new FileLogger(fileName,logger),time);
+                tracker = factory.getInstance(new FileLogger(fileName,logger),pos,time);
+                atmosphere.addListener(tracker);
+            } catch (IOException e) {
+                FGInfo.getLogger().error(e);
+                throw new CommandException("fluidgeography.command.io_error",e.getMessage());
+            }
+            return tracker;
+        }
+        public static InformationLoggingTracker createFluidTracker(Atmosphere atmosphere, String fileName, Logger logger, FluidProperty property, BlockPos pos, int time) throws CommandException {
+            InformationLoggingTracker tracker;
+            try {
+                tracker = new FluidTracker(new FileLogger(fileName,logger),property,pos,time);
                 atmosphere.addListener(tracker);
             } catch (IOException e) {
                 FGInfo.getLogger().error(e);
@@ -547,7 +700,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         }
 
         public interface InformationLoggingTrackerFactory {
-            InformationLoggingTracker getInstance(FileLogger logger,int time);
+            InformationLoggingTracker getInstance(FileLogger logger,BlockPos pos,int time);
         }
     }
 }

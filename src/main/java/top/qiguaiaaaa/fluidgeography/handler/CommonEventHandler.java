@@ -8,8 +8,8 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import top.qiguaiaaaa.fluidgeography.FluidGeography;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.GeographyProperty;
 import top.qiguaiaaaa.fluidgeography.atmosphere.DefaultAtmosphereProvider;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereProperty;
 
 @Mod.EventBusSubscriber
 public final class CommonEventHandler {
@@ -23,8 +23,8 @@ public final class CommonEventHandler {
     }
 
     @SubscribeEvent
-    public static void onRegisterAtmosphereProperty(RegistryEvent.Register<AtmosphereProperty> event){
-        RegistryHandler.registerAtmosphereProperties(event);
+    public static void onRegisterAtmosphereProperty(RegistryEvent.Register<GeographyProperty> event){
+        RegistryHandler.registerGeographyProperties(event);
     }
 
 }

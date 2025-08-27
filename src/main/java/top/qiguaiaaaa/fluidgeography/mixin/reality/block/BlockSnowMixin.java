@@ -60,7 +60,7 @@ public class BlockSnowMixin {
         int layer = state.getValue(BlockSnow.LAYERS);
         Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(worldIn,pos);
         if (worldIn.getLightFor(EnumSkyBlock.BLOCK, pos) > 11) {
-            this.turnIntoWater(worldIn,pos,atmosphere,8-layer);
+            this.turnIntoWater(worldIn,pos,atmosphere,8-layer); //用的是发光Block产生的热量,所以不扣地表温度
             return;
         }
         if(worldIn.getLightFor(EnumSkyBlock.SKY,pos) == 0) return;
@@ -68,7 +68,7 @@ public class BlockSnowMixin {
         float temp = atmosphere.getTemperature(pos,true);
         if(temp > TemperatureProperty.ICE_POINT){
             this.turnIntoWater(worldIn,pos,atmosphere,8-layer);
-            atmosphere.putHeat(-(AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA*layer),pos);
+            atmosphere.getUnderlying().drawHeat(AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA*layer,pos);
         }
     }
     protected boolean tryFallDown(World world,BlockPos pos,IBlockState state){

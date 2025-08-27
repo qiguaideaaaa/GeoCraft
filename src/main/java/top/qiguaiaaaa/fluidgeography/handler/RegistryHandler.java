@@ -17,8 +17,8 @@ import top.qiguaiaaaa.fluidgeography.atmosphere.property.AtmosphereWater;
 import top.qiguaiaaaa.fluidgeography.atmosphere.property.DefaultTemperature;
 
 public final class RegistryHandler {
-    public static void registerAtmosphereProperties(RegistryEvent.Register<AtmosphereProperty> event){
-        IForgeRegistry<AtmosphereProperty> registry =event.getRegistry();
+    public static void registerGeographyProperties(RegistryEvent.Register<GeographyProperty> event){
+        IForgeRegistry<GeographyProperty> registry =event.getRegistry();
         registry.register(DefaultTemperature.TEMPERATURE);
         registry.register(AtmosphereWater.WATER);
         registry.register(AtmosphereSteam.STEAM);

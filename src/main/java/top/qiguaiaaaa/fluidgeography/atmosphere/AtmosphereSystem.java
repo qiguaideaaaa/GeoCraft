@@ -5,9 +5,11 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
+import top.qiguaiaaaa.fluidgeography.api.FGInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.IAtmosphereSystem;
+import top.qiguaiaaaa.fluidgeography.api.configs.AtmosphereConfig;
 import top.qiguaiaaaa.fluidgeography.api.event.EventFactory;
 import top.qiguaiaaaa.fluidgeography.util.BaseUtil;
 import top.qiguaiaaaa.fluidgeography.util.WaterUtil;
@@ -20,19 +22,31 @@ import static top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil.FinalFactors
 public class AtmosphereSystem implements IAtmosphereSystem {
     protected final WorldServer world;
     protected final AtmosphereWorldInfo atmosphereWorldInfo;
+    protected boolean stopped = false;
     protected AtmosphereSystem(WorldServer world, AtmosphereWorldInfo worldInfo){
         this.world = world;
         this.atmosphereWorldInfo = worldInfo;
     }
     @Override
     public void updateTick(){
+        if(stopped) return;
         Collection<Chunk> loadedChunks = world.getChunkProvider().getLoadedChunks();
         for (Chunk chunk:loadedChunks) {
             if(world.getWorldTime()%60 != Math.abs(chunk.x+chunk.z)%60) continue;
-            DefaultAtmosphere atmosphere = chunk.getCapability(DefaultAtmosphere.LOWER_ATMOSPHERE,null);
+            DefaultAtmosphere atmosphere = chunk.getCapability(DefaultAtmosphere.DEFAULT_ATMOSPHERE,null);
             if(atmosphere == null) continue;
             if(!atmosphere.isInitialised()) atmosphere.initialise(chunk,atmosphereWorldInfo);
-            if(atmosphere.isInitialised())  atmosphere.updateTick(chunk);
+            try{
+                if(atmosphere.isInitialised())  atmosphere.updateTick(chunk);
+            }catch (Exception e){
+                FGInfo.getLogger().error("AtmosphereSystem {} meet an error while updating atmosphere at ChunkPos({},{}) which started at BlockPos({},{}).",world.provider.getDimension()
+                ,chunk.x,chunk.z,chunk.getPos().getXStart(),chunk.getPos().getZStart());
+                if(AtmosphereConfig.ENABLE_DETAIL_LOGGING.getValue().value){
+                    FGInfo.getLogger().error("Atmosphere detailed:{}",atmosphere);
+                    FGInfo.getLogger().error(e);
+                }
+            }
+
         }
         Iterator<Chunk> persistentChunkIterator = world.getPersistentChunkIterable(world.getPlayerChunkMap().getChunkIterator());
         while (persistentChunkIterator.hasNext()){
@@ -41,12 +55,21 @@ public class AtmosphereSystem implements IAtmosphereSystem {
         }
     }
 
+    @Override
+    public void setStop(boolean status) {
+        stopped = status;
+    }
+
+    @Override
+    public boolean isStopped() {
+        return stopped;
+    }
+
     /**
      * 处理下雨等事件
-     * @param chunk
      */
     protected void updateBlocks(Chunk chunk){
-        DefaultAtmosphere atmosphere = chunk.getCapability(DefaultAtmosphere.LOWER_ATMOSPHERE,null);
+        DefaultAtmosphere atmosphere = chunk.getCapability(DefaultAtmosphere.DEFAULT_ATMOSPHERE,null);
         if(atmosphere == null || !atmosphere.isInitialised()) return;
         int x = chunk.x * 16;
         int z = chunk.z * 16;
@@ -63,7 +86,7 @@ public class AtmosphereSystem implements IAtmosphereSystem {
 
         if (BaseUtil.getRandomResult(world.rand,freezePossibility) && WaterUtil.canWaterFreeze(world,pos,true)) {
             world.setBlockState(pos, Blocks.ICE.getDefaultState());
-            atmosphere.putHeat(WATER_MELT_LATENT_HEAT_PER_QUANTA*8,pos);
+            atmosphere.getUnderlying().putHeat(WATER_MELT_LATENT_HEAT_PER_QUANTA*8,pos);
         }
 
         if(!BaseUtil.getRandomResult(world.rand,rainPossibility)){
@@ -95,7 +118,7 @@ public class AtmosphereSystem implements IAtmosphereSystem {
     @Override
     public Atmosphere getAtmosphere(Chunk chunk) {
         if(!chunk.isLoaded()) return null;
-        Atmosphere atmosphere = chunk.getCapability(DefaultAtmosphere.LOWER_ATMOSPHERE,null);
+        Atmosphere atmosphere = chunk.getCapability(DefaultAtmosphere.DEFAULT_ATMOSPHERE,null);
         if(atmosphere != null && atmosphere.isInitialised()) return atmosphere;
         return null;
     }

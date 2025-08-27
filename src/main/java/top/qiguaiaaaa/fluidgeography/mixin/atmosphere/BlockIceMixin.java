@@ -28,7 +28,7 @@ public class BlockIceMixin {
         double temp = atmosphere.getTemperature(pos,true);
         if(temp > TemperatureProperty.ICE_POINT){
             this.turnIntoWater(worldIn,pos);
-            atmosphere.putHeat(-(AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA*8),pos);
+            atmosphere.getUnderlying().putHeat(-(AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA*8),pos);
         }
     }
     @Shadow

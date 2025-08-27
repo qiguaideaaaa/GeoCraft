@@ -28,10 +28,9 @@ public final class VanillaEventHandler {
         World world = event.getWorld();
         BlockPos randPos = event.getRandPos();
         if (WaterUtil.canSnowAt(world,randPos, true)) {
-            if(atmosphere.addSteam(-FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos)){
-                event.setResult(Event.Result.ALLOW);
-                event.setState(Blocks.SNOW_LAYER.getDefaultState());
-            }
+            atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos,false);
+            event.setResult(Event.Result.ALLOW);
+            event.setState(Blocks.SNOW_LAYER.getDefaultState());
         }
     }
 }

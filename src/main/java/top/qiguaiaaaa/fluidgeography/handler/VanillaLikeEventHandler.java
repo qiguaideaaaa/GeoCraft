@@ -31,17 +31,15 @@ public final class VanillaLikeEventHandler{
         World world = event.getWorld();
         BlockPos randPos = event.getRandPos();
         if (WaterUtil.canSnowAt(world,randPos, true)) {
-            if(atmosphere.addSteam(-FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos)){
-                event.setResult(Event.Result.ALLOW);
-                event.setState(Blocks.SNOW_LAYER.getDefaultState());
-            }
+            atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos,false);
+            event.setResult(Event.Result.ALLOW);
+            event.setState(Blocks.SNOW_LAYER.getDefaultState());
         }
         if(!BaseUtil.getRandomResult(world.rand,event.getRainPossibility())) return;
         if(VanillaLikeSimulationCore.canRainAt(world,randPos.down())){
-            if(atmosphere.addSteam(-Fluid.BUCKET_VOLUME,randPos)){
-                //因为不是更新指定的位置,所以不设置结果
-                world.setBlockState(randPos.down(),Blocks.FLOWING_WATER.getDefaultState());
-            }
+            atmosphere.drainWater(Fluid.BUCKET_VOLUME,randPos,false);
+            //因为不是更新指定的位置,所以不设置结果
+            world.setBlockState(randPos.down(),Blocks.FLOWING_WATER.getDefaultState());
         }
     }
 }

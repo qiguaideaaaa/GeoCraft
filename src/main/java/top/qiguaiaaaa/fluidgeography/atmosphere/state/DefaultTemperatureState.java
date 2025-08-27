@@ -9,6 +9,10 @@ import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.TemperatureState;
 import top.qiguaiaaaa.fluidgeography.atmosphere.property.DefaultTemperature;
 import top.qiguaiaaaa.fluidgeography.api.util.ChunkUtil;
 
+/**
+ * Temperature的默认实现
+ * 注意Temperature的初始化依赖大气本身层级，因此这里没有初始化方法
+ */
 public class DefaultTemperatureState extends TemperatureState {
     protected static final int TEMPERATURE_MULTI = 30;
     protected static final int TEMPERATURE_TRANSFER_OFFSET = 3;
@@ -18,7 +22,7 @@ public class DefaultTemperatureState extends TemperatureState {
 
     @Override
     public boolean isInitialised() {
-        return temperature>0;
+        return temperature > 0 && !Float.isInfinite(temperature);
     }
 
     @Override

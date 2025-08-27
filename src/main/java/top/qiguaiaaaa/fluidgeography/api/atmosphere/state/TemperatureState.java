@@ -3,10 +3,10 @@ package top.qiguaiaaaa.fluidgeography.api.atmosphere.state;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTPrimitive;
 import net.minecraft.nbt.NBTTagFloat;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.AtmosphereProperty;
+import top.qiguaiaaaa.fluidgeography.api.FGInfo;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.TemperatureProperty;
 
-public abstract class TemperatureState implements IAtmosphereState{
+public abstract class TemperatureState implements GeographyState {
     protected float temperature;
     public TemperatureState(float temp){
         this.temperature = temp;
@@ -29,21 +29,44 @@ public abstract class TemperatureState implements IAtmosphereState{
     }
 
     public void set(float temperature) {
-        if(temperature <0) temperature = 0;
+        if(temperature < TemperatureProperty.MIN){
+            StackTraceElement[] 调用栈 = Thread.currentThread().getStackTrace();
+            StackTraceElement 调用点 = 调用栈[2];
+            FGInfo.getLogger().warn("Someone want to set temp to very small at {}.{}:{}",调用点.getClassName(),调用点.getMethodName(),调用点.getLineNumber());
+            temperature = 3;
+        }
         this.temperature = temperature;
     }
     public void set(TemperatureState temp){
-        this.temperature = temp.temperature;
+        set(temp.temperature);
     }
 
     public void add(double temp){
         this.temperature += temp;
-        if(temperature<0) temperature = 0;
     }
 
     public void add热量(double Q, double 热容){
+        if(Double.isInfinite(Q) || Double.isNaN(Q)){
+            StackTraceElement[] 调用栈 = Thread.currentThread().getStackTrace();
+            StackTraceElement 调用点 = 调用栈[2];
+            FGInfo.getLogger().error("Someone want to add temp {} by Q= {} at {}.{}:{}",temperature,Q,调用点.getClassName(),调用点.getMethodName(),调用点.getLineNumber());
+            throw new RuntimeException();
+        }
         double tempChange = Q/热容;
+        if(temperature+tempChange< TemperatureProperty.MIN){
+            StackTraceElement[] 调用栈 = Thread.currentThread().getStackTrace();
+            StackTraceElement 调用点 = 调用栈[2];
+            FGInfo.getLogger().error("Someone want to add temp to 0 from {} by {} at {}.{}:{}",temperature,tempChange,调用点.getClassName(),调用点.getMethodName(),调用点.getLineNumber());
+            throw new RuntimeException();
+        }
+        if(Double.isInfinite(temperature+tempChange)){
+            StackTraceElement[] 调用栈 = Thread.currentThread().getStackTrace();
+            StackTraceElement 调用点 = 调用栈[2];
+            FGInfo.getLogger().error("Someone want to add temp to INFINITY from {} by {} at {}.{}:{}",temperature,tempChange,调用点.getClassName(),调用点.getMethodName(),调用点.getLineNumber());
+            throw new RuntimeException();
+        }
         this.add(tempChange);
+
     }
 
     @Override

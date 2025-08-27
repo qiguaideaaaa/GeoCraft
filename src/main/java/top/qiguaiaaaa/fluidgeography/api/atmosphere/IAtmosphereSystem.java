@@ -7,6 +7,8 @@ import javax.annotation.Nullable;
 
 public interface IAtmosphereSystem {
     void updateTick();
+    void setStop(boolean status);
+    boolean isStopped();
     @Nullable
     Atmosphere getAtmosphere(BlockPos pos);
     @Nullable

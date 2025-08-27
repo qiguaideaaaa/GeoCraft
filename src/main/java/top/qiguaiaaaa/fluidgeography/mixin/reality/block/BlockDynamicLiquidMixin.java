@@ -247,7 +247,7 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
             }
             Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(worldIn,currentPos);
             if(atmosphere == null) return;
-            atmosphere.putHeat(frozenQuanta* AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA,currentPos);
+            atmosphere.getUnderlying().putHeat(frozenQuanta* AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA,currentPos);
             return;
         }
         int belowQuanta = FluidUtil.getFluidQuanta(worldIn,currentPos.down(),downState);

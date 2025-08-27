@@ -8,14 +8,15 @@ import net.minecraftforge.fluids.FluidRegistry;
 import top.qiguaiaaaa.fluidgeography.FluidGeography;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.AtmosphereLayer;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.GasProperty;
-import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.GasState;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.layer.Layer;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.property.FluidProperty;
+import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.FluidState;
 import top.qiguaiaaaa.fluidgeography.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.fluidgeography.api.util.math.Altitude;
 import top.qiguaiaaaa.fluidgeography.atmosphere.state.SteamState;
 import top.qiguaiaaaa.fluidgeography.util.MathUtil;
 
-public class AtmosphereSteam extends GasProperty {
+public class AtmosphereSteam extends FluidProperty {
     public static final AtmosphereSteam STEAM = new AtmosphereSteam();
     protected AtmosphereSteam() {
         super(FluidRegistry.WATER, false, true);
@@ -24,8 +25,9 @@ public class AtmosphereSteam extends GasProperty {
 
     @Override
     public void onFlow(AtmosphereLayer from, Chunk fromChunk, Atmosphere to, Chunk toChunk, EnumFacing direction, Vec3d windSpeed) {
-        if (to.getUnderlying().getAltitude().get() > from.getBeginY()+from.getDepth()) return;
-        GasState steam = from.getSteam();
+        double fromTop = from.getBeginY()+from.getDepth();
+        if (to.getUnderlying().getAltitude().get() > fromTop) return;
+        FluidState steam = from.getSteam();
         if(steam == null) return;
         double speed = MathUtil.获得带水平正负方向的速度(windSpeed,direction);
         BlockPos centerPos = new BlockPos(0,from.getBeginY()+from.getDepth()/2,0);
@@ -36,27 +38,44 @@ public class AtmosphereSteam extends GasProperty {
             if(steam.addAmount(-waterTransferAmount)){
                 to.addSteam(waterTransferAmount,centerPos);
             }
-        }
-    }
-
-    @Override
-    public void onConvect(AtmosphereLayer lower, AtmosphereLayer upper, double speed) {
-        GasState from = lower.getSteam();
-        GasState to = upper.getSteam();
-        if(from == null || to == null) return;
-        double fromWP = lower.getWaterPressure(),toWP = upper.getWaterPressure();
-        speed = speed+计算水气压差动力(fromWP,toWP);
-        if(speed >1e-6){
-            double dis = Altitude.to物理高度(upper.getBeginY()-lower.getBeginY());
-            int waterTransferAmount = getSteamTransferAmountVertically(from.getAmount()/ AtmosphereUtil.FinalFactors.大气单元底面积,speed, dis);
-            if(from.addAmount(-waterTransferAmount)){
-                to.addAmount(waterTransferAmount);
+        }else if(speed <-1e-5){
+            Layer layer = to.getLayer(centerPos);
+            if(!(layer instanceof AtmosphereLayer)) return;
+            FluidState toSteam = ((AtmosphereLayer)layer).getSteam();
+            if(toSteam == null) return;
+            int transferAmount = getSteamTransferAmount(toSteam.getAmount()
+                            *Math.min((fromTop-layer.getBeginY())/ from.getDepth(),1)/4.0,
+                    -speed);
+            if(toSteam.addAmount(-transferAmount)){
+                steam.addAmount(transferAmount);
             }
         }
     }
 
     @Override
-    public GasState getStateInstance() {
+    public void onConvect(AtmosphereLayer lower, AtmosphereLayer upper, double speed) {
+        FluidState from = lower.getSteam();
+        FluidState to = upper.getSteam();
+        if(from == null || to == null) return;
+        double fromWP = lower.getWaterPressure(),toWP = upper.getWaterPressure();
+        speed = speed+计算水气压差动力(fromWP,toWP);
+        if(speed >1e-6){
+            double dis = Altitude.to物理高度(upper.getBeginY()+upper.getDepth()/2-(lower.getBeginY()+lower.getDepth()/2));
+            int waterTransferAmount = getSteamTransferAmountVertically(from.getAmount()/ AtmosphereUtil.FinalFactors.大气单元底面积,speed, dis);
+            if(from.addAmount(-waterTransferAmount)){
+                to.addAmount(waterTransferAmount);
+            }
+        }else if(speed <-1e-6){
+            double dis = Altitude.to物理高度(upper.getBeginY()+upper.getDepth()/2-(lower.getBeginY()+lower.getDepth()/2));
+            int waterTransferAmount = getSteamTransferAmountVertically(to.getAmount()/ AtmosphereUtil.FinalFactors.大气单元底面积,-speed, dis);
+            if(to.addAmount(-waterTransferAmount)){
+                from.addAmount(waterTransferAmount);
+            }
+        }
+    }
+
+    @Override
+    public FluidState getStateInstance() {
         return new SteamState(0);
     }
 

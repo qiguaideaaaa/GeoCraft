@@ -2,13 +2,11 @@ package top.qiguaiaaaa.fluidgeography.api.atmosphere.property;
 
 import top.qiguaiaaaa.fluidgeography.api.atmosphere.state.TemperatureState;
 
-public abstract class TemperatureProperty extends AtmosphereProperty{
+public abstract class TemperatureProperty extends GeographyProperty {
     public static final int BOILED_POINT = 373;
     public static final int ICE_POINT = 273;
-
-    public TemperatureProperty(boolean windEffect, boolean flowable) {
-        super(windEffect, flowable);
-    }
+    public static final int MIN = 3;
+    public static final int UNAVAILABLE = -100;
 
     @Override
     public abstract TemperatureState getStateInstance() ;
