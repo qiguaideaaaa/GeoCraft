@@ -1,0 +1,345 @@
+package top.qiguaiaaaa.geocraft.configs;
+
+import net.minecraftforge.common.config.Configuration;
+import top.qiguaiaaaa.geocraft.api.configs.item.base.ConfigBoolean;
+import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
+import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableHashSet;
+import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.BlockIntegerEntry;
+import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockProperty;
+import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockState;
+import top.qiguaiaaaa.geocraft.api.property.GeoAtmosphereProperty;
+import top.qiguaiaaaa.geocraft.api.property.GeoBlockProperty;
+import top.qiguaiaaaa.geocraft.configs.item.collection.ConfigIntegerSet;
+import top.qiguaiaaaa.geocraft.configs.item.collection.ConfigSet;
+import top.qiguaiaaaa.geocraft.configs.item.map.ConfigMap;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+
+public final class AtmosphereConfig {
+    public static final String CATEGORY_ATMOSPHERE = "atmosphere";
+    public static final ConfigBoolean ENABLE_DETAIL_LOGGING = new ConfigBoolean(CATEGORY_ATMOSPHERE,"enableDetailLogging",
+            false,"开启详细的大气日志记录",true){
+        @Override
+        public void load(Configuration config) {
+            super.load(config);
+            GeoAtmosphereProperty.setEnableDetailedLogging(value);
+        }
+    };
+    public static final ConfigIntegerSet CONSTANT_TEMP_DIMENSIONS = new ConfigIntegerSet(CATEGORY_ATMOSPHERE, "constantTempDimensions", new ConfigurableHashSet<>(
+            Arrays.asList(1, -1)
+    ), "温度不受太阳辐射影响的维度");
+    public static final ConfigIntegerSet CLOSED_DIMENSIONS = new ConfigIntegerSet(CATEGORY_ATMOSPHERE,
+            "closedDimensions", new ConfigurableHashSet<>(
+            Collections.singleton(-1)
+    ),"地形封闭的维度");
+    public static final ConfigMap<ConfigurableBlockState,Integer> SPECIFIC_HEAT_CAPACITIES =
+            new ConfigMap<ConfigurableBlockState,Integer>(CATEGORY_ATMOSPHERE,"specificHeatCapacities","方块每1立方分米的热容，默认为2000，单位为FE/(dm^3·K),可以用 比热容*密度/1000 计算(国际标准单位)",ConfigurableBlockState::getInstanceByString, Integer::parseInt,
+                    //水
+                    new BlockIntegerEntry("minecraft:water",4200),
+                    new BlockIntegerEntry("minecraft:flowing_water",4200),
+                    //石头
+                    new BlockIntegerEntry("minecraft:stone",2600,new ConfigurableBlockProperty("variant","stone")),
+                    new BlockIntegerEntry("minecraft:stone",2650,new ConfigurableBlockProperty("variant","granite")),
+                    new BlockIntegerEntry("minecraft:stone",2650,new ConfigurableBlockProperty("variant","smooth_granite")),
+                    new BlockIntegerEntry("minecraft:stone",2800,new ConfigurableBlockProperty("variant","diorite")),
+                    new BlockIntegerEntry("minecraft:stone",2800,new ConfigurableBlockProperty("variant","smooth_diorite")),
+                    new BlockIntegerEntry("minecraft:stone",2750,new ConfigurableBlockProperty("variant","andesite")),
+                    new BlockIntegerEntry("minecraft:stone",2750,new ConfigurableBlockProperty("variant","smooth_andesite")),
+                    new BlockIntegerEntry("minecraft:cobblestone",2600),
+                    new BlockIntegerEntry("minecraft:mossy_cobblestone",2600),
+                    new BlockIntegerEntry("minecraft:gold_ore",2600),
+                    new BlockIntegerEntry("minecraft:iron_ore",2600),
+                    new BlockIntegerEntry("minecraft:coal_ore",2600),
+                    new BlockIntegerEntry("minecraft:lapis_ore",2600),
+                    new BlockIntegerEntry("minecraft:diamond_ore",2600),
+                    new BlockIntegerEntry("minecraft:stonebrick",2600),
+                    new BlockIntegerEntry("minecraft:clay",2160),
+                    new BlockIntegerEntry("minecraft:bedrock",3600),
+                    //沙子、沙砾等颗粒较大物质
+                    new BlockIntegerEntry("minecraft:gravel",1440),
+                    new BlockIntegerEntry("minecraft:sand",1280),
+                    new BlockIntegerEntry("minecraft:sandstone",2200),
+                    new BlockIntegerEntry("minecraft:red_sandstone",2200),
+                    //木板
+                    new BlockIntegerEntry("minecraft:planks",900),
+                    new BlockIntegerEntry("minecraft:log",900),
+                    new BlockIntegerEntry("minecraft:log2",900),
+                    //特殊建筑材料
+                    new BlockIntegerEntry("minecraft:glass",2000),
+                    new BlockIntegerEntry("minecraft:stained_glass",2000),
+                    new BlockIntegerEntry("minecraft:stained_hardened_clay",2000),
+                    new BlockIntegerEntry("minecraft:hardened_clay",2000),
+                    new BlockIntegerEntry("minecraft:sea_lantern",2000),
+                    new BlockIntegerEntry("minecraft:prismarine",1760),
+                    new BlockIntegerEntry("minecraft:prismarine",1920,new ConfigurableBlockProperty("variant","dark_prismarine")),
+                    new BlockIntegerEntry("minecraft:glowstone",2240),
+                    new BlockIntegerEntry("minecraft:concrete",2300),
+                    new BlockIntegerEntry("minecraft:concrete_powder",1700),
+                    //土壤类
+                    new BlockIntegerEntry("minecraft:dirt",1000,new ConfigurableBlockProperty("variant","dirt")),
+                    new BlockIntegerEntry("minecraft:dirt",1280,new ConfigurableBlockProperty("variant","coarse_dirt")),
+                    new BlockIntegerEntry("minecraft:dirt",1040,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","false")),
+                    new BlockIntegerEntry("minecraft:dirt",1040,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","true")),
+                    new BlockIntegerEntry("minecraft:myselium",1440),
+                    new BlockIntegerEntry("minecraft:grass",2000), //注意之后添加水分后要改
+                    //杂项
+                    new BlockIntegerEntry("minecraft:sponge",390,new ConfigurableBlockProperty("wet","false")),
+                    new BlockIntegerEntry("minecraft:sponge",4200,new ConfigurableBlockProperty("wet","true")),
+                    new BlockIntegerEntry("minecraft:wool",390),
+                    new BlockIntegerEntry("minecraft:pumpkin",2100),
+                    new BlockIntegerEntry("minecraft:lit_pumpkin",2100),
+                    new BlockIntegerEntry("minecraft:hay_block",260),
+                    new BlockIntegerEntry("minecraft:melon_block",2660),
+                    new BlockIntegerEntry("minecraft:cactus",600),
+                    new BlockIntegerEntry("minecraft:slime",2375),
+                    new BlockIntegerEntry("minecraft:redstone_lamp",2080),
+                    new BlockIntegerEntry("minecraft:lit_redstone_lamp",2080),
+                    new BlockIntegerEntry("minecraft:tnt",1260),
+                    new BlockIntegerEntry("minecraft:leaves",720),
+                    //冰雪
+                    new BlockIntegerEntry("minecraft:ice",1932),
+                    new BlockIntegerEntry("minecraft:snow",630),
+                    new BlockIntegerEntry("minecraft:packed_ice",1932),
+                    new BlockIntegerEntry("minecraft:snow_layer",78,new ConfigurableBlockProperty("layers","1")),
+                    new BlockIntegerEntry("minecraft:snow_layer",158,new ConfigurableBlockProperty("layers","2")),
+                    new BlockIntegerEntry("minecraft:snow_layer",236,new ConfigurableBlockProperty("layers","3")),
+                    new BlockIntegerEntry("minecraft:snow_layer",315,new ConfigurableBlockProperty("layers","4")),
+                    new BlockIntegerEntry("minecraft:snow_layer",394,new ConfigurableBlockProperty("layers","5")),
+                    new BlockIntegerEntry("minecraft:snow_layer",473,new ConfigurableBlockProperty("layers","6")),
+                    new BlockIntegerEntry("minecraft:snow_layer",551,new ConfigurableBlockProperty("layers","7")),
+                    new BlockIntegerEntry("minecraft:snow_layer",630,new ConfigurableBlockProperty("layers","8")),
+                    //单质、金属、压缩（存储）方块
+                    new BlockIntegerEntry("minecraft:lapis_block",2240),
+                    new BlockIntegerEntry("minecraft:gold_block",2489),
+                    new BlockIntegerEntry("minecraft:iron_block",3533),
+                    new BlockIntegerEntry("minecraft:brick_block",1600),
+                    new BlockIntegerEntry("minecraft:obsidian",3000),
+                    new BlockIntegerEntry("minecraft:diamond_block",1806),
+                    new BlockIntegerEntry("minecraft:emerald_block",1160),
+                    new BlockIntegerEntry("minecraft:quartz_block",1160),
+                    new BlockIntegerEntry("minecraft:coal_block",1300),
+                    new BlockIntegerEntry("minecraft:bone_block",1400),
+                    new BlockIntegerEntry("minecraft:redstone_block",2080),
+                    //末地项目
+                    new BlockIntegerEntry("minecraft:end_stone",2800),
+                    new BlockIntegerEntry("minecraft:end_bricks",2800),
+                    new BlockIntegerEntry("minecraft:purpur_block",1440),
+                    new BlockIntegerEntry("minecraft:purpur_pillar",1440),
+                    new BlockIntegerEntry("minecraft:white_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:orange_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:magenta_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:light_blue_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:yellow_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:lime_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:pink_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:gray_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:silver_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:cyan_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:purple_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:blue_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:brown_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:green_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:red_shulker_box",600),
+                    new BlockIntegerEntry("minecraft:black_shulker_box",600),
+                    //地狱项目
+                    new BlockIntegerEntry("minecraft:nether_wart_block",1700),
+                    new BlockIntegerEntry("minecraft:magma",3000),
+                    new BlockIntegerEntry("minecraft:netherrack",2200),
+                    new BlockIntegerEntry("minecraft:quartz_ore",2200),
+                    new BlockIntegerEntry("minecraft:red_nether_brick",2400),
+                    new BlockIntegerEntry("minecraft:nether_brick",2400),
+                    new BlockIntegerEntry("minecraft:soul_sand",960),
+                    //其他
+                    new BlockIntegerEntry("minecraft:air",200)){
+                @Override
+                public void load(Configuration config) {
+                    super.load(config);
+                    for(Map.Entry<ConfigurableBlockState,Integer> entry: getValue().entrySet()){
+                        GeoBlockProperty.setBlockHeatCapacity(entry.getKey(),entry.getValue());
+                    }
+                }
+            };
+    public static final ConfigMap<ConfigurableBlockState,Integer> UNDERLYING_REFLECTIVITY =
+            new ConfigMap<ConfigurableBlockState,Integer>(CATEGORY_ATMOSPHERE,"underlyingReflectivity","下垫面方块的反射率，默认为12%，单位为%", ConfigurableBlockState::getInstanceByString,Integer::parseInt,
+                    //水
+                    new BlockIntegerEntry("minecraft:water",5),
+                    new BlockIntegerEntry("minecraft:flowing_water",3),
+                    //石头
+                    new BlockIntegerEntry("minecraft:stone",8,new ConfigurableBlockProperty("variant","stone")),
+                    new BlockIntegerEntry("minecraft:stone",15,new ConfigurableBlockProperty("variant","granite")),
+                    new BlockIntegerEntry("minecraft:stone",25,new ConfigurableBlockProperty("variant","smooth_granite")),
+                    new BlockIntegerEntry("minecraft:stone",22,new ConfigurableBlockProperty("variant","diorite")),
+                    new BlockIntegerEntry("minecraft:stone",30,new ConfigurableBlockProperty("variant","smooth_diorite")),
+                    new BlockIntegerEntry("minecraft:stone",12,new ConfigurableBlockProperty("variant","andesite")),
+                    new BlockIntegerEntry("minecraft:stone",20,new ConfigurableBlockProperty("variant","smooth_andesite")),
+                    new BlockIntegerEntry("minecraft:cobblestone",5),
+                    new BlockIntegerEntry("minecraft:mossy_cobblestone",4),
+                    new BlockIntegerEntry("minecraft:gold_ore",11),
+                    new BlockIntegerEntry("minecraft:iron_ore",11),
+                    new BlockIntegerEntry("minecraft:coal_ore",11),
+                    new BlockIntegerEntry("minecraft:lapis_ore",11),
+                    new BlockIntegerEntry("minecraft:diamond_ore",11),
+                    new BlockIntegerEntry("minecraft:stonebrick",13),
+                    new BlockIntegerEntry("minecraft:stonebrick",8,new ConfigurableBlockProperty("variant","cracked_stonebrick")),
+                    new BlockIntegerEntry("minecraft:stonebrick",10,new ConfigurableBlockProperty("variant","chiseled_stonebrick")),
+                    new BlockIntegerEntry("minecraft:clay",17),
+                    new BlockIntegerEntry("minecraft:bedrock",0),
+                    //沙子、沙砾等颗粒较大物质
+                    new BlockIntegerEntry("minecraft:gravel",12),
+                    new BlockIntegerEntry("minecraft:sand",20,new ConfigurableBlockProperty("variant","sand")),
+                    new BlockIntegerEntry("minecraft:sand",23,new ConfigurableBlockProperty("variant","red_sand")),
+                    new BlockIntegerEntry("minecraft:sandstone",30),
+                    new BlockIntegerEntry("minecraft:red_sandstone",32,new ConfigurableBlockProperty("type","red_sandstone")),
+                    new BlockIntegerEntry("minecraft:red_sandstone",28,new ConfigurableBlockProperty("type","chiseled_red_sandstone")),
+                    new BlockIntegerEntry("minecraft:red_sandstone",34,new ConfigurableBlockProperty("type","smooth_red_sandstone")),
+                    //木板
+                    new BlockIntegerEntry("minecraft:planks",8),
+                    new BlockIntegerEntry("minecraft:log",6),
+                    new BlockIntegerEntry("minecraft:log2",6),
+                    //特殊建筑材料
+                    new BlockIntegerEntry("minecraft:glass",8),
+                    new BlockIntegerEntry("minecraft:brick_block",20),
+                    new BlockIntegerEntry("minecraft:stained_glas",17),
+                    new BlockIntegerEntry("minecraft:stained_glas",8,new ConfigurableBlockProperty("color","white")),
+                    new BlockIntegerEntry("minecraft:stained_glas",10,new ConfigurableBlockProperty("color","pink")),
+                    new BlockIntegerEntry("minecraft:stained_glas",10,new ConfigurableBlockProperty("color","lightBlue")),
+                    new BlockIntegerEntry("minecraft:stained_glas",10,new ConfigurableBlockProperty("color","yellow")),
+                    new BlockIntegerEntry("minecraft:stained_glas",10,new ConfigurableBlockProperty("color","lime")),
+                    new BlockIntegerEntry("minecraft:stained_glas",13,new ConfigurableBlockProperty("color","magenta")),
+                    new BlockIntegerEntry("minecraft:stained_glas",13,new ConfigurableBlockProperty("color","orange")),
+                    new BlockIntegerEntry("minecraft:stained_glas",20,new ConfigurableBlockProperty("color","black")),
+                    new BlockIntegerEntry("minecraft:stained_hardened_clay",20),
+                    new BlockIntegerEntry("minecraft:stained_hardened_clay",65,new ConfigurableBlockProperty("color","white")),
+                    new BlockIntegerEntry("minecraft:stained_hardened_clay",50,new ConfigurableBlockProperty("color","pink")),
+                    new BlockIntegerEntry("minecraft:stained_hardened_clay",45,new ConfigurableBlockProperty("color","lightBlue")),
+                    new BlockIntegerEntry("minecraft:stained_hardened_clay",45,new ConfigurableBlockProperty("color","yellow")),
+                    new BlockIntegerEntry("minecraft:stained_hardened_clay",45,new ConfigurableBlockProperty("color","lime")),
+                    new BlockIntegerEntry("minecraft:stained_hardened_clay",30,new ConfigurableBlockProperty("color","magenta")),
+                    new BlockIntegerEntry("minecraft:stained_hardened_clay",30,new ConfigurableBlockProperty("color","orange")),
+                    new BlockIntegerEntry("minecraft:stained_hardened_clay",10,new ConfigurableBlockProperty("color","black")),
+                    new BlockIntegerEntry("minecraft:hardened_clay",20),
+                    new BlockIntegerEntry("minecraft:sea_lantern",10),
+                    new BlockIntegerEntry("minecraft:prismarine",15),
+                    new BlockIntegerEntry("minecraft:prismarine",18,new ConfigurableBlockProperty("variant","prismarine_bricks")),
+                    new BlockIntegerEntry("minecraft:prismarine",5,new ConfigurableBlockProperty("variant","dark_prismarine")),
+                    new BlockIntegerEntry("minecraft:glowstone",10),
+                    new BlockIntegerEntry("minecraft:concrete",15),
+                    new BlockIntegerEntry("minecraft:concrete",50,new ConfigurableBlockProperty("color","white")),
+                    new BlockIntegerEntry("minecraft:concrete",35,new ConfigurableBlockProperty("color","pink")),
+                    new BlockIntegerEntry("minecraft:concrete",35,new ConfigurableBlockProperty("color","lightBlue")),
+                    new BlockIntegerEntry("minecraft:concrete",35,new ConfigurableBlockProperty("color","yellow")),
+                    new BlockIntegerEntry("minecraft:concrete",35,new ConfigurableBlockProperty("color","lime")),
+                    new BlockIntegerEntry("minecraft:concrete",30,new ConfigurableBlockProperty("color","magenta")),
+                    new BlockIntegerEntry("minecraft:concrete",25,new ConfigurableBlockProperty("color","orange")),
+                    new BlockIntegerEntry("minecraft:concrete",8,new ConfigurableBlockProperty("color","black")),
+                    new BlockIntegerEntry("minecraft:concrete_powder",10),
+                    new BlockIntegerEntry("minecraft:concrete_powder",40,new ConfigurableBlockProperty("color","white")),
+                    new BlockIntegerEntry("minecraft:concrete_powder",30,new ConfigurableBlockProperty("color","pink")),
+                    new BlockIntegerEntry("minecraft:concrete_powder",25,new ConfigurableBlockProperty("color","lightBlue")),
+                    new BlockIntegerEntry("minecraft:concrete_powder",25,new ConfigurableBlockProperty("color","yellow")),
+                    new BlockIntegerEntry("minecraft:concrete_powder",25,new ConfigurableBlockProperty("color","lime")),
+                    new BlockIntegerEntry("minecraft:concrete_powder",20,new ConfigurableBlockProperty("color","magenta")),
+                    new BlockIntegerEntry("minecraft:concrete_powder",15,new ConfigurableBlockProperty("color","orange")),
+                    new BlockIntegerEntry("minecraft:concrete_powder",2,new ConfigurableBlockProperty("color","black")),
+                    //土壤类
+                    new BlockIntegerEntry("minecraft:dirt",10,new ConfigurableBlockProperty("variant","dirt")),
+                    new BlockIntegerEntry("minecraft:dirt",11,new ConfigurableBlockProperty("variant","coarse_dirt")),
+                    new BlockIntegerEntry("minecraft:dirt",8,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","false")),
+                    new BlockIntegerEntry("minecraft:dirt",60,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","true")),
+                    new BlockIntegerEntry("minecraft:myselium",5),
+                    new BlockIntegerEntry("minecraft:grass",7), //注意之后添加水分后要改
+                    //杂项
+                    new BlockIntegerEntry("minecraft:sponge",20,new ConfigurableBlockProperty("wet","false")),
+                    new BlockIntegerEntry("minecraft:sponge",5,new ConfigurableBlockProperty("wet","true")),
+                    new BlockIntegerEntry("minecraft:wool",20),
+                    new BlockIntegerEntry("minecraft:wool",55,new ConfigurableBlockProperty("color","white")),
+                    new BlockIntegerEntry("minecraft:wool",40,new ConfigurableBlockProperty("color","pink")),
+                    new BlockIntegerEntry("minecraft:wool",40,new ConfigurableBlockProperty("color","lightBlue")),
+                    new BlockIntegerEntry("minecraft:wool",40,new ConfigurableBlockProperty("color","yellow")),
+                    new BlockIntegerEntry("minecraft:wool",40,new ConfigurableBlockProperty("color","lime")),
+                    new BlockIntegerEntry("minecraft:wool",30,new ConfigurableBlockProperty("color","magenta")),
+                    new BlockIntegerEntry("minecraft:wool",25,new ConfigurableBlockProperty("color","orange")),
+                    new BlockIntegerEntry("minecraft:wool",7,new ConfigurableBlockProperty("color","gray")),
+                    new BlockIntegerEntry("minecraft:wool",1,new ConfigurableBlockProperty("color","black")),
+                    new BlockIntegerEntry("minecraft:pumpkin",20),
+                    new BlockIntegerEntry("minecraft:lit_pumpkin",10),
+                    new BlockIntegerEntry("minecraft:hay_block",5),
+                    new BlockIntegerEntry("minecraft:melon_block",20),
+                    new BlockIntegerEntry("minecraft:slime",20),
+                    new BlockIntegerEntry("minecraft:redstone_lamp",10),
+                    new BlockIntegerEntry("minecraft:lit_redstone_lamp",5),
+                    new BlockIntegerEntry("minecraft:leaves",5),
+                    //冰雪
+                    new BlockIntegerEntry("minecraft:ice",50),
+                    new BlockIntegerEntry("minecraft:snow",80),
+                    new BlockIntegerEntry("minecraft:packed_ice",25),
+                    new BlockIntegerEntry("minecraft:snow_layer",80),
+                    //单质、金属、压缩（存储）方块
+                    new BlockIntegerEntry("minecraft:lapis_block",8),
+                    new BlockIntegerEntry("minecraft:gold_block",50),
+                    new BlockIntegerEntry("minecraft:iron_block",60),
+                    new BlockIntegerEntry("minecraft:obsidian",3),
+                    new BlockIntegerEntry("minecraft:diamond_block",21),
+                    new BlockIntegerEntry("minecraft:emerald_block",15),
+                    new BlockIntegerEntry("minecraft:quartz_block",70,new ConfigurableBlockProperty("variant","default")),
+                    new BlockIntegerEntry("minecraft:quartz_block",45),
+                    new BlockIntegerEntry("minecraft:coal_block",0),
+                    new BlockIntegerEntry("minecraft:bone_block",70),
+                    new BlockIntegerEntry("minecraft:redstone_block",10),
+                    //末地项目
+                    new BlockIntegerEntry("minecraft:end_stone",30),
+                    new BlockIntegerEntry("minecraft:end_bricks",40),
+                    new BlockIntegerEntry("minecraft:purpur_block",20),
+                    new BlockIntegerEntry("minecraft:purpur_pillar",15),
+                    new BlockIntegerEntry("minecraft:white_shulker_box",40),
+                    new BlockIntegerEntry("minecraft:orange_shulker_box",35),
+                    new BlockIntegerEntry("minecraft:magenta_shulker_box",30),
+                    new BlockIntegerEntry("minecraft:light_blue_shulker_box",35),
+                    new BlockIntegerEntry("minecraft:yellow_shulker_box",35),
+                    new BlockIntegerEntry("minecraft:lime_shulker_box",35),
+                    new BlockIntegerEntry("minecraft:pink_shulker_box",35),
+                    new BlockIntegerEntry("minecraft:gray_shulker_box",20),
+                    new BlockIntegerEntry("minecraft:silver_shulker_box",35),
+                    new BlockIntegerEntry("minecraft:cyan_shulker_box",30),
+                    new BlockIntegerEntry("minecraft:purple_shulker_box",35),
+                    new BlockIntegerEntry("minecraft:blue_shulker_box",25),
+                    new BlockIntegerEntry("minecraft:brown_shulker_box",20),
+                    new BlockIntegerEntry("minecraft:green_shulker_box",25),
+                    new BlockIntegerEntry("minecraft:red_shulker_box",20),
+                    new BlockIntegerEntry("minecraft:black_shulker_box",5),
+                    //地狱项目
+                    new BlockIntegerEntry("minecraft:nether_wart_block",5),
+                    new BlockIntegerEntry("minecraft:netherrack",10),
+                    new BlockIntegerEntry("minecraft:quartz_ore",11),
+                    new BlockIntegerEntry("minecraft:nether_brick",15),
+                    new BlockIntegerEntry("minecraft:soul_sand",5),
+                    //其他
+                    new BlockIntegerEntry("minecraft:air",99)
+            ){
+                @Override
+                public void load(Configuration config) {
+                    super.load(config);
+                    for(Map.Entry<ConfigurableBlockState,Integer> entry: getValue().entrySet()){
+                        GeoBlockProperty.setBlockReflectivity(entry.getKey(),entry.getValue());
+                    }
+                }
+            };
+    public static final ConfigBoolean ALLOW_CAULDRON_GET_INFINITE_WATER = new ConfigBoolean(CATEGORY_ATMOSPHERE,"allowCauldronGetInfiniteWater",
+            false,"是否允许炼药锅接无限量的水，即在接水时不会消耗大气水");
+    public static final ConfigInteger ATMOSPHERE_UNDERLYING_RECALCULATE_GAP = new ConfigInteger(CATEGORY_ATMOSPHERE,
+            "atmosphereUnderlyingRecalculateGap",400,"大气重新计算下垫面性质的间隔时间，单位为大气刻"){
+        @Override
+        public void load(Configuration config) {
+            super.load(config);
+            GeoAtmosphereProperty.setUnderlyingReloadGap(value);
+        }
+
+        @Override
+        public void setValue(Integer newValue) {
+            super.setValue(newValue);
+            GeoAtmosphereProperty.setUnderlyingReloadGap(value);
+        }
+    };
+}

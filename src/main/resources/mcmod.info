@@ -1,8 +1,8 @@
 [
 {
-  "modid": "fluidgeography",
-  "name": "Fluid Geography",
-  "description": "让MC中的流体更符合现实地理！\nA great mod that makes fluid more geographical.",
+  "modid": "geocraft",
+  "name": "GeoCraft",
+  "description": "Bring REAL natural Geography into Minecraft! \n给Minecraft带来真实的自然地理!",
   "version": "@version@",
   "mcversion": "@mcVersion@",
   "url": "",

@@ -4,6 +4,13 @@ buildscript {
     repositories {
         maven { url = 'https://files.minecraftforge.net/maven' }
         maven { url = 'https://repo.spongepowered.org/maven' }
+        maven { url = "https://oss.sonatype.org/content/repositories/releases/" }
+        maven { url = "https://repo.typesafe.com/typesafe/releases/" }
+        maven { url = "https://repo1.maven.org/maven2/" }
+        maven { url = "https://jitpack.io" }
+        maven { url = "https://libraries.minecraft.net" }
+        maven { url = "https://maven.aliyun.com/repository/public" } // 阿里云镜像
+        maven { url = "https://plugins.gradle.org/m2/" }
         jcenter()
         mavenCentral()
     }
@@ -20,8 +27,8 @@ apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
 
 version = '0.1'
-group = 'top.qiguaiaaaa.fluidgeography' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'fluidgeography'
+group = 'top.qiguaiaaaa.geocraft' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = 'geocraft'
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
@@ -67,10 +74,11 @@ minecraft {
 
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
-            property 'Dfml.coreMods.load', 'top.qiguaiaaaa.fluidgeography.MixinEarlyInit'
+            property 'Dfml.coreMods.load', 'top.qiguaiaaaa.geocraft.MixinEarlyInit'
             property 'Dmixin.debug.export', 'true'
             property 'Dmixin.hotSwap', 'true'
             property 'Dmixin.checks.interfaces','true'
+            jvmArgs '-Dfml.coreMods.load=top.qiguaiaaaa.geocraft.MixinEarlyInit'
         }
 
         server {
@@ -80,10 +88,11 @@ minecraft {
 
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
-            property 'Dfml.coreMods.load', 'top.qiguaiaaaa.fluidgeography.MixinEarlyInit'
+            property 'Dfml.coreMods.load', 'top.qiguaiaaaa.geocraft.MixinEarlyInit'
             property 'Dmixin.debug.export', 'true'
             property 'Dmixin.hotSwap', 'true'
             property 'Dmixin.checks.interfaces','true'
+            jvmArgs '-Dfml.coreMods.load=top.qiguaiaaaa.geocraft.MixinEarlyInit'
         }
     }
 }
@@ -105,10 +114,7 @@ dependencies {
     // compile "some.group:artifact:version"
 
     compile files('libs/!mixinbooter-10.5.jar')
-    //implementation fg.deobf("curse.maven:MixinBooter-419286:6156863")
-    //compile files('libs/industrialcraft-2-2.8.221-ex112.jar')
     implementation fg.deobf("curse.maven:IndustrialCraft-242638:3838713")
-    //compile files('libs/ImmersiveEngineering-0.12-98.jar')
 
     implementation fg.deobf("curse.maven:ImmersiveEngineering-231951:2974106")
 
@@ -129,12 +135,16 @@ dependencies {
 }
 
 mixin {
-    add sourceSets.main, "mixins.fluidgeography.refmap.json"
+    add sourceSets.main, "mixins.geocraft.refmap.json"
     debug.export = true
 }
 
 repositories {
-    maven {url "https://cursemaven.com"}
+    maven { url = "https://cursemaven.com" }
+    maven { url = "https://files.minecraftforge.net/maven" }
+    maven { url = "https://repo.spongepowered.org/maven" }
+    maven { url = "https://maven.aliyun.com/repository/public" } // 阿里云镜像
+    maven { url = "https://plugins.gradle.org/m2/" }
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
@@ -142,18 +152,18 @@ jar {
     manifest {
         attributes([
             "FMLCorePluginContainsFMLMod": true,
-            "FMLCorePlugin": "top.qiguaiaaaa.fluidgeography.MixinEarlyInit",
-            "Specification-Title": "fluidgeography",
-            "Specification-Vendor": "examplemodsareus",
+            "FMLCorePlugin": "top.qiguaiaaaa.geocraft.MixinEarlyInit",
+            "Specification-Title": "GeoCraft",
+            "Specification-Vendor": "QiguaiAAAA",
             "Specification-Version": "1", // We are version 1 of ourselves
             "Implementation-Title": project.name,
             "Implementation-Version": "${version}",
-            "Implementation-Vendor" :"examplemodsareus",
+            "Implementation-Vendor" :"QiguaiAAAA",
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
     mixin {
-        add sourceSets.main, "mixins.fluidgeography.refmap.json"
+        add sourceSets.main, "mixins.geocraft.refmap.json"
     }
     repositories {
         maven { url = "https://repo.spongepowered.org/maven" }

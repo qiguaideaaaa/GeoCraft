@@ -1,0 +1,14 @@
+{
+  "package": "top.qiguaiaaaa.geocraft.mixin.atmosphere",
+  "required": true,
+  "compatibilityLevel": "JAVA_8",
+  "setSourceFile": true,
+  "refmap": "mixins.geocraft.refmap.json",
+  "mixins": [
+    "BlockIceMixin",
+    "WorldServerMixin",
+    "BlockCauldronMixin"
+  ],
+  "client": [
+  ]
+}
