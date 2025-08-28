@@ -7,8 +7,10 @@
   "mixins": [
     "BlockIceMixin",
     "WorldServerMixin",
-    "BlockCauldronMixin"
+    "BlockCauldronMixin",
+    "BlockDirtMixin"
   ],
   "client": [
+    "BlockDirtRender"
   ]
 }

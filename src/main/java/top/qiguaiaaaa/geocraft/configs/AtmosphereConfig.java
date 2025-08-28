@@ -10,7 +10,6 @@ import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockStat
 import top.qiguaiaaaa.geocraft.api.property.GeoAtmosphereProperty;
 import top.qiguaiaaaa.geocraft.api.property.GeoBlockProperty;
 import top.qiguaiaaaa.geocraft.configs.item.collection.ConfigIntegerSet;
-import top.qiguaiaaaa.geocraft.configs.item.collection.ConfigSet;
 import top.qiguaiaaaa.geocraft.configs.item.map.ConfigMap;
 
 import java.util.Arrays;
@@ -78,8 +77,8 @@ public final class AtmosphereConfig {
                     new BlockIntegerEntry("minecraft:concrete",2300),
                     new BlockIntegerEntry("minecraft:concrete_powder",1700),
                     //土壤类
-                    new BlockIntegerEntry("minecraft:dirt",1000,new ConfigurableBlockProperty("variant","dirt")),
-                    new BlockIntegerEntry("minecraft:dirt",1280,new ConfigurableBlockProperty("variant","coarse_dirt")),
+                    new BlockIntegerEntry("minecraft:dirt",1000,new ConfigurableBlockProperty("variant","dirt"),new ConfigurableBlockProperty("snowy","false")),
+                    new BlockIntegerEntry("minecraft:dirt",1280,new ConfigurableBlockProperty("variant","coarse_dirt"),new ConfigurableBlockProperty("snowy","false")),
                     new BlockIntegerEntry("minecraft:dirt",1040,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","false")),
                     new BlockIntegerEntry("minecraft:dirt",1040,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","true")),
                     new BlockIntegerEntry("minecraft:myselium",1440),
@@ -244,8 +243,8 @@ public final class AtmosphereConfig {
                     new BlockIntegerEntry("minecraft:concrete_powder",15,new ConfigurableBlockProperty("color","orange")),
                     new BlockIntegerEntry("minecraft:concrete_powder",2,new ConfigurableBlockProperty("color","black")),
                     //土壤类
-                    new BlockIntegerEntry("minecraft:dirt",10,new ConfigurableBlockProperty("variant","dirt")),
-                    new BlockIntegerEntry("minecraft:dirt",11,new ConfigurableBlockProperty("variant","coarse_dirt")),
+                    new BlockIntegerEntry("minecraft:dirt",10,new ConfigurableBlockProperty("variant","dirt"),new ConfigurableBlockProperty("snowy","false")),
+                    new BlockIntegerEntry("minecraft:dirt",11,new ConfigurableBlockProperty("variant","coarse_dirt"),new ConfigurableBlockProperty("snowy","false")),
                     new BlockIntegerEntry("minecraft:dirt",8,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","false")),
                     new BlockIntegerEntry("minecraft:dirt",60,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","true")),
                     new BlockIntegerEntry("minecraft:myselium",5),

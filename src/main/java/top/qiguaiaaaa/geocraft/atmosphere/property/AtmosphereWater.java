@@ -55,11 +55,11 @@ public class AtmosphereWater extends FluidProperty {
 
     @Override
     public void onConvect(AtmosphereLayer lower, AtmosphereLayer upper, double speed) {
-        if(speed>0 && speed<2) return;
+        if(speed<=0.01) return;
         FluidState from = lower.getWater(),to = upper.getWater();
         if(from == null || to == null) return;
         double dis = Altitude.to物理高度(upper.getBeginY()+upper.getDepth()/2-(lower.getBeginY()+lower.getDepth()/2));
-        int waterTransferAmount = getWaterTransferAmountVertically(from.getAmount()/ AtmosphereUtil.FinalFactors.大气单元底面积,(speed-2)/4, dis);
+        int waterTransferAmount = getWaterTransferAmountVertically(from.getAmount()/ AtmosphereUtil.FinalFactors.大气单元底面积,speed, dis*2);
         if(from.addAmount(-waterTransferAmount)){
             to.addAmount(waterTransferAmount);
         }

@@ -127,7 +127,7 @@ public class MiddleAtmosphereLayer extends QiguaiAtmosphereLayer {
         double 总量 = 长波发射率 * AtmosphereUtil.FinalFactors.斯特藩_玻尔兹曼常数 *
                 Math.pow(temperature.get(), 4) *
                 AtmosphereUtil.FinalFactors.大气单元底面积* GeoAtmosphereProperty.getSimulationGap() /1000 * Altitude.to物理高度(getDepth());
-        return new double[]{总量*0.6,总量*0.4};
+        return new double[]{总量*0.55,总量*0.45};
     }
 
     @Override

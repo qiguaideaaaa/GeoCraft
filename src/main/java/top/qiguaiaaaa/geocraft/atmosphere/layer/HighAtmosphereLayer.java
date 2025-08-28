@@ -92,7 +92,7 @@ public class HighAtmosphereLayer extends QiguaiAtmosphereLayer{
         double 总量 = 长波发射率 * AtmosphereUtil.FinalFactors.斯特藩_玻尔兹曼常数 *
                 Math.pow(temperature.get(), 4) *
                 AtmosphereUtil.FinalFactors.大气单元底面积* GeoAtmosphereProperty.getSimulationGap() /1500 * Altitude.to物理高度(getDepth());
-        return new double[]{总量*0.7,总量*0.3};
+        return new double[]{总量*0.6,总量*0.4};
     }
 
     @Override
