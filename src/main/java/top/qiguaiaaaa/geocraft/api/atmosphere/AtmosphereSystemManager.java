@@ -3,23 +3,21 @@ package top.qiguaiaaaa.geocraft.api.atmosphere;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
+import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
 
 import javax.annotation.Nullable;
 
 public class AtmosphereSystemManager {
     protected static final BiMap<WorldServer, IAtmosphereSystem> atmosphereSystems = HashBiMap.create();
+
     public static IAtmosphereSystem getAtmosphereSystem(World world){
         WorldServer server = getValidWorld(world);
         if(server == null) return null;
         return atmosphereSystems.get(server);
-    }
-    public static void addAtmosphereSystem(World world,IAtmosphereSystem system){
-        WorldServer server = getValidWorld(world);
-        if(server == null) return;
-        atmosphereSystems.put(server,system);
     }
 
     /**
@@ -44,8 +42,15 @@ public class AtmosphereSystemManager {
         if(system == null) return null;
         return system.getAtmosphere(chunk);
     }
+
+    public static Atmosphere getAtmosphere(World world,ChunkPos pos){
+        IAtmosphereSystem system = getAtmosphereSystem(world);
+        if(system == null) return null;
+        return system.getAtmosphere(pos.x,pos.z);
+    }
+
     @Nullable
-    private static WorldServer getValidWorld(World world){
+    protected static WorldServer getValidWorld(World world){
         if(world.isRemote || (!(world instanceof WorldServer))) return null;
         return (WorldServer) world;
     }

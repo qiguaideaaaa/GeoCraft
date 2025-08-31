@@ -1,10 +1,10 @@
 package top.qiguaiaaaa.geocraft.atmosphere.tracker;
 
 import net.minecraft.util.math.BlockPos;
-import top.qiguaiaaaa.geocraft.api.GEOInfo;
+import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
+import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.atmosphere.tracker.InformationLoggingTracker;
-import top.qiguaiaaaa.geocraft.api.atmosphere.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.util.io.FileLogger;
 
 /**
@@ -23,7 +23,7 @@ public class TemperatureTracker extends InformationLoggingTracker {
         String msg = String.format("%d,%f,%f",atmosphere.getAtmosphereWorldInfo().getWorld().getTotalWorldTime(), TemperatureProperty.toCelsiusFromKelvin(temp),
                 atmosphere.getUnderlying().getTemperature().getCelsius());
         logger.println(msg);
-        GEOInfo.getLogger().info("track atmosphere temp ({})",msg);
+        GeoCraft.getLogger().info("track atmosphere temp ({})",msg);
         nowTime++;
         checkLoggingTime(atmosphere);
     }

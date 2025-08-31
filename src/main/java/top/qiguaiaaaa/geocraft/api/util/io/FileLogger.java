@@ -6,6 +6,9 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
+/**
+ * 用于Information Tracker记录信息
+ */
 public class FileLogger {
     private final String filePath;
     private final BufferedWriter writer;

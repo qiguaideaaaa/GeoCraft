@@ -6,6 +6,9 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public class AtmosphereUpdateEvent extends AtmosphereEvent {
     private final Chunk chunk;
     public AtmosphereUpdateEvent(Chunk chunk, Atmosphere atmosphere) {
@@ -24,7 +27,7 @@ public class AtmosphereUpdateEvent extends AtmosphereEvent {
         private final BlockPos randPos;
         private final double rainPossibility;
         private IBlockState newState;
-        public RainAndSnow(Chunk chunk, Atmosphere atmosphere, BlockPos randPos, double possibility) {
+        public RainAndSnow(@Nonnull Chunk chunk, Atmosphere atmosphere, BlockPos randPos, double possibility) {
             super(chunk, atmosphere);
             this.randPos = randPos;
             this.rainPossibility = possibility;
@@ -46,9 +49,12 @@ public class AtmosphereUpdateEvent extends AtmosphereEvent {
             return newState;
         }
     }
-    public static class Finish extends AtmosphereUpdateEvent{
-        public Finish(Chunk chunk, Atmosphere atmosphere) {
+    public static class PostAtmosphereUpdateEvent extends AtmosphereUpdateEvent{
+        public final int x,z;
+        public PostAtmosphereUpdateEvent(@Nullable Chunk chunk, Atmosphere atmosphere,int x,int z) {
             super(chunk, atmosphere);
+            this.x = x;
+            this.z = z;
         }
     }
 }

@@ -9,12 +9,12 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.util.INBTSerializable;
 import org.apache.commons.lang3.tuple.Triple;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
-import top.qiguaiaaaa.geocraft.api.atmosphere.property.GeographyProperty;
-import top.qiguaiaaaa.geocraft.api.atmosphere.property.TemperatureProperty;
+import top.qiguaiaaaa.geocraft.api.property.GeographyProperty;
+import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.atmosphere.raypack.HeatPack;
-import top.qiguaiaaaa.geocraft.api.atmosphere.state.FluidState;
-import top.qiguaiaaaa.geocraft.api.atmosphere.state.GeographyState;
-import top.qiguaiaaaa.geocraft.api.atmosphere.state.TemperatureState;
+import top.qiguaiaaaa.geocraft.api.state.FluidState;
+import top.qiguaiaaaa.geocraft.api.state.GeographyState;
+import top.qiguaiaaaa.geocraft.api.state.TemperatureState;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -27,7 +27,12 @@ public interface Layer extends INBTSerializable<NBTTagCompound> {
      * 初始化时调用
      * @param chunk 层级所在区块
      */
-    void initialise(Chunk chunk);
+    void onLoad(Chunk chunk);
+
+    /**
+     * 区块不在加载状态时加载层级
+     */
+    void onLoadWithoutChunk();
 
     /**
      * 该层级是否已经初始化
@@ -37,10 +42,12 @@ public interface Layer extends INBTSerializable<NBTTagCompound> {
 
     /**
      * 层级更新
-     * @param chunk 层级所属区块
-     * @param neighbors 邻居区块和大气信息
+     * @param chunk 层级所属区块,若区块无加载则为null
+     * @param neighbors 邻居区块和大气信息,若区块无加载则Triple里面的区块信息为null
+     * @param x 区块坐标X
+     * @param z 区块坐标Z
      */
-    void tick(Chunk chunk, Map<EnumFacing, Triple<Atmosphere,Chunk,EnumFacing>> neighbors);
+    void tick(@Nullable Chunk chunk,Map<EnumFacing, Triple<Atmosphere,Chunk,EnumFacing>> neighbors,int x,int z);
 
     /**
      * 向该层提供热量
@@ -90,6 +97,10 @@ public interface Layer extends INBTSerializable<NBTTagCompound> {
      * @return 大气层的厚度,单位为方块
      */
     double getDepth();
+
+    default double getTopY(){
+        return getBeginY()+getDepth();
+    }
 
     /**
      * 获得该层下面的层
@@ -177,6 +188,8 @@ public interface Layer extends INBTSerializable<NBTTagCompound> {
      * @return 一个标签名称
      */
     String getTagName();
+
+    boolean isSerializable();
 
     /**
      * 返回该层序列化后的复合标签

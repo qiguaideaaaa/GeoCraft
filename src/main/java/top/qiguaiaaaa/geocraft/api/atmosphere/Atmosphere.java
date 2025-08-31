@@ -1,30 +1,56 @@
 package top.qiguaiaaaa.geocraft.api.atmosphere;
 
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.NoiseGeneratorPerlin;
+import net.minecraftforge.common.util.INBTSerializable;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.AtmosphereLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.Layer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.UnderlyingLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.tracker.IAtmosphereTracker;
-import top.qiguaiaaaa.geocraft.api.atmosphere.property.TemperatureProperty;
+import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Random;
 
-public interface Atmosphere {
+public interface Atmosphere extends INBTSerializable<NBTTagCompound> {
     NoiseGeneratorPerlin TEMPERATURE_NOISE = new NoiseGeneratorPerlin(new Random(1234L), 1);
 
-    void initialise(Chunk chunk, AtmosphereWorldInfo info);
+    void onLoad(Chunk chunk, AtmosphereWorldInfo info);
+
+    /**
+     * 在区块没有加载的情况下加载大气
+     */
+    void onLoadWithoutChunk(AtmosphereWorldInfo info);
 
     boolean isInitialised();
 
+    /**
+     * 当大气需要被卸载时调用
+     * 大气应当在此时完成诸如数据保存等重要操作
+     */
+    void onUnload();
+
     long tickTime();
 
-    boolean addSteam(int addAmount, BlockPos pos);
+    /**
+     * 向大气提供气态水
+     * @param addAmount 水量,应为正数
+     * @param pos 位置,不应为NULL
+     * @return 添加液态水是否成功
+     */
+    boolean addSteam(int addAmount,@Nonnull BlockPos pos);
 
-    boolean addWater(int amount, BlockPos pos);
+    /**
+     * 向大气提供液态水,若要吸收液态水请使用 {@link Atmosphere#drainWater(int, BlockPos, boolean)}
+     * @param amount 水量,应为正数
+     * @param pos 位置,不应为NULL
+     * @return 添加液态水是否成功
+     */
+    boolean addWater(int amount,@Nonnull BlockPos pos);
 
     /**
      * 在指定位置吸收液态水
@@ -45,7 +71,7 @@ public interface Atmosphere {
     }
 
     /**
-     * 获取温度
+     * 获取温度,一般情况下请使用这个获取温度,不要通过Layer层获取
      * @param pos 位置
      * @param notAir 是否不为大气温度
      * @return 返回对应位置的温度。若指定位置没有可用温度,则返回 {@link TemperatureProperty#UNAVAILABLE}
@@ -54,6 +80,7 @@ public interface Atmosphere {
 
     /**
      * 向大气提供或从大气吸收热量,不会操作也不应该操作到下垫面
+     * 若要操作下垫面,应先使用 {@link Atmosphere#getUnderlying()} 获取到下垫面再操作
      * @param Q 提供或吸收的热量。正为提供，负为吸收。
      * @param pos 提供者或吸收着的位置
      */

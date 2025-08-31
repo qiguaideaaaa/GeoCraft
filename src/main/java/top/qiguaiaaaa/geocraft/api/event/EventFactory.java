@@ -9,11 +9,14 @@ import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.EventBus;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
+import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
+import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereSystemEvent;
 import top.qiguaiaaaa.geocraft.api.event.block.StaticLiquidUpdateEvent;
 import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereUpdateEvent;
 import top.qiguaiaaaa.geocraft.api.event.player.FillGlassBottleEvent;
@@ -43,8 +46,8 @@ public final class EventFactory {
         }
         return null;
     }
-    public static void afterAtmosphereUpdate(@Nonnull Chunk chunk, @Nonnull Atmosphere atmosphere){
-        AtmosphereUpdateEvent.Finish event = new AtmosphereUpdateEvent.Finish(chunk,atmosphere);
+    public static void postAtmosphereUpdate(@Nullable Chunk chunk, @Nonnull Atmosphere atmosphere, int x,int z){
+        AtmosphereUpdateEvent.PostAtmosphereUpdateEvent event = new AtmosphereUpdateEvent.PostAtmosphereUpdateEvent(chunk,atmosphere,x,z);
         EVENT_BUS.post(event);
     }
     public static IBlockState afterBlockLiquidStaticUpdate(@Nonnull Fluid fluid, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state){
@@ -55,6 +58,14 @@ public final class EventFactory {
         }
         return null;
     }
+
+    public static IAtmosphereSystem onAtmosphereSystemCreate(@Nonnull WorldServer server){
+        AtmosphereSystemEvent.AtmosphereSystemCreateEvent event = new AtmosphereSystemEvent.AtmosphereSystemCreateEvent(server);
+        EVENT_BUS.post(event);
+        if(event.isCanceled()) return null;
+        return event.getSystem();
+    }
+
     private static ActionResult<ItemStack> processOnGlassBottleUseEvent(ItemStack itemStack,EntityPlayer player,FillGlassBottleEvent event){
         if(EVENT_BUS.post(event)) return new ActionResult<>(EnumActionResult.PASS,itemStack);
         if(event.getResult() == Result.ALLOW){

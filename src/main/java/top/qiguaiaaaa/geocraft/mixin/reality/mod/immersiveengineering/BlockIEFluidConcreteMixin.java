@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import top.qiguaiaaaa.geocraft.api.property.GeoFluidProperty;
+import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockFluidBaseAccessor;
@@ -41,7 +41,7 @@ public class BlockIEFluidConcreteMixin implements IMoreRealityBlockFluidBase<Blo
 
     @Inject(method = "func_180650_b",at = @At("HEAD"),cancellable = true,remap = false)
     public void updateTick(World world, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
-        if(!GeoFluidProperty.isFluidToBePhysical(thisBlock.getFluid())) return;
+        if(!GeoFluidSetting.isFluidToBePhysical(thisBlock.getFluid())) return;
         ci.cancel();
         int quantaPerBlock = ((BlockFluidBaseAccessor) this).getQuantaPerBlock();
         int densityDir = ((BlockFluidBaseAccessor) this).getDensityDir();

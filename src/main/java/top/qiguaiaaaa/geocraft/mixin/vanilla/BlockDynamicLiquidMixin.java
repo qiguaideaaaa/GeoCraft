@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import top.qiguaiaaaa.geocraft.api.property.GeoFluidProperty;
+import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.util.FluidSearchUtil;
 import top.qiguaiaaaa.geocraft.util.mixinapi.FluidSettable;
@@ -47,7 +47,7 @@ public class BlockDynamicLiquidMixin implements FluidSettable {
      */
     @Inject(method = "updateTick",at = @At("HEAD"),cancellable = true)
     public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
-        if(!GeoFluidProperty.isFluidToBePhysical(thisFluid)) return;
+        if(!GeoFluidSetting.isFluidToBePhysical(thisFluid)) return;
         ci.cancel();
         if (!worldIn.isAreaLoaded(pos, this.getSlopeFindDistance(worldIn))) return;
         int liquidMeta = state.getValue(LEVEL);

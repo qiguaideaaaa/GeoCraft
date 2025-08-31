@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import top.qiguaiaaaa.geocraft.api.property.GeoFluidProperty;
+import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 @Mixin(value = Utils.class,remap = false)
 public class UtilsMixin {
@@ -22,7 +22,7 @@ public class UtilsMixin {
         Fluid f = FluidRegistry.lookupFluidForBlock(b);
 
         if(f!=null) {
-            if(!GeoFluidProperty.isFluidToBePhysical(f)) return;
+            if(!GeoFluidSetting.isFluidToBePhysical(f)) return;
             if(b instanceof IFluidBlock) {
                 if(((IFluidBlock)b).canDrain(world, pos))
                     cir.setReturnValue(((IFluidBlock)b).drain(world, pos, doDrain));

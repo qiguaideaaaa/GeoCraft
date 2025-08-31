@@ -1,7 +1,7 @@
 package top.qiguaiaaaa.geocraft.api.atmosphere.tracker;
 
-import top.qiguaiaaaa.geocraft.api.GEOInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
+import top.qiguaiaaaa.geocraft.api.util.APIUtil;
 import top.qiguaiaaaa.geocraft.api.util.io.FileLogger;
 
 import java.util.Date;
@@ -31,7 +31,7 @@ public abstract class InformationLoggingTracker implements IAtmosphereTracker {
 
     protected boolean checkLoggingTime(Atmosphere atmosphere){
         if(nowTime >= time){
-            GEOInfo.getLogger().info("track atmosphere task id={} completed",id);
+            APIUtil.LOGGER.info("track atmosphere task id={} completed",id);
             atmosphere.removeTracker(this);
             logger.close();
             return true;

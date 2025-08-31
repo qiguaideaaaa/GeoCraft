@@ -57,6 +57,7 @@ geocraft.command.atmosphere.util.sun=SUN INFORMATION
 geocraft.command.atmosphere.util.sun.1=Sun Height: %s
 geocraft.command.atmosphere.util.sun.2=Energy Got Per 60 ticks: %s FE
 geocraft.command.atmosphere.util.property=%s
+geocraft.command.atmosphere.util.storage=Currently running atmospheres: %s
 geocraft.command.atmosphere.track.usage=/atmosphere track <temp> <time> <file_name> [<x> <z>]
 geocraft.command.atmosphere.track.water=Water of atmosphere at (%s,%s,%s) is being tracked, Tracker id = %s
 geocraft.command.atmosphere.track.temp=Temperature of atmosphere at (%s,%s,%s) is being tracked, Tracker id = %s

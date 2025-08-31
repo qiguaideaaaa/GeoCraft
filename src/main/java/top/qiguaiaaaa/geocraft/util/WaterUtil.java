@@ -10,7 +10,7 @@ import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager;
-import top.qiguaiaaaa.geocraft.api.atmosphere.property.TemperatureProperty;
+import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 
 public final class WaterUtil {

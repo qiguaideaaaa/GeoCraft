@@ -10,6 +10,7 @@ public class ConfigInit {
     public static void initConfigs(){
         if(hasLoaded) return;
         registerConfigItem(leastTemperatureForFluidToCompletelyDestroyBlock);
+        registerConfigItem(ALLOW_CLIENT_TO_READ_HUMIDITY_DATA);
 
         registerConfigItem(SIMULATION_MODE);
         // Vanilla Like Simulation Config

@@ -1,30 +1,28 @@
 package top.qiguaiaaaa.geocraft.api.atmosphere.layer;
 
 import net.minecraft.world.chunk.Chunk;
-import top.qiguaiaaaa.geocraft.api.GEOProperties;
+import top.qiguaiaaaa.geocraft.api.GeoCraftProperties;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
-import top.qiguaiaaaa.geocraft.api.atmosphere.state.FluidState;
-import top.qiguaiaaaa.geocraft.api.atmosphere.state.GeographyState;
-import top.qiguaiaaaa.geocraft.api.atmosphere.state.TemperatureState;
+import top.qiguaiaaaa.geocraft.api.state.FluidState;
+import top.qiguaiaaaa.geocraft.api.state.GeographyState;
+import top.qiguaiaaaa.geocraft.api.state.TemperatureState;
 import top.qiguaiaaaa.geocraft.api.util.math.Altitude;
 
 import javax.annotation.Nullable;
 
 public abstract class UnderlyingLayer extends BaseLayer{
     protected long heatCapacity;
-    protected final TemperatureState temperature = GEOProperties.TEMPERATURE.getStateInstance();
-    protected Altitude altitude = new Altitude(63);
+    protected final Altitude altitude = new Altitude(63);
     public UnderlyingLayer(Atmosphere atmosphere) {
         super(atmosphere);
-        states.put(GEOProperties.TEMPERATURE, temperature);
     }
 
     /**
-     * 基于区块更新自身属性
+     * 基于区块加载自身属性
      * @param chunk 下垫面所在区块
      * @return 自身
      */
-    public abstract UnderlyingLayer update(Chunk chunk);
+    public abstract UnderlyingLayer load(Chunk chunk);
 
     /**
      * 设置地面平均海拔，类型为游戏海拔
@@ -48,16 +46,21 @@ public abstract class UnderlyingLayer extends BaseLayer{
     }
 
     @Override
-    public void initialise(Chunk chunk) {
+    public void onLoad(Chunk chunk) {
+        onLoadWithoutChunk();
+        this.load(chunk);
+    }
+
+    @Override
+    public void onLoadWithoutChunk() {
         for(GeographyState state:states.values())
             if(!state.isInitialised())
                 state.initialise(this);
-        this.update(chunk);
     }
 
     @Override
     public boolean isInitialise() {
-        return heatCapacity > 0 && temperature.isInitialised();
+        return heatCapacity > 0 && getTemperature().isInitialised();
     }
 
     @Override
@@ -66,8 +69,13 @@ public abstract class UnderlyingLayer extends BaseLayer{
     }
 
     @Override
-    public TemperatureState getTemperature() {
-        return temperature;
+    public double getDepth() {
+        return getTopY()-getBeginY();
+    }
+
+    @Override
+    public double getTopY() {
+        return altitude.get();
     }
 
     @Override

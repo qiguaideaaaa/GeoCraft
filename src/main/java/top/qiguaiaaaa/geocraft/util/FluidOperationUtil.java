@@ -14,7 +14,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.*;
 import top.qiguaiaaaa.geocraft.configs.GeneralConfig;
-import top.qiguaiaaaa.geocraft.api.simulation.SimulationMode;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.SimulationMode;
 import top.qiguaiaaaa.geocraft.api.util.exception.UnsupportedFluidException;
 
 import java.util.HashSet;
@@ -97,13 +97,13 @@ public final class FluidOperationUtil {
         triggerDestroyBlockEffectByFluid(worldIn,newPos,newPosState, getFluid(srcState));
 
         if(srcBlock instanceof BlockLiquid){
-            worldIn.setBlockState(srcPos,BlockLiquid.getStaticBlock(srcState.getMaterial()).getDefaultState().withProperty(LEVEL,1),3);
-            worldIn.setBlockState(newPos,BlockLiquid.getStaticBlock(srcState.getMaterial()).getDefaultState().withProperty(LEVEL,0),3);
+            worldIn.setBlockState(srcPos,BlockLiquid.getStaticBlock(srcState.getMaterial()).getDefaultState().withProperty(LEVEL,1), Constants.BlockFlags.SEND_TO_CLIENTS);
+            worldIn.setBlockState(newPos,BlockLiquid.getStaticBlock(srcState.getMaterial()).getDefaultState().withProperty(LEVEL,0),Constants.BlockFlags.SEND_TO_CLIENTS);
             worldIn.notifyNeighborsOfStateChange(srcPos, BlockLiquid.getStaticBlock(srcState.getMaterial()), false);
         }else if(srcBlock instanceof BlockFluidClassic){
             BlockFluidBase fluidBlock = (BlockFluidBase) srcBlock;
-            worldIn.setBlockState(srcPos,fluidBlock.getDefaultState().withProperty(LEVEL,1),3);
-            worldIn.setBlockState(newPos,srcState,3);
+            worldIn.setBlockState(srcPos,fluidBlock.getDefaultState().withProperty(LEVEL,1),Constants.BlockFlags.SEND_TO_CLIENTS);
+            worldIn.setBlockState(newPos,srcState,Constants.BlockFlags.SEND_TO_CLIENTS);
             worldIn.notifyNeighborsOfStateChange(srcPos,srcBlock,false);
         }else if(srcBlock instanceof IFluidBlock){
             IFluidBlock fluidBlock = (IFluidBlock) srcBlock;
@@ -127,10 +127,10 @@ public final class FluidOperationUtil {
         if(srcBlock instanceof BlockLiquid){
             int srcLevel = srcState.getValue(LEVEL);
             worldIn.setBlockToAir(srcPos);
-            worldIn.setBlockState(newPos,BlockLiquid.getFlowingBlock(srcState.getMaterial()).getDefaultState().withProperty(LEVEL,srcLevel), Constants.BlockFlags.DEFAULT);
+            worldIn.setBlockState(newPos,BlockLiquid.getFlowingBlock(srcState.getMaterial()).getDefaultState().withProperty(LEVEL,srcLevel), Constants.BlockFlags.SEND_TO_CLIENTS);
         }else if(srcBlock instanceof IFluidBlock){
             worldIn.setBlockToAir(srcPos);
-            worldIn.setBlockState(newPos,srcState,Constants.BlockFlags.DEFAULT);
+            worldIn.setBlockState(newPos,srcState,Constants.BlockFlags.SEND_TO_CLIENTS);
         }
     }
 

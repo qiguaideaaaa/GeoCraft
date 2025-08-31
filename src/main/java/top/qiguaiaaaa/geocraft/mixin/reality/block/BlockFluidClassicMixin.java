@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import top.qiguaiaaaa.geocraft.api.property.GeoFluidProperty;
+import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockFluidBaseAccessor;
@@ -40,7 +40,7 @@ public class BlockFluidClassicMixin implements IMoreRealityBlockFluidBase<BlockF
     }
     @Inject(method = "updateTick",at = @At("HEAD"),cancellable = true)
     public void updateTick(World world, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
-        if(!GeoFluidProperty.isFluidToBePhysical(thisBlock.getFluid())) return;
+        if(!GeoFluidSetting.isFluidToBePhysical(thisBlock.getFluid())) return;
         ci.cancel();
         int quantaPerBlock = ((BlockFluidBaseAccessor) this).getQuantaPerBlock();
         int densityDir = ((BlockFluidBaseAccessor) this).getDensityDir();
@@ -123,13 +123,13 @@ public class BlockFluidClassicMixin implements IMoreRealityBlockFluidBase<BlockF
             world.scheduleUpdate(pos,thisBlock,((BlockFluidBaseAccessor)this).getTickRate());
             world.notifyNeighborsOfStateChange(pos,thisBlock,false);
             //移动至新位置
-            world.setBlockState(pos.offset(randomFacing), state.withProperty(LEVEL, meta), Constants.BlockFlags.DEFAULT);
+            world.setBlockState(pos.offset(randomFacing), state.withProperty(LEVEL, meta), Constants.BlockFlags.SEND_TO_CLIENTS);
         }
     }
 
     @Inject(method = "drain",at = @At("HEAD"),cancellable = true,remap = false)
     private void drain(World world, BlockPos pos, boolean doDrain, CallbackInfoReturnable<FluidStack> cir) {
-        if(!GeoFluidProperty.isFluidToBePhysical(thisBlock.getFluid())) return;
+        if(!GeoFluidSetting.isFluidToBePhysical(thisBlock.getFluid())) return;
         final FluidStack fluidStack = new FluidStack(thisBlock.getFluid(), MathHelper.floor((thisBlock.getQuantaPercentage(world, pos) * Fluid.BUCKET_VOLUME)));
 
         if (doDrain) {
@@ -141,7 +141,7 @@ public class BlockFluidClassicMixin implements IMoreRealityBlockFluidBase<BlockF
     //下面这段代码参考自Forge的BlockFluidFinite类
     @Inject(method = "place",at =@At("HEAD"),cancellable = true,remap = false)
     private void place(World world, BlockPos pos, FluidStack fluidStack, boolean doPlace, CallbackInfoReturnable<Integer> cir) {
-        if(!GeoFluidProperty.isFluidToBePhysical(thisBlock.getFluid())) return;
+        if(!GeoFluidSetting.isFluidToBePhysical(thisBlock.getFluid())) return;
         cir.cancel();
         IBlockState existing = world.getBlockState(pos);
         float amountPerQuanta = Fluid.BUCKET_VOLUME / ((BlockFluidBaseAccessor)this).getQuantaPerBlockFloat();
@@ -164,7 +164,7 @@ public class BlockFluidClassicMixin implements IMoreRealityBlockFluidBase<BlockF
 
         if (doPlace) {
             net.minecraftforge.fluids.FluidUtil.destroyBlockOnFluidPlacement(world, pos);
-            world.setBlockState(pos,thisBlock.getDefaultState().withProperty(LEVEL, ((BlockFluidBaseAccessor)this).getQuantaPerBlock()-quantaExpected), Constants.BlockFlags.DEFAULT_AND_RERENDER);
+            world.setBlockState(pos,thisBlock.getDefaultState().withProperty(LEVEL, ((BlockFluidBaseAccessor)this).getQuantaPerBlock()-quantaExpected), Constants.BlockFlags.SEND_TO_CLIENTS);
         }
 
         cir.setReturnValue(amountInFact);
@@ -172,7 +172,7 @@ public class BlockFluidClassicMixin implements IMoreRealityBlockFluidBase<BlockF
 
     @Inject(method = "canDrain",at = @At("HEAD"),cancellable = true,remap = false)
     private void canDrain(World world, BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
-        if(!GeoFluidProperty.isFluidToBePhysical(thisBlock.getFluid())) return;
+        if(!GeoFluidSetting.isFluidToBePhysical(thisBlock.getFluid())) return;
         cir.setReturnValue(true);
         cir.cancel();
     }

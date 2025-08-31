@@ -13,35 +13,34 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.storage.WorldInfo;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.logging.log4j.Logger;
-import top.qiguaiaaaa.geocraft.api.GEOProperties;
-import top.qiguaiaaaa.geocraft.api.GEOInfo;
+import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.api.GeoCraftProperties;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager;
-import top.qiguaiaaaa.geocraft.api.atmosphere.IAtmosphereSystem;
+import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
+import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
+import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.AtmosphereLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.Layer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.UnderlyingLayer;
+import top.qiguaiaaaa.geocraft.api.property.FluidProperty;
+import top.qiguaiaaaa.geocraft.api.property.GeographyProperty;
+import top.qiguaiaaaa.geocraft.api.state.FluidState;
+import top.qiguaiaaaa.geocraft.api.state.GeographyState;
+import top.qiguaiaaaa.geocraft.api.state.TemperatureState;
 import top.qiguaiaaaa.geocraft.api.atmosphere.tracker.InformationLoggingTracker;
-import top.qiguaiaaaa.geocraft.api.atmosphere.property.FluidProperty;
-import top.qiguaiaaaa.geocraft.api.atmosphere.property.GeographyProperty;
-import top.qiguaiaaaa.geocraft.api.atmosphere.state.FluidState;
-import top.qiguaiaaaa.geocraft.api.atmosphere.state.GeographyState;
-import top.qiguaiaaaa.geocraft.api.atmosphere.state.TemperatureState;
 import top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.geocraft.api.util.io.FileLogger;
 import top.qiguaiaaaa.geocraft.api.util.math.Altitude;
-import top.qiguaiaaaa.geocraft.atmosphere.GeographyPropertyManager;
-import top.qiguaiaaaa.geocraft.atmosphere.DefaultAtmosphere;
-import top.qiguaiaaaa.geocraft.atmosphere.layer.Underlying;
+import top.qiguaiaaaa.geocraft.atmosphere.SurfaceAtmosphere;
+import top.qiguaiaaaa.geocraft.property.GeographyPropertyManager;
+import top.qiguaiaaaa.geocraft.atmosphere.layer.surface.Underlying;
 import top.qiguaiaaaa.geocraft.atmosphere.tracker.FluidTracker;
 import top.qiguaiaaaa.geocraft.atmosphere.tracker.TemperatureTracker;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class CommandAtmosphere extends ExtendedCommand {
     public static final String ATMOSPHERE_COMMAND_NAME = "atmosphere";
@@ -155,13 +154,6 @@ public class CommandAtmosphere extends ExtendedCommand {
 
         public abstract void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException;
 
-        public static Chunk getValidChunk(World world,int x,int z) throws CommandException {
-            BlockPos targetPos = new BlockPos(x,63,z);
-            if(!world.isAreaLoaded(targetPos,1)){
-                throw new CommandException("geocraft.command.chunk_error.unloaded",x,z);
-            }
-            return world.getChunk(targetPos);
-        }
     }
     public static class SetCommand extends AtmosphereSubCommand{
 
@@ -221,10 +213,10 @@ public class CommandAtmosphere extends ExtendedCommand {
                 return;
             }
             if("debug".equalsIgnoreCase(args[0])){
-                if(!(atmosphere instanceof DefaultAtmosphere)){
+                if(!(atmosphere instanceof SurfaceAtmosphere)){
                     throw new CommandException("geocraft.command.atmosphere.unknown");
                 }
-                DefaultAtmosphere a = (DefaultAtmosphere) atmosphere;
+                SurfaceAtmosphere a = (SurfaceAtmosphere) atmosphere;
                 a.setDebug(value>0);
                 if(value>0) notifyCommandListener(sender,this,"geocraft.command.atmosphere.set.debug",x,z,a.isDebug());
                 return;
@@ -318,8 +310,8 @@ public class CommandAtmosphere extends ExtendedCommand {
                     throw new CommandException("geocraft.command.chunk_error.unloaded",x,z);
                 }
                 Chunk chunk = world.getChunk(targetPos);
-                if(atmosphere instanceof DefaultAtmosphere){
-                    ((DefaultAtmosphere)atmosphere).重置温度(chunk);
+                if(atmosphere instanceof SurfaceAtmosphere){
+                    ((SurfaceAtmosphere)atmosphere).重置温度(chunk);
                 }else throw new CommandException("geocraft.command.atmosphere.unknown");
                 notifyCommandListener(sender,this,"geocraft.command.atmosphere.reset.temp",x,z, atmosphere.getAtmosphereTemperature(pos));
                 return;
@@ -585,6 +577,14 @@ public class CommandAtmosphere extends ExtendedCommand {
                 for(GeographyProperty property:registry){
                     notifyCommandListener(sender,this,"geocraft.command.atmosphere.util.property",property.getRegistryName());
                 }
+                return;
+            }
+            if("storage".equalsIgnoreCase(args[0])){
+                IAtmosphereSystem system = atmosphere.getAtmosphereWorldInfo().getSystem();
+                IAtmosphereDataProvider provider = system.getDataProvider();
+                Collection<AtmosphereData> data = provider.getLoadedAtmosphereDataCollection();
+                notifyCommandListener(sender,this,"geocraft.command.atmosphere.util.storage",data.size());
+                return;
             }
             throw new WrongUsageException(getUsage(sender));
         }
@@ -633,24 +633,24 @@ public class CommandAtmosphere extends ExtendedCommand {
                 atmosphere = getAtmosphere(world,x,z);
             }
             if("temp".equalsIgnoreCase(args[0])){
-                InformationLoggingTracker tracker = createInformationTracker(atmosphere, TemperatureTracker::new,fileName, GEOInfo.getLogger(),new BlockPos(x,y,z),time);
+                InformationLoggingTracker tracker = createInformationTracker(atmosphere, TemperatureTracker::new,fileName, GeoCraft.getLogger(),new BlockPos(x,y,z),time);
                 notifyCommandListener(sender,this,"geocraft.command.atmosphere.track.temp",x,y,z,tracker.getId());
                 return;
             }
             if("water".equalsIgnoreCase(args[0])){
-                InformationLoggingTracker tracker = createFluidTracker(atmosphere,fileName, GEOInfo.getLogger(), GEOProperties.WATER,new BlockPos(x,y,z),time);
+                InformationLoggingTracker tracker = createFluidTracker(atmosphere,fileName, GeoCraft.getLogger(), GeoCraftProperties.WATER,new BlockPos(x,y,z),time);
                 notifyCommandListener(sender,this,"geocraft.command.atmosphere.track.water",x,y,z,tracker.getId());
                 return;
             }
             if("steam".equalsIgnoreCase(args[0])){
-                InformationLoggingTracker tracker = createFluidTracker(atmosphere,fileName, GEOInfo.getLogger(), GEOProperties.STEAM,new BlockPos(x,y,z),time);
+                InformationLoggingTracker tracker = createFluidTracker(atmosphere,fileName, GeoCraft.getLogger(), GeoCraftProperties.STEAM,new BlockPos(x,y,z),time);
                 notifyCommandListener(sender,this,"geocraft.command.atmosphere.track.water",x,y,z,tracker.getId());
                 return;
             }
             ResourceLocation location = new ResourceLocation(args[0]);
             GeographyProperty property= getProperty(location);
             if(property instanceof FluidProperty){
-                InformationLoggingTracker tracker = createFluidTracker(atmosphere,fileName, GEOInfo.getLogger(),(FluidProperty) property,new BlockPos(x,y,z),time);
+                InformationLoggingTracker tracker = createFluidTracker(atmosphere,fileName, GeoCraft.getLogger(),(FluidProperty) property,new BlockPos(x,y,z),time);
                 notifyCommandListener(sender,this,"geocraft.command.atmosphere.track.gas",x,y,z,tracker.getId(),property.getRegistryName());
             }
             throw new CommandException("geocraft.command.atmosphere.property.unknown");
@@ -684,7 +684,7 @@ public class CommandAtmosphere extends ExtendedCommand {
                 tracker = factory.getInstance(new FileLogger(fileName,logger),pos,time);
                 atmosphere.addTracker(tracker);
             } catch (IOException e) {
-                GEOInfo.getLogger().error(e);
+                GeoCraft.getLogger().error(e);
                 throw new CommandException("geocraft.command.io_error",e.getMessage());
             }
             return tracker;
@@ -695,7 +695,7 @@ public class CommandAtmosphere extends ExtendedCommand {
                 tracker = new FluidTracker(new FileLogger(fileName,logger),property,pos,time);
                 atmosphere.addTracker(tracker);
             } catch (IOException e) {
-                GEOInfo.getLogger().error(e);
+                GeoCraft.getLogger().error(e);
                 throw new CommandException("geocraft.command.io_error",e.getMessage());
             }
             return tracker;

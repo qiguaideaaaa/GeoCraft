@@ -1,15 +1,13 @@
 package top.qiguaiaaaa.geocraft.configs;
 
 import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableHashSet;
-import top.qiguaiaaaa.geocraft.api.simulation.SimulationMode;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.SimulationMode;
 import top.qiguaiaaaa.geocraft.api.configs.item.base.ConfigBoolean;
 import top.qiguaiaaaa.geocraft.api.configs.item.base.ConfigCustom;
 import top.qiguaiaaaa.geocraft.configs.item.collection.ConfigSet;
 import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableFluid;
 import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigDouble;
 import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
-
-import java.util.HashSet;
 
 import static net.minecraftforge.common.config.Configuration.CATEGORY_SPLITTER;
 

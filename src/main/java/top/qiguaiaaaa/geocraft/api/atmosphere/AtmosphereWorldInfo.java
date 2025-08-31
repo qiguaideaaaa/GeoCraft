@@ -1,9 +1,11 @@
 package top.qiguaiaaaa.geocraft.api.atmosphere;
 
 import net.minecraft.world.WorldServer;
+import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
 
 public class AtmosphereWorldInfo {
     protected final WorldServer world;
+    protected IAtmosphereSystem system;
     protected AtmosphereWorldType type = AtmosphereWorldType.NORMAL;
 
     public AtmosphereWorldInfo(WorldServer world) {
@@ -12,6 +14,10 @@ public class AtmosphereWorldInfo {
 
     public WorldServer getWorld() {
         return world;
+    }
+
+    public IAtmosphereSystem getSystem() {
+        return system;
     }
 
     public AtmosphereWorldType getType() {
@@ -28,5 +34,9 @@ public class AtmosphereWorldInfo {
 
     public void setType(AtmosphereWorldType type) {
         this.type = type;
+    }
+
+    public void setSystem(IAtmosphereSystem system) {
+        this.system = system;
     }
 }

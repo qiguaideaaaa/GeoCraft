@@ -7,8 +7,8 @@ import top.qiguaiaaaa.geocraft.configs.ConfigInit;
 import top.qiguaiaaaa.geocraft.configs.ConfigurationLoader;
 import top.qiguaiaaaa.geocraft.handler.FluidHandler;
 import top.qiguaiaaaa.geocraft.handler.RegistryHandler;
-import top.qiguaiaaaa.geocraft.handler.MoreRealityEventHandler;
-import top.qiguaiaaaa.geocraft.api.simulation.SimulationMode;
+import top.qiguaiaaaa.geocraft.handler.event.MoreRealityEventHandler;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.SimulationMode;
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
 import top.qiguaiaaaa.geocraft.util.MixinUtil;
 
@@ -27,7 +27,6 @@ public class CommonProxy {
         ConfigurationLoader.load();
     }
     public void preInit(FMLPreInitializationEvent event) {
-        RegistryHandler.registerCapability();
         if(ConfigurationLoader.isInitialised()) return;
         if(!isConfigInitialised) initConfig();
         ConfigurationLoader.init(event.getSuggestedConfigurationFile());

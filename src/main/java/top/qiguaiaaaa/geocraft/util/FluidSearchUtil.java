@@ -11,12 +11,15 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.IFluidBlock;
 import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
+import top.qiguaiaaaa.geocraft.api.util.math.PlaceChoice;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockFluidBaseAccessor;
 
 import java.util.*;
 
 public final class FluidSearchUtil {
     private static final Set<BlockPos> EMPTY_BLOCKPOS_SET = new HashSet<>();
+    public static final int[][] DIRS4 = {
+            { 1, 0}, { -1, 0}, {0, 1}, {0, -1}};
 
     /**
      * 广度优先搜索搜寻原版流体源
@@ -239,6 +242,58 @@ public final class FluidSearchUtil {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * 寻找放置指定流体的可选位置集合
+     * BFS广度优先搜索，优先水平，其次往上
+     * 返回一个PlaceChoice集合，按照水平<垂值，进<远排列
+     * @param world 世界
+     * @param origin 开始搜寻位置
+     * @param fluid 流体
+     * @param maxOptions 最大可选项
+     * @return 一个PlaceChoice集合，按照水平<垂值，进<远排列
+     */
+    public static Set<PlaceChoice> findPlaceableLocations(World world,BlockPos origin,Fluid fluid, int maxOptions) {
+        Set<PlaceChoice> res = new LinkedHashSet<>();
+        Set<BlockPos> visited = new HashSet<>();
+        Deque<BlockPos> queue = new ArrayDeque<>();
+        if (maxOptions <= 0) return res;
+
+        if (!world.isBlockLoaded(origin)) return res;
+
+        if (FluidUtil.isFluidPlaceable(world,origin,fluid))
+            res.add(new PlaceChoice(FluidUtil.getFluidQuanta(world,origin,world.getBlockState(origin)),origin));
+        else if(FluidUtil.getFluid(world.getBlockState(origin)) != fluid) return res;
+        if (res.size() >= maxOptions) return res;
+
+        queue.add(origin);
+        visited.add(origin);
+
+        while (!queue.isEmpty() && res.size() < maxOptions) {
+            BlockPos current = queue.poll();
+
+            for (int[] d : DIRS4) {
+                BlockPos p = current.add(d[0], 0, d[1]);
+                if (visited.contains(p)) continue;
+                visited.add(p);
+
+                if (!world.isBlockLoaded(p)) continue;
+
+                if (FluidUtil.isFluidPlaceable(world,p,fluid)) {
+                    res.add(new PlaceChoice(FluidUtil.getFluidQuanta(world,origin,world.getBlockState(p)),p));
+                    if (res.size() >= maxOptions) break;
+                    queue.add(p);
+                }else if(FluidUtil.getFluid(world.getBlockState(p)) == fluid) {
+                    queue.add(p);
+                }
+            }
+        }
+        if (res.size() >= maxOptions) return res;
+        if(origin.getY() >= world.getHeight()-1) return res;
+        res.addAll(findPlaceableLocations(world,origin.up(),fluid,maxOptions-res.size()));
+
+        return res;
     }
 
     /**

@@ -2,8 +2,8 @@ package top.qiguaiaaaa.geocraft.api.atmosphere.layer;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import top.qiguaiaaaa.geocraft.api.atmosphere.property.FluidProperty;
-import top.qiguaiaaaa.geocraft.api.atmosphere.state.FluidState;
+import top.qiguaiaaaa.geocraft.api.property.FluidProperty;
+import top.qiguaiaaaa.geocraft.api.state.FluidState;
 
 import javax.annotation.Nullable;
 

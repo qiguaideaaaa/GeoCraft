@@ -2,6 +2,8 @@ package top.qiguaiaaaa.geocraft.api.util.math;
 
 import net.minecraft.world.chunk.Chunk;
 
+import java.util.Arrays;
+
 public class Altitude {
     /**
      * 游戏海拔，单位为格
@@ -60,12 +62,9 @@ public class Altitude {
         return get物理海拔()+" m [ "+val+" ]";
     }
 
-    public static Altitude getAverageHeight(Chunk chunk){
-        int totalHeight = 0;
-        int[] heightMap = chunk.getHeightMap();
-        for (int j : heightMap) {
-            totalHeight += j;
-        }
-        return new Altitude(((float) totalHeight)/heightMap.length);
+    public static Altitude getMiddleHeight(Chunk chunk){
+        int[] heights = chunk.getHeightMap().clone();
+        Arrays.sort(heights); //获取海拔中位数
+        return new Altitude(heights[127]);
     }
 }

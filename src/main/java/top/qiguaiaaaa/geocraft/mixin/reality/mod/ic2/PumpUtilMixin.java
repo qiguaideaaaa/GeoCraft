@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import top.qiguaiaaaa.geocraft.api.property.GeoFluidProperty;
+import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.util.FluidSearchUtil;
 
@@ -25,7 +25,7 @@ public class PumpUtilMixin {
         Optional<BlockPos> optionalBlockPos = FluidSearchUtil.findFluid(world,startPos,false,true,IC2PumpFluidSearchMaxIterations.getValue());
         if(!optionalBlockPos.isPresent()) return;
         Fluid fluid = FluidUtil.getFluid(world.getBlockState(optionalBlockPos.get()));
-        if(!GeoFluidProperty.isFluidToBePhysical(fluid)){
+        if(!GeoFluidSetting.isFluidToBePhysical(fluid)){
             optionalBlockPos = FluidSearchUtil.findSource(world,optionalBlockPos.get(),fluid,false,false,8,0);
         }
         if(!optionalBlockPos.isPresent()) return;

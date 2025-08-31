@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import top.qiguaiaaaa.geocraft.api.property.GeoFluidProperty;
+import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockFluidBaseAccessor;
 import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.util.FluidSearchUtil;
@@ -53,7 +53,7 @@ public class BlockFluidClassicMixin {
      */
     @Overwrite
     public void updateTick(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random rand) {
-        if(!GeoFluidProperty.isFluidToBePhysical(thisBlock.getFluid())) return;
+        if(!GeoFluidSetting.isFluidToBePhysical(thisBlock.getFluid())) return;
         int quantaPerBlock = ((BlockFluidBaseAccessor) this).getQuantaPerBlock();
         int densityDir = ((BlockFluidBaseAccessor) this).getDensityDir();
         int quantaRemaining = quantaPerBlock - state.getValue(LEVEL);

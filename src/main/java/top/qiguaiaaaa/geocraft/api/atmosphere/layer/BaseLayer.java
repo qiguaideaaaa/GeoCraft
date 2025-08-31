@@ -6,11 +6,11 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
-import top.qiguaiaaaa.geocraft.api.atmosphere.property.GeographyProperty;
-import top.qiguaiaaaa.geocraft.api.atmosphere.property.TemperatureProperty;
+import top.qiguaiaaaa.geocraft.api.property.GeographyProperty;
+import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.atmosphere.raypack.HeatPack;
-import top.qiguaiaaaa.geocraft.api.atmosphere.state.GeographyState;
-import top.qiguaiaaaa.geocraft.api.atmosphere.state.TemperatureState;
+import top.qiguaiaaaa.geocraft.api.state.GeographyState;
+import top.qiguaiaaaa.geocraft.api.state.TemperatureState;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -47,7 +47,7 @@ public abstract class BaseLayer implements Layer{
     @Override
     public void sendHeat(HeatPack pack, @Nullable EnumFacing direction) {
         if(direction == null || pack.getType() == null){
-            putHeat(pack.getHeat(),null);
+            putHeat(pack.getAmount(),null);
             return;
         }
         sendHeat(pack,direction.getDirectionVec());
@@ -56,7 +56,7 @@ public abstract class BaseLayer implements Layer{
     @Override
     public void sendHeat(HeatPack pack, @Nullable Vec3i direction) {
         if(direction == null || pack.getType() == null){
-            putHeat(pack.getHeat(),null);
+            putHeat(pack.getAmount(),null);
             return;
         }
         sendHeat(pack,new Vec3d(direction));

@@ -7,8 +7,8 @@ import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableHashSet;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.BlockIntegerEntry;
 import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockProperty;
 import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockState;
-import top.qiguaiaaaa.geocraft.api.property.GeoAtmosphereProperty;
-import top.qiguaiaaaa.geocraft.api.property.GeoBlockProperty;
+import top.qiguaiaaaa.geocraft.api.setting.GeoAtmosphereSetting;
+import top.qiguaiaaaa.geocraft.api.setting.GeoBlockSetting;
 import top.qiguaiaaaa.geocraft.configs.item.collection.ConfigIntegerSet;
 import top.qiguaiaaaa.geocraft.configs.item.map.ConfigMap;
 
@@ -23,7 +23,7 @@ public final class AtmosphereConfig {
         @Override
         public void load(Configuration config) {
             super.load(config);
-            GeoAtmosphereProperty.setEnableDetailedLogging(value);
+            GeoAtmosphereSetting.setEnableDetailedLogging(value);
         }
     };
     public static final ConfigIntegerSet CONSTANT_TEMP_DIMENSIONS = new ConfigIntegerSet(CATEGORY_ATMOSPHERE, "constantTempDimensions", new ConfigurableHashSet<>(
@@ -156,7 +156,7 @@ public final class AtmosphereConfig {
                 public void load(Configuration config) {
                     super.load(config);
                     for(Map.Entry<ConfigurableBlockState,Integer> entry: getValue().entrySet()){
-                        GeoBlockProperty.setBlockHeatCapacity(entry.getKey(),entry.getValue());
+                        GeoBlockSetting.setBlockHeatCapacity(entry.getKey(),entry.getValue());
                     }
                 }
             };
@@ -321,7 +321,7 @@ public final class AtmosphereConfig {
                 public void load(Configuration config) {
                     super.load(config);
                     for(Map.Entry<ConfigurableBlockState,Integer> entry: getValue().entrySet()){
-                        GeoBlockProperty.setBlockReflectivity(entry.getKey(),entry.getValue());
+                        GeoBlockSetting.setBlockReflectivity(entry.getKey(),entry.getValue());
                     }
                 }
             };
@@ -332,13 +332,13 @@ public final class AtmosphereConfig {
         @Override
         public void load(Configuration config) {
             super.load(config);
-            GeoAtmosphereProperty.setUnderlyingReloadGap(value);
+            GeoAtmosphereSetting.setUnderlyingReloadGap(value);
         }
 
         @Override
         public void setValue(Integer newValue) {
             super.setValue(newValue);
-            GeoAtmosphereProperty.setUnderlyingReloadGap(value);
+            GeoAtmosphereSetting.setUnderlyingReloadGap(value);
         }
     };
 }

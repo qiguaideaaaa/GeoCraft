@@ -1,19 +1,14 @@
 package top.qiguaiaaaa.geocraft.util.wrappers;
 
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.capability.wrappers.FluidBlockWrapper;
-import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
-import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
+import top.qiguaiaaaa.geocraft.api.util.math.PlaceChoice;
+import top.qiguaiaaaa.geocraft.util.FluidSearchUtil;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
-import static top.qiguaiaaaa.geocraft.util.wrappers.PhysicsBlockLiquidWrapper.SIDES;
+import java.util.Set;
 
 public class PhysicsFluidBlockWrapper extends FluidBlockWrapper {
     public PhysicsFluidBlockWrapper(IFluidBlock fluidBlock, World world, BlockPos blockPos) {
@@ -25,47 +20,17 @@ public class PhysicsFluidBlockWrapper extends FluidBlockWrapper {
         if (resource == null) {
             return 0;
         }
-        inner_fill:{
-            BlockPos placePos = findPlaceableLocation();
-            if(placePos == null){
-                break inner_fill;
-            }
-            final int amount = resource.amount;
-            placedAmount = fluidBlock.place(world, placePos, resource, doFill);
-            if(placedAmount>= amount) break inner_fill;
-            List<FlowChoice> choices = new ArrayList<>(); //这里choice的quanta单位是mB
-            int amountLeft = amount - placedAmount;
-            for(EnumFacing facing:SIDES){
-                BlockPos facingPos = placePos.offset(facing);
-                if(!world.isBlockLoaded(facingPos)) continue;
-                if(!isPlaceable(facingPos)) continue;
-                int facingAmount = FluidUtil.getFluidAmount(world,facingPos,world.getBlockState(facingPos));
-                choices.add(new FlowChoice(facingAmount,facing));
-            }
-            if(!choices.isEmpty()){
-                choices.sort(Comparator.comparingInt(FlowChoice::getQuanta));
-                for(FlowChoice choice:choices){
-                    placedAmount += fluidBlock.place(world,placePos.offset(choice.direction),new FluidStack(resource,amountLeft),doFill);
-                    amountLeft = amount - placedAmount;
-                    if(amountLeft<=0) break;
-                }
-            }
-            if(amountLeft<=0) break inner_fill;
-            BlockPos upPos = placePos.up();
-            if(!isPlaceable(upPos)) break inner_fill;
-            placedAmount += fluidBlock.place(world,upPos,new FluidStack(resource,amountLeft),doFill);
+
+        final Set<PlaceChoice> choices = FluidSearchUtil.findPlaceableLocations(world, blockPos, fluidBlock.getFluid(), 16);
+        if (choices.isEmpty()) return 0;
+        int amountLeft = resource.amount;
+        for (PlaceChoice choice : choices) {
+            int amount = fluidBlock.place(world, choice.pos, new FluidStack(resource, amountLeft), doFill);
+            amountLeft -= amount;
+            placedAmount += amount;
+            if (amountLeft <= 0) break;
         }
+
         return placedAmount;
-    }
-    protected BlockPos findPlaceableLocation(){
-        BlockPos.MutableBlockPos nowPos = new BlockPos.MutableBlockPos(blockPos);
-        while(!isPlaceable(nowPos)){
-            nowPos.setPos(nowPos.getX(),nowPos.getY()+1, nowPos.getZ());
-            if(nowPos.getY()>255) return null;
-        }
-        return nowPos;
-    }
-    protected boolean isPlaceable(BlockPos pos){
-        return FluidUtil.isFluidPlaceable(world,pos,fluidBlock.getFluid());
     }
 }

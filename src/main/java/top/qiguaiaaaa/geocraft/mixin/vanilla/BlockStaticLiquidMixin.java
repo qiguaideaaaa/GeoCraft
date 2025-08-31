@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
-import top.qiguaiaaaa.geocraft.api.property.GeoFluidProperty;
+import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.util.mixinapi.FluidSettable;
 
 import java.util.Random;
@@ -21,7 +21,7 @@ public class BlockStaticLiquidMixin implements FluidSettable {
 
     @Inject(method = "updateTick",at = @At("RETURN"))
     public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
-        if(!GeoFluidProperty.isFluidToBePhysical(thisFluid)) return;
+        if(!GeoFluidSetting.isFluidToBePhysical(thisFluid)) return;
         IBlockState newState = EventFactory.afterBlockLiquidStaticUpdate(thisFluid,worldIn,pos,state);
         if(newState != null){
             worldIn.setBlockState(pos,newState);

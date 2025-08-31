@@ -8,10 +8,9 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import org.apache.logging.log4j.Logger;
-import top.qiguaiaaaa.geocraft.api.GEOInfo;
 import top.qiguaiaaaa.geocraft.command.CommandAtmosphere;
 
-@Mod(modid = GeoCraft.MODID, name = GeoCraft.NAME, version = GeoCraft.VERSION, dependencies = "required:mixinbooter;")
+@Mod(modid = GeoCraft.MODID, name = GeoCraft.NAME, version = GeoCraft.VERSION, dependencies = "required:mixinbooter;",acceptableRemoteVersions = "*")
 public class GeoCraft
 {
     public static final String MODID = "geocraft";
@@ -25,8 +24,6 @@ public class GeoCraft
     public void preInit(FMLPreInitializationEvent event) {;
         logger = event.getModLog();
         proxy.preInit(event);
-        GEOInfo.setLogger(logger);
-        GEOInfo.setModVersion(VERSION);
     }
     @EventHandler
     public void init(FMLInitializationEvent event){

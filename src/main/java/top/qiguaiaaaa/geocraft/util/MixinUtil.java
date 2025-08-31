@@ -5,7 +5,7 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fml.common.Loader;
 import top.qiguaiaaaa.geocraft.configs.SimulationConfig;
 import top.qiguaiaaaa.geocraft.util.mixinapi.FluidSettable;
-import top.qiguaiaaaa.geocraft.api.simulation.SimulationMode;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.SimulationMode;
 
 import java.util.ArrayList;
 import java.util.List;

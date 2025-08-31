@@ -3,8 +3,8 @@ package top.qiguaiaaaa.geocraft.api.atmosphere;
 import net.minecraft.world.chunk.Chunk;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.Layer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.tracker.IAtmosphereTracker;
-import top.qiguaiaaaa.geocraft.api.atmosphere.property.AtmosphereProperty;
-import top.qiguaiaaaa.geocraft.atmosphere.GeographyPropertyManager;
+import top.qiguaiaaaa.geocraft.api.property.AtmosphereProperty;
+import top.qiguaiaaaa.geocraft.property.GeographyPropertyManager;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -21,13 +21,24 @@ public abstract class BaseAtmosphere implements Atmosphere{
     protected final Set<IAtmosphereTracker> listeners = new HashSet<>();
 
     @Override
-    public void initialise(Chunk chunk, AtmosphereWorldInfo info) {
+    public void onLoad(Chunk chunk, AtmosphereWorldInfo info) {
         this.setAtmosphereWorldInfo(info);
         for(Layer layer:layers){
-            layer.initialise(chunk);
+            layer.onLoad(chunk);
         }
         for(AtmosphereProperty property: GeographyPropertyManager.getAtmosphereProperties()){
             property.onAtmosphereInitialise(this,chunk);
+        }
+    }
+
+    @Override
+    public void onLoadWithoutChunk(AtmosphereWorldInfo info) {
+        this.setAtmosphereWorldInfo(info);
+        for(Layer layer:layers){
+            layer.onLoadWithoutChunk();
+        }
+        for(AtmosphereProperty property: GeographyPropertyManager.getAtmosphereProperties()){
+            property.onAtmosphereInitialise(this,null);
         }
     }
 

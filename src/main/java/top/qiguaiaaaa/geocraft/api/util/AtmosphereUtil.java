@@ -2,12 +2,12 @@ package top.qiguaiaaaa.geocraft.api.util;
 
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.storage.WorldInfo;
-import top.qiguaiaaaa.geocraft.api.property.GeoAtmosphereProperty;
+import top.qiguaiaaaa.geocraft.api.setting.GeoAtmosphereSetting;
 import top.qiguaiaaaa.geocraft.api.util.math.Degree;
 
 public final class AtmosphereUtil {
     public static double getSunEnergyPerChunk(WorldInfo worldInfo){
-        return Math.sin(getSunHeight(worldInfo).getRadian())* FinalFactors.每秒区块获得能量* GeoAtmosphereProperty.getSimulationGap();
+        return Math.sin(getSunHeight(worldInfo).getRadian())* FinalFactors.每秒区块获得能量* GeoAtmosphereSetting.getSimulationGap();
     }
     /**
      * 获取太阳高度角
@@ -58,6 +58,7 @@ public final class AtmosphereUtil {
         public static final double 海平面气压 = 101325.0;    // Pa
         public static final double 重力加速度 = 9.80665;      // m/s²
         public static final double 对流层温度直减率 = 0.0065;       // K/m
+        public static final double 地下温度直增率 = 0.01; // K/m //Minecraft中地底比较浅，不宜太高直减率
         public static final double 干绝热温度直减率 = 0.0098;
         public static final double 气体常数  = 8.314462618;  // FE/(mol·K)
         public static final double 干空气比热容 = 287; // FE/(kg·K)

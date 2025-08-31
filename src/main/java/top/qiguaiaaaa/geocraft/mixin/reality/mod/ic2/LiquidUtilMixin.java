@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import top.qiguaiaaaa.geocraft.api.property.GeoFluidProperty;
+import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 
 @Mixin(value = LiquidUtil.class,remap = false)
@@ -34,11 +34,11 @@ public class LiquidUtilMixin {
             FluidStack fluid = null;
             if (block != Blocks.WATER && block != Blocks.FLOWING_WATER) {
                 if (block == Blocks.LAVA || block == Blocks.FLOWING_LAVA) {
-                    if(!GeoFluidProperty.isFluidToBePhysical(FluidRegistry.LAVA)) return;
+                    if(!GeoFluidSetting.isFluidToBePhysical(FluidRegistry.LAVA)) return;
                     fluid = new FluidStack(FluidRegistry.LAVA, FluidUtil.getFluidQuanta(world,pos,state)*FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME);
                 }
             } else {
-                if(!GeoFluidProperty.isFluidToBePhysical(FluidRegistry.WATER)) return;
+                if(!GeoFluidSetting.isFluidToBePhysical(FluidRegistry.WATER)) return;
                 fluid = new FluidStack(FluidRegistry.WATER, FluidUtil.getFluidQuanta(world,pos,state)*FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME);
             }
             cir.cancel();

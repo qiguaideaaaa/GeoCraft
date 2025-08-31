@@ -5,12 +5,13 @@
   "setSourceFile": true,
   "refmap": "mixins.geocraft.refmap.json",
   "mixins": [
-    "BlockIceMixin",
+    "block.BlockIceMixin",
     "WorldServerMixin",
-    "BlockCauldronMixin",
-    "BlockDirtMixin"
+    "block.BlockCauldronMixin",
+    "block.BlockDirtMixin",
+    "block.BlockGrassMixin"
   ],
   "client": [
-    "BlockDirtRender"
+    "block.BlockModelShapesMixin"
   ]
 }

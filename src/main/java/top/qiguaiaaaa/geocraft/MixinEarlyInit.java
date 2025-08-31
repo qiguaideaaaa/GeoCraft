@@ -5,8 +5,9 @@ import net.minecraftforge.common.ForgeVersion;
 import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import net.minecraftforge.fml.relauncher.Side;
+import top.qiguaiaaaa.geocraft.configs.GeneralConfig;
 import top.qiguaiaaaa.geocraft.configs.SimulationConfig;
-import top.qiguaiaaaa.geocraft.api.simulation.SimulationMode;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.SimulationMode;
 import zone.rong.mixinbooter.IEarlyMixinLoader;
 
 import javax.annotation.Nullable;
@@ -38,7 +39,10 @@ public class MixinEarlyInit implements IFMLLoadingPlugin, IEarlyMixinLoader {
                 break;
             }
         }
-        if(mode != SimulationMode.VANILLA) mixinList.add("mixins.geocraft_atmosphere.json");
+        mixinList.add("mixins.geocraft_atmosphere.json");
+        if(!GeneralConfig.ALLOW_CLIENT_TO_READ_HUMIDITY_DATA.getValue()){
+            mixinList.add("mixins/client_fake/mixins.geocraft_client_fake.json");
+        }
         System.out.println("GeoCraft's Fluid Physics is using mode "+mode);
 
         return mixinList;
