@@ -126,9 +126,9 @@ public class MiddleAtmosphereLayer extends SurfaceAtmosphereLayer {
         final double 变化上限 = temperature.get()/2*heatCapacity;
         double 总量 = 长波发射率 * AtmosphereUtil.FinalFactors.斯特藩_玻尔兹曼常数 *
                 Math.pow(temperature.get(), 4) *
-                AtmosphereUtil.FinalFactors.大气单元底面积* GeoAtmosphereSetting.getSimulationGap() /1000 * Altitude.to物理高度(getDepth());
+                AtmosphereUtil.FinalFactors.大气单元底面积* GeoAtmosphereSetting.getSimulationGap() /1500 * Altitude.to物理高度(getDepth());
         总量 = MathHelper.clamp(总量,-变化上限,变化上限);
-        return new double[]{总量*0.55,总量*0.45};
+        return new double[]{总量*0.6,总量*0.4};
     }
 
     @Override

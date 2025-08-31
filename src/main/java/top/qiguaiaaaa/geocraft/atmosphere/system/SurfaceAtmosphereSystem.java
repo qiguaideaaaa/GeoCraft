@@ -4,17 +4,20 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
+import top.qiguaiaaaa.geocraft.api.atmosphere.layer.AtmosphereLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.BaseAtmosphereSystem;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 import top.qiguaiaaaa.geocraft.api.setting.GeoAtmosphereSetting;
 import top.qiguaiaaaa.geocraft.atmosphere.SurfaceAtmosphere;
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
+import top.qiguaiaaaa.geocraft.util.ChunkUtil;
 import top.qiguaiaaaa.geocraft.util.WaterUtil;
 
 import javax.annotation.Nonnull;
@@ -56,6 +59,7 @@ public class SurfaceAtmosphereSystem extends QiguaiAtmosphereSystem {
                     if(!atmosphere.isInitialised()){
                         if(!data.isEmpty()) atmosphere.deserializeNBT(data.getSaveCompound());
                         atmosphere.onLoad(data.getChunk(), worldInfo);
+                        populateAtmosphere(atmosphere,data.getChunk());
                     }
                     if(atmosphere.isInitialised()){
                         atmosphere.updateTick(data.getChunk());
@@ -130,14 +134,24 @@ public class SurfaceAtmosphereSystem extends QiguaiAtmosphereSystem {
         if(data.isEmpty() && chunk == null) return null;
         SurfaceAtmosphere atmosphere = new SurfaceAtmosphere();
         atmosphere.setLocation(data.pos.x,data.pos.z);
+        boolean isFirstGenerated = false;
         if(!data.isEmpty()){
             atmosphere.deserializeNBT(data.getSaveCompound());
-        }
+        }else isFirstGenerated = true;
         if(chunk == null){
-            atmosphere.onLoadWithoutChunk(worldInfo);
+            atmosphere.onLoadWithoutChunk(worldInfo); //data isn't empty
         }else{
-            atmosphere.onLoad(chunk,worldInfo);
+            atmosphere.onLoad(chunk,worldInfo); //data may be empty
+            if(isFirstGenerated) populateAtmosphere(atmosphere,chunk);
         }
         return atmosphere;
+    }
+
+    protected void populateAtmosphere(SurfaceAtmosphere atmosphere,Chunk chunk){
+        AtmosphereLayer layer = atmosphere.getBottomAtmosphereLayer();
+        if(layer == null) return;
+        Biome mainBiome = ChunkUtil.getMainBiome(chunk);
+        layer.addSteam(null,(int) mainBiome.getRainfall()*4000);
+        layer.addWater(null,(int) mainBiome.getRainfall()*1000);
     }
 }

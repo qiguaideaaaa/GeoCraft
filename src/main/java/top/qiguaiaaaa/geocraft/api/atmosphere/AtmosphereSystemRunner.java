@@ -13,7 +13,7 @@ import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 
 import static top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager.*;
 
-@Mod.EventBusSubscriber(value = Side.SERVER)
+@Mod.EventBusSubscriber
 public class AtmosphereSystemRunner {
     @SubscribeEvent
     public static void onWorldTick(TickEvent.WorldTickEvent event){

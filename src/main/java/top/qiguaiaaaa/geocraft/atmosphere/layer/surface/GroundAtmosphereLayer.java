@@ -102,7 +102,7 @@ public class GroundAtmosphereLayer extends SurfaceAtmosphereLayer {
                 Math.pow(temperature.get(), 4) *
                 AtmosphereUtil.FinalFactors.大气单元底面积* GeoAtmosphereSetting.getSimulationGap();
         总量 = MathHelper.clamp(总量,-变化上限,变化上限);
-        return new double[]{总量*0.5,总量*0.5};
+        return new double[]{总量*0.55,总量*0.45};
     }
 
     @Override
