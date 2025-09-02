@@ -74,8 +74,8 @@ public class GroundAtmosphereLayer extends SurfaceAtmosphereLayer {
         double diff = 中心温度-upTemp;
         double 传输量 = Math.min(heatCapacity,upperLayer.getHeatCapacity()) *
                 MathHelper.clamp(
-                        MathHelper.clamp(垂直风速*216/Altitude.to物理高度(厚度),-1.0/12,1.0/12)*
-                                diff/(upperLayer.getDepth()+厚度/2.0)
+                        垂直风速*216/Altitude.to物理高度(厚度)*
+                                diff/(upperLayer.getDepth()+厚度)*2
                                 *Math.min(平均密度/1.2,1),
                         -Math.abs(diff/3),Math.abs(diff/3));
         if(((SurfaceAtmosphere)atmosphere).isDebug())

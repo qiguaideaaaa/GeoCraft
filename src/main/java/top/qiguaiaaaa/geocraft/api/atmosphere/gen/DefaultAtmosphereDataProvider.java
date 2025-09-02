@@ -57,6 +57,16 @@ public class DefaultAtmosphereDataProvider implements IAtmosphereDataProvider {
     }
 
     @Override
+    public void saveAtmosphereData(int x, int z) {
+        AtmosphereData data = loadedAtmosphere.get(ChunkPos.asLong(x,z));
+        if(data == null){
+            APIUtil.LOGGER.warn("Someone trying to save an atmosphere {} {} in DIM{} that haven't been loaded.",x,z,world.provider.getDimension());
+            return;
+        }
+        saveAtmosphereData(data);
+    }
+
+    @Override
     public void saveAllAtmosphereData() {
         for(AtmosphereData data:loadedAtmosphere.values()){
             saveAtmosphereData(data);
@@ -94,7 +104,7 @@ public class DefaultAtmosphereDataProvider implements IAtmosphereDataProvider {
 
     @Override
     public String makeString() {
-        return "ServerChunkCache: " + this.loadedAtmosphere.size() + " Drop: " + this.droppedAtmospheres.size();
+        return "ServerAtmosphereCache: " + this.loadedAtmosphere.size() + " Drop: " + this.droppedAtmospheres.size();
     }
 
     @Override

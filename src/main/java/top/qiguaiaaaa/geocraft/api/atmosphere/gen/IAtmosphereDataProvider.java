@@ -14,6 +14,7 @@ public interface IAtmosphereDataProvider {
     AtmosphereData provideAtmosphereData(int x, int z);
 
     void queueUnloadAtmosphereData(int x,int z);
+    void saveAtmosphereData(int x,int z);
 
     void saveAllAtmosphereData();
 

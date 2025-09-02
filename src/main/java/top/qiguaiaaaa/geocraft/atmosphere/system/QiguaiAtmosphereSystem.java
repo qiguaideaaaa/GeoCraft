@@ -22,6 +22,11 @@ public abstract class QiguaiAtmosphereSystem extends BaseAtmosphereSystem {
     @Override
     public void updateTick() {
         if(stopped) return;
+        updateAtmospheres();
+        dataProvider.tick();
+    }
+
+    protected void updateAtmospheres(){
         Collection<AtmosphereData> dataList = dataProvider.getLoadedAtmosphereDataCollection();
         for (AtmosphereData data:dataList) {
             if(world.getWorldTime()%60 != Math.abs(data.pos.x+data.pos.z)%60) continue;
@@ -47,6 +52,9 @@ public abstract class QiguaiAtmosphereSystem extends BaseAtmosphereSystem {
                     if(atmosphere.isInitialised()){
                         atmosphere.updateTick(data.getChunk());
                         data.saveAtmosphere();
+                        if(atmosphere.tickTime()%4 == 3){
+                            dataProvider.saveAtmosphereData(data.pos.x,data.pos.z);
+                        }
                     }
                 }
             }catch (Throwable e){

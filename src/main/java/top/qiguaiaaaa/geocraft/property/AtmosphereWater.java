@@ -28,20 +28,21 @@ public class AtmosphereWater extends FluidProperty {
     public void onFlow(AtmosphereLayer from, Chunk fromChunk, Atmosphere to, Chunk toChunk, EnumFacing direction, Vec3d windSpeed) {
         double fromTop = from.getBeginY()+from.getDepth();
         if (to.getUnderlying().getAltitude().get() > fromTop) return;
+        BlockPos centerPos = new BlockPos(0,from.getBeginY()+from.getDepth()/2,0);
+        Layer layer = to.getLayer(centerPos);
+        if(!(layer instanceof AtmosphereLayer)) return;
         FluidState water = from.getWater();
         if(water == null) return;
-        BlockPos centerPos = new BlockPos(0,from.getBeginY()+from.getDepth()/2,0);
-        double speed = MathUtil.获得带水平正负方向的速度(windSpeed,direction);
+        FluidState toWater = layer.getWater();
+        if(toWater == null) return;
+
+        double speed = MathUtil.获得带水平正负方向的速度(windSpeed,direction)+(water.getAmount()-toWater.getAmount())/2000d;
         if(speed>1e-5){
             int transferAmount = getWaterTransferAmount(water.getAmount()/4.0,speed);
             if(water.addAmount(-transferAmount)){
                 to.addWater(transferAmount,centerPos);
             }
         }else if(speed<-1e-5){
-            Layer layer = to.getLayer(centerPos);
-            if(!(layer instanceof AtmosphereLayer)) return;
-            FluidState toWater = layer.getWater();
-            if(toWater == null) return;
             int transferAmount = getWaterTransferAmount(toWater.getAmount()
                     *Math.min((fromTop-layer.getBeginY())/from.getDepth(),1)/4.0,
                     -speed);

@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 /**
@@ -100,7 +101,15 @@ public class DefaultAtmosphereDataLoader implements IAtmosphereLoader, IThreaded
 
             return false;
         }
-        ChunkPos pos = this.atmospheresToSave.keySet().iterator().next();
+        ChunkPos pos;
+        try{
+            pos = this.atmospheresToSave.keySet().iterator().next();
+        }catch (NoSuchElementException e){
+            return false;
+        }catch (Throwable e){
+            LOGGER.error("Unknown Error stopped atmosphere data from being saved!",e);
+            throw new RuntimeException(e);
+        }
         boolean succeed;
 
         try {

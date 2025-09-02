@@ -38,44 +38,7 @@ public class SurfaceAtmosphereSystem extends QiguaiAtmosphereSystem {
     @Override
     public void updateTick(){
         if(stopped) return;
-        Collection<AtmosphereData> dataList = dataProvider.getLoadedAtmosphereDataCollection();
-        for (AtmosphereData data:dataList) {
-            if(world.getWorldTime()%60 != Math.abs(data.pos.x+data.pos.z)%60) continue;
-            SurfaceAtmosphere atmosphere = (SurfaceAtmosphere) data.getAtmosphere();
-            if(atmosphere == null){
-                if(data.isEmpty() && !data.isUnloadQueued()){
-                    dataProvider.queueUnloadAtmosphereData(data.pos.x,data.pos.z);
-                    continue;
-                }
-                data.setAtmosphere(generateAtmosphere(data.getChunk(),data));
-                continue;
-            }
-
-            try{
-                if(data.getChunk() == null){
-                    if(!atmosphere.isInitialised()) continue;
-                    atmosphere.updateTick(null);
-                }else{
-                    if(!atmosphere.isInitialised()){
-                        if(!data.isEmpty()) atmosphere.deserializeNBT(data.getSaveCompound());
-                        atmosphere.onLoad(data.getChunk(), worldInfo);
-                        populateAtmosphere(atmosphere,data.getChunk());
-                    }
-                    if(atmosphere.isInitialised()){
-                        atmosphere.updateTick(data.getChunk());
-                        data.saveAtmosphere();
-                    }
-                }
-            }catch (Throwable e){
-                GeoCraft.getLogger().error("SurfaceAtmosphereSystem {} meet an error while updating atmosphere at ChunkPos({},{}) which started at BlockPos({},{}).",world.provider.getDimension()
-                ,data.pos.x,data.pos.z,data.pos.getXStart(),data.pos.getZStart());
-                if(GeoAtmosphereSetting.isEnableDetailedLogging()){
-                    GeoCraft.getLogger().error("Atmosphere detailed:{}",atmosphere);
-                    GeoCraft.getLogger().error(e);
-                }
-            }
-
-        }
+        updateAtmospheres();
         Iterator<Chunk> persistentChunkIterator = world.getPersistentChunkIterable(world.getPlayerChunkMap().getChunkIterator());
         while (persistentChunkIterator.hasNext()){
             Chunk chunk = persistentChunkIterator.next();
