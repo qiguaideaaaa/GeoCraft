@@ -65,12 +65,6 @@ public class BlockGrassMixin extends Block implements IBlockDirt{
         dropWaterWhenBroken(worldIn, pos, state);
     }
 
-    @Override
-    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
-        super.breakBlock(worldIn, pos, state);
-        dropWaterWhenBroken(worldIn, pos, state);
-    }
-
     @Inject(method = "updateTick",at =@At("HEAD"))
     public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
         if (worldIn.isRemote) return;

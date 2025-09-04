@@ -5,6 +5,7 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.Chunk;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
 
 import javax.annotation.Nullable;
@@ -56,6 +57,8 @@ public interface IAtmosphereSystem {
      * @return 大气数据提供者
      */
     IAtmosphereDataProvider getDataProvider();
+
+    IAtmosphereAccessor getAccessor();
 
     /**
      * 获取指定位置的大气

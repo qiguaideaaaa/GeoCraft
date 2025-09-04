@@ -32,7 +32,7 @@ import java.util.Map;
 import static top.qiguaiaaaa.geocraft.util.ChunkUtil.getSameLiquidDepth;
 
 public class Underlying extends UnderlyingLayer {
-    public static final int 底层相对周围最低海拔最低距离 = 10;
+    public static final int 底层相对周围最低海拔最低距离 = 3;
     public static final float 地底温度受地表影响系数 = 0.001f;
     public double 平均返照率;
     protected final TemperatureState temperature = GeoCraftProperties.TEMPERATURE.getStateInstance();

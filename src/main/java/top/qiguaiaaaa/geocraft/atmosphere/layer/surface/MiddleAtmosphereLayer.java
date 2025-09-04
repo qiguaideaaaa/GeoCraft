@@ -128,7 +128,7 @@ public class MiddleAtmosphereLayer extends SurfaceAtmosphereLayer {
                 Math.pow(temperature.get(), 4) *
                 AtmosphereUtil.FinalFactors.大气单元底面积* GeoAtmosphereSetting.getSimulationGap() /1500 * Altitude.to物理高度(getDepth());
         总量 = MathHelper.clamp(总量,-变化上限,变化上限);
-        return new double[]{总量*0.8,总量*0.2};
+        return new double[]{总量*0.7,总量*0.3};
     }
 
     @Override

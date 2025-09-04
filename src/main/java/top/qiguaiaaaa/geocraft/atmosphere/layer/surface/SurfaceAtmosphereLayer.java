@@ -172,7 +172,7 @@ public abstract class SurfaceAtmosphereLayer extends QiguaiAtmosphereLayer {
         double 温度差 = 气块温度 - 上层温度;
         double 浮力加速度 = AtmosphereUtil.FinalFactors.重力加速度 * 温度差 / 上层温度;
 
-        return Math.max(浮力加速度*0.1,0);
+        return Math.max(浮力加速度,0);
     }
 
     public abstract Vec3d 计算上风速();

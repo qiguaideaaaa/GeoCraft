@@ -9,6 +9,7 @@ import net.minecraft.world.chunk.Chunk;
 import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.AtmosphereLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
@@ -31,8 +32,8 @@ import static top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil.FinalFactors.WATER
  * 主世界大气系统
  */
 public class SurfaceAtmosphereSystem extends QiguaiAtmosphereSystem {
-    public SurfaceAtmosphereSystem(WorldServer world, AtmosphereWorldInfo worldInfo, IAtmosphereDataProvider dataProvider){
-        super(world,worldInfo, dataProvider);
+    public SurfaceAtmosphereSystem(WorldServer world, AtmosphereWorldInfo worldInfo, IAtmosphereDataProvider dataProvider, IAtmosphereAccessor accessor){
+        super(world,worldInfo, dataProvider,accessor);
     }
 
     @Override

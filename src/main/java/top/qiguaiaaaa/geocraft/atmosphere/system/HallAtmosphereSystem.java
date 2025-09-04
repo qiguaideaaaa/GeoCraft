@@ -4,6 +4,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
 import top.qiguaiaaaa.geocraft.atmosphere.HallAtmosphere;
@@ -14,8 +15,8 @@ import javax.annotation.Nullable;
 public class HallAtmosphereSystem extends QiguaiAtmosphereSystem {
     public static final float HALL_TEMP = 400;
 
-    public HallAtmosphereSystem(WorldServer world, AtmosphereWorldInfo worldInfo, IAtmosphereDataProvider dataProvider){
-        super(world,worldInfo, dataProvider);
+    public HallAtmosphereSystem(WorldServer world, AtmosphereWorldInfo worldInfo, IAtmosphereDataProvider dataProvider, IAtmosphereAccessor accessor){
+        super(world,worldInfo, dataProvider,accessor);
     }
 
     @Nullable

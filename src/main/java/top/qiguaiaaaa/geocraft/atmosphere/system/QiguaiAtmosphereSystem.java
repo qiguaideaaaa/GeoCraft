@@ -3,6 +3,7 @@ package top.qiguaiaaaa.geocraft.atmosphere.system;
 import net.minecraft.world.WorldServer;
 import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.BaseAtmosphereSystem;
@@ -13,8 +14,8 @@ import java.util.Collection;
 
 public abstract class QiguaiAtmosphereSystem extends BaseAtmosphereSystem {
     protected final WorldServer world;
-    public QiguaiAtmosphereSystem(WorldServer server, AtmosphereWorldInfo info, IAtmosphereDataProvider provider) {
-        super(info, provider);
+    public QiguaiAtmosphereSystem(WorldServer server, AtmosphereWorldInfo info, IAtmosphereDataProvider provider, IAtmosphereAccessor accessor) {
+        super(info, provider,accessor);
         this.world = server;
         worldInfo.setSystem(this);
     }

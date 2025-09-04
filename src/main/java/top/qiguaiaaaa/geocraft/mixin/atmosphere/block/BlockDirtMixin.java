@@ -70,14 +70,4 @@ public class BlockDirtMixin extends Block implements IBlockDirt {
     public void func_176206_d(World worldIn, BlockPos pos, IBlockState state) {
         dropWaterWhenBroken(worldIn, pos, state);
     }
-
-    /**
-     * {@link Block#breakBlock(World, BlockPos, IBlockState)}
-     */
-    public void func_180663_b(World worldIn, BlockPos pos, IBlockState state) {
-        if (this.hasTileEntity(state) && !(Blocks.DIRT instanceof BlockContainer)) {
-            worldIn.removeTileEntity(pos);
-        }
-        dropWaterWhenBroken(worldIn, pos, state);
-    }
 }
