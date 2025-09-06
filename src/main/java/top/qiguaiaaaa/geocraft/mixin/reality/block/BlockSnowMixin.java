@@ -18,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
@@ -58,17 +59,19 @@ public class BlockSnowMixin {
     public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
         ci.cancel();
         int layer = state.getValue(BlockSnow.LAYERS);
-        Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(worldIn,pos);
         if (worldIn.getLightFor(EnumSkyBlock.BLOCK, pos) > 11) {
-            this.turnIntoWater(worldIn,pos,atmosphere,8-layer); //用的是发光Block产生的热量,所以不扣地表温度
+            this.turnIntoWater(worldIn,pos,null,8-layer); //用的是发光Block产生的热量,所以不扣地表温度
             return;
         }
-        if(worldIn.getLightFor(EnumSkyBlock.SKY,pos) == 0) return;
-        if(atmosphere == null) return;
-        float temp = atmosphere.getTemperature(pos,true);
+
+        IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(worldIn,pos,true);
+        if(accessor == null) return;
+        int light = worldIn.getLightFor(EnumSkyBlock.SKY,pos);
+        if(light == 0) return;
+        double temp = accessor.getTemperature();
         if(temp > TemperatureProperty.ICE_POINT){
-            this.turnIntoWater(worldIn,pos,atmosphere,8-layer);
-            atmosphere.getUnderlying().drawHeat(AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA*layer,pos);
+            this.turnIntoWater(worldIn,pos,accessor.getAtmosphereHere(),8-layer);
+            accessor.drawHeatFromUnderlying(AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA*layer);
         }
     }
     protected boolean tryFallDown(World world,BlockPos pos,IBlockState state){

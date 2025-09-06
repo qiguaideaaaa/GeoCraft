@@ -17,7 +17,7 @@ public class AtmosphereData {
     public NBTTagCompound data;
     protected Atmosphere atmosphere;
     protected Chunk chunk;
-    protected boolean unloadQueued = false;
+    protected boolean unloadQueued = false,unloaded=false;
     protected long lastSaveTime;
 
     public AtmosphereData(NBTTagCompound data,int x,int z) {
@@ -35,6 +35,12 @@ public class AtmosphereData {
     public void setUnloadQueued(boolean isQueuedToBeUnloaded){
         unloadQueued = isQueuedToBeUnloaded;
     }
+
+    public void setUnloaded(boolean unloaded) {
+        if(this.unloaded) return;
+        this.unloaded = unloaded;
+    }
+
     public void setLastSaveTime(long time){
         lastSaveTime = time;
     }
@@ -50,6 +56,11 @@ public class AtmosphereData {
     public boolean isUnloadQueued() {
         return unloadQueued;
     }
+
+    public boolean isUnloaded() {
+        return unloaded;
+    }
+
     public boolean isEmpty(){
         return getSaveCompound().isEmpty();
     }

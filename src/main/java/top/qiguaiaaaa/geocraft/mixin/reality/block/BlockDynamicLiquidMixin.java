@@ -22,6 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
@@ -249,9 +250,9 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
                 worldIn.scheduleUpdate(currentPos,thisBlock,tickRate);
                 worldIn.setBlockState(currentPos.down(),downState.withProperty(BlockSnow.LAYERS,8));
             }
-            Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(worldIn,currentPos);
-            if(atmosphere == null) return;
-            atmosphere.getUnderlying().putHeat(frozenQuanta* AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA,currentPos);
+            IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(worldIn,currentPos,true);
+            if(accessor == null) return;
+            accessor.putHeatToUnderlying(frozenQuanta* AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA);
             return;
         }
         int belowQuanta = FluidUtil.getFluidQuanta(worldIn,currentPos.down(),downState);

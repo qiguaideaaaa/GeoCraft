@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.configs.AtmosphereConfig;
 
@@ -22,10 +23,12 @@ public class BlockCauldronMixin {
         if (worldIn.rand.nextInt(20) != 1) {
             return;
         }
-        Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(worldIn,pos);
+        IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(worldIn,pos,true);
+        if(accessor == null) return;
+        Atmosphere atmosphere = accessor.getAtmosphereHere();
         if(atmosphere == null) return;
         if(atmosphere.drainWater(333,pos,true) <333) return;
-        float temp = atmosphere.getAtmosphereTemperature(pos);
+        double temp = atmosphere.getAtmosphereTemperature(pos);
 
         if (temp< TemperatureProperty.ICE_POINT) return;
 

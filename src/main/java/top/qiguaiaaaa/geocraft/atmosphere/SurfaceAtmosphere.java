@@ -61,12 +61,10 @@ public class SurfaceAtmosphere extends QiguaiAtmosphere {
         if(debug) GeoCraft.getLogger().info("{} {} Atmosphere updated {}",x,z,tickTimes);
 
         //太阳辐射从太空射入
-        if(!worldInfo.isWorldClosed()){
-            HeatPack pack = debug?new DebugHeatPack(HeatPack.HeatType.SHORT_WAVE,getSunEnergyPerChunk(worldInfo.getWorld().getWorldInfo())):
-            new HeatPack(HeatPack.HeatType.SHORT_WAVE,getSunEnergyPerChunk(worldInfo.getWorld().getWorldInfo()));
-            getTopLayer().sendHeat(
-                    pack, AtmosphereUtil.calculateSunDirection(AtmosphereUtil.getSunHeight(worldInfo.getWorld().getWorldInfo()), Degree.ZERO));
-        }
+        HeatPack pack = debug?new DebugHeatPack(HeatPack.HeatType.SHORT_WAVE,getSunEnergyPerChunk(worldInfo.getWorld().getWorldInfo())):
+        new HeatPack(HeatPack.HeatType.SHORT_WAVE,getSunEnergyPerChunk(worldInfo.getWorld().getWorldInfo()));
+        getTopLayer().sendHeat(
+                pack, AtmosphereUtil.calculateSunDirection(AtmosphereUtil.getSunHeight(worldInfo.getWorld().getWorldInfo()), Degree.ZERO));
         //处理相邻大气
         ExtendedChunkPos chunkPos = new ExtendedChunkPos(x,z);
         final Map<EnumFacing, Triple<Atmosphere,Chunk,EnumFacing>> neighbors = new EnumMap<>(EnumFacing.class);

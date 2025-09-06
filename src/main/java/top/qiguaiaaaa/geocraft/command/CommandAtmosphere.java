@@ -17,6 +17,7 @@ import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.api.GeoCraftProperties;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
@@ -81,14 +82,15 @@ public class CommandAtmosphere extends ExtendedCommand {
         if(args.length >= 1){
             super.execute(server,sender,args);
         } else{
-            Atmosphere atmosphere = getAtmosphere(world,pos.getX(),pos.getZ());
+            IAtmosphereAccessor accessor = getAtmosphereAccessor(world,pos.getX(),pos.getZ());
+            Atmosphere atmosphere = getAtmosphere(accessor);
             notifyCommandListener(sender,this, "geocraft.command.atmosphere.query.basic",TextFormatting.AQUA,pos.getX(),Altitude.get物理海拔(pos.getY()),pos.getZ());
             notifyCommandListener(sender,this, "geocraft.command.atmosphere.query.basic.1",
-                    atmosphere.getPressure(pos),
-                    atmosphere.getWaterPressure(pos),
-                    atmosphere.getAtmosphereTemperature(pos)
+                    accessor.getPressure(),
+                    accessor.getWaterPressure(),
+                    accessor.getTemperature()
             );
-            notifyCommandListener(sender,this, "geocraft.command.atmosphere.query.basic.2",atmosphere.getWind(pos));
+            notifyCommandListener(sender,this, "geocraft.command.atmosphere.query.basic.2",accessor.getWind());
             for(Layer layer = atmosphere.getBottomLayer(); layer != null; layer = layer.getUpperLayer()){
                 notifyCommandListener(sender,this, "geocraft.command.atmosphere.query.basic.3",
                         layer.getTagName(),layer.getBeginY(),layer.getBeginY()+layer.getDepth());
@@ -101,11 +103,16 @@ public class CommandAtmosphere extends ExtendedCommand {
 
         }
     }
-    protected static Atmosphere getAtmosphere(World world, int x, int z) throws CommandException {
-        Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world,new BlockPos(x,63,z));
-        if(atmosphere == null){
-            throw new CommandException("geocraft.command.atmosphere.nonexistent.there",new Object());
+    protected static IAtmosphereAccessor getAtmosphereAccessor(World world, int x, int z) throws CommandException {
+        IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(world,new BlockPos(x,63,z),false);
+        if(accessor == null){
+            throw new CommandException("geocraft.command.atmosphere.nonexistent.there");
         }
+        return accessor;
+    }
+    protected static Atmosphere getAtmosphere(IAtmosphereAccessor accessor) throws CommandException {
+        Atmosphere atmosphere = accessor.getAtmosphereHere();
+        if(atmosphere ==null) throw new CommandException("geocraft.command.atmosphere.nonexistent.there");
         return atmosphere;
     }
     protected static Layer getAtmosphereLayer(Atmosphere atmosphere,int height) throws CommandException {
@@ -147,12 +154,13 @@ public class CommandAtmosphere extends ExtendedCommand {
         public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
             World world = sender.getEntityWorld();
             BlockPos pos = sender.getPosition();
-            Atmosphere atmosphere = getAtmosphere(world,pos.getX(),pos.getZ());
+            IAtmosphereAccessor accessor = getAtmosphereAccessor(world,pos.getX(),pos.getZ());
+            Atmosphere atmosphere = getAtmosphere(accessor);
             Layer layer = getAtmosphereLayer(atmosphere,pos.getY());
-            this.execute(server,world,pos,atmosphere,layer,sender,args);
+            this.execute(server,world,pos,accessor,atmosphere,layer,sender,args);
         }
 
-        public abstract void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException;
+        public abstract void execute(MinecraftServer server, World world, BlockPos pos,IAtmosphereAccessor accessor ,Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException;
 
     }
     public static class SetCommand extends AtmosphereSubCommand{
@@ -172,7 +180,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         }
 
         @Override
-        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException{
+        public void execute(MinecraftServer server, World world, BlockPos pos,IAtmosphereAccessor accessor,Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException{
             if(args.length<2 || args.length>4 || args.length == 3) throw new WrongUsageException(getUsage(sender));
 
             double value;
@@ -184,7 +192,8 @@ public class CommandAtmosphere extends ExtendedCommand {
                 CoordinateArg coordinateArgZ = parseCoordinate(pos.getZ(),args[3],false);
                 x = (int) coordinateArgX.getResult();
                 z = (int) coordinateArgZ.getResult();
-                atmosphere = getAtmosphere(world,x,z);
+                accessor = getAtmosphereAccessor(world,x,z);
+                atmosphere = getAtmosphere(accessor);
                 layer = getAtmosphereLayer(atmosphere,pos.getY());
             }
             notifyCommandListener(sender,this,"geocraft.command.atmosphere.query.layer_inf",layer.getTagName(),
@@ -251,7 +260,7 @@ public class CommandAtmosphere extends ExtendedCommand {
             return Collections.emptyList();
         }
     }
-    public static class StopCommand extends AtmosphereSubCommand {
+    public static class StopCommand extends SubCommand {
         protected StopCommand(ICommand father) {
             super(father);
         }
@@ -264,9 +273,6 @@ public class CommandAtmosphere extends ExtendedCommand {
             system.setStop(!system.isStopped());
             notifyCommandListener(sender, this, "geocraft.command.atmosphere.reset.temp",system.isStopped() , 0, 0);
         }
-
-        @Override
-        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) {}
         @Override
         public String getName() {
             return "stop";
@@ -292,7 +298,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         }
 
         @Override
-        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer,ICommandSender sender, String[] args) throws CommandException {
+        public void execute(MinecraftServer server, World world, BlockPos pos,IAtmosphereAccessor accessor,Atmosphere atmosphere,Layer layer,ICommandSender sender, String[] args) throws CommandException {
             if(args.length<1 || args.length>3 || args.length == 2) throw new WrongUsageException(getUsage(sender));
 
             int x = pos.getX(),z = pos.getZ();
@@ -302,7 +308,8 @@ public class CommandAtmosphere extends ExtendedCommand {
                 CoordinateArg coordinateArgZ = parseCoordinate(pos.getZ(),args[2],false);
                 x = (int) coordinateArgX.getResult();
                 z = (int) coordinateArgZ.getResult();
-                atmosphere = getAtmosphere(world,x,z);
+                accessor = getAtmosphereAccessor(world,x,z);
+                atmosphere = getAtmosphere(accessor);
             }
             if("temp".equalsIgnoreCase(args[0])){
                 BlockPos targetPos = new BlockPos(x,63,z);
@@ -346,7 +353,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         }
 
         @Override
-        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer,ICommandSender sender, String[] args) throws CommandException {
+        public void execute(MinecraftServer server, World world, BlockPos pos,IAtmosphereAccessor accessor, Atmosphere atmosphere,Layer layer,ICommandSender sender, String[] args) throws CommandException {
             if(args.length<2 || args.length>4 || args.length == 3) throw new WrongUsageException(getUsage(sender));
 
             double value;
@@ -358,7 +365,8 @@ public class CommandAtmosphere extends ExtendedCommand {
                 CoordinateArg coordinateArgZ = parseCoordinate(pos.getZ(),args[3],false);
                 x = (int) coordinateArgX.getResult();
                 z = (int) coordinateArgZ.getResult();
-                atmosphere = getAtmosphere(world,x,z);
+                accessor = getAtmosphereAccessor(world,x,z);
+                atmosphere = getAtmosphere(accessor);
                 layer = getAtmosphereLayer(atmosphere,pos.getY());
             }
             notifyCommandListener(sender,this,"geocraft.command.atmosphere.query.layer_inf",layer.getTagName(),
@@ -438,7 +446,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         }
 
         @Override
-        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException {
+        public void execute(MinecraftServer server, World world, BlockPos pos,IAtmosphereAccessor accessor, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException {
             if(args.length<1) throw new WrongUsageException(getUsage(sender));
             if(args.length>4) throw new WrongUsageException("geocraft.command.atmosphere.query.usage.xyz");
             int x = pos.getX(),y=pos.getY(),z = pos.getZ();
@@ -449,10 +457,12 @@ public class CommandAtmosphere extends ExtendedCommand {
                     x = pos1.getX();
                     y = pos1.getY();
                     z = pos1.getZ();
-                    atmosphere = getAtmosphere(world,x,z);
+                    accessor = getAtmosphereAccessor(world,x,z);
+                    atmosphere = getAtmosphere(accessor);
                 }
 
-                float temp = atmosphere.getTemperature(new BlockPos(x,y,z),world.getBlockState(new BlockPos(x,y,z)).getMaterial() != Material.AIR);
+                accessor.setNotAir(world.getBlockState(new BlockPos(x,y,z)).getMaterial() != Material.AIR);
+                double temp = accessor.getTemperature();
                 notifyCommandListener(sender,this,"geocraft.command.atmosphere.query.block_temp",x,y,z,temp);
                 sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT,(int)temp);
                 return;
@@ -465,7 +475,8 @@ public class CommandAtmosphere extends ExtendedCommand {
                 CoordinateArg coordinateArgZ = parseCoordinate(pos.getZ(),args[2],false);
                 x = (int) coordinateArgX.getResult();
                 z = (int) coordinateArgZ.getResult();
-                atmosphere = getAtmosphere(world,x,z);
+                accessor = getAtmosphereAccessor(world,x,z);
+                atmosphere = getAtmosphere(accessor);
                 layer = getAtmosphereLayer(atmosphere,pos.getY());
             }
             notifyCommandListener(sender,this,"geocraft.command.atmosphere.query.layer_inf",layer.getTagName(),
@@ -494,7 +505,7 @@ public class CommandAtmosphere extends ExtendedCommand {
                 return;
             }
             if("wind".equalsIgnoreCase(args[0])){
-                Vec3d wind = atmosphere.getWind(pos);
+                Vec3d wind = accessor.getWind();
                 notifyCommandListener(sender,this,"geocraft.command.atmosphere.query.wind.north",x,y,z,wind.dotProduct(new Vec3d(EnumFacing.NORTH.getDirectionVec())));
                 notifyCommandListener(sender,this,"geocraft.command.atmosphere.query.wind.east",x,y,z,wind.dotProduct(new Vec3d(EnumFacing.EAST.getDirectionVec())));
                 notifyCommandListener(sender,this,"geocraft.command.atmosphere.query.wind.south",x,y,z,wind.dotProduct(new Vec3d(EnumFacing.SOUTH.getDirectionVec())));
@@ -518,11 +529,11 @@ public class CommandAtmosphere extends ExtendedCommand {
                 return;
             }
             if("water_pressure".equalsIgnoreCase(args[0])){
-                notifyCommandListener(sender,this,"geocraft.command.atmosphere.query.water_pressure",x,y,z,atmosphere.getWaterPressure(pos)*0.01);
+                notifyCommandListener(sender,this,"geocraft.command.atmosphere.query.water_pressure",x,y,z,accessor.getWaterPressure()*0.01);
                 return;
             }
             if("pressure".equalsIgnoreCase(args[0])){
-                notifyCommandListener(sender,this,"geocraft.command.atmosphere.query.pressure",x,y,z,atmosphere.getPressure(pos)*0.01);
+                notifyCommandListener(sender,this,"geocraft.command.atmosphere.query.pressure",x,y,z,accessor.getPressure()*0.01);
                 return;
             }
             throw new WrongUsageException(getUsage(sender));
@@ -561,7 +572,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         }
 
         @Override
-        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException {
+        public void execute(MinecraftServer server, World world, BlockPos pos,IAtmosphereAccessor accessor,Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException {
             if(args.length != 1) throw new WrongUsageException(getUsage(sender));
             WorldInfo info = world.getWorldInfo();
             if("sun".equalsIgnoreCase(args[0])){
@@ -580,7 +591,7 @@ public class CommandAtmosphere extends ExtendedCommand {
                 return;
             }
             if("storage".equalsIgnoreCase(args[0])){
-                IAtmosphereSystem system = atmosphere.getAtmosphereWorldInfo().getSystem();
+                IAtmosphereSystem system = accessor.getSystem();
                 IAtmosphereDataProvider provider = system.getDataProvider();
                 Collection<AtmosphereData> data = provider.getLoadedAtmosphereDataCollection();
                 notifyCommandListener(sender,this,"geocraft.command.atmosphere.util.storage",data.size());
@@ -614,7 +625,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         }
 
         @Override
-        public void execute(MinecraftServer server, World world, BlockPos pos, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException {
+        public void execute(MinecraftServer server, World world, BlockPos pos,IAtmosphereAccessor accessor, Atmosphere atmosphere,Layer layer, ICommandSender sender, String[] args) throws CommandException {
             if(args.length<3 || args.length>6 || args.length == 4 || args.length == 5) throw new WrongUsageException(getUsage(sender));
 
             int time;
@@ -630,7 +641,8 @@ public class CommandAtmosphere extends ExtendedCommand {
                 x = (int) coordinateArgX.getResult();
                 y = (int) coordinateArgY.getResult();
                 z = (int) coordinateArgZ.getResult();
-                atmosphere = getAtmosphere(world,x,z);
+                accessor = getAtmosphereAccessor(world,x,z);
+                atmosphere = getAtmosphere(accessor);
             }
             if("temp".equalsIgnoreCase(args[0])){
                 InformationLoggingTracker tracker = createInformationTracker(atmosphere, TemperatureTracker::new,fileName, GeoCraft.getLogger(),new BlockPos(x,y,z),time);

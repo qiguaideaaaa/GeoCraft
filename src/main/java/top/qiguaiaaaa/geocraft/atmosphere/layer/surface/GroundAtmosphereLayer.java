@@ -136,10 +136,8 @@ public class GroundAtmosphereLayer extends SurfaceAtmosphereLayer {
         if(相对海拔<=0){
             if(isLowerLayerValid) return low.getTemperature(pos,notAir);
             if(lowerLayer != null){
-                if(相对海拔<-12 || notAir) return lowerLayer.getTemperature(pos);
-                if(地面海拔<12) return temperature.get();
-                double lowTemp = lowerLayer.getTemperature(new BlockPos(pos.getX(),pos.getY()-12,pos.getZ()));
-                return (float) ((temperature.get()-lowTemp)/12*(相对海拔+12)+lowTemp);
+                double 高度差 = Altitude.to物理高度(相对海拔);
+                return (float) (temperature.get() - AtmosphereUtil.FinalFactors.对流层温度直减率 * 高度差);
             }
             return temperature.get();
         }

@@ -6,16 +6,13 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
-import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.AtmosphereLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
-import top.qiguaiaaaa.geocraft.api.atmosphere.system.BaseAtmosphereSystem;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
-import top.qiguaiaaaa.geocraft.api.setting.GeoAtmosphereSetting;
 import top.qiguaiaaaa.geocraft.atmosphere.SurfaceAtmosphere;
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
 import top.qiguaiaaaa.geocraft.util.ChunkUtil;
@@ -23,7 +20,6 @@ import top.qiguaiaaaa.geocraft.util.WaterUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.Iterator;
 
 import static top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA;
@@ -32,8 +28,8 @@ import static top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil.FinalFactors.WATER
  * 主世界大气系统
  */
 public class SurfaceAtmosphereSystem extends QiguaiAtmosphereSystem {
-    public SurfaceAtmosphereSystem(WorldServer world, AtmosphereWorldInfo worldInfo, IAtmosphereDataProvider dataProvider, IAtmosphereAccessor accessor){
-        super(world,worldInfo, dataProvider,accessor);
+    public SurfaceAtmosphereSystem(WorldServer world, AtmosphereWorldInfo worldInfo, IAtmosphereDataProvider dataProvider){
+        super(world,worldInfo, dataProvider);
     }
 
     @Override
@@ -72,12 +68,14 @@ public class SurfaceAtmosphereSystem extends QiguaiAtmosphereSystem {
 
         if (!world.isAreaLoaded(pos, 1)) return;
 
+        IAtmosphereAccessor freezeAccessor = getAccessor(data,pos,true);
+
         double rainPossibility = isRaining?WaterUtil.getRainPossibility(atmosphere,randPos):0;
-        double freezePossibility = WaterUtil.getFreezePossibility(atmosphere,randPos);
+        double freezePossibility = WaterUtil.getFreezePossibility(freezeAccessor);
 
         if (BaseUtil.getRandomResult(world.rand,freezePossibility) && WaterUtil.canWaterFreeze(world,pos,true)) {
             world.setBlockState(pos, Blocks.ICE.getDefaultState());
-            atmosphere.getUnderlying().putHeat(WATER_MELT_LATENT_HEAT_PER_QUANTA*8,pos);
+            freezeAccessor.putHeatToUnderlying(WATER_MELT_LATENT_HEAT_PER_QUANTA*8);
         }
 
         if(!BaseUtil.getRandomResult(world.rand,rainPossibility)){

@@ -77,25 +77,25 @@ public class DefaultAtmosphereDataProvider implements IAtmosphereDataProvider {
 
     @Override
     public boolean tick() {
-        if (!this.world.disableLevelSaving) {
-            if (!this.droppedAtmospheres.isEmpty()) {
-                for (ChunkPos forced : this.world.getPersistentChunks().keySet()) {
-                    this.droppedAtmospheres.remove(ChunkPos.asLong(forced.x, forced.z));
-                }
-                Iterator<Long> iterator = this.droppedAtmospheres.iterator();
-                for (int i = 0; i < 1000 && iterator.hasNext(); iterator.remove()) {
-                    Long id = iterator.next();
-                    AtmosphereData data = this.loadedAtmosphere.get(id);
+        if (this.world.disableLevelSaving) return false;
+        if (this.droppedAtmospheres.isEmpty()) return false;
 
-                    if (data != null && data.isUnloadQueued()) {
-                        if(data.getAtmosphere() != null) {
-                            data.getAtmosphere().onUnload();
-                        }
-                        this.saveAtmosphereData(data);
-                        this.loadedAtmosphere.remove(id);
-                        i++;
-                    }
+        for (ChunkPos forced : this.world.getPersistentChunks().keySet()) {
+            this.droppedAtmospheres.remove(ChunkPos.asLong(forced.x, forced.z));
+        }
+        Iterator<Long> iterator = this.droppedAtmospheres.iterator();
+        for (int i = 0; i < 1000 && iterator.hasNext(); iterator.remove()) {
+            Long id = iterator.next();
+            AtmosphereData data = this.loadedAtmosphere.get(id);
+
+            if (data != null && data.isUnloadQueued()) {
+                if(data.getAtmosphere() != null) {
+                    data.getAtmosphere().onUnload();
                 }
+                this.saveAtmosphereData(data);
+                this.loadedAtmosphere.remove(id);
+                data.setUnloaded(true);
+                i++;
             }
         }
 

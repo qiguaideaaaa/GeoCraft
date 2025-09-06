@@ -58,7 +58,14 @@ public interface IAtmosphereSystem {
      */
     IAtmosphereDataProvider getDataProvider();
 
-    IAtmosphereAccessor getAccessor();
+    /**
+     * 获取指定方块用于与大气进行交互的接口对象
+     * @param pos 方块位置
+     * @param notAir 方块是否不为空气
+     * @return 若指定位置没有可用大气,则返回null
+     */
+    @Nullable
+    IAtmosphereAccessor getAccessor(BlockPos pos,boolean notAir);
 
     /**
      * 获取指定位置的大气

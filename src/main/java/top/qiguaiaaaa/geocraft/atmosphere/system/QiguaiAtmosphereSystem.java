@@ -1,8 +1,10 @@
 package top.qiguaiaaaa.geocraft.atmosphere.system;
 
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.AverageAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
@@ -10,12 +12,13 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.system.BaseAtmosphereSystem;
 import top.qiguaiaaaa.geocraft.api.setting.GeoAtmosphereSetting;
 import top.qiguaiaaaa.geocraft.atmosphere.QiguaiAtmosphere;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 
 public abstract class QiguaiAtmosphereSystem extends BaseAtmosphereSystem {
     protected final WorldServer world;
-    public QiguaiAtmosphereSystem(WorldServer server, AtmosphereWorldInfo info, IAtmosphereDataProvider provider, IAtmosphereAccessor accessor) {
-        super(info, provider,accessor);
+    public QiguaiAtmosphereSystem(WorldServer server, AtmosphereWorldInfo info, IAtmosphereDataProvider provider) {
+        super(info, provider);
         this.world = server;
         worldInfo.setSystem(this);
     }
@@ -25,6 +28,19 @@ public abstract class QiguaiAtmosphereSystem extends BaseAtmosphereSystem {
         if(stopped) return;
         updateAtmospheres();
         dataProvider.tick();
+    }
+
+    @Override
+    public IAtmosphereAccessor getAccessor(BlockPos pos, boolean notAir) {
+        AtmosphereData data = dataProvider.getLoadedAtmosphereData(pos.getX()>>4,pos.getZ()>>4);
+        if(data == null) return null;
+        if(data.getAtmosphere() == null) return null;
+        if(!data.getAtmosphere().isInitialised()) return null;
+        return getAccessor(data,pos,notAir);
+    }
+
+    public IAtmosphereAccessor getAccessor(@Nonnull AtmosphereData data,@Nonnull BlockPos pos, boolean notAir){
+        return new AverageAtmosphereAccessor(this,data,pos,notAir);
     }
 
     protected void updateAtmospheres(){

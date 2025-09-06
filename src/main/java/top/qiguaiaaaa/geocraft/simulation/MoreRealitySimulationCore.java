@@ -10,6 +10,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidRegistry;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
@@ -25,27 +26,34 @@ public class MoreRealitySimulationCore {
     @Nullable
     public static IBlockState evaporateWater(World world, BlockPos pos, IBlockState state, Random rand){
         if(world.getLightFor(EnumSkyBlock.SKY,pos) == 0) return state;
-        Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world,pos);
+        IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(world,pos,true);
+        if(accessor == null) return state;
+        Atmosphere atmosphere = accessor.getAtmosphereHere();
         if(atmosphere == null) return state;
-        double possibility = getWaterEvaporatePossibility(world,pos,state,atmosphere);
+
+        double possibility = getWaterEvaporatePossibility(world,pos,state,accessor,atmosphere);
         int meta = state.getValue(LEVEL);
         if(!BaseUtil.getRandomResult(rand,possibility)){
             return state;
         }
         if(meta >=8) return null;
         if(!atmosphere.addSteam(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,pos)) return state;
-        atmosphere.getUnderlying().drawHeat(AtmosphereUtil.FinalFactors.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA,pos);
+        accessor.drawHeatFromUnderlying(AtmosphereUtil.FinalFactors.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA);
         if(meta == 7) return null;
         state = state.withProperty(LEVEL,meta+1);
         return state;
     }
     public static IBlockState freezeWater(World world, BlockPos pos, IBlockState state, Random rand){
-        if(world.getLightFor(EnumSkyBlock.SKY,pos) == 0) return state;
+        int light = world.getLightFor(EnumSkyBlock.SKY,pos);
+        if(light == 0) return state;
         int meta = state.getValue(LEVEL);
         if(meta >=8) return state;
-        Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world, pos);
+        IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(world,pos,true);
+        if(accessor == null) return state;
+        Atmosphere atmosphere = accessor.getAtmosphereHere();
         if(atmosphere == null) return state;
-        double possibility  = WaterUtil.getFreezePossibility(atmosphere,pos);
+
+        double possibility  = WaterUtil.getFreezePossibility(accessor);
         if(possibility <= 0) return state;
         if(meta == 7) possibility = Math.min(possibility*8,1);
         else if(meta == 6) possibility = Math.min(possibility*4,1);
@@ -59,12 +67,12 @@ public class MoreRealitySimulationCore {
         }
         if(!WaterUtil.canPlaceSnow(world,pos)) return state;
         int quanta = 8-meta;
-        atmosphere.getUnderlying().putHeat(AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA*quanta,pos);
+        accessor.putHeatToUnderlying(AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA*quanta);
         return Blocks.SNOW_LAYER.getDefaultState().withProperty(BlockSnow.LAYERS,quanta);
     }
 
-    public static double getWaterEvaporatePossibility(World world, BlockPos pos, IBlockState state, Atmosphere atmosphere){
-        double possibility = WaterUtil.getWaterEvaporatePossibility(atmosphere,pos);
+    public static double getWaterEvaporatePossibility(World world, BlockPos pos, IBlockState state,IAtmosphereAccessor accessor,Atmosphere atmosphere){
+        double possibility = WaterUtil.getWaterEvaporatePossibility(accessor,atmosphere,pos);
         if(!world.isAreaLoaded(pos,1)) return possibility;
 
         int meta = state.getValue(LEVEL);

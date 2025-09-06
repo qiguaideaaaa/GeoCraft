@@ -16,13 +16,11 @@ import java.util.Collection;
 public abstract class BaseAtmosphereSystem implements IAtmosphereSystem{
     protected final AtmosphereWorldInfo worldInfo;
     protected final IAtmosphereDataProvider dataProvider;
-    protected final IAtmosphereAccessor accessor;
     protected boolean stopped = false;
 
-    public BaseAtmosphereSystem(AtmosphereWorldInfo info, IAtmosphereDataProvider provider,IAtmosphereAccessor accessor) {
+    public BaseAtmosphereSystem(AtmosphereWorldInfo info, IAtmosphereDataProvider provider) {
         this.worldInfo = info;
         this.dataProvider = provider;
-        this.accessor = accessor;
     }
 
     @Override
@@ -81,11 +79,6 @@ public abstract class BaseAtmosphereSystem implements IAtmosphereSystem{
     @Override
     public IAtmosphereDataProvider getDataProvider() {
         return dataProvider;
-    }
-
-    @Override
-    public IAtmosphereAccessor getAccessor() {
-        return this.accessor;
     }
 
     @Nullable

@@ -10,7 +10,6 @@ import net.minecraft.world.chunk.Chunk;
 import org.apache.commons.lang3.tuple.Triple;
 import top.qiguaiaaaa.geocraft.api.GeoCraftProperties;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
-import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.AtmosphereLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.UnderlyingLayer;
 import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
@@ -32,7 +31,7 @@ import java.util.Map;
 import static top.qiguaiaaaa.geocraft.util.ChunkUtil.getSameLiquidDepth;
 
 public class Underlying extends UnderlyingLayer {
-    public static final int 底层相对周围最低海拔最低距离 = 3;
+    public static final int 过渡距离 = 3;
     public static final float 地底温度受地表影响系数 = 0.001f;
     public double 平均返照率;
     protected final TemperatureState temperature = GeoCraftProperties.TEMPERATURE.getStateInstance();
@@ -56,13 +55,9 @@ public class Underlying extends UnderlyingLayer {
     @Override
     public void putHeat(double quanta, @Nullable BlockPos pos) {
         if(pos != null){
-            if(upperLayer != null && pos.getY()>周围区块最高平均海拔){
-                upperLayer.putHeat(quanta, pos);
-                return;
-            }
-            else if(pos.getY()<=周围区块最低平均海拔-底层相对周围最低海拔最低距离) return;
-            else if(pos.getY()<周围区块最低平均海拔){
-                super.putHeat(quanta*(pos.getY()-周围区块最低平均海拔+底层相对周围最低海拔最低距离)/底层相对周围最低海拔最低距离,pos);
+            if(pos.getY()<=altitude.get()- 过渡距离) return;
+            else if(pos.getY()<altitude.get()){
+                super.putHeat(quanta*(pos.getY()-altitude.get()+ 过渡距离)/ 过渡距离,pos);
                 return;
             }
         }
@@ -72,10 +67,9 @@ public class Underlying extends UnderlyingLayer {
     @Override
     public double drawHeat(double quanta, @Nullable BlockPos pos) {
         if(pos != null){
-            if(upperLayer != null && pos.getY()>周围区块最高平均海拔) return upperLayer.drawHeat(quanta, pos);
-            else if(pos.getY()<=周围区块最低平均海拔-底层相对周围最低海拔最低距离+1e-2) return quanta;
-            else if(pos.getY()<周围区块最低平均海拔){
-                double 修饰比 = (pos.getY()-周围区块最低平均海拔+底层相对周围最低海拔最低距离)/底层相对周围最低海拔最低距离;
+            if(pos.getY()<=altitude.get()- 过渡距离) return quanta;
+            else if(pos.getY()<altitude.get()){
+                double 修饰比 = (pos.getY()-altitude.get()+ 过渡距离)/ 过渡距离;
                 return super.drawHeat(quanta*修饰比,pos)/修饰比;
             }
         }
@@ -83,9 +77,7 @@ public class Underlying extends UnderlyingLayer {
     }
 
     public void updateAltitude(Chunk chunk){
-        AtmosphereWorldInfo worldInfo = this.atmosphere.getAtmosphereWorldInfo();
-        if(!worldInfo.isWorldClosed()) setAltitude(Altitude.getMiddleHeight(chunk));
-        else setAltitude(worldInfo.getWorld().getSeaLevel());
+        setAltitude(Altitude.getMiddleHeight(chunk));
     }
 
     public void updateNeighborAltitudeInfo(Map<EnumFacing, Triple<Atmosphere,Chunk,EnumFacing>>  neighbors){
@@ -177,9 +169,8 @@ public class Underlying extends UnderlyingLayer {
         if(altitude.get() <= 0){
             return; //空的，下垫面都没有
         }
-        if(atmosphere.getAtmosphereWorldInfo().isTemperatureConstant()) return;
 
-        if(!atmosphere.getAtmosphereWorldInfo().isWorldClosed() && atmosphere.tickTime()+x+5L*z % GeoAtmosphereSetting.getUnderlyingReloadGap() == 0 ){
+        if(atmosphere.tickTime()+x+5L*z % GeoAtmosphereSetting.getUnderlyingReloadGap() == 0 ){
             if(chunk != null) load(chunk);
             updateNeighborAltitudeInfo(neighbors);
         }
@@ -240,27 +231,16 @@ public class Underlying extends UnderlyingLayer {
 
     @Override
     public float getTemperature(BlockPos pos) {
-        if(pos.getY()<=周围区块最低平均海拔-底层相对周围最低海拔最低距离+1e-2){
-            double 深度 = Altitude.to物理高度((周围区块最低平均海拔-底层相对周围最低海拔最低距离)-pos.getY());
+        if(pos.getY()<-0.1) return getTemperature(new BlockPos(pos.getX(),0,pos.getZ()));
+        if(pos.getY()<=altitude.get()- 过渡距离){
+            double 深度 = Altitude.to物理高度((altitude.get()- 过渡距离)-pos.getY());
             return (float) (deepTemperature.get()+深度* AtmosphereUtil.FinalFactors.地下温度直增率);
         }
-        if(pos.getY() <= 周围区块最低平均海拔){
-            double upTemp = (altitude.get()-底层相对周围最低海拔最低距离<周围区块最低平均海拔)?temperature.get():
-            temperature.get()+Altitude.to物理高度(altitude.get()-底层相对周围最低海拔最低距离-周围区块最低平均海拔)*AtmosphereUtil.FinalFactors.对流层温度直减率;
-            return (float) ((upTemp-deepTemperature.get())*(pos.getY()-周围区块最低平均海拔+底层相对周围最低海拔最低距离)/底层相对周围最低海拔最低距离+deepTemperature.get());
+        if(pos.getY()<=altitude.get()){
+            return (float) ((temperature.get()-deepTemperature.get())*(pos.getY()-altitude.get()+ 过渡距离)/ 过渡距离 +deepTemperature.get());
         }
-        if(pos.getY() >= 周围区块最低平均海拔 && (pos.getY() < altitude.get()-底层相对周围最低海拔最低距离)){
-            return (float) (temperature.get()+Altitude.to物理高度(altitude.get()-底层相对周围最低海拔最低距离-pos.getY())* AtmosphereUtil.FinalFactors.对流层温度直减率);
-        }
-        if(pos.getY() > 周围区块最高平均海拔){
-            return (float)
-                    Math.max(temperature.get()-(周围区块最高平均海拔-altitude.get())* AtmosphereUtil.FinalFactors.对流层温度直减率*32
-                            - (pos.getY()-周围区块最高平均海拔)* AtmosphereUtil.FinalFactors.对流层温度直减率*64
-                            , TemperatureProperty.MIN);
-        }
-        if(pos.getY()<=altitude.get()) return temperature.get();
-        double 高差 = pos.getY()-altitude.get();
-        return (float) Math.max(temperature.get()-高差* AtmosphereUtil.FinalFactors.对流层温度直减率*32, TemperatureProperty.MIN);
+        double 高差 = Altitude.to物理高度(pos.getY()-altitude.get());
+        return (float) Math.max(temperature.get()-高差* AtmosphereUtil.FinalFactors.对流层温度直减率, TemperatureProperty.MIN);
     }
 
     @Override

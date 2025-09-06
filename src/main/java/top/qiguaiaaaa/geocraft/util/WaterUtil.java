@@ -10,6 +10,7 @@ import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 
@@ -22,18 +23,28 @@ public final class WaterUtil {
      * @param atmosphere 大气
      * @return 一个介于0~1的值，表示概率
      */
-    public static double getWaterEvaporatePossibility(Atmosphere atmosphere, BlockPos pos) {
+    public static double getWaterEvaporatePossibility(IAtmosphereAccessor accessor,Atmosphere atmosphere, BlockPos pos) {
+        final int 单层水质量 = FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
+        double temp = accessor.getTemperature();
+        if(temp>= TemperatureProperty.BOILED_POINT) return 1;
+        double 期望质量 = getWaterEvaporateAmount(atmosphere,pos);
+        return  1.0 - Math.exp(-期望质量 / 单层水质量);
+    }
+
+    /**
+     * 获取水蒸发量
+     * @param atmosphere 大气
+     * @param pos 蒸发位置
+     * @return 水蒸发量,单位kg
+     */
+    public static double getWaterEvaporateAmount(Atmosphere atmosphere,BlockPos pos){
         final double 交换系数 = 1.0e-6;
         final int 时间步长 = 216;
-        final int 单层水质量 = FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
-        double temp = atmosphere.getUnderlying().getTemperature(pos);
-        if(temp>= TemperatureProperty.BOILED_POINT) return 1;
         double 水汽压 = atmosphere.getWaterPressure(pos);
         double 饱和水汽压 = 计算饱和水汽压(atmosphere.getAtmosphereTemperature(pos));
         double 水汽压差 = Math.max(饱和水汽压 - 水汽压, 0);
         double 通量_kg每平米每秒 = 交换系数 * 水汽压差;
-        double 期望质量 = 通量_kg每平米每秒 * 时间步长;
-        return  1.0 - Math.exp(-期望质量 / 单层水质量);
+        return 通量_kg每平米每秒 * 时间步长;
     }
 
     /**
@@ -53,15 +64,14 @@ public final class WaterUtil {
 
     /**
      * 获取冻结概率
-     * @param atmosphere 大气
-     * @param pos 冻结位置
+     * @param accessor 大气访问器
      * @return 一个介于0~1的值，表示概率
      */
-    public static double getFreezePossibility(Atmosphere atmosphere, BlockPos pos) {
-        float temp = atmosphere.getTemperature(pos,true);
+    public static double getFreezePossibility(IAtmosphereAccessor accessor) {
+        double temp = accessor.getTemperature();
         if(temp>= TemperatureProperty.ICE_POINT) return 0;
         if(temp< TemperatureProperty.ICE_POINT-100) return 1;
-        float diff = TemperatureProperty.ICE_POINT-temp;
+        double diff = TemperatureProperty.ICE_POINT-temp;
         return (diff/100)*0.94f+0.06f;
     }
 
