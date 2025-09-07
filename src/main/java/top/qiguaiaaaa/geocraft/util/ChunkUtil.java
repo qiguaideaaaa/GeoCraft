@@ -2,6 +2,9 @@ package top.qiguaiaaaa.geocraft.util;
 
 import net.minecraft.init.Biomes;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.EnumSkyBlock;
+import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fluids.Fluid;
@@ -24,6 +27,27 @@ public final class ChunkUtil {
         }
         return ans;
     }
+
+    public static int getNeighborsLightFor(World world, EnumSkyBlock type, BlockPos pos) {
+        if (!world.provider.hasSkyLight() && type == EnumSkyBlock.SKY) {
+            return 0;
+        }
+        if (pos.getY() < 0) {
+            pos = new BlockPos(pos.getX(), 0, pos.getZ());
+        }
+
+        if (!world.isValid(pos)) {
+            return type.defaultLightValue;
+        } else if (!world.isBlockLoaded(pos)) {
+            return type.defaultLightValue;
+        }
+        int light = 0;
+        for(EnumFacing facing:EnumFacing.values()){
+            light = Math.max(light,world.getLightFor(EnumSkyBlock.SKY,pos.offset(facing)));
+        }
+        return light;
+    }
+
     public static Biome getMainBiome(Chunk chunk){
         byte[] biomes = chunk.getBiomeArray();
         short[] frequency = new short[biomes.length+256];

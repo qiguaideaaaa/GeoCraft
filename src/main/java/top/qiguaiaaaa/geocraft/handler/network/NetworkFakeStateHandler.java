@@ -14,6 +14,9 @@ public class NetworkFakeStateHandler {
         }if(block == Blocks.GRASS){
             return state.withProperty(HUMIDITY,0);
         }
+        if(block == Blocks.SAND){
+            return state.withProperty(HUMIDITY,0);
+        }
         return state;
     }
 }

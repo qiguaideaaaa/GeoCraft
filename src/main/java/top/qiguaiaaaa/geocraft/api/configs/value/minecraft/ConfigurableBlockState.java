@@ -88,6 +88,7 @@ public class ConfigurableBlockState {
             if(p == null) return false;
             if(p.value.isEmpty()) return false;
             String val = state.getValue(property).toString();
+            if(p.value.equalsIgnoreCase("*")) continue;
             if(!p.value.equalsIgnoreCase(val)) return false;
         }
         return true;

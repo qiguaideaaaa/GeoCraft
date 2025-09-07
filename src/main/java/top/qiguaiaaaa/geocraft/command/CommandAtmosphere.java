@@ -1,6 +1,7 @@
 package top.qiguaiaaaa.geocraft.command;
 
 import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.command.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.EnumFacing;
@@ -24,8 +25,10 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.AtmosphereLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.Layer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.UnderlyingLayer;
+import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockState;
 import top.qiguaiaaaa.geocraft.api.property.FluidProperty;
 import top.qiguaiaaaa.geocraft.api.property.GeographyProperty;
+import top.qiguaiaaaa.geocraft.api.setting.GeoBlockSetting;
 import top.qiguaiaaaa.geocraft.api.state.FluidState;
 import top.qiguaiaaaa.geocraft.api.state.GeographyState;
 import top.qiguaiaaaa.geocraft.api.state.TemperatureState;
@@ -604,6 +607,15 @@ public class CommandAtmosphere extends ExtendedCommand {
                 }
                 return;
             }
+            if("block_info".equalsIgnoreCase(args[0])){
+                BlockPos downPos = pos.down();
+                IBlockState state = world.getBlockState(downPos);
+                ConfigurableBlockState cState = new ConfigurableBlockState(state);
+                int heatCapacity = GeoBlockSetting.getBlockHeatCapacity(state);
+                double reflectivity= GeoBlockSetting.getBlockReflectivity(state);
+                notifyCommandListener(sender,this,"geocraft.command.atmosphere.util.block_info",cState,heatCapacity,reflectivity);
+                return;
+            }
             if("storage".equalsIgnoreCase(args[0])){
                 IAtmosphereSystem system = accessor.getSystem();
                 IAtmosphereDataProvider provider = system.getDataProvider();
@@ -627,7 +639,7 @@ public class CommandAtmosphere extends ExtendedCommand {
         @Override
         public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
             if (args.length == 1){
-                return getListOfStringsMatchingLastWord(args, "sun","property");
+                return getListOfStringsMatchingLastWord(args, "sun","property","block_info","storage");
             }
             return Collections.emptyList();
         }

@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDirt;
 import net.minecraft.block.BlockGrass;
+import net.minecraft.block.BlockSand;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.BlockModelShapes;
@@ -47,6 +48,10 @@ public class BlockModelShapesMixin {
                     return new ModelResourceLocation(s, this.getPropertyString(map));
                 }
             };
+            this.blockStateMapper.registerBlockStateMapper(assoc, stateMapper);
+        }else if(assoc == Blocks.SAND){
+            ci.cancel();
+            stateMapper = new StateMap.Builder().withName(BlockSand.VARIANT).ignore(BlockProperties.HUMIDITY).build();
             this.blockStateMapper.registerBlockStateMapper(assoc, stateMapper);
         }
 

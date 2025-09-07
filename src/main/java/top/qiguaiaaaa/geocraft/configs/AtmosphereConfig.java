@@ -86,12 +86,27 @@ public final class AtmosphereConfig {
                     new BlockIntegerEntry("minecraft:concrete",2300),
                     new BlockIntegerEntry("minecraft:concrete_powder",1700),
                     //土壤类
-                    new BlockIntegerEntry("minecraft:dirt",1000,new ConfigurableBlockProperty("variant","dirt"),new ConfigurableBlockProperty("snowy","false")),
-                    new BlockIntegerEntry("minecraft:dirt",1280,new ConfigurableBlockProperty("variant","coarse_dirt"),new ConfigurableBlockProperty("snowy","false")),
-                    new BlockIntegerEntry("minecraft:dirt",1040,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","false")),
-                    new BlockIntegerEntry("minecraft:dirt",1040,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","true")),
+                    new BlockIntegerEntry("minecraft:dirt",1000,new ConfigurableBlockProperty("variant","dirt"),new ConfigurableBlockProperty("snowy","false"),new ConfigurableBlockProperty("humidity","0")),
+                    new BlockIntegerEntry("minecraft:dirt",1680,new ConfigurableBlockProperty("variant","dirt"),new ConfigurableBlockProperty("snowy","false"),new ConfigurableBlockProperty("humidity","1")),
+                    new BlockIntegerEntry("minecraft:dirt",2480,new ConfigurableBlockProperty("variant","dirt"),new ConfigurableBlockProperty("snowy","false"),new ConfigurableBlockProperty("humidity","2")),
+                    new BlockIntegerEntry("minecraft:dirt",3400,new ConfigurableBlockProperty("variant","dirt"),new ConfigurableBlockProperty("snowy","false"),new ConfigurableBlockProperty("humidity","3")),
+                    new BlockIntegerEntry("minecraft:dirt",4750,new ConfigurableBlockProperty("variant","dirt"),new ConfigurableBlockProperty("snowy","false"),new ConfigurableBlockProperty("humidity","4")),
+                    new BlockIntegerEntry("minecraft:dirt",1280,new ConfigurableBlockProperty("variant","coarse_dirt"),new ConfigurableBlockProperty("snowy","false"),new ConfigurableBlockProperty("humidity","0")),
+                    new BlockIntegerEntry("minecraft:dirt",1710,new ConfigurableBlockProperty("variant","coarse_dirt"),new ConfigurableBlockProperty("snowy","false"),new ConfigurableBlockProperty("humidity","1")),
+                    new BlockIntegerEntry("minecraft:dirt",2140,new ConfigurableBlockProperty("variant","coarse_dirt"),new ConfigurableBlockProperty("snowy","false"),new ConfigurableBlockProperty("humidity","2")),
+                    new BlockIntegerEntry("minecraft:dirt",2570,new ConfigurableBlockProperty("variant","coarse_dirt"),new ConfigurableBlockProperty("snowy","false"),new ConfigurableBlockProperty("humidity","3")),
+                    new BlockIntegerEntry("minecraft:dirt",3000,new ConfigurableBlockProperty("variant","coarse_dirt"),new ConfigurableBlockProperty("snowy","false"),new ConfigurableBlockProperty("humidity","4")),
+                    new BlockIntegerEntry("minecraft:dirt",1040,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","*"),new ConfigurableBlockProperty("humidity","0")),
+                    new BlockIntegerEntry("minecraft:dirt",1770,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","*"),new ConfigurableBlockProperty("humidity","1")),
+                    new BlockIntegerEntry("minecraft:dirt",2500,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","*"),new ConfigurableBlockProperty("humidity","2")),
+                    new BlockIntegerEntry("minecraft:dirt",3230,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","*"),new ConfigurableBlockProperty("humidity","3")),
+                    new BlockIntegerEntry("minecraft:dirt",3960,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","*"),new ConfigurableBlockProperty("humidity","4")),
                     new BlockIntegerEntry("minecraft:myselium",1440),
-                    new BlockIntegerEntry("minecraft:grass",2000), //注意之后添加水分后要改
+                    new BlockIntegerEntry("minecraft:grass",1100,new ConfigurableBlockProperty("snowy","*"),new ConfigurableBlockProperty("humidity","0")),
+                    new BlockIntegerEntry("minecraft:grass",1780,new ConfigurableBlockProperty("snowy","*"),new ConfigurableBlockProperty("humidity","1")),
+                    new BlockIntegerEntry("minecraft:grass",2580,new ConfigurableBlockProperty("snowy","*"),new ConfigurableBlockProperty("humidity","2")),
+                    new BlockIntegerEntry("minecraft:grass",3500,new ConfigurableBlockProperty("snowy","*"),new ConfigurableBlockProperty("humidity","3")),
+                    new BlockIntegerEntry("minecraft:grass",4850,new ConfigurableBlockProperty("snowy","*"),new ConfigurableBlockProperty("humidity","4")),
                     //杂项
                     new BlockIntegerEntry("minecraft:sponge",390,new ConfigurableBlockProperty("wet","false")),
                     new BlockIntegerEntry("minecraft:sponge",4200,new ConfigurableBlockProperty("wet","true")),
@@ -252,10 +267,10 @@ public final class AtmosphereConfig {
                     new BlockIntegerEntry("minecraft:concrete_powder",15,new ConfigurableBlockProperty("color","orange")),
                     new BlockIntegerEntry("minecraft:concrete_powder",2,new ConfigurableBlockProperty("color","black")),
                     //土壤类
-                    new BlockIntegerEntry("minecraft:dirt",10,new ConfigurableBlockProperty("variant","dirt"),new ConfigurableBlockProperty("snowy","false")),
-                    new BlockIntegerEntry("minecraft:dirt",11,new ConfigurableBlockProperty("variant","coarse_dirt"),new ConfigurableBlockProperty("snowy","false")),
-                    new BlockIntegerEntry("minecraft:dirt",8,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","false")),
-                    new BlockIntegerEntry("minecraft:dirt",60,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","true")),
+                    new BlockIntegerEntry("minecraft:dirt",10,new ConfigurableBlockProperty("variant","dirt"),new ConfigurableBlockProperty("snowy","false"),new ConfigurableBlockProperty("humidity","*")),
+                    new BlockIntegerEntry("minecraft:dirt",11,new ConfigurableBlockProperty("variant","coarse_dirt"),new ConfigurableBlockProperty("snowy","false"),new ConfigurableBlockProperty("humidity","*")),
+                    new BlockIntegerEntry("minecraft:dirt",8,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","false"),new ConfigurableBlockProperty("humidity","*")),
+                    new BlockIntegerEntry("minecraft:dirt",60,new ConfigurableBlockProperty("variant","podzol"),new ConfigurableBlockProperty("snowy","true"),new ConfigurableBlockProperty("humidity","*")),
                     new BlockIntegerEntry("minecraft:myselium",5),
                     new BlockIntegerEntry("minecraft:grass",7), //注意之后添加水分后要改
                     //杂项
@@ -324,7 +339,7 @@ public final class AtmosphereConfig {
                     new BlockIntegerEntry("minecraft:nether_brick",15),
                     new BlockIntegerEntry("minecraft:soul_sand",5),
                     //其他
-                    new BlockIntegerEntry("minecraft:air",99)
+                    new BlockIntegerEntry("minecraft:air",1)
             ){
                 @Override
                 public void load(Configuration config) {

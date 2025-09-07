@@ -3,13 +3,13 @@ package top.qiguaiaaaa.geocraft.configs.item.map;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import top.qiguaiaaaa.geocraft.GeoCraft;
-import top.qiguaiaaaa.geocraft.api.configs.value.map.ConfigurableHashMap;
+import top.qiguaiaaaa.geocraft.api.configs.value.map.ConfigurableLinkedHashMap;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.ConfigEntry;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 
 import java.util.function.Function;
 
-public class ConfigMap<K,V> extends ConfigItem<ConfigurableHashMap<K,V>> {
+public class ConfigMap<K,V> extends ConfigItem<ConfigurableLinkedHashMap<K,V>> {
 
     protected final Function<String,K> parserK;
     protected final Function<String,V> parserV;
@@ -26,7 +26,7 @@ public class ConfigMap<K,V> extends ConfigItem<ConfigurableHashMap<K,V>> {
 
     @SafeVarargs
     public ConfigMap(String category, String configKey, String comment, Function<String,K> parserK, Function<String,V> parserV, boolean isFinal, ConfigEntry<K,V>... entries) {
-        super(category, configKey, new ConfigurableHashMap<>(), comment, isFinal);
+        super(category, configKey, new ConfigurableLinkedHashMap<>(), comment, isFinal);
         this.parserK = parserK;
         this.parserV = parserV;
         for(ConfigEntry<K,V> entry:entries){
@@ -43,10 +43,10 @@ public class ConfigMap<K,V> extends ConfigItem<ConfigurableHashMap<K,V>> {
 
     @Override
     protected void load(Property property) {
-        value = new ConfigurableHashMap<>();
+        value = new ConfigurableLinkedHashMap<>();
         String[] strings = property.getStringList();
         for(String content:strings){
-            String[] spilt = content.trim().split(ConfigurableHashMap.SPLIT,2);
+            String[] spilt = content.trim().split(ConfigurableLinkedHashMap.SPLIT,2);
             if(spilt.length<2){
                 GeoCraft.getLogger().warn("loading configuration {} error: {} is not valid key-value pair",category,content);
                 continue;

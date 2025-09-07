@@ -31,6 +31,8 @@ public class BlockStatePaletteLinearMixin implements NetworkOverridable {
                 fakeState = thisState.withProperty(HUMIDITY,0);
             }else if(thisState.getBlock() == Blocks.GRASS){
                 fakeState = thisState.withProperty(HUMIDITY,0);
+            }else if(thisState.getBlock() == Blocks.SAND){
+                fakeState = thisState.withProperty(HUMIDITY,0);
             }
             buf.writeVarInt(Block.BLOCK_STATE_IDS.get(fakeState));
         }

@@ -36,6 +36,10 @@ public class BlockStateContainerMixin implements NetworkOverridable {
                     modifiedArray.setAt(i,j);
                 }else if(id == SpecialBlockData.BLOCK_GRASS_ID){
                     modifiedArray.setAt(i,id<<4);
+                }else if(id == SpecialBlockData.BLOCK_SAND_ID){
+                    int meta = j & 0b1111;
+                    j = (id<<4) | (meta % 2);
+                    modifiedArray.setAt(i,j);
                 }
             }
             buf.writeLongArray(modifiedArray.getBackingLongArray());

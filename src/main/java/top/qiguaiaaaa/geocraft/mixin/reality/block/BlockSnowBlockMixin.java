@@ -19,6 +19,7 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager;
 import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil;
+import top.qiguaiaaaa.geocraft.util.ChunkUtil;
 
 import javax.annotation.Nullable;
 import java.util.Random;
@@ -38,7 +39,7 @@ public class BlockSnowBlockMixin extends Block {
         }
 
         if(accessor == null) return;
-        int light = worldIn.getLightFor(EnumSkyBlock.SKY,pos);
+        int light = ChunkUtil.getNeighborsLightFor(worldIn,EnumSkyBlock.SKY,pos);
         if(light == 0) return;
         accessor.setSkyLight(light);
         double temp = accessor.getTemperature();

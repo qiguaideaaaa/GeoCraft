@@ -9,7 +9,8 @@
     "WorldServerMixin",
     "block.BlockCauldronMixin",
     "block.BlockDirtMixin",
-    "block.BlockGrassMixin"
+    "block.BlockGrassMixin",
+    "block.BlockSandMixin"
   ],
   "client": [
     "block.BlockModelShapesMixin"
