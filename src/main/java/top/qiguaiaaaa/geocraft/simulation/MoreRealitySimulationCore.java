@@ -25,11 +25,13 @@ import static net.minecraft.block.BlockLiquid.LEVEL;
 public class MoreRealitySimulationCore {
     @Nullable
     public static IBlockState evaporateWater(World world, BlockPos pos, IBlockState state, Random rand){
-        if(world.getLightFor(EnumSkyBlock.SKY,pos) == 0) return state;
+        int light = world.getLightFor(EnumSkyBlock.SKY,pos);
+        if(light <= 0) return state;
         IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(world,pos,true);
         if(accessor == null) return state;
         Atmosphere atmosphere = accessor.getAtmosphereHere();
         if(atmosphere == null) return state;
+        accessor.setSkyLight(light);
 
         double possibility = getWaterEvaporatePossibility(world,pos,state,accessor,atmosphere);
         int meta = state.getValue(LEVEL);
@@ -52,6 +54,7 @@ public class MoreRealitySimulationCore {
         if(accessor == null) return state;
         Atmosphere atmosphere = accessor.getAtmosphereHere();
         if(atmosphere == null) return state;
+        accessor.setSkyLight(light);
 
         double possibility  = WaterUtil.getFreezePossibility(accessor);
         if(possibility <= 0) return state;

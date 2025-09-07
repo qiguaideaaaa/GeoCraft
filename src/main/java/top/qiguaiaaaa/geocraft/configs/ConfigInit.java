@@ -38,8 +38,7 @@ public class ConfigInit {
         registerConfigItem(enableSupportForIE);
 
         registerConfigItem(ENABLE_DETAIL_LOGGING);
-        registerConfigItem(CONSTANT_TEMP_DIMENSIONS);
-        registerConfigItem(CLOSED_DIMENSIONS);
+        registerConfigItem(ATMOSPHERE_SYSTEM_TYPES);
         registerConfigItem(SPECIFIC_HEAT_CAPACITIES);
         registerConfigItem(UNDERLYING_REFLECTIVITY);
         registerConfigItem(ALLOW_CAULDRON_GET_INFINITE_WATER);

@@ -9,6 +9,7 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.util.ChunkUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
@@ -25,10 +26,12 @@ public class VanillaLikeSimulationCore {
             return false;
         }
         if(!world.isAreaLoaded(pos,1)) return false;
-        Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world,pos);
+        IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(world,pos,false);
+        if(accessor == null) return false;
+        Atmosphere atmosphere = accessor.getAtmosphereHere();
         if(atmosphere == null) return false;
         if(atmosphere.drainWater(Fluid.BUCKET_VOLUME,pos,true)< Fluid.BUCKET_VOLUME) return false;
-        float temp = atmosphere.getAtmosphereTemperature(pos);
+        double temp = accessor.getTemperature();
         if (!(temp < TemperatureProperty.ICE_POINT) && !(temp > TemperatureProperty.BOILED_POINT)) {
             IBlockState state = world.getBlockState(pos);
             if(FluidUtil.getFluid(state) != FluidRegistry.WATER) return false;

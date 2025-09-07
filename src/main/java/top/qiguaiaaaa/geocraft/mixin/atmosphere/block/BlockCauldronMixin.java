@@ -28,7 +28,7 @@ public class BlockCauldronMixin {
         Atmosphere atmosphere = accessor.getAtmosphereHere();
         if(atmosphere == null) return;
         if(atmosphere.drainWater(333,pos,true) <333) return;
-        double temp = atmosphere.getAtmosphereTemperature(pos);
+        double temp = accessor.getTemperature(false);
 
         if (temp< TemperatureProperty.ICE_POINT) return;
 

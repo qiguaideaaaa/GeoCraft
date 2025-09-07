@@ -1,7 +1,5 @@
 package top.qiguaiaaaa.geocraft.api.configs.value.geo;
 
-import top.qiguaiaaaa.geocraft.configs.SimulationConfig;
-
 public enum SimulationMode {
     VANILLA,
     VANILLA_LIKE,
@@ -15,6 +13,6 @@ public enum SimulationMode {
         for(SimulationMode mode:values()){
             if(mode.isStringMatched(content.trim())) return mode;
         }
-        return SimulationConfig.SIMULATION_MODE.getDefaultValue();
+        return MORE_REALITY;
     }
 }

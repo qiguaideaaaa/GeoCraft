@@ -2,6 +2,7 @@ package top.qiguaiaaaa.geocraft.mixin.reality.block;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDynamicLiquid;
+import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.BlockSnow;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -27,6 +28,7 @@ import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
+import top.qiguaiaaaa.geocraft.block.IPermeable;
 import top.qiguaiaaaa.geocraft.configs.SimulationConfig;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockLiquidAccessor;
 import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
@@ -38,15 +40,12 @@ import java.util.*;
 import static net.minecraft.block.BlockLiquid.LEVEL;
 
 @Mixin(value = BlockDynamicLiquid.class)
-public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowChecker {
+public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettable, IVanillaFlowChecker,IPermeable {
+    private static final Random random = new Random();
     private Fluid thisFluid;
-    private BlockDynamicLiquid thisBlock;
-    private Material thisMaterial;
 
-    @Inject(method = "<init>",at = @At("RETURN"))
-    private void onInit(Material materialIn, CallbackInfo ci) {
-        thisBlock = (BlockDynamicLiquid) (Object)this;
-        thisMaterial = materialIn;
+    protected BlockDynamicLiquidMixin(Material materialIn) {
+        super(materialIn);
     }
 
     @Inject(method = "updateTick",at = @At("HEAD"),cancellable = true)
@@ -73,7 +72,7 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
             return;
         }
         int liquidQuanta = 8-liquidMeta;
-        int updateRate = thisBlock.tickRate(worldIn);
+        int updateRate = this.tickRate(worldIn);
 
         IBlockState stateBelow = worldIn.getBlockState(pos.down());
         boolean canMoveDown = this.canMoveDownTo(worldIn, pos.down(), stateBelow);
@@ -88,8 +87,8 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
                 else {
                     state = state.withProperty(LEVEL,liquidMeta);
                     worldIn.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
-                    worldIn.scheduleUpdate(pos,thisBlock, updateRate);
-                    worldIn.notifyNeighborsOfStateChange(pos,thisBlock, false);
+                    worldIn.scheduleUpdate(pos,this, updateRate);
+                    worldIn.notifyNeighborsOfStateChange(pos,this, false);
                 }
                 worldIn.setBlockState(pos.down(), ForgeEventFactory.fireFluidPlaceBlockEvent(worldIn, pos.down(), pos, Blocks.STONE.getDefaultState()));
                 FluidOperationUtil.triggerFluidMixEffects(worldIn,pos.down());
@@ -116,7 +115,7 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
             this.tryFlowInto(worldIn, pos.offset(randomFacing), worldIn.getBlockState(pos.offset(randomFacing)), 7);
             return;
         }
-        if ((thisMaterial == Material.LAVA) && rand.nextInt(4) != 0){ //岩浆速度处理
+        if ((this.material == Material.LAVA) && rand.nextInt(4) != 0){ //岩浆速度处理
             updateRate *= 4;
         }
         //可流动方向检查
@@ -141,8 +140,8 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
             else {
                 state = state.withProperty(LEVEL,liquidMeta);
                 worldIn.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
-                worldIn.scheduleUpdate(pos,thisBlock, updateRate);
-                worldIn.notifyNeighborsOfStateChange(pos,thisBlock, false);
+                worldIn.scheduleUpdate(pos,this, updateRate);
+                worldIn.notifyNeighborsOfStateChange(pos,this, false);
             }
             for(FlowChoice choice:averageModeFlowDirections){ //向四周流动
                 if(choice.getQuanta() == 0) continue;
@@ -162,8 +161,8 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
             //更新自己
             state = state.withProperty(LEVEL,newLiquidMeta);
             worldIn.setBlockState(pos,state, Constants.BlockFlags.SEND_TO_CLIENTS);
-            worldIn.scheduleUpdate(pos,thisBlock, updateRate);
-            worldIn.notifyNeighborsOfStateChange(pos,thisBlock,false);
+            worldIn.scheduleUpdate(pos,this, updateRate);
+            worldIn.notifyNeighborsOfStateChange(pos,this,false);
             //移动至新位置
             setLiquidToFlowingLevel(worldIn,pos.offset(randomFacing),liquidMeta);
         } else{
@@ -247,7 +246,7 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
             }else{
                 int remain = totalQuanta-8;
                 setLiquidToFlowingLevel(worldIn,currentPos,8-remain);
-                worldIn.scheduleUpdate(currentPos,thisBlock,tickRate);
+                worldIn.scheduleUpdate(currentPos,this,tickRate);
                 worldIn.setBlockState(currentPos.down(),downState.withProperty(BlockSnow.LAYERS,8));
             }
             IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(worldIn,currentPos,true);
@@ -263,7 +262,7 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
         }else{
             int remain = totalQuanta-8;
             setLiquidToFlowingLevel(worldIn,currentPos,8-remain);
-            worldIn.scheduleUpdate(currentPos,thisBlock,tickRate);
+            worldIn.scheduleUpdate(currentPos,this,tickRate);
             setLiquidToFlowingLevel(worldIn,currentPos.down(),0);
         }
     }
@@ -275,7 +274,7 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
      * @param newLevel 新等级
      */
     private void setLiquidToFlowingLevel(World worldIn,BlockPos pos,int newLevel){
-        worldIn.setBlockState(pos, thisBlock.getDefaultState().withProperty(LEVEL,newLevel), Constants.BlockFlags.SEND_TO_CLIENTS);
+        worldIn.setBlockState(pos, this.getDefaultState().withProperty(LEVEL,newLevel),getRandomFlag());
     }
 
     /**
@@ -287,7 +286,7 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
      */
     private void directlyFlowInto(World worldIn, BlockPos pos, IBlockState state, int level) {
         FluidOperationUtil.triggerDestroyBlockEffectByFluid(worldIn,pos,state,thisFluid);
-        worldIn.setBlockState(pos, thisBlock.getDefaultState().withProperty(LEVEL, level), Constants.BlockFlags.SEND_TO_CLIENTS);
+        worldIn.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, level), getRandomFlag());
     }
 
     /**
@@ -296,7 +295,7 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
     private boolean isSameLiquid(IBlockState state){
         Block block = state.getBlock();
         if(block instanceof IFluidBlock) return false;
-        return state.getMaterial() == thisMaterial;
+        return state.getMaterial() == this.material;
     }
 
     /**
@@ -310,8 +309,8 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
         if(state.getBlock() instanceof IFluidBlock) return false;
         Material material = state.getMaterial();
         if(material.isLiquid()){
-            if(material == Material.WATER && thisMaterial == Material.LAVA) return true;
-            if(material != thisMaterial) return false;
+            if(material == Material.WATER && this.material == Material.LAVA) return true;
+            if(material != this.material) return false;
             return state.getValue(LEVEL) != 0;
         }
         if(state.getBlock() == Blocks.SNOW_LAYER){
@@ -489,11 +488,17 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
      */
     private int getSlopeFindDistance2(World worldIn) {
         int ans = SimulationConfig.slopeFindDistanceForWaterWhenQuantaAbove1.getValue();
-        if(thisMaterial == Material.LAVA && !worldIn.provider.doesWaterVaporize()){
+        if(this.material == Material.LAVA && !worldIn.provider.doesWaterVaporize()){
             ans = SimulationConfig.slopeFindDistanceForLavaWhenQuantaAbove1.getValue();
         }
         return ans;
     }
+
+    private int getRandomFlag(){
+        if(random.nextInt(2) == 1) return Constants.BlockFlags.DEFAULT;
+        return Constants.BlockFlags.SEND_TO_CLIENTS;
+    }
+
     @Override
     public void setCorrespondingFluid(Fluid fluid) {
         if(thisFluid != null)return;
@@ -521,4 +526,36 @@ public class BlockDynamicLiquidMixin implements FluidSettable, IVanillaFlowCheck
     }
     @Shadow
     private boolean isBlocked(World worldIn, BlockPos pos, IBlockState state){return false;}
+
+    @Override
+    public Fluid getFluid(World world, BlockPos pos, IBlockState state) {
+        return thisFluid;
+    }
+
+    @Override
+    public int getQuanta(World world, BlockPos pos, IBlockState state) {
+        return 8-state.getValue(BlockLiquid.LEVEL);
+    }
+
+    @Override
+    public int getHeight(World world, BlockPos pos, IBlockState state) {
+        return getQuanta(world,pos,state)*2;
+    }
+
+    @Override
+    public int getHeightPerQuanta() {
+        return 2;
+    }
+
+    @Override
+    public void addQuanta(World world, BlockPos pos, IBlockState state, int quanta) {
+        int newQuanta = 8-(state.getValue(BlockLiquid.LEVEL)-quanta);
+        setQuanta(world,pos,state,newQuanta);
+    }
+
+    @Override
+    public void setQuanta(World world, BlockPos pos, IBlockState state, int newQuanta) {
+        if(newQuanta <= 0) world.setBlockToAir(pos);
+        world.setBlockState(pos,state.withProperty(BlockLiquid.LEVEL,8-newQuanta), Constants.BlockFlags.SEND_TO_CLIENTS);
+    }
 }

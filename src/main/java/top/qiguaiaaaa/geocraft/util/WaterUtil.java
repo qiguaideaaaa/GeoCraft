@@ -122,10 +122,10 @@ public final class WaterUtil {
      * @return 如果能，则返回true
      */
     public static boolean canWaterFreeze(World world,BlockPos pos, boolean neighborWaterCheck) {
-        Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world, pos);
-        if(atmosphere == null) return world.canBlockFreezeBody(pos,neighborWaterCheck);
+        IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(world,pos,true);
+        if(accessor == null) return world.canBlockFreezeBody(pos,neighborWaterCheck);
 
-        if (atmosphere.getTemperature(pos,true) < TemperatureProperty.ICE_POINT) {
+        if (accessor.getTemperature() < TemperatureProperty.ICE_POINT) {
             if (pos.getY() < 0 || pos.getY() >= 256)
                 return false;
             IBlockState state = world.getBlockState(pos);

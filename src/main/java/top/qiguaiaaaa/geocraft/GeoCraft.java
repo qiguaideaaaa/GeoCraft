@@ -3,12 +3,12 @@ package top.qiguaiaaaa.geocraft;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.event.*;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.Logger;
+import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereRegionFileCache;
 import top.qiguaiaaaa.geocraft.command.CommandAtmosphere;
+import top.qiguaiaaaa.geocraft.world.gen.GeographyWaterPopulatingGenerator;
 
 @Mod(modid = GeoCraft.MODID, name = GeoCraft.NAME, version = GeoCraft.VERSION, dependencies = "required:mixinbooter;",acceptableRemoteVersions = "*")
 public class GeoCraft
@@ -24,6 +24,7 @@ public class GeoCraft
     public void preInit(FMLPreInitializationEvent event) {;
         logger = event.getModLog();
         proxy.preInit(event);
+        GameRegistry.registerWorldGenerator(new GeographyWaterPopulatingGenerator(),100000);
     }
     @EventHandler
     public void init(FMLInitializationEvent event){
@@ -34,8 +35,12 @@ public class GeoCraft
         proxy.postInit(event);
     }
     @EventHandler
-    public void serverStarting(FMLServerStartingEvent event){
+    public void onServerStarting(FMLServerStartingEvent event){
         event.registerServerCommand(new CommandAtmosphere());
+    }
+    @EventHandler
+    public void onServerStop(FMLServerStoppedEvent event){
+        AtmosphereRegionFileCache.clearRegionFileReferences();
     }
     public static Logger getLogger(){
         return logger;

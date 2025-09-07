@@ -27,5 +27,6 @@ public class ConfigCustom<V> extends ConfigItem<V> {
     @Override
     protected void load(Property property) {
         this.value = parser.apply(property.getString());
+        if(this.value == null) this.value = defaultValue;
     }
 }

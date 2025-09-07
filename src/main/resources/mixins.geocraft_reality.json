@@ -10,7 +10,8 @@
     "block.BlockFluidClassicMixin",
     "block.BlockStaticLiquidMixin",
     "ForgeFluidUtilMixin",
-    "block.BlockSnowMixin"
+    "block.BlockSnowMixin",
+    "block.BlockSnowBlockMixin"
   ],
   "client": [
   ]

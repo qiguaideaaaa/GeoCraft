@@ -8,6 +8,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.SimulationMode;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
@@ -20,7 +21,7 @@ import java.util.Random;
 
 import static top.qiguaiaaaa.geocraft.api.block.BlockProperties.HUMIDITY;
 
-public interface IBlockDirt {
+public interface IBlockDirt extends IPermeable {
     /**
      * 土壤将自身水掉下去的能力
      * @return 湿度变化
@@ -50,25 +51,30 @@ public interface IBlockDirt {
     default void flowWaterHorizontally(World worldIn,BlockPos pos,IBlockState state,int humidity){
         if (!worldIn.isAreaLoaded(pos, 3)) return;
         int newHumidity = humidity;
-        //下面来自物理水，删减版
         //可流动方向检查
         final ArrayList<FlowChoice> averageModeFlowDirections = new ArrayList<>();//平均流动模式可用方向
         for(EnumFacing facing:EnumFacing.Plane.HORIZONTAL){
-            IBlockState facingState = worldIn.getBlockState(pos.offset(facing));
-            if(!canFlowInto(worldIn,pos.offset(facing),facingState)) continue;
-            int facingHumidity = facingState.getValue(HUMIDITY);
-            if(facingHumidity<humidity-1){
-                averageModeFlowDirections.add(new FlowChoice(facingHumidity,facing));
+            BlockPos facingPos = pos.offset(facing);
+            IBlockState facingState = worldIn.getBlockState(facingPos);
+            if(!canFlowInto(worldIn,facingPos,facingState)) continue;
+            if(facingState.getMaterial() == Material.AIR){
+                averageModeFlowDirections.add(new FlowChoice(0,facing,2,null));
+                continue;
+            }
+            IPermeable flowIntoable = (IPermeable)facingState.getBlock();
+            int facingHeight = flowIntoable.getHeight(worldIn,facingPos,facingState);
+            if(facingHeight<humidity*4-1){
+                averageModeFlowDirections.add(new FlowChoice(flowIntoable.getQuanta(worldIn,facingPos,facingState),facing,flowIntoable.getHeightPerQuanta(),flowIntoable));
             }
         }
 
         if(!averageModeFlowDirections.isEmpty()){ //平均流动模式
-            averageModeFlowDirections.sort(Comparator.comparingInt(FlowChoice::getQuanta));
-            while(averageModeFlowDirections.get(0).getQuanta()<newHumidity-1){ //向四周分配流量
+            averageModeFlowDirections.sort(Comparator.comparingInt(FlowChoice::getHeight));
+            while(averageModeFlowDirections.get(0).getHeight()<newHumidity*4-1){ //向四周分配流量
                 averageModeFlowDirections.get(0).addQuanta(1);
                 newHumidity--;
                 if(newHumidity <=1) break;
-                averageModeFlowDirections.sort(Comparator.comparingInt(FlowChoice::getQuanta));
+                averageModeFlowDirections.sort(Comparator.comparingInt(FlowChoice::getHeight));
             }
             if(humidity == newHumidity) return;
             worldIn.setBlockState(pos,state.withProperty(HUMIDITY,newHumidity),0);
@@ -76,8 +82,12 @@ public interface IBlockDirt {
                 if(choice.getQuanta() == 0) continue;
                 if(choice.direction == null) continue;
                 BlockPos facingPos = pos.offset(choice.direction);
+                if(choice.block == null){
+                    worldIn.setBlockState(facingPos,Blocks.WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,8-choice.getQuanta()));
+                    continue;
+                }
                 IBlockState facingState = worldIn.getBlockState(facingPos);
-                worldIn.setBlockState(facingPos, facingState.withProperty(HUMIDITY, choice.getQuanta()), 0);
+                choice.block.setQuanta(worldIn,facingPos,facingState,choice.getQuanta());
             }
         }
     }
@@ -89,20 +99,11 @@ public interface IBlockDirt {
     default int drainUpWater(World worldIn, BlockPos pos, IBlockState state){
         BlockPos upPos = pos.up();
         IBlockState upState = worldIn.getBlockState(upPos);
-        if(FluidUtil.getFluid(upState) == FluidRegistry.WATER){
-            if(SimulationConfig.SIMULATION_MODE.getValue() == SimulationMode.MORE_REALITY){
-                int meta = upState.getValue(BlockLiquid.LEVEL);
-                if(meta ==7){
-                    worldIn.setBlockToAir(upPos);
-                }else{
-                    worldIn.setBlockState(upPos,upState.withProperty(BlockLiquid.LEVEL,meta+1), Constants.BlockFlags.DEFAULT);
-                }
-            }
-            return 1;
-        }else if(upState.getBlock() == Blocks.DIRT || upState.getBlock() == Blocks.GRASS){
-            int upLevel = upState.getValue(HUMIDITY);
-            if(upLevel > 0){
-                worldIn.setBlockState(upPos,upState.withProperty(HUMIDITY,upLevel-1),0);
+        if(upState.getBlock() instanceof IPermeable){
+            IPermeable block = (IPermeable) upState.getBlock();
+            int upQuanta = block.getQuanta(worldIn,upPos,upState);
+            if(upQuanta > 0){
+                block.addQuanta(worldIn,upPos,upState,-1);
                 return 1;
             }
         }
@@ -148,6 +149,42 @@ public interface IBlockDirt {
      * @return 能，则true，否，则反之
      */
     default boolean canFlowInto(World world,BlockPos pos,IBlockState state){
-        return state.getBlock() == Blocks.DIRT;
+        return (state.getBlock() instanceof IPermeable && ((IPermeable)state.getBlock()).getFluid(world,pos,state) == FluidRegistry.WATER) || state.getMaterial() == Material.AIR;
+    }
+
+    @Override
+    default Fluid getFluid(World world, BlockPos pos, IBlockState state){
+        return FluidRegistry.WATER;
+    }
+
+    @Override
+    default int getQuanta(World world, BlockPos pos, IBlockState state){
+        return state.getValue(HUMIDITY);
+    }
+
+    @Override
+    default int getHeight(World world, BlockPos pos, IBlockState state){
+        return state.getValue(HUMIDITY)*4;
+    }
+
+    @Override
+    default int getHeightPerQuanta(){
+        return 4;
+    }
+
+    @Override
+    default void addQuanta(World world, BlockPos pos, IBlockState state, int quanta){
+        if(isFull(world,pos,state) && quanta>0) throw new IllegalArgumentException();
+        world.setBlockState(pos,state.withProperty(HUMIDITY,state.getValue(HUMIDITY)+quanta),0);
+    }
+
+    @Override
+    default void setQuanta(World world, BlockPos pos, IBlockState state, int newQuanta){
+        world.setBlockState(pos,state.withProperty(HUMIDITY,newQuanta),0);
+    }
+
+    @Override
+    default boolean isFull(World world, BlockPos pos, IBlockState state) {
+        return state.getValue(HUMIDITY) == 4;
     }
 }

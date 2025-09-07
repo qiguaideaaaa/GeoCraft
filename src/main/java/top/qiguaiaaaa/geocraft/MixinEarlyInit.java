@@ -36,11 +36,11 @@ public class MixinEarlyInit implements IFMLLoadingPlugin, IEarlyMixinLoader {
             case MORE_REALITY:
             default:{
                 mixinList.add("mixins.geocraft_reality.json");
-                if(!GeneralConfig.ALLOW_CLIENT_TO_READ_HUMIDITY_DATA.getValue()){
-                    mixinList.add("mixins/client_fake/mixins.geocraft_client_fake.json");
-                }
                 break;
             }
+        }
+        if(!GeneralConfig.ALLOW_CLIENT_TO_READ_HUMIDITY_DATA.getValue()){
+            mixinList.add("mixins/client_fake/mixins.geocraft_client_fake.json");
         }
         mixinList.add("mixins.geocraft_atmosphere.json");
         System.out.println("GeoCraft's Fluid Physics is using mode "+mode);

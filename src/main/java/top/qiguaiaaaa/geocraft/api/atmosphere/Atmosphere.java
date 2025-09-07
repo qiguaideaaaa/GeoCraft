@@ -6,6 +6,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.NoiseGeneratorPerlin;
 import net.minecraftforge.common.util.INBTSerializable;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.AtmosphereLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.Layer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.UnderlyingLayer;
@@ -71,7 +72,7 @@ public interface Atmosphere extends INBTSerializable<NBTTagCompound> {
     }
 
     /**
-     * 获取温度,一般情况下请使用这个获取温度,不要通过Layer层获取
+     * 获取温度,一般情况下请使用{@link IAtmosphereAccessor}获取温度，不要使用这个方法，也不要通过Layer层获取温度
      * @param pos 位置
      * @param notAir 是否不为大气温度
      * @return 返回对应位置的温度。若指定位置没有可用温度,则返回 {@link TemperatureProperty#UNAVAILABLE}
@@ -81,6 +82,7 @@ public interface Atmosphere extends INBTSerializable<NBTTagCompound> {
     /**
      * 向大气提供或从大气吸收热量,不会操作也不应该操作到下垫面
      * 若要操作下垫面,应先使用 {@link Atmosphere#getUnderlying()} 获取到下垫面再操作
+     * 一般情况下请使用{@link IAtmosphereAccessor}
      * @param Q 提供或吸收的热量。正为提供，负为吸收。
      * @param pos 提供者或吸收着的位置
      */
@@ -88,6 +90,7 @@ public interface Atmosphere extends INBTSerializable<NBTTagCompound> {
 
     /**
      * 获取大气指定位置的风速
+     * 一般情况下请使用{@link IAtmosphereAccessor}
      * @param pos 方块位置,为游戏位置
      * @return 风速向量
      */
@@ -95,12 +98,14 @@ public interface Atmosphere extends INBTSerializable<NBTTagCompound> {
 
     /**
      * 获得某位置的大气水汽压
+     * 一般情况下请使用{@link IAtmosphereAccessor}
      * @return 大气水汽压，单位帕 Pa。若无可用气压，则返回 0
      */
     double getWaterPressure(BlockPos pos);
 
     /**
      * 获取大气指定位置的气压
+     * 一般情况下请使用{@link IAtmosphereAccessor}
      * @param pos 位置
      * @return 气压,单位Pa。若无可用气压，则返回 0
      */

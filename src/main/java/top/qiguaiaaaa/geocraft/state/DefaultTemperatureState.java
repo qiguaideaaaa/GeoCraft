@@ -38,10 +38,14 @@ public class DefaultTemperatureState extends TemperatureState {
     public static float calculateBaseTemperature(Chunk chunk , UnderlyingLayer underlying){
         Biome mainBiome = ChunkUtil.getMainBiome(chunk);
         float biomeTemp = mainBiome.getTemperature(new BlockPos((chunk.x<<4)+8, underlying.getAltitude().get(),(chunk.z<<4)+8));
-        if(biomeTemp <= 0.15){
-            return TemperatureProperty.ICE_POINT +(biomeTemp*TEMPERATURE_MULTI)-TEMPERATURE_TRANSFER_OFFSET-10;
+        return toRealTemperature(biomeTemp);
+    }
+
+    public static float toRealTemperature(float biomeTemperature){
+        if(biomeTemperature <= 0.15){
+            return TemperatureProperty.ICE_POINT +(biomeTemperature*TEMPERATURE_MULTI)-TEMPERATURE_TRANSFER_OFFSET-10;
         }else{
-            return TemperatureProperty.ICE_POINT +(biomeTemp*TEMPERATURE_MULTI)-TEMPERATURE_TRANSFER_OFFSET;
+            return TemperatureProperty.ICE_POINT +(biomeTemperature*TEMPERATURE_MULTI)-TEMPERATURE_TRANSFER_OFFSET;
         }
     }
 }

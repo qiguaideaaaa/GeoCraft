@@ -63,6 +63,7 @@ public interface IAtmosphereAccessor {
      */
     void setNotAir(boolean notAir);
     double getTemperature();
+    double getTemperature(boolean notAir);
     double getPressure();
     double getWaterPressure();
     Vec3d getWind();

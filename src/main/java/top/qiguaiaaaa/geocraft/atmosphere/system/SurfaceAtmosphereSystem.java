@@ -14,6 +14,7 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.layer.AtmosphereLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 import top.qiguaiaaaa.geocraft.atmosphere.SurfaceAtmosphere;
+import top.qiguaiaaaa.geocraft.atmosphere.accessor.SurfaceAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
 import top.qiguaiaaaa.geocraft.util.ChunkUtil;
 import top.qiguaiaaaa.geocraft.util.WaterUtil;
@@ -43,6 +44,11 @@ public class SurfaceAtmosphereSystem extends QiguaiAtmosphereSystem {
         }
 
         dataProvider.tick();
+    }
+
+    @Override
+    public IAtmosphereAccessor getAccessor(@Nonnull AtmosphereData data, @Nonnull BlockPos pos, boolean notAir) {
+        return new SurfaceAtmosphereAccessor(this,data,pos,notAir);
     }
 
     /**

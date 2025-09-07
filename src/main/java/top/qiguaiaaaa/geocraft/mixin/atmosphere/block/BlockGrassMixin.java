@@ -16,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import top.qiguaiaaaa.geocraft.block.IBlockDirt;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 import static net.minecraft.block.BlockGrass.SNOWY;
@@ -55,39 +56,41 @@ public class BlockGrassMixin extends Block implements IBlockDirt{
     }
 
     @Override
-    public void randomTick(World worldIn, BlockPos pos, IBlockState state, Random random) {
+    public void randomTick(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random random) {
         super.randomTick(worldIn, pos, state, random);
         this.onRandomTick(worldIn, pos, state, random);
     }
 
     @Override
-    public void onPlayerDestroy(World worldIn, BlockPos pos, IBlockState state) {
+    public void onPlayerDestroy(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state) {
         dropWaterWhenBroken(worldIn, pos, state);
     }
 
-    @Inject(method = "updateTick",at =@At("HEAD"))
+    @Inject(method = "updateTick",at =@At("HEAD"), cancellable = true)
     public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
+        ci.cancel();
         if (worldIn.isRemote) return;
         if (!worldIn.isAreaLoaded(pos, 3)) return;
         if (worldIn.getLightFromNeighbors(pos.up()) < 4 && worldIn.getBlockState(pos.up()).getLightOpacity(worldIn, pos.up()) > 2) {
             worldIn.setBlockState(pos, Blocks.DIRT.getDefaultState().withProperty(HUMIDITY,state.getValue(HUMIDITY)));
-        } else {
-            if (worldIn.getLightFromNeighbors(pos.up()) >= 9) {
-                for (int i = 0; i < 4; i++) {
-                    BlockPos blockpos = pos.add(rand.nextInt(3) - 1, rand.nextInt(5) - 3, rand.nextInt(3) - 1);
+            return;
+        }
+        if (worldIn.getLightFromNeighbors(pos.up()) < 9) {
+            return;
+        }
+        for (int i = 0; i < 4; i++) {
+            BlockPos blockpos = pos.add(rand.nextInt(3) - 1, rand.nextInt(5) - 3, rand.nextInt(3) - 1);
 
-                    if (blockpos.getY() >= 0 && blockpos.getY() < 256 && !worldIn.isBlockLoaded(blockpos))
-                        return;
+            if (blockpos.getY() >= 0 && blockpos.getY() < 256 && !worldIn.isBlockLoaded(blockpos))
+                return;
 
-                    IBlockState upState = worldIn.getBlockState(blockpos.up());
-                    IBlockState currentState = worldIn.getBlockState(blockpos);
+            IBlockState upState = worldIn.getBlockState(blockpos.up());
+            IBlockState currentState = worldIn.getBlockState(blockpos);
 
-                    if (currentState.getBlock() == Blocks.DIRT
-                            && currentState.getValue(BlockDirt.VARIANT) == BlockDirt.DirtType.DIRT
-                            && worldIn.getLightFromNeighbors(blockpos.up()) >= 4 && upState.getLightOpacity(worldIn, pos.up()) <= 2) {
-                        worldIn.setBlockState(blockpos, Blocks.GRASS.getDefaultState().withProperty(HUMIDITY,currentState.getValue(HUMIDITY)));
-                    }
-                }
+            if (currentState.getBlock() == Blocks.DIRT
+                    && currentState.getValue(BlockDirt.VARIANT) == BlockDirt.DirtType.DIRT
+                    && worldIn.getLightFromNeighbors(blockpos.up()) >= 4 && upState.getLightOpacity(worldIn, pos.up()) <= 2) {
+                worldIn.setBlockState(blockpos, Blocks.GRASS.getDefaultState().withProperty(HUMIDITY,currentState.getValue(HUMIDITY)));
             }
         }
     }

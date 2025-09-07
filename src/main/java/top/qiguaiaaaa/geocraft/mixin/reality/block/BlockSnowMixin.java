@@ -3,6 +3,7 @@ package top.qiguaiaaaa.geocraft.mixin.reality.block;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.BlockSnow;
+import net.minecraft.block.material.Material;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
@@ -23,11 +24,16 @@ import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Random;
 
 @Mixin(value = BlockSnow.class)
-public class BlockSnowMixin {
+public class BlockSnowMixin extends Block{
+    public BlockSnowMixin(Material materialIn) {
+        super(materialIn);
+    }
+
     @Inject(method = "canPlaceBlockAt",at = @At("HEAD"),cancellable = true)
     public void canPlaceBlockAt(World worldIn, BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
         cir.cancel();
@@ -36,7 +42,7 @@ public class BlockSnowMixin {
 
         if (block != Blocks.PACKED_ICE && block != Blocks.BARRIER) {
             BlockFaceShape blockfaceshape = state.getBlockFaceShape(worldIn, pos.down(), EnumFacing.UP);
-            cir.setReturnValue(blockfaceshape == BlockFaceShape.SOLID || state.getBlock().isLeaves(state, worldIn, pos.down()) || block == (Object) this && state.getValue(BlockSnow.LAYERS) == 8);
+            cir.setReturnValue(blockfaceshape == BlockFaceShape.SOLID || state.getBlock().isLeaves(state, worldIn, pos.down()) || block == this && state.getValue(BlockSnow.LAYERS) == 8);
         } else {
             cir.setReturnValue(false);
         }
@@ -59,15 +65,16 @@ public class BlockSnowMixin {
     public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
         ci.cancel();
         int layer = state.getValue(BlockSnow.LAYERS);
+        IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(worldIn,pos,true);
         if (worldIn.getLightFor(EnumSkyBlock.BLOCK, pos) > 11) {
-            this.turnIntoWater(worldIn,pos,null,8-layer); //用的是发光Block产生的热量,所以不扣地表温度
+            this.turnIntoWater(worldIn,pos,accessor == null?null:accessor.getAtmosphereHere(),8-layer); //用的是发光Block产生的热量,所以不扣地表温度
             return;
         }
 
-        IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(worldIn,pos,true);
         if(accessor == null) return;
         int light = worldIn.getLightFor(EnumSkyBlock.SKY,pos);
         if(light == 0) return;
+        accessor.setSkyLight(light);
         double temp = accessor.getTemperature();
         if(temp > TemperatureProperty.ICE_POINT){
             this.turnIntoWater(worldIn,pos,accessor.getAtmosphereHere(),8-layer);
@@ -78,7 +85,7 @@ public class BlockSnowMixin {
         if(pos.getY() <= 0) return false;
         if(world.isRemote) return false;
         IBlockState downState = world.getBlockState(pos.down());
-        if(downState.getBlock() == Blocks.AIR){
+        if(downState.getBlock().getMaterial(downState) == Material.AIR){
             world.setBlockToAir(pos);
             world.setBlockState(pos.down(),state);
             return true;
@@ -107,5 +114,5 @@ public class BlockSnowMixin {
         }
     }
     @Shadow
-    public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {return false;}
+    public boolean canPlaceBlockAt(@Nonnull World worldIn, @Nonnull BlockPos pos) {return false;}
 }

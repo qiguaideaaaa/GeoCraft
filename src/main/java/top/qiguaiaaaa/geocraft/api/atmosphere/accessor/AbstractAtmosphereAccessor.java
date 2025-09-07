@@ -61,6 +61,15 @@ public abstract class AbstractAtmosphereAccessor implements IAtmosphereAccessor{
         this.notAir = notAir;
     }
 
+    @Override
+    public double getTemperature(boolean notAir) {
+        boolean old = this.notAir;
+        setNotAir(notAir);
+        double temp = getTemperature();
+        setNotAir(old);
+        return temp;
+    }
+
     protected boolean isAtmosphereDataLoaded(){
         return !data.isUnloaded() && data.getAtmosphere() != null;
     }

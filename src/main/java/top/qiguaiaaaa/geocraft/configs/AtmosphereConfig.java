@@ -4,7 +4,9 @@ import net.minecraftforge.common.config.Configuration;
 import top.qiguaiaaaa.geocraft.api.configs.item.base.ConfigBoolean;
 import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
 import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableHashSet;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemType;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.BlockIntegerEntry;
+import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.ConfigEntry;
 import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockProperty;
 import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockState;
 import top.qiguaiaaaa.geocraft.api.setting.GeoAtmosphereSetting;
@@ -26,13 +28,20 @@ public final class AtmosphereConfig {
             GeoAtmosphereSetting.setEnableDetailedLogging(value);
         }
     };
-    public static final ConfigIntegerSet CONSTANT_TEMP_DIMENSIONS = new ConfigIntegerSet(CATEGORY_ATMOSPHERE, "constantTempDimensions", new ConfigurableHashSet<>(
-            Arrays.asList(1, -1)
-    ), "温度不受太阳辐射影响的维度");
-    public static final ConfigIntegerSet CLOSED_DIMENSIONS = new ConfigIntegerSet(CATEGORY_ATMOSPHERE,
-            "closedDimensions", new ConfigurableHashSet<>(
-            Collections.singleton(-1)
-    ),"地形封闭的维度");
+    public static final ConfigMap<Integer, AtmosphereSystemType> ATMOSPHERE_SYSTEM_TYPES =
+            new ConfigMap<>(CATEGORY_ATMOSPHERE,"customAtmosphereSystem",
+                    "配置每个维度使用的大气系统。注意，切换大气系统后原大气系统的数据可能丢失，建议提前备份。\n" +
+                            "Configure the atmosphere system for each dimension. ATTENSION: Changing of atmosphere system may cause data loss on old atmosphere system, and a backup is recommended.\n" +
+                            "可选值 Available values:\n" +
+                            "surface - 主世界大气系统，类似现实的地球大气系统 An Earth-like atmosphere system.\n" +
+                            "vanilla - 原版大气系统，基于Minecraft原版的生物群系 An atmosphere system based on biomes.\n" +
+                            "hall - 地狱大气系统 Atmosphere system designed for Hall.\n" +
+                            "third_party - 第三方大气系统，更改为此值以使用第三方模组提供的大气系统. Third-party atmosphere system provided by other mods.\n" +
+                            "none - 无大气系统. No atmosphere system.",
+                    Integer::parseInt,AtmosphereSystemType::getInstanceByString,
+                    new ConfigEntry<>(0,AtmosphereSystemType.SURFACE_ATMOSPHERE_SYSTEM),
+                    new ConfigEntry<>(-1,AtmosphereSystemType.HALL_ATMOSPHERE_SYSTEM),
+                    new ConfigEntry<>(1,AtmosphereSystemType.VANILLA_ATMOSPHERE_SYSTEM));
     public static final ConfigMap<ConfigurableBlockState,Integer> SPECIFIC_HEAT_CAPACITIES =
             new ConfigMap<ConfigurableBlockState,Integer>(CATEGORY_ATMOSPHERE,"specificHeatCapacities","方块每1立方分米的热容，默认为2000，单位为FE/(dm^3·K),可以用 比热容*密度/1000 计算(国际标准单位)",ConfigurableBlockState::getInstanceByString, Integer::parseInt,
                     //水

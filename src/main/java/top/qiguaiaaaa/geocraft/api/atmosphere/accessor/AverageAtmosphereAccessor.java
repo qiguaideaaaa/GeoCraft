@@ -31,6 +31,7 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
 
     public AverageAtmosphereAccessor(@Nonnull IAtmosphereSystem system,@Nonnull AtmosphereData data,@Nonnull BlockPos pos, boolean notAir) {
         super(system, data, pos, notAir);
+        loadDatas();
     }
 
     @Override
@@ -42,8 +43,15 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
 
     @Override
     public double getTemperature() {
-        return getAtmosphereValue((ints, atmosphere) ->
-                (double) atmosphere.getTemperature(mutableBlockPos.setPos(pos.getX() + ints[0], pos.getY(), pos.getZ() + ints[1]), notAir));
+        if(skyLight<0 || notAir || skyLight >=15){
+            return getAtmosphereValue((ints, atmosphere) ->
+                    (double) atmosphere.getTemperature(mutableBlockPos.setPos(pos.getX() + ints[0], pos.getY(), pos.getZ() + ints[1]), notAir));
+        }
+        double airTemp= getAtmosphereValue((ints, atmosphere) ->
+                (double) atmosphere.getTemperature(mutableBlockPos.setPos(pos.getX() + ints[0], pos.getY(), pos.getZ() + ints[1]), false)),
+                blockTemp = getAtmosphereValue((ints, atmosphere) ->
+                (double) atmosphere.getTemperature(mutableBlockPos.setPos(pos.getX() + ints[0], pos.getY(), pos.getZ() + ints[1]), true));
+        return (skyLight/15.0)*(airTemp-blockTemp)+blockTemp;
     }
 
     @Override
@@ -62,7 +70,11 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
     @Override
     public Vec3d getWind() {
         checkAtmosphereDataLoaded();
-        return data.getAtmosphere().getWind(pos);
+        Vec3d wind = data.getAtmosphere().getWind(pos);
+        if(skyLight>=0 && skyLight<15){
+            wind.scale(skyLight/15d);
+        }
+        return wind;
     }
 
     @Override
@@ -70,7 +82,12 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
         if(amount <0) return;
         checkAtmosphereDataLoaded();
         clearInvalidData();
-        double average = amount/datas.size();
+        final double average;
+
+        if(skyLight>=0 && skyLight<15){
+            average = amount/datas.size()*(skyLight/15d);
+        }else average = amount/datas.size();
+
         forAtmospheresDo((dir, atmosphere) -> {
             atmosphere.putHeat(average,mutableBlockPos.setPos(pos.getX()+dir[0],pos.getY(),pos.getZ()+dir[1]));
             return null;
@@ -82,7 +99,7 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
         if(amount <0) return;
         checkAtmosphereDataLoaded();
         clearInvalidData();
-        double average = amount/datas.size();
+        final double average = amount/datas.size();
         forAtmospheresDo((dir, atmosphere) -> {
             atmosphere.getUnderlying().putHeat(average,mutableBlockPos.setPos(pos.getX()+dir[0],pos.getY(),pos.getZ()+dir[1]));
             return null;
@@ -94,7 +111,7 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
         if(amount <0) return;
         checkAtmosphereDataLoaded();
         clearInvalidData();
-        double average = amount/datas.size();
+        final double average = amount/datas.size();
         forAtmospheresDo((dir, atmosphere) -> {
             Layer layer = atmosphere.getLayer(mutableBlockPos.setPos(pos.getX()+dir[0],pos.getY(),pos.getZ()+dir[1]));
             if(layer == null) return null;
@@ -106,9 +123,10 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
     @Override
     public double drawHeatFromAtmosphere(double amount) {
         if(amount <0) return 0;
+        if(skyLight == 0) return amount;
         checkAtmosphereDataLoaded();
         clearInvalidData();
-        Set<Pair<int[],Layer>> layerToDraw = new HashSet<>();
+        final Set<Pair<int[],Layer>> layerToDraw = new HashSet<>();
         forAtmospheresDo((dir,atmosphere) -> {
             mutableBlockPos.setPos(pos.getX()+dir[0],pos.getY(),pos.getZ()+dir[1]);
             Layer layer = atmosphere.getLayer(mutableBlockPos);
@@ -126,9 +144,11 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
         });
         if(layerToDraw.isEmpty()) return 0;
         double average = amount/layerToDraw.size(),res = 0;
+        double factor = 1;
+        if(skyLight>0 && skyLight<15) factor = skyLight/15d;
         for(Pair<int[],Layer> pair:layerToDraw){
             mutableBlockPos.setPos(pos.getX()+pair.getKey()[0],pos.getY(),pos.getZ()+pair.getKey()[1]);
-            res += pair.getValue().drawHeat(average,mutableBlockPos);
+            res += pair.getValue().drawHeat(average*factor,mutableBlockPos)/factor;
         }
         return res;
     }
@@ -138,7 +158,7 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
         if(amount <0) return 0;
         checkAtmosphereDataLoaded();
         clearInvalidData();
-        double average = amount/datas.size();
+        final double average = amount/datas.size();
         return drawAtmosphereProperty((dir,atmosphere)->{
             mutableBlockPos.setPos(pos.getX()+dir[0],pos.getY(),pos.getZ()+dir[1]);
             return atmosphere.getUnderlying().drawHeat(average,mutableBlockPos);
@@ -150,7 +170,7 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
         if(amount <0) return 0;
         checkAtmosphereDataLoaded();
         clearInvalidData();
-        Set<Pair<int[],Layer>> layerToDraw = new HashSet<>();
+        final Set<Pair<int[],Layer>> layerToDraw = new HashSet<>();
         forAtmospheresDo((dir,atmosphere) -> {
             mutableBlockPos.setPos(pos.getX()+dir[0],pos.getY(),pos.getZ()+dir[1]);
             Layer layer = atmosphere.getLayer(mutableBlockPos);

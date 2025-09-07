@@ -16,11 +16,14 @@ import java.util.Random;
 
 public class VanillaSimulationCore {
     public static void evaporateWater(World world, BlockPos pos, Random rand){
-        if(world.getLightFor(EnumSkyBlock.SKY,pos) == 0) return;
+        int light = world.getLightFor(EnumSkyBlock.SKY,pos);
+        if(light<= 0) return;
         IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(world,pos,true);
         if(accessor == null) return;
         Atmosphere atmosphere = accessor.getAtmosphereHere();
         if(atmosphere == null) return;
+        accessor.setSkyLight(light);
+
         int amount = (int) MathHelper.clamp(WaterUtil.getWaterEvaporateAmount(atmosphere,pos),0,1000);
         if(amount == 0) return;
         if(!atmosphere.addSteam(amount,pos)) return;

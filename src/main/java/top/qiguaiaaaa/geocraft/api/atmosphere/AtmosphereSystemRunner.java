@@ -5,9 +5,10 @@ import net.minecraftforge.event.terraingen.PopulateChunkEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.relauncher.Side;
+import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereRegionFileCache;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 
@@ -35,11 +36,12 @@ public class AtmosphereSystemRunner {
     }
 
     @SubscribeEvent
-    public static void onWorldUnload(WorldEvent.Unload event){
+    public static void onWorldSave(WorldEvent.Save event){
         IAtmosphereSystem system = getAtmosphereSystem(event.getWorld());
         if(system == null) return;
         system.saveAllAtmospheres();
     }
+
     @SubscribeEvent
     public static void onChunkGenerated(PopulateChunkEvent.Post event){
         WorldServer server = getValidWorld(event.getWorld());
