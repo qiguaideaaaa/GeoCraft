@@ -34,6 +34,11 @@ public interface IPermeable {
     void addQuanta(World world,BlockPos pos,IBlockState state,int quanta);
 
     void setQuanta(World world,BlockPos pos,IBlockState state,int newQuanta);
+
+    /**
+     * 为区块生成时提供的设置量的方法
+     */
+    IBlockState getQuantaState(IBlockState state, int newQuanta);
     default boolean isFull(World world,BlockPos pos,IBlockState state){
         return getHeight(world,pos,state) == 16;
     }

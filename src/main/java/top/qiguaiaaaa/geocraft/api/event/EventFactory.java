@@ -16,6 +16,7 @@ import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.EventBus;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
+import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereGenerateEvent;
 import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereSystemEvent;
 import top.qiguaiaaaa.geocraft.api.event.block.StaticLiquidUpdateEvent;
 import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereUpdateEvent;
@@ -47,7 +48,11 @@ public final class EventFactory {
         return null;
     }
     public static void postAtmosphereUpdate(@Nullable Chunk chunk, @Nonnull Atmosphere atmosphere, int x,int z){
-        AtmosphereUpdateEvent.PostAtmosphereUpdateEvent event = new AtmosphereUpdateEvent.PostAtmosphereUpdateEvent(chunk,atmosphere,x,z);
+        AtmosphereUpdateEvent.Post event = new AtmosphereUpdateEvent.Post(chunk,atmosphere,x,z);
+        EVENT_BUS.post(event);
+    }
+    public static void preAtmosphereGenerate(@Nonnull WorldServer world,@Nonnull Chunk chunk){
+        AtmosphereGenerateEvent.Pre event = new AtmosphereGenerateEvent.Pre(world,chunk);
         EVENT_BUS.post(event);
     }
     public static IBlockState afterBlockLiquidStaticUpdate(@Nonnull Fluid fluid, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state){
@@ -60,7 +65,7 @@ public final class EventFactory {
     }
 
     public static IAtmosphereSystem onAtmosphereSystemCreate(@Nonnull WorldServer server){
-        AtmosphereSystemEvent.AtmosphereSystemCreateEvent event = new AtmosphereSystemEvent.AtmosphereSystemCreateEvent(server);
+        AtmosphereSystemEvent.Create event = new AtmosphereSystemEvent.Create(server);
         EVENT_BUS.post(event);
         if(event.isCanceled()) return null;
         return event.getSystem();

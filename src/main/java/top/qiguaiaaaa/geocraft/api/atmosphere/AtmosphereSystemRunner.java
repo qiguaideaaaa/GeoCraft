@@ -5,17 +5,19 @@ import net.minecraftforge.event.terraingen.PopulateChunkEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereRegionFileCache;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
+import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereGenerateEvent;
 
 import static top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager.*;
 
 @Mod.EventBusSubscriber
 public class AtmosphereSystemRunner {
+    static {
+        EventFactory.EVENT_BUS.register(AtmosphereSystemRunner.class);
+    }
     @SubscribeEvent
     public static void onWorldTick(TickEvent.WorldTickEvent event){
         if(event.phase == TickEvent.Phase.START) return;
@@ -42,13 +44,20 @@ public class AtmosphereSystemRunner {
         system.saveAllAtmospheres();
     }
 
+//    @SubscribeEvent
+//    public static void onChunkGenerated(PopulateChunkEvent.Post event){
+//        WorldServer server = getValidWorld(event.getWorld());
+//        if(server == null) return;
+//        IAtmosphereSystem system = getAtmosphereSystem(server);
+//        if(system == null) return;
+//        system.onChunkGenerated(server.getChunk(event.getChunkX(),event.getChunkZ()));
+//    }
+
     @SubscribeEvent
-    public static void onChunkGenerated(PopulateChunkEvent.Post event){
-        WorldServer server = getValidWorld(event.getWorld());
-        if(server == null) return;
-        IAtmosphereSystem system = getAtmosphereSystem(server);
+    public static void onPreAtmosphereGenerate(AtmosphereGenerateEvent.Pre event){
+        IAtmosphereSystem system = getAtmosphereSystem(event.getWorld());
         if(system == null) return;
-        system.onChunkGenerated(server.getChunk(event.getChunkX(),event.getChunkZ()));
+        system.onChunkGenerated(event.getChunk());
     }
     @SubscribeEvent
     public static void onChunkLoad(ChunkEvent.Load event){

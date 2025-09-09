@@ -252,9 +252,10 @@ public final class FluidSearchUtil {
      * @param origin 开始搜寻位置
      * @param fluid 流体
      * @param maxOptions 最大可选项
+     * @param ignoreBeginPos 是否忽略开始搜索的位置
      * @return 一个PlaceChoice集合，按照水平<垂值，进<远排列
      */
-    public static Set<PlaceChoice> findPlaceableLocations(World world,BlockPos origin,Fluid fluid, int maxOptions) {
+    public static Set<PlaceChoice> findPlaceableLocations(World world,BlockPos origin,Fluid fluid, int maxOptions,boolean ignoreBeginPos) {
         Set<PlaceChoice> res = new LinkedHashSet<>();
         Set<BlockPos> visited = new HashSet<>();
         Deque<BlockPos> queue = new ArrayDeque<>();
@@ -262,10 +263,12 @@ public final class FluidSearchUtil {
 
         if (!world.isBlockLoaded(origin)) return res;
 
-        if (FluidUtil.isFluidPlaceable(world,origin,fluid))
-            res.add(new PlaceChoice(FluidUtil.getFluidQuanta(world,origin,world.getBlockState(origin)),origin));
-        else if(FluidUtil.getFluid(world.getBlockState(origin)) != fluid) return res;
-        if (res.size() >= maxOptions) return res;
+        if(!ignoreBeginPos){
+            if (FluidUtil.isFluidPlaceable(world,origin,fluid))
+                res.add(new PlaceChoice(FluidUtil.getFluidQuanta(world,origin,world.getBlockState(origin)),origin));
+            else if(FluidUtil.getFluid(world.getBlockState(origin)) != fluid) return res;
+            if (res.size() >= maxOptions) return res;
+        }
 
         queue.add(origin);
         visited.add(origin);
@@ -291,7 +294,7 @@ public final class FluidSearchUtil {
         }
         if (res.size() >= maxOptions) return res;
         if(origin.getY() >= world.getHeight()-1) return res;
-        res.addAll(findPlaceableLocations(world,origin.up(),fluid,maxOptions-res.size()));
+        res.addAll(findPlaceableLocations(world,origin.up(),fluid,maxOptions-res.size(),false));
 
         return res;
     }

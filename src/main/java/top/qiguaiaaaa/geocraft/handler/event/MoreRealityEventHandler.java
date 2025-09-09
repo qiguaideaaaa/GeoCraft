@@ -1,6 +1,7 @@
 package top.qiguaiaaaa.geocraft.handler.event;
 
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -19,26 +20,31 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.BlockSnapshot;
 import net.minecraftforge.event.entity.player.FillBucketEvent;
 import net.minecraftforge.event.world.BlockEvent;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.*;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.Event;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
+import top.qiguaiaaaa.geocraft.api.block.BlockProperties;
 import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableFluid;
 import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereUpdateEvent;
 import top.qiguaiaaaa.geocraft.api.event.block.StaticLiquidUpdateEvent;
-import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
-import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
-import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.event.player.FillGlassBottleEvent.FillGlassBottleOnFluidEvent;
+import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
+import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
+import top.qiguaiaaaa.geocraft.block.IBlockDirt;
 import top.qiguaiaaaa.geocraft.simulation.MoreRealitySimulationCore;
+import top.qiguaiaaaa.geocraft.util.FluidMixinUtil;
+import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.util.WaterUtil;
 import top.qiguaiaaaa.geocraft.util.wrappers.InfiniteFluidBucketWrapper;
+import top.qiguaiaaaa.geocraft.util.wrappers.PhysicsBlockLiquidWrapper;
+import top.qiguaiaaaa.geocraft.util.wrappers.PhysicsFluidBlockWrapper;
 
 import java.util.Objects;
 
@@ -131,6 +137,49 @@ public final class MoreRealityEventHandler {
     }
 
     @SubscribeEvent
+    public void onPlayerPlacedBlock(BlockEvent.EntityPlaceEvent event){
+        IBlockState currentState = event.getBlockSnapshot().getReplacedBlock();
+        Fluid fluid = FluidUtil.getFluid(currentState);
+        if(fluid == null) return;
+        Block block = currentState.getBlock();
+        if(block instanceof BlockLiquid){
+            PhysicsBlockLiquidWrapper wrapper = new PhysicsBlockLiquidWrapper((BlockLiquid) block,event.getWorld(),event.getPos());
+            wrapper.setIgnoreCurrentPos(true);
+            int quanta = FluidUtil.getFluidQuanta(event.getWorld(), event.getPos(),currentState);
+            if(FluidUtil.getFluid(block) == FluidRegistry.WATER){
+                IBlockState placeState = event.getBlockSnapshot().getCurrentBlock();
+                Block placeBlock = placeState.getBlock();
+                if(placeBlock instanceof IBlockDirt){
+                    int humidity = Math.min(quanta,4);
+                    event.getWorld().setBlockState(event.getPos(),placeState.withProperty(BlockProperties.HUMIDITY,humidity));
+                    quanta -= humidity;
+                }
+                if(quanta <= 0) return;
+            }
+            int amount = quanta*FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
+            wrapper.setExpectedQuanta(quanta);
+            FluidStack stack = new FluidStack(fluid,amount);
+            int available = wrapper.fill(stack,false);
+            if(available < amount){
+                event.setCanceled(true);
+                return;
+            }
+            wrapper.fill(stack,true);
+        }else if(block instanceof BlockFluidBase){
+            PhysicsFluidBlockWrapper wrapper = new PhysicsFluidBlockWrapper((IFluidBlock) block,event.getWorld(),event.getPos());
+            wrapper.setIgnoreCurrentPos(true);
+            int amount = FluidMixinUtil.getAmountForBlockFluidBase(currentState);
+            FluidStack stack = new FluidStack(fluid,amount);
+            int available = wrapper.fill(stack,false);
+            if(available < amount){
+                event.setCanceled(true);
+                return;
+            }
+            wrapper.fill(stack,true);
+        }
+    }
+
+    @SubscribeEvent
     public void onGlassBottleFilled(FillGlassBottleOnFluidEvent event){
         World worldIn = event.getWorld();
         EntityPlayer player = event.getEntityPlayer();
@@ -165,10 +214,6 @@ public final class MoreRealityEventHandler {
         FluidOperationUtil.tryDrainFluid(worldIn,blockpos,target,bottleFindFluidMaxDistance.getValue(),true);
         worldIn.playSound(player, player.posX, player.posY, player.posZ, SoundEvents.ITEM_BOTTLE_FILL, SoundCategory.NEUTRAL, 1.0F, 1.0F);
         event.setFilledGlassBottle(PotionUtils.addPotionToItemStack(new ItemStack(Items.POTIONITEM), PotionTypes.WATER));
-    }
-    @SubscribeEvent
-    public void onPlaceBlock(BlockEvent.EntityPlaceEvent event){
-
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)

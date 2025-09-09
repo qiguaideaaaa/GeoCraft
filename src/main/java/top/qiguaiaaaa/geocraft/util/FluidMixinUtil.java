@@ -2,7 +2,9 @@ package top.qiguaiaaaa.geocraft.util;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.state.IBlockState;
 import net.minecraftforge.fluids.BlockFluidBase;
+import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockFluidBaseAccessor;
 
@@ -16,5 +18,11 @@ public final class FluidMixinUtil {
         if(block instanceof BlockLiquid) return 8;
         if(block instanceof BlockFluidBase) return ((BlockFluidBaseAccessor)block).getQuantaPerBlock();
         throw new IllegalArgumentException("Unsupported Liquid");
+    }
+
+    public static int getAmountForBlockFluidBase(IBlockState state){
+        int quantaPerBlock = getQuantaPerBlock(state.getBlock());
+        int quanta = quantaPerBlock-state.getValue(BlockFluidBase.LEVEL);
+        return quanta* Fluid.BUCKET_VOLUME/quantaPerBlock;
     }
 }

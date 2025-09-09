@@ -49,9 +49,9 @@ public class AtmosphereUpdateEvent extends AtmosphereEvent {
             return newState;
         }
     }
-    public static class PostAtmosphereUpdateEvent extends AtmosphereUpdateEvent{
+    public static class Post extends AtmosphereUpdateEvent{
         public final int x,z;
-        public PostAtmosphereUpdateEvent(@Nullable Chunk chunk, Atmosphere atmosphere,int x,int z) {
+        public Post(@Nullable Chunk chunk, Atmosphere atmosphere, int x, int z) {
             super(chunk, atmosphere);
             this.x = x;
             this.z = z;

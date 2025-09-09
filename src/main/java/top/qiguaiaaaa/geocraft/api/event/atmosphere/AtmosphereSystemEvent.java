@@ -17,10 +17,10 @@ public class AtmosphereSystemEvent extends Event {
     }
 
     @Cancelable
-    public static class AtmosphereSystemCreateEvent extends AtmosphereSystemEvent{
+    public static class Create extends AtmosphereSystemEvent{
         private IAtmosphereSystem systemToBeUsed;
 
-        public AtmosphereSystemCreateEvent(WorldServer world) {
+        public Create(WorldServer world) {
             super(world);
         }
 

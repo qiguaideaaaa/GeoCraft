@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.mixin.atmosphere.block;
+package top.qiguaiaaaa.geocraft.mixin.groundwater.block;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDirt;
@@ -93,5 +93,10 @@ public class BlockGrassMixin extends Block implements IBlockDirt{
                 worldIn.setBlockState(blockpos, Blocks.GRASS.getDefaultState().withProperty(HUMIDITY,currentState.getValue(HUMIDITY)));
             }
         }
+    }
+
+    @Override
+    public int getMaxStableHumidity(IBlockState state) {
+        return 3;
     }
 }

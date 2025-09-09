@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.mixin.atmosphere.block;
+package top.qiguaiaaaa.geocraft.mixin.groundwater.block;
 
 import com.google.common.collect.Maps;
 import net.minecraft.block.Block;

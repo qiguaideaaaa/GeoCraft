@@ -558,4 +558,10 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
         if(newQuanta <= 0) world.setBlockToAir(pos);
         world.setBlockState(pos,state.withProperty(BlockLiquid.LEVEL,8-newQuanta), Constants.BlockFlags.SEND_TO_CLIENTS);
     }
+
+    @Override
+    public IBlockState getQuantaState(IBlockState state, int newQuanta) {
+        if(newQuanta <= 0) return Blocks.AIR.getDefaultState();
+        return state.withProperty(BlockLiquid.LEVEL,8-newQuanta);
+    }
 }

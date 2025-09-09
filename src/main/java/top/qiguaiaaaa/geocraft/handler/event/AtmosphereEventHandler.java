@@ -19,7 +19,7 @@ import java.io.File;
 
 public class AtmosphereEventHandler {
     @SubscribeEvent
-    public static void createAtmosphereSystem(AtmosphereSystemEvent.AtmosphereSystemCreateEvent event){
+    public static void createAtmosphereSystem(AtmosphereSystemEvent.Create event){
         WorldServer server= event.getWorld();
         WorldProvider provider = server.provider;
         int dimension = provider.getDimension();

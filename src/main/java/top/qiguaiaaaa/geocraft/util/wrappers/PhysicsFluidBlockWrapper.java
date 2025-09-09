@@ -11,6 +11,7 @@ import top.qiguaiaaaa.geocraft.util.FluidSearchUtil;
 import java.util.Set;
 
 public class PhysicsFluidBlockWrapper extends FluidBlockWrapper {
+    protected boolean ignoreCurrentPos = false;
     public PhysicsFluidBlockWrapper(IFluidBlock fluidBlock, World world, BlockPos blockPos) {
         super(fluidBlock, world, blockPos);
     }
@@ -21,7 +22,7 @@ public class PhysicsFluidBlockWrapper extends FluidBlockWrapper {
             return 0;
         }
 
-        final Set<PlaceChoice> choices = FluidSearchUtil.findPlaceableLocations(world, blockPos, fluidBlock.getFluid(), 16);
+        final Set<PlaceChoice> choices = FluidSearchUtil.findPlaceableLocations(world, blockPos, fluidBlock.getFluid(), 16,ignoreCurrentPos);
         if (choices.isEmpty()) return 0;
         int amountLeft = resource.amount;
         for (PlaceChoice choice : choices) {
@@ -32,5 +33,9 @@ public class PhysicsFluidBlockWrapper extends FluidBlockWrapper {
         }
 
         return placedAmount;
+    }
+
+    public void setIgnoreCurrentPos(boolean ignoreCurrentPos) {
+        this.ignoreCurrentPos = ignoreCurrentPos;
     }
 }

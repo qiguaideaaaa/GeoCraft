@@ -73,7 +73,7 @@ public interface IBlockDirt extends IPermeable {
             while(averageModeFlowDirections.get(0).getHeight()<newHumidity*4-1){ //向四周分配流量
                 averageModeFlowDirections.get(0).addQuanta(1);
                 newHumidity--;
-                if(newHumidity <=1) break;
+                if(newHumidity <=getMaxStableHumidity(state)) break;
                 averageModeFlowDirections.sort(Comparator.comparingInt(FlowChoice::getHeight));
             }
             if(humidity == newHumidity) return;
@@ -83,7 +83,7 @@ public interface IBlockDirt extends IPermeable {
                 if(choice.direction == null) continue;
                 BlockPos facingPos = pos.offset(choice.direction);
                 if(choice.block == null){
-                    worldIn.setBlockState(facingPos,Blocks.WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,8-choice.getQuanta()));
+                    worldIn.setBlockState(facingPos,Blocks.FLOWING_WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,8-choice.getQuanta()));
                     continue;
                 }
                 IBlockState facingState = worldIn.getBlockState(facingPos);
@@ -101,6 +101,10 @@ public interface IBlockDirt extends IPermeable {
         IBlockState upState = worldIn.getBlockState(upPos);
         if(upState.getBlock() instanceof IPermeable){
             IPermeable block = (IPermeable) upState.getBlock();
+            if(block instanceof IBlockDirt){
+                IBlockDirt dirt = (IBlockDirt) block;
+                if(state.getValue(HUMIDITY)<=dirt.getMaxStableHumidity(upState)) return 0;
+            }
             int upQuanta = block.getQuanta(worldIn,upPos,upState);
             if(upQuanta > 0){
                 block.addQuanta(worldIn,upPos,upState,-1);
@@ -120,10 +124,10 @@ public interface IBlockDirt extends IPermeable {
                 newHumidity += drainUpWater(worldIn,pos,state);
             }
         }else if(rnd == 1){ //向下掉水
-            if(humidity >0){
+            if(humidity >getMaxStableHumidity(state)){
                 newHumidity += dropWaterDown(worldIn, pos, state);
             }
-        }else if(humidity>1) { //水平平衡
+        }else if(humidity>getMaxStableHumidity(state)) { //水平平衡
             flowWaterHorizontally(worldIn,pos,state,humidity);
             return;
         }
@@ -151,6 +155,8 @@ public interface IBlockDirt extends IPermeable {
     default boolean canFlowInto(World world,BlockPos pos,IBlockState state){
         return (state.getBlock() instanceof IPermeable && ((IPermeable)state.getBlock()).getFluid(world,pos,state) == FluidRegistry.WATER) || state.getMaterial() == Material.AIR;
     }
+
+    int getMaxStableHumidity(IBlockState state);
 
     @Override
     default Fluid getFluid(World world, BlockPos pos, IBlockState state){
@@ -181,6 +187,11 @@ public interface IBlockDirt extends IPermeable {
     @Override
     default void setQuanta(World world, BlockPos pos, IBlockState state, int newQuanta){
         world.setBlockState(pos,state.withProperty(HUMIDITY,newQuanta),0);
+    }
+
+    @Override
+    default IBlockState getQuantaState(IBlockState state, int newQuanta){
+        return state.withProperty(HUMIDITY,newQuanta);
     }
 
     @Override

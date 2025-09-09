@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.mixin.network;
+package top.qiguaiaaaa.geocraft.mixin.groundwater.network;
 
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.server.SPacketChunkData;

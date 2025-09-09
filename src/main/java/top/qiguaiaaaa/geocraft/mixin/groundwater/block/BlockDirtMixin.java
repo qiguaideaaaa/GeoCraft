@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.mixin.atmosphere.block;
+package top.qiguaiaaaa.geocraft.mixin.groundwater.block;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
@@ -69,5 +69,16 @@ public class BlockDirtMixin extends Block implements IBlockDirt {
      */
     public void func_176206_d(World worldIn, BlockPos pos, IBlockState state) {
         dropWaterWhenBroken(worldIn, pos, state);
+    }
+
+    @Override
+    public int getMaxStableHumidity(IBlockState state) {
+        switch (state.getValue(VARIANT)){
+            case PODZOL:
+            case COARSE_DIRT:
+                return 1;
+            case DIRT:
+            default:return 2;
+        }
     }
 }

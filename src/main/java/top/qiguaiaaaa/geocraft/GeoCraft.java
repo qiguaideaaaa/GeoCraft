@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.Logger;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereRegionFileCache;
 import top.qiguaiaaaa.geocraft.command.CommandAtmosphere;
-import top.qiguaiaaaa.geocraft.world.gen.GeographyWaterPopulatingGenerator;
+import top.qiguaiaaaa.geocraft.world.gen.GeoCraftPostPopulatingGenerator;
 
 @Mod(modid = GeoCraft.MODID, name = GeoCraft.NAME, version = GeoCraft.VERSION, dependencies = "required:mixinbooter;",acceptableRemoteVersions = "*")
 public class GeoCraft
@@ -24,7 +24,7 @@ public class GeoCraft
     public void preInit(FMLPreInitializationEvent event) {;
         logger = event.getModLog();
         proxy.preInit(event);
-        GameRegistry.registerWorldGenerator(new GeographyWaterPopulatingGenerator(),100000);
+        GameRegistry.registerWorldGenerator(new GeoCraftPostPopulatingGenerator(),100000);
     }
     @EventHandler
     public void init(FMLInitializationEvent event){

@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.mixin.chunk;
+package top.qiguaiaaaa.geocraft.mixin.groundwater.chunk;
 
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.BitArray;
@@ -7,7 +7,8 @@ import net.minecraft.world.chunk.BlockStatePaletteRegistry;
 import net.minecraft.world.chunk.IBlockStatePalette;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import top.qiguaiaaaa.geocraft.data.SpecialBlockData;
+import top.qiguaiaaaa.geocraft.handler.network.NetworkFakeStateHandler;
+import top.qiguaiaaaa.geocraft.util.factor.SpecialBlockID;
 import top.qiguaiaaaa.geocraft.util.math.MixinUsageBitArray;
 import top.qiguaiaaaa.geocraft.util.mixinapi.network.NetworkOverridable;
 
@@ -29,18 +30,9 @@ public class BlockStateContainerMixin implements NetworkOverridable {
             MixinUsageBitArray modifiedArray = new MixinUsageBitArray(bits,4096,arr.clone());
             for(int i=0;i<4096;i++){
                 int j = modifiedArray.getAt(i);
-                int id = j>>4;
-                if(id == SpecialBlockData.BLOCK_DIRT_ID){
-                    int meta = j & 0b1111;
-                    j = (id<<4) | (meta % 3);
-                    modifiedArray.setAt(i,j);
-                }else if(id == SpecialBlockData.BLOCK_GRASS_ID){
-                    modifiedArray.setAt(i,id<<4);
-                }else if(id == SpecialBlockData.BLOCK_SAND_ID){
-                    int meta = j & 0b1111;
-                    j = (id<<4) | (meta % 2);
-                    modifiedArray.setAt(i,j);
-                }
+                int modified = NetworkFakeStateHandler.overwriteState(j);
+                if(j == modified) continue;
+                modifiedArray.setAt(i,modified);
             }
             buf.writeLongArray(modifiedArray.getBackingLongArray());
         }else{

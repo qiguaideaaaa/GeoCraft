@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.mixin.atmosphere.block;
+package top.qiguaiaaaa.geocraft.mixin.groundwater.block;
 
 import net.minecraft.block.BlockFalling;
 import net.minecraft.block.BlockSand;
@@ -56,5 +56,10 @@ public class BlockSandMixin extends BlockFalling implements IBlockDirt {
     @Override
     public void onPlayerDestroy(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state) {
         dropWaterWhenBroken(worldIn, pos, state);
+    }
+
+    @Override
+    public int getMaxStableHumidity(IBlockState state) {
+        return 1;
     }
 }
