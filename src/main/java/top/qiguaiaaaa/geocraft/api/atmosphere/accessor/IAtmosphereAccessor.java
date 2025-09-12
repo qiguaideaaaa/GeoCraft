@@ -11,6 +11,7 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.raypack.HeatPack;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -18,12 +19,15 @@ import javax.annotation.Nullable;
  * 推荐通过大气系统{@link IAtmosphereSystem}获取自己的{@link IAtmosphereAccessor}对象以操作大气，例如获取温度，释放热量等
  */
 public interface IAtmosphereAccessor {
+    @Nonnull
     default WorldServer getWorld(){
         return getSystem().getAtmosphereWorldInfo().getWorld();
     }
+    @Nonnull
     default IAtmosphereDataProvider getDataProvider(){
         return getSystem().getDataProvider();
     }
+    @Nonnull
     IAtmosphereSystem getSystem();
 
     /**
@@ -66,6 +70,7 @@ public interface IAtmosphereAccessor {
     double getTemperature(boolean notAir);
     double getPressure();
     double getWaterPressure();
+    @Nonnull
     Vec3d getWind();
     void putHeatToAtmosphere(double amount);
     void putHeatToUnderlying(double amount);
@@ -79,7 +84,13 @@ public interface IAtmosphereAccessor {
     double drawHeatFromAtmosphere(double amount);
     double drawHeatFromUnderlying(double amount);
     double drawHeatFromCurrentLayer(double amount);
-    void sendHeat(HeatPack pack, EnumFacing direction);
-    void sendHeat(HeatPack pack, Vec3d directionVec);
-    void sendHeat(HeatPack pack, Vec3i directionVec);
+
+    /**
+     * 从该层往指定方向发送{@link HeatPack}，注意不应当让该层吸收对应的包
+     * @param pack 热量包
+     * @param direction 发射方向
+     */
+    void sendHeat(@Nonnull HeatPack pack,@Nullable EnumFacing direction);
+    void sendHeat(@Nonnull HeatPack pack,@Nullable Vec3d directionVec);
+    void sendHeat(@Nonnull HeatPack pack,@Nullable Vec3i directionVec);
 }

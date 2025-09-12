@@ -6,8 +6,13 @@ import net.minecraft.world.chunk.Chunk;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.AtmosphereLayer;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * 大气属性
+ * @author QiguaiAAAA
+ */
 public abstract class AtmosphereProperty extends GeographyProperty {
     protected final boolean windEffect;
     protected final boolean flowable;
@@ -32,7 +37,8 @@ public abstract class AtmosphereProperty extends GeographyProperty {
      * @param direction B相对A的方向
      * @return 风速分量
      */
-    public Vec3d getWind(AtmosphereLayer self, Atmosphere neighbor, EnumFacing direction){
+    @Nonnull
+    public Vec3d getWind(@Nonnull AtmosphereLayer self,@Nonnull Atmosphere neighbor,@Nonnull EnumFacing direction){
         return Vec3d.ZERO;
     }
 
@@ -44,7 +50,7 @@ public abstract class AtmosphereProperty extends GeographyProperty {
      * @param direction 朝向方位
      * @param windSpeed 风速，包含垂直分量
      */
-    public void onFlow(AtmosphereLayer from, @Nullable Chunk fromChunk, Atmosphere to ,@Nullable Chunk toChunk, EnumFacing direction, Vec3d windSpeed){}
+    public void onFlow(@Nonnull AtmosphereLayer from, @Nullable Chunk fromChunk, Atmosphere to ,@Nullable Chunk toChunk,@Nonnull EnumFacing direction,@Nonnull Vec3d windSpeed){}
 
     /**
      * 当大气对流的时候
@@ -53,10 +59,10 @@ public abstract class AtmosphereProperty extends GeographyProperty {
      * @param upper 高层
      * @param speed 风速,正为低层往高层,负为高层往低层
      */
-    public void onConvect(AtmosphereLayer lower,AtmosphereLayer upper,double speed){}
+    public void onConvect(@Nonnull AtmosphereLayer lower,@Nonnull AtmosphereLayer upper,double speed){}
 
     /**
      * 当大气初始化的时候
      */
-    public void onAtmosphereInitialise(Atmosphere atmosphere,@Nullable Chunk chunk){}
+    public void onAtmosphereInitialise(@Nonnull Atmosphere atmosphere,@Nullable Chunk chunk){}
 }

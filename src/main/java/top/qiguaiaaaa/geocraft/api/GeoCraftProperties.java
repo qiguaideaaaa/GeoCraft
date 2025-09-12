@@ -5,6 +5,9 @@ import top.qiguaiaaaa.geocraft.api.property.GeographyProperty;
 import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.property.UnderlyingProperty;
 
+/**
+ * 天圆地方(GeoCraft)的所有{@link GeographyProperty}索引
+ */
 public final class GeoCraftProperties {
     public static UnderlyingProperty HEAT_CAPACITY;
     public static UnderlyingProperty ALTITUDE;

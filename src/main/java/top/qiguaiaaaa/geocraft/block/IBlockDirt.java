@@ -10,18 +10,20 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
+import top.qiguaiaaaa.geocraft.api.block.IPermeableBlock;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.SimulationMode;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
 import top.qiguaiaaaa.geocraft.configs.SimulationConfig;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Random;
 
 import static top.qiguaiaaaa.geocraft.api.block.BlockProperties.HUMIDITY;
 
-public interface IBlockDirt extends IPermeable {
+public interface IBlockDirt extends IPermeableBlock {
     /**
      * 土壤将自身水掉下去的能力
      * @return 湿度变化
@@ -61,7 +63,7 @@ public interface IBlockDirt extends IPermeable {
                 averageModeFlowDirections.add(new FlowChoice(0,facing,2,null));
                 continue;
             }
-            IPermeable flowIntoable = (IPermeable)facingState.getBlock();
+            IPermeableBlock flowIntoable = (IPermeableBlock)facingState.getBlock();
             int facingHeight = flowIntoable.getHeight(worldIn,facingPos,facingState);
             if(facingHeight<humidity*4-1){
                 averageModeFlowDirections.add(new FlowChoice(flowIntoable.getQuanta(worldIn,facingPos,facingState),facing,flowIntoable.getHeightPerQuanta(),flowIntoable));
@@ -99,8 +101,8 @@ public interface IBlockDirt extends IPermeable {
     default int drainUpWater(World worldIn, BlockPos pos, IBlockState state){
         BlockPos upPos = pos.up();
         IBlockState upState = worldIn.getBlockState(upPos);
-        if(upState.getBlock() instanceof IPermeable){
-            IPermeable block = (IPermeable) upState.getBlock();
+        if(upState.getBlock() instanceof IPermeableBlock){
+            IPermeableBlock block = (IPermeableBlock) upState.getBlock();
             if(block instanceof IBlockDirt){
                 IBlockDirt dirt = (IBlockDirt) block;
                 if(state.getValue(HUMIDITY)<=dirt.getMaxStableHumidity(upState)) return 0;
@@ -153,23 +155,24 @@ public interface IBlockDirt extends IPermeable {
      * @return 能，则true，否，则反之
      */
     default boolean canFlowInto(World world,BlockPos pos,IBlockState state){
-        return (state.getBlock() instanceof IPermeable && ((IPermeable)state.getBlock()).getFluid(world,pos,state) == FluidRegistry.WATER) || state.getMaterial() == Material.AIR;
+        return (state.getBlock() instanceof IPermeableBlock && ((IPermeableBlock)state.getBlock()).getFluid(world,pos,state) == FluidRegistry.WATER) || state.getMaterial() == Material.AIR;
     }
 
     int getMaxStableHumidity(IBlockState state);
 
+    @Nonnull
     @Override
-    default Fluid getFluid(World world, BlockPos pos, IBlockState state){
+    default Fluid getFluid(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state){
         return FluidRegistry.WATER;
     }
 
     @Override
-    default int getQuanta(World world, BlockPos pos, IBlockState state){
+    default int getQuanta(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state){
         return state.getValue(HUMIDITY);
     }
 
     @Override
-    default int getHeight(World world, BlockPos pos, IBlockState state){
+    default int getHeight(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state){
         return state.getValue(HUMIDITY)*4;
     }
 
@@ -179,23 +182,24 @@ public interface IBlockDirt extends IPermeable {
     }
 
     @Override
-    default void addQuanta(World world, BlockPos pos, IBlockState state, int quanta){
+    default void addQuanta(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, int quanta){
         if(isFull(world,pos,state) && quanta>0) throw new IllegalArgumentException();
         world.setBlockState(pos,state.withProperty(HUMIDITY,state.getValue(HUMIDITY)+quanta),0);
     }
 
     @Override
-    default void setQuanta(World world, BlockPos pos, IBlockState state, int newQuanta){
+    default void setQuanta(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, int newQuanta){
         world.setBlockState(pos,state.withProperty(HUMIDITY,newQuanta),0);
     }
 
+    @Nonnull
     @Override
-    default IBlockState getQuantaState(IBlockState state, int newQuanta){
+    default IBlockState getQuantaState(@Nonnull IBlockState state, int newQuanta){
         return state.withProperty(HUMIDITY,newQuanta);
     }
 
     @Override
-    default boolean isFull(World world, BlockPos pos, IBlockState state) {
+    default boolean isFull(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state) {
         return state.getValue(HUMIDITY) == 4;
     }
 }

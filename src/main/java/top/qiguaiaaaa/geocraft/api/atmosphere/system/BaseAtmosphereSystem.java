@@ -5,7 +5,6 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.Chunk;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
-import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
 
@@ -24,14 +23,14 @@ public abstract class BaseAtmosphereSystem implements IAtmosphereSystem{
     }
 
     @Override
-    public void onChunkGenerated(Chunk chunk) {
+    public void onChunkGenerated(@Nonnull Chunk chunk) {
         AtmosphereData data = dataProvider.provideAtmosphereData(chunk.x,chunk.z);
         data.setChunk(chunk);
         data.setAtmosphere(generateAtmosphere(chunk,data));
     }
 
     @Override
-    public void onChunkLoaded(Chunk chunk) {
+    public void onChunkLoaded(@Nonnull Chunk chunk) {
         AtmosphereData data = dataProvider.provideAtmosphereData(chunk.x,chunk.z);
         data.setChunk(chunk);
         if(data.getAtmosphere() == null){
@@ -40,7 +39,7 @@ public abstract class BaseAtmosphereSystem implements IAtmosphereSystem{
     }
 
     @Override
-    public void onChunkUnloaded(Chunk chunk) {
+    public void onChunkUnloaded(@Nonnull Chunk chunk) {
         AtmosphereData data = dataProvider.getLoadedAtmosphereData(chunk.x,chunk.z);
         if(data == null) return;
         data.saveAtmosphere();
@@ -53,7 +52,7 @@ public abstract class BaseAtmosphereSystem implements IAtmosphereSystem{
         for(AtmosphereData data:dataList){
             if(data.getAtmosphere() == null) continue;
             Atmosphere atmosphere = data.getAtmosphere();
-            if(atmosphere.isInitialised()){
+            if(atmosphere.isLoaded()){
                 data.saveAtmosphere();
             }
         }
@@ -61,9 +60,9 @@ public abstract class BaseAtmosphereSystem implements IAtmosphereSystem{
     }
 
     @Override
-    public boolean isAtmosphereLoaded(ChunkPos pos) {
+    public boolean isAtmosphereLoaded(@Nonnull ChunkPos pos) {
         Atmosphere atmosphere =  getAtmosphere(pos.x, pos.z);
-        return atmosphere != null && atmosphere.isInitialised();
+        return atmosphere != null && atmosphere.isLoaded();
     }
 
     @Override
@@ -76,6 +75,7 @@ public abstract class BaseAtmosphereSystem implements IAtmosphereSystem{
         return stopped;
     }
 
+    @Nonnull
     @Override
     public IAtmosphereDataProvider getDataProvider() {
         return dataProvider;
@@ -83,13 +83,13 @@ public abstract class BaseAtmosphereSystem implements IAtmosphereSystem{
 
     @Nullable
     @Override
-    public Atmosphere getAtmosphere(BlockPos pos) {
+    public Atmosphere getAtmosphere(@Nonnull BlockPos pos) {
         return getAtmosphere(pos.getX()>>4,pos.getZ()>>4);
     }
 
     @Nullable
     @Override
-    public Atmosphere getAtmosphere(Chunk chunk) {
+    public Atmosphere getAtmosphere(@Nonnull Chunk chunk) {
         return getAtmosphere(chunk.x,chunk.z);
     }
 
@@ -98,10 +98,11 @@ public abstract class BaseAtmosphereSystem implements IAtmosphereSystem{
         AtmosphereData data = dataProvider.getLoadedAtmosphereData(x,z);
         if(data == null) return null;
         Atmosphere atmosphere = data.getAtmosphere();
-        if(atmosphere != null && atmosphere.isInitialised()) return atmosphere;
+        if(atmosphere != null && atmosphere.isLoaded()) return atmosphere;
         return null;
     }
 
+    @Nonnull
     @Override
     public AtmosphereWorldInfo getAtmosphereWorldInfo() {
         return worldInfo;

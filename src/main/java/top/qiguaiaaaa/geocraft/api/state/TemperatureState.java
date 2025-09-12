@@ -6,10 +6,16 @@ import net.minecraft.nbt.NBTTagFloat;
 import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.util.APIUtil;
 
+import javax.annotation.Nonnull;
+
 import static top.qiguaiaaaa.geocraft.api.util.APIUtil.LOGGER;
 
+/**
+ * 温度状态
+ * @author QiguaiAAAA
+ */
 public abstract class TemperatureState implements GeographyState {
-    protected float temperature;
+    protected float temperature; //单位开尔文
     public TemperatureState(float temp){
         this.temperature = temp;
     }
@@ -37,7 +43,7 @@ public abstract class TemperatureState implements GeographyState {
         }
         this.temperature = temperature;
     }
-    public void set(TemperatureState temp){
+    public void set(@Nonnull TemperatureState temp){
         set(temp.temperature);
     }
 
@@ -45,12 +51,12 @@ public abstract class TemperatureState implements GeographyState {
         this.temperature += temp;
     }
 
-    public void add热量(double Q, double 热容){
+    public void addHeat(double Q, double heatCapacity){
         if(Double.isInfinite(Q) || Double.isNaN(Q)){
             LOGGER.warn("{} wants to add a temperature state from {} K by {} FE",APIUtil.callerInfo(1),temperature,Q);
             return;
         }
-        double tempChange = Q/热容;
+        double tempChange = Q/heatCapacity;
         double res = temperature+tempChange;
         if(res< TemperatureProperty.MIN){
             LOGGER.warn("{} wants to add a temperature state to {} K from {} K by {} FE, min temperature is {}"
@@ -65,6 +71,7 @@ public abstract class TemperatureState implements GeographyState {
 
     }
 
+    @Nonnull
     @Override
     public abstract TemperatureProperty getProperty() ;
 

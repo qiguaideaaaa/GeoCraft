@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager;
-import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil;
@@ -31,7 +30,7 @@ public class BlockIceMixin {
         double temp = accessor.getTemperature();
         if(temp > TemperatureProperty.ICE_POINT){
             this.turnIntoWater(worldIn,pos);
-            accessor.drawHeatFromUnderlying(AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA*8);
+            accessor.drawHeatFromUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA*8);
         }
     }
     @Shadow

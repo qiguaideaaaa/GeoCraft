@@ -8,6 +8,7 @@ import net.minecraft.util.ResourceLocation;
 import top.qiguaiaaaa.geocraft.api.util.exception.ConfigParseError;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -15,24 +16,50 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * 一个用于配置指定方块的方块属性包装类
+ * @author QiguaiAAAA
+ */
 public class ConfigurableBlockState {
-    private static final Pattern BLOCK_STATE_PATTERN = Pattern.compile("^([^\\[]+)\\[(.*)]$");
+    private static final Pattern BLOCK_STATE_PATTERN = Pattern.compile("^([^\\[]+)\\[(.*)]$"); //命名空间:方块ID[方块状态或数据值]
     public final String location;
     public final int meta;
     public final Map<String,ConfigurableBlockProperty> properties;
-    public ConfigurableBlockState(ResourceLocation location, int meta) {
+
+    /**
+     * @see #ConfigurableBlockState(String, int) 
+     */
+    public ConfigurableBlockState(@Nonnull ResourceLocation location, int meta) {
         this(location.toString(),meta);
     }
-    public ConfigurableBlockState(String registryName, int meta) {
+
+    /**
+     * 表示指定数据值的方块<br/>
+     * 若数据值为-1，则表示选中该方块的全部数据值状态
+     * @param registryName 方块的注册名
+     * @param meta 方块的数据值，应大于等于-1
+     * @throws IllegalArgumentException 当数据值小于-1时抛出
+     */
+    public ConfigurableBlockState(@Nonnull String registryName, int meta) {
         if(meta <-1) throw new IllegalArgumentException("Meta couldn't be lower than -1! Block: "+registryName);
         this.location = registryName.toLowerCase().trim();
         this.meta = meta;
         this.properties = Collections.emptyMap();
     }
-    public ConfigurableBlockState(ResourceLocation location,ConfigurableBlockProperty... properties){
+
+    /**
+     * @see #ConfigurableBlockState(String, ConfigurableBlockProperty...) 
+     */
+    public ConfigurableBlockState(@Nonnull ResourceLocation location,@Nullable ConfigurableBlockProperty... properties){
         this(location.toString(),properties);
     }
-    public ConfigurableBlockState(String registryName,ConfigurableBlockProperty... properties){
+
+    /**
+     * 表示具有指定属性的指定方块的状态
+     * @param registryName 方块注册名，例如minecraft:grass
+     * @param properties 方块所具有的状态，若为空则表示选中该方块的全部状态。需要注意，若填写，则必须要包含该方块所具有的全部属性，否则无法匹配成功。
+     */
+    public ConfigurableBlockState(@Nonnull String registryName,@Nullable ConfigurableBlockProperty... properties){
         this.location = registryName.toLowerCase().trim();
         if (properties == null || properties.length == 0) {
             this.properties = Collections.emptyMap();
@@ -53,7 +80,12 @@ public class ConfigurableBlockState {
             this.properties = Collections.unmodifiableMap(map);
         }
     }
-    public ConfigurableBlockState(IBlockState state){
+
+    /**
+     * 从指定方块状态创建指定的方块状态配置包装
+     * @param state 方块状态
+     */
+    public ConfigurableBlockState(@Nonnull IBlockState state){
         Block block = state.getBlock();
         ResourceLocation resourceLocation = block.getRegistryName();
         Map<String, ConfigurableBlockProperty> map = new TreeMap<>();
@@ -73,6 +105,18 @@ public class ConfigurableBlockState {
         }
     }
 
+    /**
+     * 该方块状态配置是否与指定方块状态匹配。当该方块状态包含在该配置集合中，则匹配成功。<br/>
+     * 例如，配置minecraft:grass[*]会匹配方块状态minecraft:grass[snow=true]，也会匹配minecraft:grass[snow=false]<br/>
+     * 配置minecraft:grass[1]会匹配数据值为1的minecraft:grass，但不会匹配数据值为0的minecraft:grass<br/>
+     * 配置minecraft:dirt[variant=dirt,snow=*]会匹配minecraft:dirt[variant=dirt,snow=true]和minecraft:dirt[variant=dirt,snow=false]，但不会匹配minecraft:dirt[variant=podzol,snow=false]以及其他的<br/>
+     * 配置minecraft:dirt[variant=podzol,snow=false]仅会匹配方块状态minecraft:dirt[variant=podzol,snow=false]<br/>
+     * 另外，若属性种类不对，也无法匹配。例如：
+     * 配置minecraft:dirt[variant=dirt]无法匹配minecraft:dirt[variant=dirt,snow=false]<br/>
+     * 配置minecraft:dirt[variant=dirt,facing=north]无法匹配minecraft:dirt[variant=dirt]
+     * @param state 方块状态
+     * @return 是否匹配成功
+     */
     public boolean match(@Nonnull IBlockState state) {
         Block block = state.getBlock();
         ResourceLocation stateLoc = block.getRegistryName();
@@ -109,7 +153,13 @@ public class ConfigurableBlockState {
         return Objects.hash(location, meta, properties);
     }
 
-    public static ConfigurableBlockState getInstanceByString(String content) {
+    /**
+     * 将指定字符串反序列化为{@link ConfigurableBlockState}对象
+     * @param content 字符串
+     * @return 一个Configurable对象，若无法转换则返回null
+     */
+    @Nullable
+    public static ConfigurableBlockState getInstanceByString(@Nullable String content) {
         if (content == null || content.trim().isEmpty()) return null;
         try {
             content = content.trim();
@@ -153,6 +203,10 @@ public class ConfigurableBlockState {
         }
     }
 
+    /**
+     * 将该实例序列化为字符串
+     * @return 序列化后的字符串
+     */
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder(location);

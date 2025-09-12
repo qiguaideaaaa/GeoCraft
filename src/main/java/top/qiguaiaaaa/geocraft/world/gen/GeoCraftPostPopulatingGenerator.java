@@ -19,7 +19,7 @@ import top.qiguaiaaaa.geocraft.api.block.BlockProperties;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.block.IBlockDirt;
-import top.qiguaiaaaa.geocraft.block.IPermeable;
+import top.qiguaiaaaa.geocraft.api.block.IPermeableBlock;
 
 import java.util.Random;
 
@@ -73,8 +73,8 @@ public class GeoCraftPostPopulatingGenerator implements IWorldGenerator {
             if(!biome.canRain()) return null;
             return state.withProperty(BlockProperties.HUMIDITY,(int)MathHelper.clamp(4*biome.getRainfall()+1,0,((IBlockDirt)block).getMaxStableHumidity(state)));
         }
-        if(block instanceof IPermeable){ //之前已经处理过本身为流体的可能性，这里一定不会是流体
-            IPermeable permeable = (IPermeable) block;
+        if(block instanceof IPermeableBlock){ //之前已经处理过本身为流体的可能性，这里一定不会是流体
+            IPermeableBlock permeable = (IPermeableBlock) block;
             if(permeable.getFluid(world,pos,state) != FluidRegistry.WATER) return null; //不能透水
             if(waterFlag) return permeable.getQuantaState(state,16/permeable.getHeightPerQuanta());
             return permeable.getQuantaState(state, ((int)MathHelper.clamp(16*biome.getRainfall(),0,16))/permeable.getHeightPerQuanta());

@@ -3,6 +3,10 @@ package top.qiguaiaaaa.geocraft.api.setting;
 import net.minecraft.block.state.IBlockState;
 import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockState;
 
+/**
+ * 查询天圆地方关于方块的配置
+ * @author QiguaiAAAA
+ */
 public final class GeoBlockSetting {
     private static final BlockSettingQuery<Byte> BLOCK_REFLECTIVITY = new BlockSettingQuery<>((byte)12);
     private static final BlockSettingQuery<Integer> BLOCK_HEAT_CAPACITY = new BlockSettingQuery<>(2000);

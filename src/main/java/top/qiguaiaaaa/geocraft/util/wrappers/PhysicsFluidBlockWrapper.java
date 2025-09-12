@@ -22,7 +22,7 @@ public class PhysicsFluidBlockWrapper extends FluidBlockWrapper {
             return 0;
         }
 
-        final Set<PlaceChoice> choices = FluidSearchUtil.findPlaceableLocations(world, blockPos, fluidBlock.getFluid(), 16,ignoreCurrentPos);
+        final Set<PlaceChoice> choices = FluidSearchUtil.findPlaceableLocations(world, blockPos, fluidBlock.getFluid(), 16,ignoreCurrentPos,null);
         if (choices.isEmpty()) return 0;
         int amountLeft = resource.amount;
         for (PlaceChoice choice : choices) {

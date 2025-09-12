@@ -14,6 +14,9 @@ import javax.annotation.Nullable;
 
 import static net.minecraft.block.BlockLiquid.LEVEL;
 
+/**
+ * @author QiguaiAAAA
+ */
 public final class FluidUtil {
     public static final int ONE_IN_EIGHT_OF_BUCKET_VOLUME = Fluid.BUCKET_VOLUME/8;
 
@@ -36,8 +39,9 @@ public final class FluidUtil {
      * 检测是否是一个完整的流体方块
      * @param state 状态
      * @return 检测结果
+     * @throws UnsupportedFluidException 当无法获取对应流体的等级时抛出
      */
-    public static boolean isFullFluid(World world,BlockPos pos,IBlockState state){
+    public static boolean isFullFluid(@Nonnull World world,@Nonnull BlockPos pos,@Nonnull IBlockState state){
         if(!isFluid(state)) return false;
         Block block = state.getBlock();
         if(block instanceof BlockLiquid || block instanceof BlockFluidClassic){
@@ -53,12 +57,15 @@ public final class FluidUtil {
         }
         try{
             return state.getValue(LEVEL) == 0;
+        }catch (Throwable ignore){}
+        try {
+            return state.getValue(BlockFluidBase.LEVEL) == 0;
         }catch (Throwable e){
             throw new UnsupportedFluidException(state.getBlock());
         }
     }
 
-    public static boolean isFluidPlaceable(World world,BlockPos pos,Fluid fluid){
+    public static boolean isFluidPlaceable(@Nonnull World world,@Nonnull BlockPos pos,@Nonnull Fluid fluid){
         IBlockState state = world.getBlockState(pos);
         if(!FluidUtil.isFluid(state)){
             boolean isNonSolid = !state.getMaterial().isSolid();
@@ -75,7 +82,7 @@ public final class FluidUtil {
      * @return 指定方块状态的液体，若没有则返回null
      */
     @Nullable
-    public static Fluid getFluid(IBlockState state) {
+    public static Fluid getFluid(@Nonnull IBlockState state) {
         Block block = state.getBlock();
 
         if (block instanceof IFluidBlock) {
@@ -95,7 +102,7 @@ public final class FluidUtil {
      * @return 指定方块的液体，若没有则返回null
      */
     @Nullable
-    public static Fluid getFluid(Block block) {
+    public static Fluid getFluid(@Nonnull Block block) {
         if (block instanceof IFluidBlock) {
             return ((IFluidBlock)block).getFluid();
         }else if (block instanceof BlockLiquid) {
@@ -116,7 +123,7 @@ public final class FluidUtil {
      * @param state 方块状态
      * @return 一个数值，表示剩余的量
      */
-    public static int getFluidQuanta(World worldIn, BlockPos pos, IBlockState state){
+    public static int getFluidQuanta(@Nonnull World worldIn,@Nonnull BlockPos pos,@Nonnull IBlockState state){
         if(!isFluid(state)) return 0;
         if(state.getBlock() instanceof BlockFluidBase){
             BlockFluidBase fluidBase = (BlockFluidBase) state.getBlock();
@@ -140,7 +147,7 @@ public final class FluidUtil {
      * @param state 方块状态
      * @return 方块剩余量
      */
-    public static int getFluidAmount(World worldIn, BlockPos pos, IBlockState state){
+    public static int getFluidAmount(@Nonnull World worldIn,@Nonnull BlockPos pos,@Nonnull IBlockState state){
         if(!isFluid(state)) return 0;
         if(state.getBlock() instanceof IFluidBlock){
             IFluidBlock fluidBlock = (IFluidBlock) state.getBlock();

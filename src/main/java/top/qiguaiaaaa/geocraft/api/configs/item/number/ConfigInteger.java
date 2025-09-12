@@ -5,28 +5,55 @@ import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 
-public class ConfigInteger extends ConfigItem<Integer> {
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-    public ConfigInteger(String category, String configKey, Integer defaultValue) {
+/**
+ * {@link Integer}配置项
+ */
+public class ConfigInteger extends ConfigItem<Integer> {
+    /**
+     * @see #ConfigInteger(String, String, int, String, boolean)
+     */
+    public ConfigInteger(@Nonnull String category,@Nonnull String configKey, int defaultValue) {
         super(category, configKey, defaultValue);
     }
 
-    public ConfigInteger(String category, String configKey, Integer defaultValue, String comment) {
+    /**
+     * @see #ConfigInteger(String, String, int, String, boolean) 
+     */
+    public ConfigInteger(@Nonnull String category,@Nonnull String configKey, int defaultValue,@Nullable String comment) {
         super(category, configKey, defaultValue, comment);
     }
 
-    public ConfigInteger(String category, String configKey, Integer defaultValue, String comment, boolean isFinal) {
+    /**
+     * 创建一个Integer类型配置项
+     * @param category 配置所在目录
+     * @param configKey 配置的key
+     * @param defaultValue 配置的默认值
+     * @param comment 配置的注释
+     * @param isFinal 配置是否在初始化后不可更改
+     */
+    public ConfigInteger(@Nonnull String category,@Nonnull String configKey, int defaultValue,@Nullable String comment, boolean isFinal) {
         super(category, configKey, defaultValue, comment, isFinal);
     }
 
+    /**
+     * {@inheritDoc}
+     * @param config {@inheritDoc}
+     */
     @Override
-    public void load(Configuration config) {
+    public void load(@Nonnull Configuration config) {
         Property property = config.get(category,key,defaultValue,comment);
         load(property);
     }
 
+    /**
+     * {@inheritDoc}
+     * @param property {@inheritDoc}
+     */
     @Override
-    protected void load(Property property) {
+    protected void load(@Nonnull Property property) {
         this.value = property.getInt(defaultValue);
     }
 }

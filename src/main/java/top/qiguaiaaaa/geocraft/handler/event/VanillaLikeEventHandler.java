@@ -15,8 +15,8 @@ import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereUpdateEvent;
 import top.qiguaiaaaa.geocraft.api.event.block.StaticLiquidUpdateEvent;
 import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
-import top.qiguaiaaaa.geocraft.simulation.VanillaLikeSimulationCore;
-import top.qiguaiaaaa.geocraft.simulation.VanillaSimulationCore;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.VanillaLikeFluidPhysicsCore;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.VanillaFluidPhysicsCore;
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
 import top.qiguaiaaaa.geocraft.util.WaterUtil;
 
@@ -28,7 +28,7 @@ public final class VanillaLikeEventHandler{
         if(event.getLiquid() != FluidRegistry.WATER) return;
         World worldIn = event.getWorld();
         BlockPos pos = event.getPos();
-        VanillaSimulationCore.evaporateWater(worldIn,pos, worldIn.rand);
+        VanillaFluidPhysicsCore.evaporateWater(worldIn,pos, worldIn.rand);
     }
     @SubscribeEvent
     public void onAtmosphereRainAndSnow(AtmosphereUpdateEvent.RainAndSnow event){
@@ -41,7 +41,7 @@ public final class VanillaLikeEventHandler{
             event.setState(Blocks.SNOW_LAYER.getDefaultState());
         }
         if(!BaseUtil.getRandomResult(world.rand,event.getRainPossibility())) return;
-        if(VanillaLikeSimulationCore.canRainAt(world,randPos.down())){
+        if(VanillaLikeFluidPhysicsCore.canRainAt(world,randPos.down())){
             atmosphere.drainWater(Fluid.BUCKET_VOLUME,randPos,false);
             //因为不是更新指定的位置,所以不设置结果
             world.setBlockState(randPos.down(),Blocks.FLOWING_WATER.getDefaultState());

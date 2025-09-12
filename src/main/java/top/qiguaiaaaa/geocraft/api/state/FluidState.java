@@ -11,12 +11,17 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.Layer;
 import top.qiguaiaaaa.geocraft.api.property.FluidProperty;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * 流体状态
+ * @author QiguaiAAAA
+ */
 public abstract class FluidState implements GeographyState, IFluidHandler {
     protected final Fluid fluid;
     protected int amount;
-    public FluidState(Fluid fluid, int amount){
+    public FluidState(@Nonnull Fluid fluid, int amount){
         this.fluid = fluid;
         this.amount = amount;
     }
@@ -37,7 +42,7 @@ public abstract class FluidState implements GeographyState, IFluidHandler {
     }
 
     @Override
-    public void initialise(Layer layer) {
+    public void initialise(@Nonnull Layer layer) {
         this.amount = 0;
     }
 
@@ -46,6 +51,7 @@ public abstract class FluidState implements GeographyState, IFluidHandler {
         return amount>=0;
     }
 
+    @Nonnull
     @Override
     public abstract FluidProperty getProperty() ;
 
@@ -53,29 +59,30 @@ public abstract class FluidState implements GeographyState, IFluidHandler {
      * 获取气体对应的Forge流体
      * @return Forge流体
      */
+    @Nonnull
     public Fluid getFluid() {
         return fluid;
     }
-
+    @Nonnull
     @Override
     public NBTBase serializeNBT() {
         return new NBTTagInt(amount);
     }
 
     @Override
-    public void deserializeNBT(NBTBase nbt) {
+    public void deserializeNBT(@Nonnull NBTBase nbt) {
         if(nbt instanceof NBTPrimitive){
             this.amount = ((NBTPrimitive) nbt).getInt();
         }
     }
-
+    @Nonnull
     @Override
     public IFluidTankProperties[] getTankProperties() {
         return new GasStateFluidTankProperties[]{new GasStateFluidTankProperties()};
     }
 
     @Override
-    public int fill(FluidStack resource, boolean doFill) {
+    public int fill(@Nonnull FluidStack resource, boolean doFill) {
         if(resource.getFluid() != fluid) return 0;
         if(this.amount + resource.amount <0) return 0;
         if(doFill) addAmount(resource.amount);
@@ -84,7 +91,7 @@ public abstract class FluidState implements GeographyState, IFluidHandler {
 
     @Nullable
     @Override
-    public FluidStack drain(FluidStack resource, boolean doDrain) {
+    public FluidStack drain(@Nonnull FluidStack resource, boolean doDrain) {
         if(resource.getFluid() != fluid) return null;
         return drain(resource.amount,doDrain);
     }
@@ -96,7 +103,7 @@ public abstract class FluidState implements GeographyState, IFluidHandler {
         if(doDrain) addAmount(-drainedInFact);
         return new FluidStack(fluid,drainedInFact);
     }
-
+    @Nonnull
     @Override
     public String toString() {
         return amount+"";
@@ -107,19 +114,19 @@ public abstract class FluidState implements GeographyState, IFluidHandler {
         public GasStateFluidTankProperties() {
             super(null, 99999999,true,true);
         }
-
+        @Nonnull
         @Override
         public FluidStack getContents() {
             return new FluidStack(fluid,getAmount());
         }
 
         @Override
-        public boolean canFillFluidType(FluidStack fluidStack) {
+        public boolean canFillFluidType(@Nonnull FluidStack fluidStack) {
             return fluidStack.getFluid() == fluid;
         }
 
         @Override
-        public boolean canDrainFluidType(FluidStack fluidStack) {
+        public boolean canDrainFluidType(@Nonnull FluidStack fluidStack) {
             return fluidStack.getFluid() == fluid;
         }
     }

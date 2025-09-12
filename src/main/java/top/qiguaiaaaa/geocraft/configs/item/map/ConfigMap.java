@@ -7,6 +7,7 @@ import top.qiguaiaaaa.geocraft.api.configs.value.map.ConfigurableLinkedHashMap;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.ConfigEntry;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 
+import javax.annotation.Nonnull;
 import java.util.function.Function;
 
 public class ConfigMap<K,V> extends ConfigItem<ConfigurableLinkedHashMap<K,V>> {
@@ -36,13 +37,13 @@ public class ConfigMap<K,V> extends ConfigItem<ConfigurableLinkedHashMap<K,V>> {
     }
 
     @Override
-    public void load(Configuration config) {
+    public void load(@Nonnull Configuration config) {
         Property property = config.get(category,key,defaultValue.toStringList(),comment);
         load(property);
     }
 
     @Override
-    protected void load(Property property) {
+    protected void load(@Nonnull Property property) {
         value = new ConfigurableLinkedHashMap<>();
         String[] strings = property.getStringList();
         for(String content:strings){

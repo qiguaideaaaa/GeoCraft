@@ -12,16 +12,20 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.raypack.HeatPack;
 import top.qiguaiaaaa.geocraft.api.state.GeographyState;
 import top.qiguaiaaaa.geocraft.api.state.TemperatureState;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 一个基本的抽象层,实现了基本的层级结构、热量管理和{@link GeographyState}管理
+ */
 public abstract class BaseLayer implements Layer{
     protected final Map<GeographyProperty, GeographyState> states = new HashMap<>();
     protected final Atmosphere atmosphere;
     protected Layer lowerLayer,upperLayer;
 
-    public BaseLayer(Atmosphere atmosphere) {
+    public BaseLayer(@Nonnull Atmosphere atmosphere) {
         this.atmosphere = atmosphere;
     }
 
@@ -41,11 +45,11 @@ public abstract class BaseLayer implements Layer{
             temperature.set(TemperatureProperty.MIN);
             return;
         }
-        getTemperature().add热量(quanta,getHeatCapacity());
+        getTemperature().addHeat(quanta,getHeatCapacity());
     }
 
     @Override
-    public void sendHeat(HeatPack pack, @Nullable EnumFacing direction) {
+    public void sendHeat(@Nonnull HeatPack pack, @Nullable EnumFacing direction) {
         if(direction == null || pack.getType() == null){
             putHeat(pack.getAmount(),null);
             return;
@@ -54,7 +58,7 @@ public abstract class BaseLayer implements Layer{
     }
 
     @Override
-    public void sendHeat(HeatPack pack, @Nullable Vec3i direction) {
+    public void sendHeat(@Nonnull HeatPack pack, @Nullable Vec3i direction) {
         if(direction == null || pack.getType() == null){
             putHeat(pack.getAmount(),null);
             return;
@@ -71,7 +75,7 @@ public abstract class BaseLayer implements Layer{
             temperature.set(TemperatureProperty.MIN+0.1f);
             return quanta;
         }
-        getTemperature().add热量(-quanta,getHeatCapacity());
+        getTemperature().addHeat(-quanta,getHeatCapacity());
         return quanta;
     }
 
@@ -114,13 +118,13 @@ public abstract class BaseLayer implements Layer{
 
     @Nullable
     @Override
-    public GeographyState getState(GeographyProperty property) {
+    public GeographyState getState(@Nonnull GeographyProperty property) {
         return states.get(property);
     }
 
     @Nullable
     @Override
-    public GeographyState addState(GeographyProperty property) {
+    public GeographyState addState(@Nonnull GeographyProperty property) {
         GeographyState oldState = getState(property);
         GeographyState newState = property.getStateInstance();
         states.put(property,newState);

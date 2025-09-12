@@ -29,6 +29,9 @@ import java.util.List;
 
 @Mixin(value = ItemGlassBottle.class)
 public class ItemGlassBottleMixin {
+    /**
+     * @reason 插入事件
+     */
     @Inject(method = "onItemRightClick",at = @At("HEAD"),cancellable = true)
     public void onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn, CallbackInfoReturnable<ActionResult<ItemStack>> cir) {
         cir.cancel();

@@ -29,7 +29,7 @@ public class PhysicsBlockLiquidWrapper extends BlockLiquidWrapper {
             return 0;
         }
 
-        final Set<PlaceChoice> choices = FluidSearchUtil.findPlaceableLocations(world,blockPos,fluid,8,ignoreCurrentPos);
+        final Set<PlaceChoice> choices = FluidSearchUtil.findPlaceableLocations(world,blockPos,fluid,8,ignoreCurrentPos,null);
         if(choices.isEmpty()) return 0;
         int quantaLeft = expectedQuanta;
         for(PlaceChoice choice:choices){

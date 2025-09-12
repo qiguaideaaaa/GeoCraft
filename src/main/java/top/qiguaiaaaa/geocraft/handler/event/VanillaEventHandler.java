@@ -11,7 +11,7 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereUpdateEvent;
 import top.qiguaiaaaa.geocraft.api.event.block.StaticLiquidUpdateEvent;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
-import top.qiguaiaaaa.geocraft.simulation.VanillaSimulationCore;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.VanillaFluidPhysicsCore;
 import top.qiguaiaaaa.geocraft.util.WaterUtil;
 
 public final class VanillaEventHandler {
@@ -20,7 +20,7 @@ public final class VanillaEventHandler {
         if(event.getLiquid() != FluidRegistry.WATER) return;
         World worldIn = event.getWorld();
         BlockPos pos = event.getPos();
-        VanillaSimulationCore.evaporateWater(worldIn,pos, worldIn.rand);
+        VanillaFluidPhysicsCore.evaporateWater(worldIn,pos, worldIn.rand);
     }
     @SubscribeEvent
     public void onAtmosphereRainAndSnow(AtmosphereUpdateEvent.RainAndSnow event){

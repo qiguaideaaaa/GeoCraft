@@ -5,8 +5,12 @@ import net.minecraft.util.math.Vec3d;
 import top.qiguaiaaaa.geocraft.api.property.FluidProperty;
 import top.qiguaiaaaa.geocraft.api.state.FluidState;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * 大气层级
+ */
 public interface AtmosphereLayer extends Layer {
 
     /**
@@ -30,13 +34,13 @@ public interface AtmosphereLayer extends Layer {
      * @param pos 某地
      * @return 大气压，单位帕 Pa
      */
-    double getPressure(BlockPos pos);
+    double getPressure(@Nonnull BlockPos pos);
 
     /**
      * 获得某位置的大气水汽压
      * @return 大气水汽压，单位帕 Pa
      */
-    double getWaterPressure(BlockPos pos);
+    double getWaterPressure(@Nonnull BlockPos pos);
 
     /**
      * 获取整体水汽压
@@ -50,7 +54,7 @@ public interface AtmosphereLayer extends Layer {
      * @return 大气温度
      */
     @Override
-    default float getTemperature(BlockPos pos){
+    default float getTemperature(@Nonnull BlockPos pos){
         return getTemperature(pos,false);
     }
 
@@ -60,14 +64,15 @@ public interface AtmosphereLayer extends Layer {
      * @param notAir 如果需要获取非气体温度，则为true。否则返回气体温度。
      * @return 温度
      */
-    float getTemperature(BlockPos pos,boolean notAir);
+    float getTemperature(@Nonnull BlockPos pos,boolean notAir);
 
     /**
-     * 获得某地的风,注意地面层是不会有风的
+     * 获得某地的风
      * @param pos 位置
      * @return 代表风速的三维向量。若没有风或无风则返回零向量。
      */
-    Vec3d getWind(BlockPos pos);
+    @Nonnull
+    Vec3d getWind(@Nonnull BlockPos pos);
 
     /**
      * 获取大气成分状态
@@ -75,7 +80,7 @@ public interface AtmosphereLayer extends Layer {
      * @return 对应的大气状态
      */
     @Nullable
-    FluidState getGas(FluidProperty property);
+    FluidState getGas(@Nonnull FluidProperty property);
 
     /**
      * 获取该大气层的气态水水量状态

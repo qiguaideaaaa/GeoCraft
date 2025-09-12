@@ -36,11 +36,11 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.tracker.InformationLoggingTracker;
 import top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.geocraft.api.util.io.FileLogger;
 import top.qiguaiaaaa.geocraft.api.util.math.Altitude;
-import top.qiguaiaaaa.geocraft.atmosphere.SurfaceAtmosphere;
-import top.qiguaiaaaa.geocraft.property.GeographyPropertyManager;
-import top.qiguaiaaaa.geocraft.atmosphere.layer.surface.Underlying;
-import top.qiguaiaaaa.geocraft.atmosphere.tracker.FluidTracker;
-import top.qiguaiaaaa.geocraft.atmosphere.tracker.TemperatureTracker;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.SurfaceAtmosphere;
+import top.qiguaiaaaa.geocraft.geography.property.GeographyPropertyManager;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.layer.surface.Underlying;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.tracker.FluidTracker;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.tracker.TemperatureTracker;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

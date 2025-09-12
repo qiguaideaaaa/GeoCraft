@@ -2,8 +2,10 @@ package top.qiguaiaaaa.geocraft.api.atmosphere.storage;
 
 import com.google.common.collect.Lists;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.chunk.storage.RegionFile;
 import top.qiguaiaaaa.geocraft.api.util.APIUtil;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.*;
 import java.util.List;
@@ -11,6 +13,10 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 
+/**
+ * 大气数据文件，类似{@link RegionFile}但格式些许不同<br/>
+ * 一个文件最多保存{@link #TOTAL_ATMOSPHERES}个大气
+ */
 public class AtmosphereRegionFile {
     public static final short STORAGE_ATMOSPHERES_COUNT_LOG = 7;
     private static final int TOTAL_ATMOSPHERES = 1<<(STORAGE_ATMOSPHERES_COUNT_LOG*2),
@@ -26,7 +32,7 @@ public class AtmosphereRegionFile {
     private int fileSizeChangeDelta;
     private long lastModifiedTime;
 
-    public AtmosphereRegionFile(File fileNameIn) {
+    public AtmosphereRegionFile(@Nonnull File fileNameIn) {
         this.fileName = fileNameIn;
         this.fileSizeChangeDelta = 0;
 
@@ -138,7 +144,7 @@ public class AtmosphereRegionFile {
         return this.outOfBounds(x, z) ? null : new DataOutputStream(new BufferedOutputStream(new DeflaterOutputStream(new AtmosphereBuffer(x, z))));
     }
 
-    protected synchronized void write(int x, int z, byte[] data, int length) {
+    protected synchronized void write(int x, int z,@Nonnull byte[] data, int length) {
         try {
             int i = this.getOffset(x, z);
             int begin = i >> 8;
@@ -204,7 +210,7 @@ public class AtmosphereRegionFile {
         }
     }
 
-    private void write(int sectorNumber, byte[] data, int length) throws IOException {
+    private void write(int sectorNumber,@Nonnull byte[] data, int length) throws IOException {
         this.dataFile.seek(sectorNumber * 4096L);
         this.dataFile.writeInt(length + 1);
         this.dataFile.writeByte(2);
@@ -241,7 +247,7 @@ public class AtmosphereRegionFile {
         }
     }
 
-    class AtmosphereBuffer extends ByteArrayOutputStream {
+    protected class AtmosphereBuffer extends ByteArrayOutputStream {
         private final int chunkX;
         private final int chunkZ;
 

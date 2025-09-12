@@ -10,7 +10,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -21,26 +20,24 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager;
 import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
-import top.qiguaiaaaa.geocraft.block.IPermeable;
+import top.qiguaiaaaa.geocraft.api.block.IPermeableBlock;
 import top.qiguaiaaaa.geocraft.configs.SimulationConfig;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockLiquidAccessor;
 import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.util.mixinapi.FluidSettable;
 import top.qiguaiaaaa.geocraft.util.mixinapi.IVanillaFlowChecker;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
-import static net.minecraft.block.BlockLiquid.LEVEL;
-
 @Mixin(value = BlockDynamicLiquid.class)
-public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettable, IVanillaFlowChecker,IPermeable {
+public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettable, IVanillaFlowChecker, IPermeableBlock {
     private static final Random random = new Random();
     private Fluid thisFluid;
 
@@ -86,7 +83,7 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
                 if (liquidQuanta<=0) worldIn.setBlockToAir(pos); //先更新自身状态
                 else {
                     state = state.withProperty(LEVEL,liquidMeta);
-                    worldIn.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
+                    worldIn.setBlockState(pos, state, net.minecraftforge.common.util.Constants.BlockFlags.SEND_TO_CLIENTS);
                     worldIn.scheduleUpdate(pos,this, updateRate);
                     worldIn.notifyNeighborsOfStateChange(pos,this, false);
                 }
@@ -139,7 +136,7 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
             if (liquidQuanta<=0) worldIn.setBlockToAir(pos); //先更新自身状态
             else {
                 state = state.withProperty(LEVEL,liquidMeta);
-                worldIn.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
+                worldIn.setBlockState(pos, state, net.minecraftforge.common.util.Constants.BlockFlags.SEND_TO_CLIENTS);
                 worldIn.scheduleUpdate(pos,this, updateRate);
                 worldIn.notifyNeighborsOfStateChange(pos,this, false);
             }
@@ -160,7 +157,7 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
             int newLiquidMeta = 8-newLiquidQuanta;
             //更新自己
             state = state.withProperty(LEVEL,newLiquidMeta);
-            worldIn.setBlockState(pos,state, Constants.BlockFlags.SEND_TO_CLIENTS);
+            worldIn.setBlockState(pos,state, net.minecraftforge.common.util.Constants.BlockFlags.SEND_TO_CLIENTS);
             worldIn.scheduleUpdate(pos,this, updateRate);
             worldIn.notifyNeighborsOfStateChange(pos,this,false);
             //移动至新位置
@@ -251,7 +248,7 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
             }
             IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(worldIn,currentPos,true);
             if(accessor == null) return;
-            accessor.putHeatToUnderlying(frozenQuanta* AtmosphereUtil.FinalFactors.WATER_MELT_LATENT_HEAT_PER_QUANTA);
+            accessor.putHeatToUnderlying(frozenQuanta* AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA);
             return;
         }
         int belowQuanta = FluidUtil.getFluidQuanta(worldIn,currentPos.down(),downState);
@@ -495,8 +492,8 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
     }
 
     private int getRandomFlag(){
-        if(random.nextInt(2) == 1) return Constants.BlockFlags.DEFAULT;
-        return Constants.BlockFlags.SEND_TO_CLIENTS;
+        if(random.nextInt(2) == 1) return net.minecraftforge.common.util.Constants.BlockFlags.DEFAULT;
+        return net.minecraftforge.common.util.Constants.BlockFlags.SEND_TO_CLIENTS;
     }
 
     @Override
@@ -527,18 +524,19 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
     @Shadow
     private boolean isBlocked(World worldIn, BlockPos pos, IBlockState state){return false;}
 
+    @Nonnull
     @Override
-    public Fluid getFluid(World world, BlockPos pos, IBlockState state) {
+    public Fluid getFluid(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state) {
         return thisFluid;
     }
 
     @Override
-    public int getQuanta(World world, BlockPos pos, IBlockState state) {
+    public int getQuanta(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state) {
         return 8-state.getValue(BlockLiquid.LEVEL);
     }
 
     @Override
-    public int getHeight(World world, BlockPos pos, IBlockState state) {
+    public int getHeight(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state) {
         return getQuanta(world,pos,state)*2;
     }
 
@@ -548,19 +546,20 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
     }
 
     @Override
-    public void addQuanta(World world, BlockPos pos, IBlockState state, int quanta) {
+    public void addQuanta(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, int quanta) {
         int newQuanta = 8-(state.getValue(BlockLiquid.LEVEL)-quanta);
         setQuanta(world,pos,state,newQuanta);
     }
 
     @Override
-    public void setQuanta(World world, BlockPos pos, IBlockState state, int newQuanta) {
+    public void setQuanta(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, int newQuanta) {
         if(newQuanta <= 0) world.setBlockToAir(pos);
-        world.setBlockState(pos,state.withProperty(BlockLiquid.LEVEL,8-newQuanta), Constants.BlockFlags.SEND_TO_CLIENTS);
+        world.setBlockState(pos,state.withProperty(BlockLiquid.LEVEL,8-newQuanta), net.minecraftforge.common.util.Constants.BlockFlags.SEND_TO_CLIENTS);
     }
 
+    @Nonnull
     @Override
-    public IBlockState getQuantaState(IBlockState state, int newQuanta) {
+    public IBlockState getQuantaState(@Nonnull IBlockState state, int newQuanta) {
         if(newQuanta <= 0) return Blocks.AIR.getDefaultState();
         return state.withProperty(BlockLiquid.LEVEL,8-newQuanta);
     }

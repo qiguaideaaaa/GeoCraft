@@ -5,12 +5,18 @@ import net.minecraftforge.common.util.INBTSerializable;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.Layer;
 import top.qiguaiaaaa.geocraft.api.property.GeographyProperty;
 
+import javax.annotation.Nonnull;
+
+/**
+ * 地理状态
+ * @author QiguaiAAAA
+ */
 public interface GeographyState extends INBTSerializable<NBTBase> {
     /**
      * 初始化状态
      * @param layer 层级
      */
-    default void initialise(Layer layer){}
+    default void initialise(@Nonnull Layer layer){}
 
     /**
      * 该状态是否需要被保存
@@ -34,6 +40,8 @@ public interface GeographyState extends INBTSerializable<NBTBase> {
      * 获得该状态对应的属性
      * @return 大气属性
      */
+    @Nonnull
     GeographyProperty getProperty();
+    @Nonnull
     String getNBTTagKey();
 }

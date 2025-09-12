@@ -16,18 +16,23 @@ import top.qiguaiaaaa.geocraft.api.state.FluidState;
 import top.qiguaiaaaa.geocraft.api.state.GeographyState;
 import top.qiguaiaaaa.geocraft.api.state.TemperatureState;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
  * 层级，表示一个竖直方向上的层
+ * 按照规范，一个区块的层级应当从上到下分别为：<br/>
+ * 若干个大气层级{@link AtmosphereLayer}，可能没有大气<br/>
+ * 下垫面层级{@link UnderlyingLayer}，必须要有<br/>
+ * 如未说明，所有的能量单位均为Forge Energe（FE)，模组内默认1 FE = 1 J （现实单位）
  */
 public interface Layer extends INBTSerializable<NBTTagCompound> {
     /**
      * 初始化时调用
      * @param chunk 层级所在区块
      */
-    void onLoad(Chunk chunk);
+    void onLoad(@Nonnull Chunk chunk);
 
     /**
      * 区块不在加载状态时加载层级
@@ -47,7 +52,7 @@ public interface Layer extends INBTSerializable<NBTTagCompound> {
      * @param x 区块坐标X
      * @param z 区块坐标Z
      */
-    void tick(@Nullable Chunk chunk,Map<EnumFacing, Triple<Atmosphere,Chunk,EnumFacing>> neighbors,int x,int z);
+    void tick(@Nullable Chunk chunk, @Nonnull Map<EnumFacing, Triple<Atmosphere,Chunk,EnumFacing>> neighbors, int x, int z);
 
     /**
      * 向该层提供热量
@@ -64,21 +69,21 @@ public interface Layer extends INBTSerializable<NBTTagCompound> {
      *                  向下为使能量逐步向下层传播
      *                  null为能量没有特定朝向，即全部被该层大气吸收
      */
-    void sendHeat(HeatPack pack, @Nullable EnumFacing direction);
+    void sendHeat(@Nonnull HeatPack pack, @Nullable EnumFacing direction);
 
     /**
      * 向该层发送能量
      * @param pack 能量包
      * @param direction 能量发送朝向向量
      */
-    void sendHeat(HeatPack pack, @Nullable Vec3i direction);
+    void sendHeat(@Nonnull HeatPack pack, @Nullable Vec3i direction);
 
     /**
      * 向该层发送能量
      * @param pack 能量包
      * @param direction 能量发送朝向向量
      */
-    void sendHeat(HeatPack pack, @Nullable Vec3d direction);
+    void sendHeat(@Nonnull HeatPack pack, @Nullable Vec3d direction);
 
     /**
      * 从该层吸收能量
@@ -120,13 +125,13 @@ public interface Layer extends INBTSerializable<NBTTagCompound> {
      * 设置该层下面的层
      * @param layer 下面的层
      */
-    void setLowerLayer(Layer layer);
+    void setLowerLayer(@Nullable Layer layer);
 
     /**
      * 设置该层上面的层
      * @param layer 上面的层
      */
-    void setUpperLayer(Layer layer);
+    void setUpperLayer(@Nullable Layer layer);
 
     /**
      * 获取该层所在位置的大气
@@ -174,14 +179,14 @@ public interface Layer extends INBTSerializable<NBTTagCompound> {
      * @return 状态
      */
     @Nullable
-    GeographyState getState(GeographyProperty property);
+    GeographyState getState(@Nonnull GeographyProperty property);
     /**
      * 添加或覆盖状态
      * @param property 属性
      * @return 如果存在旧状态,则返回.否则返回Null
      */
     @Nullable
-    GeographyState addState(GeographyProperty property);
+    GeographyState addState(@Nonnull GeographyProperty property);
 
     /**
      * 返回该层序列化的复合标签的标签名称

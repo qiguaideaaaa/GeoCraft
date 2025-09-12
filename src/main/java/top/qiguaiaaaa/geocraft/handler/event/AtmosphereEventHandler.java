@@ -6,13 +6,13 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.DefaultAtmosphereDataProvider;
-import top.qiguaiaaaa.geocraft.api.atmosphere.storage.DefaultAtmosphereDataLoader;
+import top.qiguaiaaaa.geocraft.api.atmosphere.storage.StorageAtmosphereDataLoader;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemType;
 import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereSystemEvent;
-import top.qiguaiaaaa.geocraft.atmosphere.system.HallAtmosphereSystem;
-import top.qiguaiaaaa.geocraft.atmosphere.system.SurfaceAtmosphereSystem;
-import top.qiguaiaaaa.geocraft.atmosphere.system.VanillaAtmosphereSystem;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.system.HallAtmosphereSystem;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.system.SurfaceAtmosphereSystem;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.system.VanillaAtmosphereSystem;
 import top.qiguaiaaaa.geocraft.configs.AtmosphereConfig;
 
 import java.io.File;
@@ -34,13 +34,13 @@ public class AtmosphereEventHandler {
 
 
         if(type == AtmosphereSystemType.SURFACE_ATMOSPHERE_SYSTEM){
-            DefaultAtmosphereDataLoader loader = new DefaultAtmosphereDataLoader(new File(server.getSaveHandler().getWorldDirectory(),saveFolder));
+            StorageAtmosphereDataLoader loader = new StorageAtmosphereDataLoader(new File(server.getSaveHandler().getWorldDirectory(),saveFolder));
             system = new SurfaceAtmosphereSystem(server,info,new DefaultAtmosphereDataProvider(server,loader));
         }else if(type == AtmosphereSystemType.HALL_ATMOSPHERE_SYSTEM){
-            DefaultAtmosphereDataLoader loader = new DefaultAtmosphereDataLoader(new File(server.getSaveHandler().getWorldDirectory(),saveFolder));
+            StorageAtmosphereDataLoader loader = new StorageAtmosphereDataLoader(new File(server.getSaveHandler().getWorldDirectory(),saveFolder));
             system = new HallAtmosphereSystem(server,info,new DefaultAtmosphereDataProvider(server,loader));
         }else if(type == AtmosphereSystemType.VANILLA_ATMOSPHERE_SYSTEM){
-            DefaultAtmosphereDataLoader loader = new DefaultAtmosphereDataLoader(new File(server.getSaveHandler().getWorldDirectory(),saveFolder));
+            StorageAtmosphereDataLoader loader = new StorageAtmosphereDataLoader(new File(server.getSaveHandler().getWorldDirectory(),saveFolder));
             system = new VanillaAtmosphereSystem(server,info,new DefaultAtmosphereDataProvider(server,loader));
         }
 

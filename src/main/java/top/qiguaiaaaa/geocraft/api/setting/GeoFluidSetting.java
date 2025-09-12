@@ -6,6 +6,10 @@ import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 
 import java.util.HashSet;
 
+/**
+ * 查询天圆地方关于流体的配置
+ * @author QiguaiAAAA
+ */
 public class GeoFluidSetting {
     private static final HashSet<String> FLUIDS_NOT_TO_BE_PHYSICAL = new HashSet<>();
     private static final HashSet<String> FLUIDS_BUCKET_TO_BE_VANILLA = new HashSet<>();

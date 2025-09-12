@@ -8,11 +8,11 @@ import top.qiguaiaaaa.geocraft.api.configs.value.geo.SimulationMode;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 import top.qiguaiaaaa.geocraft.api.property.GeographyProperty;
 import top.qiguaiaaaa.geocraft.configs.SimulationConfig;
+import top.qiguaiaaaa.geocraft.geography.property.*;
 import top.qiguaiaaaa.geocraft.handler.event.AtmosphereEventHandler;
 import top.qiguaiaaaa.geocraft.handler.event.MoreRealityEventHandler;
 import top.qiguaiaaaa.geocraft.handler.event.VanillaEventHandler;
 import top.qiguaiaaaa.geocraft.handler.event.VanillaLikeEventHandler;
-import top.qiguaiaaaa.geocraft.property.*;
 
 public final class RegistryHandler {
     public static void registerGeographyProperties(RegistryEvent.Register<GeographyProperty> event){

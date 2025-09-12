@@ -2,13 +2,15 @@ package top.qiguaiaaaa.geocraft.api.util.math;
 
 import net.minecraft.world.chunk.Chunk;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 
+/**
+ * 海拔
+ * @author QiguaiAAAA
+ */
 public class Altitude {
-    /**
-     * 游戏海拔，单位为格
-     */
-    protected double val;
+    protected double val; //游戏海拔，单位为格
 
     /**
      * @param val 游戏海拔
@@ -16,6 +18,11 @@ public class Altitude {
     public Altitude(double val){
         this(val,false);
     }
+
+    /**
+     * @param val 海拔
+     * @param isPhysical 传入的是否是物理海拔
+     */
     public Altitude(double val,boolean isPhysical){
         if(isPhysical) val = get游戏海拔(val);
         this.val = val;
@@ -42,7 +49,7 @@ public class Altitude {
     public void set物理海拔(double newAltitude){
         this.val = get游戏海拔(newAltitude);
     }
-    public void set(Altitude altitude){
+    public void set(@Nonnull Altitude altitude){
         this.val = altitude.val;
     }
     public boolean between(double a,double b){
@@ -56,13 +63,19 @@ public class Altitude {
     }
     public static double to游戏高度(double 物理高度){return 物理高度/64;}
     public static double to物理高度(double 游戏高度){return 游戏高度*64;}
-
+    @Nonnull
     @Override
     public String toString() {
         return get物理海拔()+" m [ "+val+" ]";
     }
 
-    public static Altitude getMiddleHeight(Chunk chunk){
+    /**
+     * 获取某个区块的海拔高度中位数
+     * @param chunk 区块
+     * @return 海拔高度中位数
+     */
+    @Nonnull
+    public static Altitude getMiddleHeight(@Nonnull Chunk chunk){
         int[] heights = chunk.getHeightMap().clone();
         Arrays.sort(heights); //获取海拔中位数
         return new Altitude(heights[127]);

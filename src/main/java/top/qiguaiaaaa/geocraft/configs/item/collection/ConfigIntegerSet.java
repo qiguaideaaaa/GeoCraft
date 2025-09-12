@@ -5,6 +5,7 @@ import net.minecraftforge.common.config.Property;
 import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableHashSet;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class ConfigIntegerSet extends ConfigSet<Integer>{
     }
 
     @Override
-    public void load(Configuration config) {
+    public void load(@Nonnull Configuration config) {
         Property val = config.get(category,key,getDefaultValues(),comment);
         load(val);
     }

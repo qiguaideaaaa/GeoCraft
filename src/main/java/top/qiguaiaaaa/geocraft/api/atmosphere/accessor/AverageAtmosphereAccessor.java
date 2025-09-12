@@ -13,12 +13,17 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 
+/**
+ * 一个简单的平滑大气属性的{@link IAtmosphereAccessor}实现，大部分数据均会通过多点采样+平均进行平滑过渡，防止在区块交界处出现属性值突变
+ * 获取数据（例如温度、气压）、放置热量时，会将请求平均分配到当前方块对应大气以及八个角落（差1个方块）的大气，以实现平滑过渡。
+ */
 public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
     protected static final int[] CURRENT = {0,0};
     protected static final int[][] DIRS8 = {
@@ -34,6 +39,10 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
         loadDatas();
     }
 
+    /**
+     * {@inheritDoc}
+     * @return {@inheritDoc}
+     */
     @Override
     public boolean refresh() {
         datas.clear();
@@ -67,6 +76,7 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
                 atmosphere.getWaterPressure(mutableBlockPos.setPos(pos.getX() + dir[0], pos.getY(), pos.getZ() + dir[1])));
     }
 
+    @Nonnull
     @Override
     public Vec3d getWind() {
         checkAtmosphereDataLoaded();
@@ -120,6 +130,11 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
         });
     }
 
+    /**
+     * {@inheritDoc}
+     * @param amount {@inheritDoc}
+     * @return {@inheritDoc}
+     */
     @Override
     public double drawHeatFromAtmosphere(double amount) {
         if(amount <0) return 0;
@@ -187,8 +202,13 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
         return res;
     }
 
+    /**
+     * {@inheritDoc}
+     * @param pack {@inheritDoc}
+     * @param direction {@inheritDoc}
+     */
     @Override
-    public void sendHeat(HeatPack pack, EnumFacing direction) {
+    public void sendHeat(@Nonnull HeatPack pack,@Nullable EnumFacing direction) {
         checkAtmosphereDataLoaded();
         Layer layer = data.getAtmosphere().getLayer(pos);
         if(layer == null) return;
@@ -198,7 +218,7 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
     }
 
     @Override
-    public void sendHeat(HeatPack pack, Vec3d directionVec) {
+    public void sendHeat(@Nonnull HeatPack pack,@Nullable Vec3d directionVec) {
         checkAtmosphereDataLoaded();
         Layer layer = data.getAtmosphere().getLayer(pos);
         if(layer == null) return;
@@ -208,7 +228,7 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
     }
 
     @Override
-    public void sendHeat(HeatPack pack, Vec3i directionVec) {
+    public void sendHeat(@Nonnull HeatPack pack,@Nullable Vec3i directionVec) {
         checkAtmosphereDataLoaded();
         Layer layer = data.getAtmosphere().getLayer(pos);
         if(layer == null) return;
@@ -217,7 +237,12 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
         layer.sendHeat(pack,directionVec);
     }
 
-    protected double getAtmosphereValue(BiFunction<int[],Atmosphere,Double> method){
+    /**
+     * 通过多点采样获取指定大气的状态值
+     * @param method 对每个采样点执行的方法，应返回采样的值
+     * @return 平均后的最终状态值
+     */
+    protected double getAtmosphereValue(@Nonnull BiFunction<int[],Atmosphere,Double> method){
         checkAtmosphereDataLoaded();
         double res = 0;
         int cot = 0;
@@ -230,7 +255,12 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
         return res/cot;
     }
 
-    protected double drawAtmosphereProperty(BiFunction<int[],Atmosphere,Double> method){
+    /**
+     * 通过多点采样提取大气的某个成分
+     * @param method 对每个采样点执行的方法，应返回提取的量
+     * @return 累计的提取量
+     */
+    protected double drawAtmosphereProperty(@Nonnull BiFunction<int[],Atmosphere,Double> method){
         checkAtmosphereDataLoaded();
         double res = 0;
         int cot = 0;
@@ -245,14 +275,19 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
 
     /**
      * 用之前记得{@link #clearInvalidData()}
+     * 对每个采样点大气执行某个方法
+     * @param method 对每个采样点的大气执行的方法，无返回值
      */
-    protected void forAtmospheresDo(BiFunction<int[],Atmosphere,Void> method){
+    protected void forAtmospheresDo(@Nonnull BiFunction<int[],Atmosphere,Void> method){
         checkAtmosphereDataLoaded();
         for(Map.Entry<int[],AtmosphereData> entry:datas.entrySet()){
             method.apply(entry.getKey(),entry.getValue().getAtmosphere());
         }
     }
 
+    /**
+     * 预处理采样点
+     */
     protected void loadDatas(){
         BlockPos.MutableBlockPos currentPos = new BlockPos.MutableBlockPos(pos);
         datas.put(CURRENT,data);
@@ -266,10 +301,19 @@ public class AverageAtmosphereAccessor extends AbstractAtmosphereAccessor{
         }
     }
 
-    protected boolean isInvalidData(AtmosphereData data){
+    /**
+     * 检查指定大气数据是否不可用
+     * @param data 要检查的大气数据
+     * @return 若不可用，比如大气数据已被卸载，则返回false，否则返回true
+     */
+    protected boolean isInvalidData(@Nullable AtmosphereData data){
         return data == null||data.isUnloaded()||data.getAtmosphere() == null;
     }
 
+    /**
+     * 从采样点列表中清除不可用的大气数据
+     * 若清除后没有采样点，则会调用{@link #refresh()}来刷新采样点
+     */
     protected void clearInvalidData(){
         checkAtmosphereDataLoaded();
         Set<int[]> toClear = new HashSet<>();

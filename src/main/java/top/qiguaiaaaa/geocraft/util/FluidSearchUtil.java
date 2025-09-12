@@ -14,6 +14,8 @@ import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.PlaceChoice;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockFluidBaseAccessor;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 public final class FluidSearchUtil {
@@ -32,7 +34,13 @@ public final class FluidSearchUtil {
      * @param sameLevelIterationLimit 最大同等级搜索次数
      * @return 一个可能的流体源
      */
-    public static Optional<BlockPos> findSource(World world, BlockPos startPos, Material material, boolean ignoreSameY, boolean ignoreLevel, int maxIterations, int sameLevelIterationLimit){
+    public static Optional<BlockPos> findSource(@Nonnull World world,
+                                                @Nonnull BlockPos startPos,
+                                                @Nonnull Material material,
+                                                boolean ignoreSameY,
+                                                boolean ignoreLevel,
+                                                int maxIterations,
+                                                int sameLevelIterationLimit){
         return findSourceIterate(world,startPos,material,ignoreSameY,ignoreLevel,maxIterations,sameLevelIterationLimit);
     }
 
@@ -48,7 +56,13 @@ public final class FluidSearchUtil {
      * @param sameQuantaIterationLimit 最大同量搜索次数
      * @return 一个可能的流体源
      */
-    public static Optional<BlockPos> findSource(World world, BlockPos startPos, Fluid fluid, boolean ignoreSameY, boolean ignoreLevel, int maxIterations, int sameQuantaIterationLimit){
+    public static Optional<BlockPos> findSource(@Nonnull World world,
+                                                @Nonnull BlockPos startPos,
+                                                @Nonnull Fluid fluid,
+                                                boolean ignoreSameY,
+                                                boolean ignoreLevel,
+                                                int maxIterations,
+                                                int sameQuantaIterationLimit){
         if(fluid == FluidRegistry.WATER){
             findSource(world,startPos,Material.WATER,ignoreSameY,ignoreLevel,maxIterations,sameQuantaIterationLimit);
         }else if(fluid == FluidRegistry.LAVA){
@@ -76,9 +90,9 @@ public final class FluidSearchUtil {
      * @param sameLevelIterationLimit 最大同等级搜索次数
      * @return 一个可能的流体源
      */
-    private static Optional<BlockPos> findSourceIterate(World world,
-                                                    BlockPos startPos,
-                                                    Material material,
+    private static Optional<BlockPos> findSourceIterate(@Nonnull World world,
+                                                    @Nonnull BlockPos startPos,
+                                                    @Nonnull Material material,
                                                     boolean ignoreSameY,
                                                     boolean ignoreLevel,
                                                     int maxIterations,
@@ -167,9 +181,9 @@ public final class FluidSearchUtil {
      * @param quantaPerBlock 每个流体方块最大容量
      * @return 一个可能的流体源
      */
-    private static Optional<BlockPos> findSourceIterate(World world,
-                                                        BlockPos startPos,
-                                                        Fluid fluid,
+    private static Optional<BlockPos> findSourceIterate(@Nonnull World world,
+                                                        @Nonnull BlockPos startPos,
+                                                        @Nonnull Fluid fluid,
                                                         boolean ignoreSameY,
                                                         boolean ignoreLevel,
                                                         int densityDir,
@@ -253,9 +267,15 @@ public final class FluidSearchUtil {
      * @param fluid 流体
      * @param maxOptions 最大可选项
      * @param ignoreBeginPos 是否忽略开始搜索的位置
+     * @param dir 指定垂直搜寻方向，若为null则默认会按照下->上优先级搜寻（负密度流体反之）
      * @return 一个PlaceChoice集合，按照水平<垂值，进<远排列
      */
-    public static Set<PlaceChoice> findPlaceableLocations(World world,BlockPos origin,Fluid fluid, int maxOptions,boolean ignoreBeginPos) {
+    public static Set<PlaceChoice> findPlaceableLocations(@Nonnull World world,
+                                                          @Nonnull BlockPos origin,
+                                                          @Nonnull Fluid fluid,
+                                                          int maxOptions,
+                                                          boolean ignoreBeginPos,
+                                                          @Nullable EnumFacing dir) {
         Set<PlaceChoice> res = new LinkedHashSet<>();
         Set<BlockPos> visited = new HashSet<>();
         Deque<BlockPos> queue = new ArrayDeque<>();
@@ -294,7 +314,19 @@ public final class FluidSearchUtil {
         }
         if (res.size() >= maxOptions) return res;
         if(origin.getY() >= world.getHeight()-1) return res;
-        res.addAll(findPlaceableLocations(world,origin.up(),fluid,maxOptions-res.size(),false));
+        if(dir == null && fluid.getDensity() >=0){
+            res.addAll(findPlaceableLocations(world,origin.down(),fluid,maxOptions-res.size(),false,EnumFacing.DOWN));
+            if (res.size() >= maxOptions) return res;
+            res.addAll(findPlaceableLocations(world,origin.up(),fluid,maxOptions-res.size(),false,EnumFacing.UP));
+        }else if(dir == null){
+            res.addAll(findPlaceableLocations(world,origin.up(),fluid,maxOptions-res.size(),false,EnumFacing.UP));
+            if (res.size() >= maxOptions) return res;
+            res.addAll(findPlaceableLocations(world,origin.down(),fluid,maxOptions-res.size(),false,EnumFacing.DOWN));
+        }else if(dir == EnumFacing.DOWN){
+            res.addAll(findPlaceableLocations(world,origin.down(),fluid,maxOptions-res.size(),false,EnumFacing.DOWN));
+        }else if(dir == EnumFacing.UP){
+            res.addAll(findPlaceableLocations(world,origin.down(),fluid,maxOptions-res.size(),false,EnumFacing.UP));
+        }
 
         return res;
     }

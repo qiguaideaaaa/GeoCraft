@@ -8,8 +8,13 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * 大气系统，每个维度都可以有一个大气系统，用来管理这个维度的大气<br/>
+ * 注意，有大气系统不代表这个维度有大气。因为实际上大气系统还管理着下垫面。可能会出现一个维度没有大气但有大气系统的情况。
+ */
 public interface IAtmosphereSystem {
     /**
      * 每游戏刻更新，更新大气
@@ -20,25 +25,25 @@ public interface IAtmosphereSystem {
      * 当一个新区块被生成的时候调用，以生成区块对应的大气
      * @param chunk 区块
      */
-    void onChunkGenerated(Chunk chunk);
+    void onChunkGenerated(@Nonnull Chunk chunk);
 
     /**
      * 当一个已生成区块被加载时，加载对应的大气
      * @param chunk 区块
      */
-    void onChunkLoaded(Chunk chunk);
+    void onChunkLoaded(@Nonnull Chunk chunk);
 
     /**
      * 当一个加载区块被卸载时，处理对应的大气
      * @param chunk 区块
      */
-    void onChunkUnloaded(Chunk chunk);
+    void onChunkUnloaded(@Nonnull Chunk chunk);
 
     /**
      * 保存所有大气
      */
     void saveAllAtmospheres();
-    boolean isAtmosphereLoaded(ChunkPos pos);
+    boolean isAtmosphereLoaded(@Nonnull ChunkPos pos);
 
     /**
      * 设置是否停止大气更新
@@ -56,6 +61,7 @@ public interface IAtmosphereSystem {
      * 获取向该大气系统提供底层大气数据的提供者
      * @return 大气数据提供者
      */
+    @Nonnull
     IAtmosphereDataProvider getDataProvider();
 
     /**
@@ -65,7 +71,7 @@ public interface IAtmosphereSystem {
      * @return 若指定位置没有可用大气,则返回null
      */
     @Nullable
-    IAtmosphereAccessor getAccessor(BlockPos pos,boolean notAir);
+    IAtmosphereAccessor getAccessor(@Nonnull BlockPos pos,boolean notAir);
 
     /**
      * 获取指定位置的大气
@@ -73,7 +79,7 @@ public interface IAtmosphereSystem {
      * @return 若大气可用，则返回大气。否则返回null
      */
     @Nullable
-    Atmosphere getAtmosphere(BlockPos pos);
+    Atmosphere getAtmosphere(@Nonnull BlockPos pos);
 
     /**
      * 获取指定区块的大气
@@ -81,7 +87,7 @@ public interface IAtmosphereSystem {
      * @return 若大气可用，则返回大气，否则返回null
      */
     @Nullable
-    Atmosphere getAtmosphere(Chunk chunk);
+    Atmosphere getAtmosphere(@Nonnull Chunk chunk);
 
     /**
      * 获取指定区块坐标的大气
@@ -89,7 +95,8 @@ public interface IAtmosphereSystem {
      * @param z 区块坐标Z
      * @return 若大气可用，则返回大气，否则返回null
      */
+    @Nullable
     Atmosphere getAtmosphere(int x,int z);
-
+    @Nonnull
     AtmosphereWorldInfo getAtmosphereWorldInfo();
 }

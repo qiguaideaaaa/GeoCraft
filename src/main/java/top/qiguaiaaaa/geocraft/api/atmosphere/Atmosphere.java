@@ -17,17 +17,30 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Random;
 
+/**
+ * 一个大气<br/>
+ * 其实更应该叫做地理单元，因为实际上一个Atmosphere实例还包括下垫面（也就是地下），但是却不一定真的有大气层
+ */
 public interface Atmosphere extends INBTSerializable<NBTTagCompound> {
     NoiseGeneratorPerlin TEMPERATURE_NOISE = new NoiseGeneratorPerlin(new Random(1234L), 1);
 
-    void onLoad(Chunk chunk, AtmosphereWorldInfo info);
+    /**
+     * 当区块已经加载的时候初始化大气
+     * @param chunk 大气所在区块
+     * @param info 世界大气信息
+     */
+    void onLoad(@Nonnull Chunk chunk,@Nonnull AtmosphereWorldInfo info);
 
     /**
      * 在区块没有加载的情况下加载大气
      */
-    void onLoadWithoutChunk(AtmosphereWorldInfo info);
+    void onLoadWithoutChunk(@Nonnull AtmosphereWorldInfo info);
 
-    boolean isInitialised();
+    /**
+     * 大气是否已经加载完成。使用任何大气都应当事先检查该大气是否已经加载完成。
+     * @return 若已经加载完成，则返回true
+     */
+    boolean isLoaded();
 
     /**
      * 当大气需要被卸载时调用
@@ -35,6 +48,10 @@ public interface Atmosphere extends INBTSerializable<NBTTagCompound> {
      */
     void onUnload();
 
+    /**
+     * 该大气已经tick的大气刻
+     * @return 大气刻
+     */
     long tickTime();
 
     /**
@@ -60,14 +77,14 @@ public interface Atmosphere extends INBTSerializable<NBTTagCompound> {
      * @param test 是否为测试
      * @return 实际吸收的量
      */
-    int drainWater(int amount, BlockPos pos, boolean test);
+    int drainWater(int amount,@Nonnull BlockPos pos, boolean test);
 
     /**
      * 获取大气温度，绝对不能返回地面温度
      * @param pos 位置
      * @return 大气温度
      */
-    default float getAtmosphereTemperature(BlockPos pos){
+    default float getAtmosphereTemperature(@Nonnull BlockPos pos){
         return getTemperature(pos,false);
     }
 
@@ -77,7 +94,7 @@ public interface Atmosphere extends INBTSerializable<NBTTagCompound> {
      * @param notAir 是否不为大气温度
      * @return 返回对应位置的温度。若指定位置没有可用温度,则返回 {@link TemperatureProperty#UNAVAILABLE}
      */
-    float getTemperature(BlockPos pos, boolean notAir);
+    float getTemperature(@Nonnull BlockPos pos, boolean notAir);
 
     /**
      * 向大气提供或从大气吸收热量,不会操作也不应该操作到下垫面
@@ -94,14 +111,14 @@ public interface Atmosphere extends INBTSerializable<NBTTagCompound> {
      * @param pos 方块位置,为游戏位置
      * @return 风速向量
      */
-    Vec3d getWind(BlockPos pos);
+    Vec3d getWind(@Nonnull BlockPos pos);
 
     /**
      * 获得某位置的大气水汽压
      * 一般情况下请使用{@link IAtmosphereAccessor}
      * @return 大气水汽压，单位帕 Pa。若无可用气压，则返回 0
      */
-    double getWaterPressure(BlockPos pos);
+    double getWaterPressure(@Nonnull BlockPos pos);
 
     /**
      * 获取大气指定位置的气压
@@ -109,45 +126,62 @@ public interface Atmosphere extends INBTSerializable<NBTTagCompound> {
      * @param pos 位置
      * @return 气压,单位Pa。若无可用气压，则返回 0
      */
-    double getPressure(BlockPos pos);
+    double getPressure(@Nonnull BlockPos pos);
 
-    void setAtmosphereWorldInfo(AtmosphereWorldInfo worldInfo);
-
+    /**
+     * 获取大气世界信息<br/>
+     * 请不要在{@link #isLoaded()}为false的情况下使用该方法
+     * @return 大气世界信息
+     */
+    @Nonnull
     AtmosphereWorldInfo getAtmosphereWorldInfo();
 
     /**
      * 增加大气监听器
      * @param tracker 一个监听器
      */
-    void addTracker(IAtmosphereTracker tracker);
+    void addTracker(@Nonnull IAtmosphereTracker tracker);
 
     /**
      * 移除指定的监听器
      * @param tracker 指定监听器
      */
-    void removeTracker(IAtmosphereTracker tracker);
+    void removeTracker(@Nonnull IAtmosphereTracker tracker);
 
-    Layer getLayer(BlockPos pos);
+    /**
+     * 获取当前位置的层级
+     * @param pos 层级
+     * @return 一个层级
+     */
+    @Nullable
+    Layer getLayer(@Nonnull BlockPos pos);
 
     /**
      * 获取顶端层级
      * @return 顶端层级
      */
+    @Nonnull
     Layer getTopLayer();
 
     /**
      * 获取底端层级
      * @return 底端层级
      */
+    @Nonnull
     Layer getBottomLayer();
 
     /**
-     * 获取底端大气层级
+     * 获取底端大气层级，若没有大气层则返回null
      * @return 底端大气层级
      */
     @Nullable
     AtmosphereLayer getBottomAtmosphereLayer();
 
+    /**
+     * 获取下垫面层级
+     * @return 下垫面层级
+     */
+    @Nonnull
     UnderlyingLayer getUnderlying();
 
     /**

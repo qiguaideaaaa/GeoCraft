@@ -14,6 +14,7 @@ import top.qiguaiaaaa.geocraft.api.setting.GeoBlockSetting;
 import top.qiguaiaaaa.geocraft.configs.item.collection.ConfigIntegerSet;
 import top.qiguaiaaaa.geocraft.configs.item.map.ConfigMap;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -23,7 +24,7 @@ public final class AtmosphereConfig {
     public static final ConfigBoolean ENABLE_DETAIL_LOGGING = new ConfigBoolean(CATEGORY_ATMOSPHERE,"enableDetailLogging",
             false,"开启详细的大气日志记录",true){
         @Override
-        public void load(Configuration config) {
+        public void load(@Nonnull Configuration config) {
             super.load(config);
             GeoAtmosphereSetting.setEnableDetailedLogging(value);
         }
@@ -177,7 +178,7 @@ public final class AtmosphereConfig {
                     //其他
                     new BlockIntegerEntry("minecraft:air",200)){
                 @Override
-                public void load(Configuration config) {
+                public void load(@Nonnull Configuration config) {
                     super.load(config);
                     for(Map.Entry<ConfigurableBlockState,Integer> entry: getValue().entrySet()){
                         GeoBlockSetting.setBlockHeatCapacity(entry.getKey(),entry.getValue());
@@ -342,7 +343,7 @@ public final class AtmosphereConfig {
                     new BlockIntegerEntry("minecraft:air",1)
             ){
                 @Override
-                public void load(Configuration config) {
+                public void load(@Nonnull Configuration config) {
                     super.load(config);
                     for(Map.Entry<ConfigurableBlockState,Integer> entry: getValue().entrySet()){
                         GeoBlockSetting.setBlockReflectivity(entry.getKey(),entry.getValue());
@@ -354,13 +355,13 @@ public final class AtmosphereConfig {
     public static final ConfigInteger ATMOSPHERE_UNDERLYING_RECALCULATE_GAP = new ConfigInteger(CATEGORY_ATMOSPHERE,
             "atmosphereUnderlyingRecalculateGap",400,"大气重新计算下垫面性质的间隔时间，单位为大气刻"){
         @Override
-        public void load(Configuration config) {
+        public void load(@Nonnull Configuration config) {
             super.load(config);
             GeoAtmosphereSetting.setUnderlyingReloadGap(value);
         }
 
         @Override
-        public void setValue(Integer newValue) {
+        public void setValue(@Nonnull Integer newValue) {
             super.setValue(newValue);
             GeoAtmosphereSetting.setUnderlyingReloadGap(value);
         }

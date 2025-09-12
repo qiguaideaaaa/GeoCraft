@@ -5,6 +5,7 @@ import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableHashSet;
 
+import javax.annotation.Nonnull;
 import java.util.function.Function;
 
 public class ConfigSet<ValueType> extends ConfigItem<ConfigurableHashSet<ValueType>> {
@@ -24,7 +25,7 @@ public class ConfigSet<ValueType> extends ConfigItem<ConfigurableHashSet<ValueTy
     }
 
     @Override
-    protected void load(Property property) {
+    protected void load(@Nonnull Property property) {
         value = new ConfigurableHashSet<>();
         String[] strings = property.getStringList();
         for(String string:strings){

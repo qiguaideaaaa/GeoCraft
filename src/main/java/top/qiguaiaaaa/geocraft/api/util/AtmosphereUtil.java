@@ -5,15 +5,21 @@ import net.minecraft.world.storage.WorldInfo;
 import top.qiguaiaaaa.geocraft.api.setting.GeoAtmosphereSetting;
 import top.qiguaiaaaa.geocraft.api.util.math.Degree;
 
+import javax.annotation.Nonnull;
+
+/**
+ * @author QiguaiAAAA
+ */
 public final class AtmosphereUtil {
-    public static double getSunEnergyPerChunk(WorldInfo worldInfo){
-        return Math.sin(getSunHeight(worldInfo).getRadian())* FinalFactors.每秒区块获得能量* GeoAtmosphereSetting.getSimulationGap();
+    public static double getSunEnergyPerChunk(@Nonnull WorldInfo worldInfo){
+        return Math.sin(getSunHeight(worldInfo).getRadian())* Constants.每秒区块获得能量* GeoAtmosphereSetting.getSimulationGap();
     }
     /**
      * 获取太阳高度角
      * @return 太阳高度角
      */
-    public static Degree getSunHeight(WorldInfo worldInfo){
+    @Nonnull
+    public static Degree getSunHeight(@Nonnull WorldInfo worldInfo){
         long dayTime= (worldInfo.getWorldTime()+6000)%24000;
         if(dayTime<6000 || dayTime>18000) return new Degree(0);
         return new Degree((Math.PI*((6000-Math.abs(12000-dayTime))/6000.0d))/2.0,true);
@@ -26,7 +32,8 @@ public final class AtmosphereUtil {
      * @param 方位角 太阳相对于正北的方向角（0°为正北，90°为正东，180°为正南，270°为正西）
      * @return 单位方向向量
      */
-    public static Vec3d calculateSunDirection(Degree 高度角, Degree 方位角) {
+    @Nonnull
+    public static Vec3d calculateSunDirection(@Nonnull Degree 高度角,@Nonnull Degree 方位角) {
         double sunH = 高度角.getRadian();
         double direction = 方位角.getRadian();
 
@@ -40,11 +47,11 @@ public final class AtmosphereUtil {
         return new Vec3d(x, y, z).normalize();
     }
 
-    public static final class FinalFactors {
+    public static final class Constants {
         public static final double 大气单元边长 = 16.0;
         public static final double 大气单元底面积 = 大气单元边长 * 大气单元边长;
         public static final int 太阳常数 = 1361;
-        public static final double 斯特藩_玻尔兹曼常数 = 5.670374419e-8; // 斯特藩-玻尔兹曼常数 W·m^-2·K^-4
+        public static final double 斯特藩_玻尔兹曼常数 = 5.670374419e-8; // W·m^-2·K^-4
         public static final double 每秒区块获得能量 = 太阳常数 *大气单元底面积;
         public static final double 每秒损失能量常数 = 斯特藩_玻尔兹曼常数*大气单元底面积;
         public static final int WATER_MELT_LATENT_HEAT_PER_QUANTA = 41750000;

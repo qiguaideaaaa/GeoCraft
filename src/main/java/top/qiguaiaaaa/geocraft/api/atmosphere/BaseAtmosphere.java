@@ -4,8 +4,9 @@ import net.minecraft.world.chunk.Chunk;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.Layer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.tracker.IAtmosphereTracker;
 import top.qiguaiaaaa.geocraft.api.property.AtmosphereProperty;
-import top.qiguaiaaaa.geocraft.property.GeographyPropertyManager;
+import top.qiguaiaaaa.geocraft.geography.property.GeographyPropertyManager;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -21,7 +22,7 @@ public abstract class BaseAtmosphere implements Atmosphere{
     protected final Set<IAtmosphereTracker> listeners = new HashSet<>();
 
     @Override
-    public void onLoad(Chunk chunk, AtmosphereWorldInfo info) {
+    public void onLoad(@Nonnull Chunk chunk, @Nonnull AtmosphereWorldInfo info) {
         this.setAtmosphereWorldInfo(info);
         for(Layer layer:layers){
             layer.onLoad(chunk);
@@ -32,7 +33,7 @@ public abstract class BaseAtmosphere implements Atmosphere{
     }
 
     @Override
-    public void onLoadWithoutChunk(AtmosphereWorldInfo info) {
+    public void onLoadWithoutChunk(@Nonnull AtmosphereWorldInfo info) {
         this.setAtmosphereWorldInfo(info);
         for(Layer layer:layers){
             layer.onLoadWithoutChunk();
@@ -43,28 +44,26 @@ public abstract class BaseAtmosphere implements Atmosphere{
     }
 
     @Override
-    public void addTracker(IAtmosphereTracker tracker){
-        if(tracker == null) return;
+    public void addTracker(@Nonnull IAtmosphereTracker tracker){
         listeners.add(tracker);
     }
     @Override
-    public void removeTracker(IAtmosphereTracker tracker){
+    public void removeTracker(@Nonnull IAtmosphereTracker tracker){
         listeners.remove(tracker);
     }
 
-    @Override
-    public void setAtmosphereWorldInfo(AtmosphereWorldInfo worldInfo) {
-        if(worldInfo == null) return;
+    public void setAtmosphereWorldInfo(@Nonnull AtmosphereWorldInfo worldInfo) {
         this.worldInfo = worldInfo;
     }
 
+    @Nonnull
     @Override
     public AtmosphereWorldInfo getAtmosphereWorldInfo() {
         return worldInfo;
     }
 
     @Override
-    public boolean isInitialised(){
+    public boolean isLoaded(){
         for(Layer layer:layers){
             if(!layer.isInitialise()) return false;
         }
@@ -76,11 +75,13 @@ public abstract class BaseAtmosphere implements Atmosphere{
         return tickTimes;
     }
 
+    @Nonnull
     @Override
     public Layer getTopLayer() {
         return layers.get(layers.size()-1);
     }
 
+    @Nonnull
     @Override
     public Layer getBottomLayer() {
         return layers.get(0);

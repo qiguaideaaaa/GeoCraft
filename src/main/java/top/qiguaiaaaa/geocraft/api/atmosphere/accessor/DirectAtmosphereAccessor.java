@@ -12,7 +12,11 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
+/**
+ * 一个最简单的{@link IAtmosphereAccessor}实现，所有数据均没有经过平滑处理
+ */
 public class DirectAtmosphereAccessor extends AbstractAtmosphereAccessor {
 
     public DirectAtmosphereAccessor(@Nonnull IAtmosphereSystem system, @Nonnull AtmosphereData data, @Nonnull BlockPos pos, boolean notAir) {
@@ -37,6 +41,7 @@ public class DirectAtmosphereAccessor extends AbstractAtmosphereAccessor {
         return data.getAtmosphere().getWaterPressure(pos);
     }
 
+    @Nonnull
     @Override
     public Vec3d getWind() {
         checkAtmosphereDataLoaded();
@@ -91,7 +96,7 @@ public class DirectAtmosphereAccessor extends AbstractAtmosphereAccessor {
     }
 
     @Override
-    public void sendHeat(HeatPack pack, EnumFacing direction) {
+    public void sendHeat(@Nonnull HeatPack pack,@Nullable EnumFacing direction) {
         checkAtmosphereDataLoaded();
         Layer layer = data.getAtmosphere().getLayer(pos);
         if(layer == null) return;
@@ -99,7 +104,7 @@ public class DirectAtmosphereAccessor extends AbstractAtmosphereAccessor {
     }
 
     @Override
-    public void sendHeat(HeatPack pack, Vec3d directionVec) {
+    public void sendHeat(@Nonnull HeatPack pack,@Nullable Vec3d directionVec) {
         checkAtmosphereDataLoaded();
         Layer layer = data.getAtmosphere().getLayer(pos);
         if(layer == null) return;
@@ -107,7 +112,7 @@ public class DirectAtmosphereAccessor extends AbstractAtmosphereAccessor {
     }
 
     @Override
-    public void sendHeat(HeatPack pack, Vec3i directionVec) {
+    public void sendHeat(@Nonnull HeatPack pack,@Nullable Vec3i directionVec) {
         checkAtmosphereDataLoaded();
         Layer layer = data.getAtmosphere().getLayer(pos);
         if(layer == null) return;

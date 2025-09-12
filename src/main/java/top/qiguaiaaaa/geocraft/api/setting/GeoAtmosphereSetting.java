@@ -1,12 +1,16 @@
 package top.qiguaiaaaa.geocraft.api.setting;
 
+/**
+ * 查询天圆地方关于大气相关的配置
+ * @author QiguaiAAAA
+ */
 public final class GeoAtmosphereSetting {
     /**
      * 下垫面重载的时间间隔,单位大气刻
      */
     private static int UNDERLYING_RELOAD_GAP = 60;
     /**
-     * 大气刻每过{@link GeoAtmosphereSetting#ATMOSPHERE_TICK} 游戏刻更新一次
+     * 大气刻每过多长游戏刻更新一次
      */
     private static int ATMOSPHERE_TICK = 60;
     /**

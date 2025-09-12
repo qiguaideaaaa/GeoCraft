@@ -13,6 +13,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
+/**
+ * 当玩家装瓶的时候触发<br/>
+ * 通过Mixin实现
+ * @author QiguaiAAAA
+ */
 @Cancelable
 @Event.HasResult
 public class FillGlassBottleEvent extends PlayerEvent {
@@ -20,44 +25,71 @@ public class FillGlassBottleEvent extends PlayerEvent {
     private final World world;
     private ItemStack result;
 
-    public FillGlassBottleEvent(EntityPlayer player, @Nonnull ItemStack current, World world) {
+    public FillGlassBottleEvent(@Nonnull EntityPlayer player, @Nonnull ItemStack current,@Nonnull World world) {
         super(player);
         this.current = current;
         this.world = world;
     }
+
+    /**
+     * 获取装之前的瓶子
+     * @return 装之前的瓶子
+     */
     @Nonnull
     public ItemStack getEmptyGlassBottle(){
         return current;
     }
+    @Nonnull
     public World getWorld(){
         return world;
     }
+
+    /**
+     * 获取设置的填充满后的瓶子<br/>
+     * 当Result被设置为{@link Result#ALLOW}时，该方法不应返回null，否则会抛出{@link NullPointerException}
+     * @return 设置的填满后的瓶子
+     */
+    @Nullable
     public ItemStack getFilledGlassBottle(){
         return result;
     }
+
+    /**
+     * 设置填充满后的瓶子
+     * @param glassBottle 填满后的瓶子
+     */
     public void setFilledGlassBottle(@Nonnull ItemStack glassBottle){
         this.result = glassBottle;
     }
+
+    /**
+     * 当玩家在效果云装瓶的时候发布
+     */
     @Cancelable
     @HasResult
     public static class FillGlassBottleOnAreaEffectCloudEvent extends FillGlassBottleEvent{
         private final List<EntityAreaEffectCloud> entityAreaEffectClouds;
 
-        public FillGlassBottleOnAreaEffectCloudEvent(EntityPlayer player, @Nonnull ItemStack current, World world, @Nonnull List<EntityAreaEffectCloud> entityList) {
+        public FillGlassBottleOnAreaEffectCloudEvent(@Nonnull EntityPlayer player, @Nonnull ItemStack current,@Nonnull World world, @Nonnull List<EntityAreaEffectCloud> entityList) {
             super(player, current, world);
             entityAreaEffectClouds = entityList;
         }
+        @Nonnull
         public List<EntityAreaEffectCloud> getEntityListClicked(){
             return entityAreaEffectClouds;
         }
     }
+
+    /**
+     * 当玩家在装流体的时候发布
+     */
     @Cancelable
     @HasResult
     public static class FillGlassBottleOnFluidEvent extends FillGlassBottleEvent{
         @Nullable
         private final RayTraceResult rayTraceResult;
 
-        public FillGlassBottleOnFluidEvent(EntityPlayer player, @Nonnull ItemStack current, World world, @Nullable RayTraceResult rayTraceResult) {
+        public FillGlassBottleOnFluidEvent(@Nonnull EntityPlayer player, @Nonnull ItemStack current, World world, @Nullable RayTraceResult rayTraceResult) {
             super(player, current, world);
             this.rayTraceResult = rayTraceResult;
         }
