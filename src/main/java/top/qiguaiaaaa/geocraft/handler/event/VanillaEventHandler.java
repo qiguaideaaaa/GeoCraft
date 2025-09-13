@@ -11,7 +11,7 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereUpdateEvent;
 import top.qiguaiaaaa.geocraft.api.event.block.StaticLiquidUpdateEvent;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
-import top.qiguaiaaaa.geocraft.geography.fluid_physics.VanillaFluidPhysicsCore;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.vanilla.VanillaFluidPhysicsCore;
 import top.qiguaiaaaa.geocraft.util.WaterUtil;
 
 public final class VanillaEventHandler {

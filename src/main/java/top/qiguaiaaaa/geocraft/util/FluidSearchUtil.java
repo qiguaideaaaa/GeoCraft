@@ -22,6 +22,9 @@ public final class FluidSearchUtil {
     private static final Set<BlockPos> EMPTY_BLOCKPOS_SET = new HashSet<>();
     public static final int[][] DIRS4 = {
             { 1, 0}, { -1, 0}, {0, 1}, {0, -1}};
+    public static final int[][] DIRS6 = {
+            {1,0,0},{-1,0,0},{0,0,1},{0,0,-1},{0,1,0},{0,-1,0}
+    };
 
     /**
      * 广度优先搜索搜寻原版流体源

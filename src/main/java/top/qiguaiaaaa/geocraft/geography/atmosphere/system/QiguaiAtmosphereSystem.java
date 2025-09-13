@@ -79,7 +79,7 @@ public abstract class QiguaiAtmosphereSystem extends BaseAtmosphereSystem {
                         ,data.pos.x,data.pos.z,data.pos.getXStart(),data.pos.getZStart());
                 if(GeoAtmosphereSetting.isEnableDetailedLogging()){
                     GeoCraft.getLogger().error("Atmosphere detailed:{}",atmosphere);
-                    GeoCraft.getLogger().error(e);
+                    GeoCraft.getLogger().error("Error:",e);
                 }
             }
 

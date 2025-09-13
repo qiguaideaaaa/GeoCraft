@@ -20,6 +20,9 @@ import static net.minecraft.block.BlockLiquid.LEVEL;
 
 public interface IMoreRealityBlockFluidBase<BlockType extends BlockFluidBase> {
     BlockType getThis();
+    default int getTickRate(){
+        return ((BlockFluidBaseAccessor)this).getTickRate();
+    }
     default void flowDown(World worldIn,BlockPos currentPos,BlockPos downPos,IBlockState thisState,IBlockState downState,int liquidQuanta,int quantaPerBlock){
         int belowQuanta = FluidUtil.getFluidQuanta(worldIn,downPos,downState);
         int totalQuanta = liquidQuanta+belowQuanta;
@@ -29,7 +32,7 @@ public interface IMoreRealityBlockFluidBase<BlockType extends BlockFluidBase> {
         }else{
             int remain = totalQuanta-quantaPerBlock;
             worldIn.setBlockState(currentPos,thisState.withProperty(LEVEL, quantaPerBlock - remain),Constants.BlockFlags.DEFAULT);
-            worldIn.scheduleUpdate(currentPos,getThis(),((BlockFluidBaseAccessor)this).getTickRate());
+            worldIn.scheduleUpdate(currentPos,getThis(),getTickRate());
             worldIn.setBlockState(downPos,downState.withProperty(LEVEL,0), Constants.BlockFlags.DEFAULT);
         }
     }

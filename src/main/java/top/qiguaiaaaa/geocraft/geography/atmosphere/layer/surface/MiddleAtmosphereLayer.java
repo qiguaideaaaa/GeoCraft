@@ -21,7 +21,7 @@ import java.util.Map;
 import static top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere.TEMPERATURE_NOISE;
 
 public class MiddleAtmosphereLayer extends SurfaceAtmosphereLayer {
-    public static final int 默认相对起始高度 = GroundAtmosphereLayer.厚度, 最大厚度 =68,最高高度=300,第二温度过渡区间长度=12,第二温度过渡开始默认高度 = 默认相对起始高度 +最大厚度-第二温度过渡区间长度/2;
+    public static final int 默认相对起始高度 = GroundAtmosphereLayer.厚度, 最大厚度 =68,最高高度=300,第二温度过渡区间长度=12;
     protected double 第二温度过渡开始相对高度,厚度;
     public MiddleAtmosphereLayer(SurfaceAtmosphere atmosphere) {
         super(atmosphere);

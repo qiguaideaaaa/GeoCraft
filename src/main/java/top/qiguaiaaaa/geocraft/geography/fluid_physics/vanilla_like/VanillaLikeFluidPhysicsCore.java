@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.geography.fluid_physics;
+package top.qiguaiaaaa.geocraft.geography.fluid_physics.vanilla_like;
 
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;

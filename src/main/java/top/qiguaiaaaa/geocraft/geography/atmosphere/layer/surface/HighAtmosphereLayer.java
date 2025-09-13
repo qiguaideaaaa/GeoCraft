@@ -25,13 +25,13 @@ public class HighAtmosphereLayer extends SurfaceAtmosphereLayer {
         super(atmosphere);
         相对起始高度 = 80;
         起始高度 = atmosphere.getUnderlying().getTopY()+相对起始高度;
-        第二温度过渡开始相对高度 = 相对起始高度+第二温度过渡区间长度/2.0;
+        第二温度过渡开始相对高度 = 相对起始高度-第二温度过渡区间长度/2.0;
     }
 
     @Override
     public void 更新高度缓存() {
         super.更新高度缓存();
-        第二温度过渡开始相对高度 = 相对起始高度+第二温度过渡区间长度/2.0;
+        第二温度过渡开始相对高度 = 相对起始高度-第二温度过渡区间长度/2.0;
     }
 
     @Override

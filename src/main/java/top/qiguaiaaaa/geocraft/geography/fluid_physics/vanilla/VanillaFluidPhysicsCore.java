@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.geography.fluid_physics;
+package top.qiguaiaaaa.geocraft.geography.fluid_physics.vanilla;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;

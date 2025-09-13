@@ -7,6 +7,7 @@
   "mixins": [
     "common.BlockAccessor",
     "common.BlockLiquidAccessor",
+    "common.BlockDynamicLiquidAccessor",
     "common.BlockFluidBaseAccessor",
     "common.ItemAccessor",
     "common.item.ItemGlassBottleMixin"
