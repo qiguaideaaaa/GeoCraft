@@ -51,7 +51,7 @@ public class MoreRealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask 
             if(isSameLiquid(stateBelow)){
                 flowDown(world,pos,downPos,state,stateBelow,quanta,quantaPerBlock);
             }else if(FluidUtil.isFluid(stateBelow)){//下面密度小，交换上下液体
-                FluidOperationUtil.swapFluid(world,pos,pos.down());
+                FluidOperationUtil.swapFluid(world,pos,downPos);
             }else{
                 FluidOperationUtil.moveFluid(world,pos,downPos);
             }
@@ -141,14 +141,14 @@ public class MoreRealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask 
 
     protected void updateUp(World world,Random random){
         if(random.nextInt(3)<2) return;
-        IBlockState up =world.getBlockState(pos.up());
+        IBlockState up =world.getBlockState(pos.down(densityDir));
         if(up.getBlock() == block){
-            FluidUpdateManager.scheduleUpdate(world,pos.up(),block,block.tickRate(world));
+            FluidUpdateManager.scheduleUpdate(world,pos.down(densityDir),block,block.tickRate(world));
         }
     }
 
     protected void sendPressureQuery(World world,Random rand,int range,boolean directly){
-        IBlockState up = world.getBlockState(pos.up());
+        IBlockState up = world.getBlockState(pos.down(densityDir));
         if(FluidUtil.getFluid(up)!=fluid && (directly || rand.nextInt(3) <2)) {
             FluidPressureSearchManager.addTask(world,new MoreRealityBlockFluidClassicPressureSearchTask(fluid,state,pos, range,quantaPerBlock));
         }

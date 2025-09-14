@@ -12,18 +12,14 @@ import top.qiguaiaaaa.geocraft.util.FluidSearchUtil;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author QiguaiAAAA
  */
 public class MoreRealityBlockFluidClassicPressureSearchTask extends MoreRealityPressureSearchTask {
-    protected final Set<BlockPos> res = new HashSet<>();
     protected final int beginQuanta;
     protected final int quantaPerBlock;
     protected final int densityDir;
-    protected int searchTimes = 0;
 
     public MoreRealityBlockFluidClassicPressureSearchTask(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos,int searchRange,int quantaPerBlock) {
         super(fluid, beginState, beginPos,searchRange);
@@ -40,7 +36,7 @@ public class MoreRealityBlockFluidClassicPressureSearchTask extends MoreRealityP
             if(queue.isEmpty()) break;
             BlockPos pos = queue.poll();
             searchTimes++;
-            if(pos.getY() > beginPos.getY() && densityDir>0 || (densityDir<0 && pos.getY()<beginPos.getY())) continue;
+            if(!isValidPos(pos)) continue;
             if(!world.isBlockLoaded(pos)) continue;
             IBlockState state = world.getBlockState(pos);
             if(state.getMaterial() == Material.AIR){
@@ -50,7 +46,7 @@ public class MoreRealityBlockFluidClassicPressureSearchTask extends MoreRealityP
                 }
             }else if(FluidUtil.getFluid(state) == fluid){
                 int quanta = quantaPerBlock-state.getValue(BlockFluidBase.LEVEL);
-                if((pos.getY()<beginPos.getY() && quanta <quantaPerBlock) || (pos.getY() == beginPos.getY() && quanta < beginQuanta-1)) res.add(pos);
+                if((isLowerPos(pos) && quanta <quantaPerBlock) || (pos.getY() == beginPos.getY() && quanta < beginQuanta-1)) res.add(pos);
             }
             if(res.size()>quantaPerBlock) return res; //够了
             if(searchTimes>maxSearchTimes) return res;
@@ -71,13 +67,18 @@ public class MoreRealityBlockFluidClassicPressureSearchTask extends MoreRealityP
         return res;
     }
 
+    protected boolean isValidPos(BlockPos pos){
+        return densityDir>0?pos.getY()<=beginPos.getY():pos.getY()>=beginPos.getY();
+    }
+    protected boolean isLowerPos(BlockPos pos){
+        return densityDir>0?pos.getY()<beginPos.getY():pos.getY()>beginPos.getY();
+    }
+
     public boolean canSearchInto(WorldServer world,BlockPos pos,int[] dir){
         if(!world.isBlockLoaded(pos)) return false;
         IBlockState state = world.getBlockState(pos);
         if(state.getMaterial() == Material.AIR &&
-                (dir[1] != 0 || beginQuanta>1 ||
-                        ((pos.getY() < beginPos.getY() && densityDir>0) || (pos.getY()>beginPos.getY() && densityDir<0))
-                )
+                (dir[1] != 0 || beginQuanta>1 || isLowerPos(pos))
         ) return true;
         return FluidUtil.getFluid(state) == fluid;
     }
