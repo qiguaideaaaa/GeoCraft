@@ -263,7 +263,7 @@ public final class FluidSearchUtil {
 
     /**
      * 寻找放置指定流体的可选位置集合
-     * BFS广度优先搜索，优先水平，其次往上
+     * BFS广度优先搜索，优先水平，其次往上或下
      * 返回一个PlaceChoice集合，按照水平<垂值，进<远排列
      * @param world 世界
      * @param origin 开始搜寻位置
@@ -316,19 +316,18 @@ public final class FluidSearchUtil {
             }
         }
         if (res.size() >= maxOptions) return res;
-        if(origin.getY() >= world.getHeight()-1) return res;
         if(dir == null && fluid.getDensity() >=0){
-            res.addAll(findPlaceableLocations(world,origin.down(),fluid,maxOptions-res.size(),false,EnumFacing.DOWN));
+            if(origin.getY() > 0) res.addAll(findPlaceableLocations(world,origin.down(),fluid,maxOptions-res.size(),false,EnumFacing.DOWN));
             if (res.size() >= maxOptions) return res;
-            res.addAll(findPlaceableLocations(world,origin.up(),fluid,maxOptions-res.size(),false,EnumFacing.UP));
+            if(origin.getY() < world.getHeight()-1) res.addAll(findPlaceableLocations(world,origin.up(),fluid,maxOptions-res.size(),false,EnumFacing.UP));
         }else if(dir == null){
-            res.addAll(findPlaceableLocations(world,origin.up(),fluid,maxOptions-res.size(),false,EnumFacing.UP));
+            if(origin.getY() < world.getHeight()-1) res.addAll(findPlaceableLocations(world,origin.up(),fluid,maxOptions-res.size(),false,EnumFacing.UP));
             if (res.size() >= maxOptions) return res;
+            if(origin.getY() > 0) res.addAll(findPlaceableLocations(world,origin.down(),fluid,maxOptions-res.size(),false,EnumFacing.DOWN));
+        }else if(dir == EnumFacing.DOWN && origin.getY() > 0){
             res.addAll(findPlaceableLocations(world,origin.down(),fluid,maxOptions-res.size(),false,EnumFacing.DOWN));
-        }else if(dir == EnumFacing.DOWN){
-            res.addAll(findPlaceableLocations(world,origin.down(),fluid,maxOptions-res.size(),false,EnumFacing.DOWN));
-        }else if(dir == EnumFacing.UP){
-            res.addAll(findPlaceableLocations(world,origin.down(),fluid,maxOptions-res.size(),false,EnumFacing.UP));
+        }else if(dir == EnumFacing.UP && origin.getY() < world.getHeight()-1){
+            res.addAll(findPlaceableLocations(world,origin.up(),fluid,maxOptions-res.size(),false,EnumFacing.UP));
         }
 
         return res;

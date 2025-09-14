@@ -62,8 +62,9 @@ public final class FluidPressureSearchManager implements Runnable{
             if(task == null) break;
             world.scheduleUpdate(task.getLeft(),task.getRight(),1);
         }
+        posesToLoad.clear();
 
-        if(world.getTotalWorldTime()%600 == 0){
+        if(world.getTotalWorldTime()%60 == 0){
             WorldPressureInfo info = getOrCreateWorldInfo(world);
             info.getTaskResults().clear();
         }
@@ -80,15 +81,33 @@ public final class FluidPressureSearchManager implements Runnable{
                 WorldPressureInfo info = getOrCreateWorldInfo(world);
                 pushNewTasks(world,info);
                 updateTasks(world,info);
+                if(info.getRunningTasks().isEmpty()){
+                    info.getRunningTaskLocks().clear();
+                    continue;
+                }
+                if(world.getTotalWorldTime()%1000 == 0){
+                    info.getRunningTasks().clear();
+                    info.getRunningTaskLocks().clear();
+                    continue;
+                }
+                if(world.getTotalWorldTime()%250 == 0){
+                    int size = info.getRunningTasks().size();
+                    while (size>10000){
+                        IFluidPressureSearchTask task = info.getRunningTasks().poll();
+                        if(task == null) break;
+                        info.unlockPos(task);
+                        size--;
+                    }
+                }
             }
             if(Thread.interrupted()){
                 running = false;
                 break;
             }
             long usedTime = System.currentTimeMillis()-startTime;
-            if(usedTime<500){
+            if(usedTime<100){
                 try {
-                    Thread.sleep(500-usedTime);
+                    Thread.sleep(100-usedTime);
                 } catch (InterruptedException ignored) {
                     running = false;
                 }
@@ -114,7 +133,7 @@ public final class FluidPressureSearchManager implements Runnable{
         final Deque<IFluidPressureSearchTask> queue = info.getRunningTasks();
         for(int i=0;i<MAX_UPDATE_NUM;i++){
             if(queue.isEmpty()) break;
-            final IFluidPressureSearchTask task = queue.poll();
+            IFluidPressureSearchTask task = queue.poll();
             if(task == null) continue;
             if(task.isFinished()){
                 info.unlockPos(task);
@@ -136,6 +155,7 @@ public final class FluidPressureSearchManager implements Runnable{
                     else resMap.put(task.getBeginPos(),res);
                     scheduleUpdate(world,task.getBeginPos(),beginState.getBlock());
                     info.unlockPos(task);
+                    task.finish();
                 }else{
                     queue.add(task);
                 }

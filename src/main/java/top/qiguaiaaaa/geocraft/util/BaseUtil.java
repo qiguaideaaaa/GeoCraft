@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.Random;
 
 public final class BaseUtil {
+    private static final Random random = new Random();
     public static File getSuggestedConfigurationFile(){
         File configurationDir = new File("config");
         if(!configurationDir.exists()) return null;
@@ -42,5 +43,20 @@ public final class BaseUtil {
             doubles[i] = Double.parseDouble(array[i]);
         }
         return doubles;
+    }
+
+    public static double getMemoryAvailablePercent(){
+        Runtime runtime = Runtime.getRuntime();
+        return runtime.freeMemory()/(double)runtime.totalMemory();
+    }
+
+    public static int getRandomPressureSearchRange() {
+        int rand = random.nextInt(100); // 0-99
+
+        if (rand < 80) return 2;        // 0-79 (80%)
+        if (rand < 90) return 3;        // 80-89 (10%)
+        if (rand < 95) return 4;        // 90-94 (5%)
+        if (rand < 99) return 5;        // 95-98 (4%)
+        return 6;                       // 99 (1%)
     }
 }

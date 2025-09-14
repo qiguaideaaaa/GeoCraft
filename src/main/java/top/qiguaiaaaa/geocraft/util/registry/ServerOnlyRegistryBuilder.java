@@ -6,8 +6,7 @@ import net.minecraftforge.registries.IForgeRegistryEntry;
 public class ServerOnlyRegistryBuilder<T extends IForgeRegistryEntry<T>> {
     private Class<T> registryType;
 
-    public ServerOnlyRegistryBuilder<T> setType(Class<T> type)
-    {
+    public ServerOnlyRegistryBuilder<T> setType(Class<T> type) {
         this.registryType = type;
         return this;
     }

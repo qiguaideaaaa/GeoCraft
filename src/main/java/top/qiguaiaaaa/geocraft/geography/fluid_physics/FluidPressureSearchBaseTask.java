@@ -20,7 +20,7 @@ public abstract class FluidPressureSearchBaseTask implements IFluidPressureSearc
     protected final Set<BlockPos> visited = new HashSet<>();
     protected final Queue<BlockPos> queue = new LinkedList<>();
 
-    public FluidPressureSearchBaseTask(Fluid fluid, IBlockState beginState, BlockPos beginPos) {
+    public FluidPressureSearchBaseTask(@Nonnull Fluid fluid,@Nonnull IBlockState beginState,@Nonnull BlockPos beginPos) {
         this.fluid = fluid;
         this.beginState = beginState;
         this.beginPos = beginPos;
@@ -48,5 +48,11 @@ public abstract class FluidPressureSearchBaseTask implements IFluidPressureSearc
     public void cancel() {
         visited.clear();
         queue.clear();
+    }
+
+    @Override
+    public void finish() {
+        this.visited.clear();
+        this.queue.clear();
     }
 }

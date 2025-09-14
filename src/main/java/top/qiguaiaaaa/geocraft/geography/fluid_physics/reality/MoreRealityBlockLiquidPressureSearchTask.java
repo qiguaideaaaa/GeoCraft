@@ -7,28 +7,21 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
-import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchBaseTask;
 import top.qiguaiaaaa.geocraft.util.FluidSearchUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author QiguaiAAAA
  */
-public class MoreRealityBlockLiquidPressureSearchTask extends FluidPressureSearchBaseTask {
-    protected static final int MAX_SEARCH_TIME = 8*256;
-    protected final Set<BlockPos> res = new HashSet<>();
+public class MoreRealityBlockLiquidPressureSearchTask extends MoreRealityPressureSearchTask {
     protected final int beginQuanta;
-    protected int searchTimes = 0;
-    public MoreRealityBlockLiquidPressureSearchTask(@Nonnull Fluid fluid,@Nonnull IBlockState beginState,@Nonnull BlockPos beginPos) {
-        super(fluid, beginState, beginPos);
+
+    public MoreRealityBlockLiquidPressureSearchTask(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos, int searchRange) {
+        super(fluid, beginState, beginPos, searchRange);
         beginQuanta = 8-beginState.getValue(BlockLiquid.LEVEL);
-        queue.add(beginPos);
-        visited.add(beginPos);
     }
 
     @Nullable
@@ -52,7 +45,9 @@ public class MoreRealityBlockLiquidPressureSearchTask extends FluidPressureSearc
                 if((pos.getY()<beginPos.getY() && quanta <8) || (pos.getY() == beginPos.getY() && quanta < beginQuanta-1)) res.add(pos);
             }
             if(res.size()>8) return res; //够了
-            if(searchTimes>MAX_SEARCH_TIME) return res;
+            if(searchTimes> maxSearchTimes) return res;
+
+            if(state.getMaterial() == Material.AIR) continue;
             for(int[] dir:FluidSearchUtil.DIRS6){
                 if(pos.getY() == beginPos.getY() && dir[1]>0) continue;
                 curPos.setPos(pos.getX()+dir[0],pos.getY()+dir[1],pos.getZ()+dir[2]);
@@ -73,10 +68,5 @@ public class MoreRealityBlockLiquidPressureSearchTask extends FluidPressureSearc
         IBlockState state = world.getBlockState(pos);
         if(state.getMaterial() == Material.AIR && (dir[1] != 0 || beginQuanta>1 || pos.getY() < beginPos.getY())) return true;
         return FluidUtil.getFluid(state) == fluid;
-    }
-
-    @Override
-    public boolean isFinished() {
-        return (!res.isEmpty() && searchTimes>512 ) || (res.size()>8) || queue.isEmpty() || searchTimes>MAX_SEARCH_TIME;
     }
 }

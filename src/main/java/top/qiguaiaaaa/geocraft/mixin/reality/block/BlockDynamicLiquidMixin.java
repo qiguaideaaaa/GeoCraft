@@ -23,7 +23,6 @@ import top.qiguaiaaaa.geocraft.api.block.IPermeableBlock;
 import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
-import top.qiguaiaaaa.geocraft.configs.SimulationConfig;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.MoreRealityBlockDynamicLiquidUpdateTask;
 import top.qiguaiaaaa.geocraft.util.mixinapi.FluidSettable;
@@ -52,7 +51,7 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
 
     @Override
     public boolean canFlow(World worldIn,BlockPos pos,IBlockState state,Random rand){
-        if (!worldIn.isAreaLoaded(pos, Math.max(this.getSlopeFindDistance(worldIn),this.getSlopeFindDistance2(worldIn)))){
+        if (!worldIn.isAreaLoaded(pos, this.getSlopeFindDistance(worldIn))){
             return false;
         }
 
@@ -74,8 +73,7 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
         }
         //可流动方向检查
         final ArrayList<FlowChoice> averageModeFlowDirections = new ArrayList<>();//平均流动模式可用方向
-        Set<EnumFacing> slopeModeFlowDirections = EnumSet.noneOf(EnumFacing.class);//非Q=1坡度模式可用方向
-        this.checkNeighborsToFindFlowChoices(worldIn,pos,liquidQuanta,averageModeFlowDirections,slopeModeFlowDirections);
+        this.checkNeighborsToFindFlowChoices(worldIn,pos,liquidQuanta,averageModeFlowDirections);
 
         return !averageModeFlowDirections.isEmpty();
     }
@@ -86,12 +84,11 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
      * @param pos 方块位置
      * @param liquidQuanta 液体量
      * @param averageModeFlowDirections 平均流动模式下的选择列表
-     * @param slopeModeFlowDirections Q>1 坡度流动模式下的选择集合
      */
-    private void checkNeighborsToFindFlowChoices(World worldIn,BlockPos pos,int liquidQuanta,List<FlowChoice> averageModeFlowDirections,Set<EnumFacing> slopeModeFlowDirections){
+    private void checkNeighborsToFindFlowChoices(World worldIn,BlockPos pos,int liquidQuanta,List<FlowChoice> averageModeFlowDirections){
         for(EnumFacing facing:EnumFacing.Plane.HORIZONTAL){
             IBlockState facingState = worldIn.getBlockState(pos.offset(facing));
-            if(!canFlowInto2(worldIn,pos.offset(facing),facingState)) continue;
+            if(!canFlowInto(worldIn,pos.offset(facing),facingState)) continue;
             if(!canFlowIntoWhenItIsSnowLayer(facingState,liquidQuanta)) continue;
             int facingMeta = this.getDepth(facingState);
             if(facingMeta <0 || facingMeta>7) facingMeta = 8;
@@ -99,17 +96,7 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
             if(facingQuanta<liquidQuanta-1){
                 averageModeFlowDirections.add(new FlowChoice(facingQuanta,facing));
             }
-            if(facingQuanta<liquidQuanta) slopeModeFlowDirections.add(facing);
         }
-    }
-
-    /**
-     * 是否是相同液体
-     */
-    private boolean isSameLiquid(IBlockState state){
-        Block block = state.getBlock();
-        if(block instanceof IFluidBlock) return false;
-        return state.getMaterial() == this.material;
     }
 
     /**
@@ -133,17 +120,6 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
         return !this.isBlocked(worldIn,pos,state);
     }
 
-    /**
-     * Q>1 坡度流动模式下检查是否能够流入指定方块
-     * @param world 所在世界
-     * @param pos 检测位置
-     * @param state 检测位置方块状态
-     * @return 如果可以，则返回true
-     */
-    private boolean canFlowInto2(World world,BlockPos pos,IBlockState state){
-        if(canFlowInto(world,pos,state)) return true;
-        return isSameLiquid(state);
-    }
     private boolean canFlowIntoWhenItIsSnowLayer(IBlockState state,int thisQuanta){
         if(thisFluid != FluidRegistry.WATER) return true;
         if(state.getBlock() != Blocks.SNOW_LAYER) return true;
@@ -211,27 +187,12 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
         cir.setReturnValue(difficulty);
     }
 
-    /**
-     * Q>1 坡度流动模式的搜寻距离
-     * @param worldIn 所在世界
-     */
-    private int getSlopeFindDistance2(World worldIn) {
-        int ans = SimulationConfig.slopeFindDistanceForWaterWhenQuantaAbove1.getValue();
-        if(this.material == Material.LAVA && !worldIn.provider.doesWaterVaporize()){
-            ans = SimulationConfig.slopeFindDistanceForLavaWhenQuantaAbove1.getValue();
-        }
-        return ans;
-    }
-
     @Override
     public void setCorrespondingFluid(Fluid fluid) {
         if(thisFluid != null)return;
         this.thisFluid = fluid;
     }
-    @Shadow
-    private void tryFlowInto(World worldIn, BlockPos pos, IBlockState state, int level) {}
-    @Shadow
-    private void placeStaticBlock(World worldIn, BlockPos pos, IBlockState currentState){}
+
     @Shadow
     private boolean canFlowInto(World worldIn, BlockPos pos, IBlockState state) {return false;}
     /**

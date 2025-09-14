@@ -152,7 +152,7 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
     private void checkNeighborsToFindFlowChoices(World worldIn,BlockPos pos,int liquidQuanta,List<FlowChoice> averageModeFlowDirections){
         for(EnumFacing facing:EnumFacing.Plane.HORIZONTAL){
             IBlockState facingState = worldIn.getBlockState(pos.offset(facing));
-            if(!canFlowInto2(worldIn,pos.offset(facing),facingState)) continue;
+            if(!canFlowInto(worldIn,pos.offset(facing),facingState)) continue;
             if(!canFlowIntoWhenItIsSnowLayer(facingState,liquidQuanta)) continue;
             int facingMeta = ((BlockLiquidAccessor)block).getDepth(facingState);
             if(facingMeta <0 || facingMeta>7) facingMeta = 8;
@@ -255,17 +255,6 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
         return !this.isBlocked(worldIn,pos,state);
     }
 
-    /**
-     * Q>1 坡度流动模式下检查是否能够流入指定方块
-     * @param world 所在世界
-     * @param pos 检测位置
-     * @param state 检测位置方块状态
-     * @return 如果可以，则返回true
-     */
-    private boolean canFlowInto2(World world,BlockPos pos,IBlockState state){
-        if(canFlowInto(world,pos,state)) return true;
-        return isSameLiquid(state);
-    }
     private boolean canFlowIntoWhenItIsSnowLayer(IBlockState state,int thisQuanta){
         if(fluid != FluidRegistry.WATER) return true;
         if(state.getBlock() != Blocks.SNOW_LAYER) return true;
@@ -340,8 +329,14 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
     private void placeStaticBlock(World worldIn, BlockPos pos, IBlockState currentState){
         ((BlockDynamicLiquidAccessor)block).placeStaticBlock(worldIn,pos,currentState);
         IBlockState newState = worldIn.getBlockState(pos);
-        if(newState.getMaterial().isLiquid() && !FluidPressureSearchManager.isTaskRunning(worldIn,pos)){
-            FluidPressureSearchManager.addTask(worldIn,new MoreRealityBlockLiquidPressureSearchTask(fluid,newState,pos));
+        if(newState.getMaterial().isLiquid()){
+            if(FluidPressureSearchManager.isTaskRunning(worldIn,pos)){
+                FluidUpdateManager.scheduleUpdate(worldIn,pos,newState.getBlock(), block.tickRate(worldIn));
+                return;
+            }
+            IBlockState upState = worldIn.getBlockState(pos.up());
+            if(FluidUtil.getFluid(upState) == fluid) return;
+            FluidPressureSearchManager.addTask(worldIn,new MoreRealityBlockLiquidPressureSearchTask(fluid,newState,pos,1));
         }
     }
     private boolean canFlowInto(World worldIn, BlockPos pos, IBlockState state) {

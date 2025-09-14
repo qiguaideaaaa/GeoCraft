@@ -22,5 +22,6 @@ public interface IFluidPressureSearchTask {
     @Nullable
     Collection<BlockPos> search(WorldServer world);
     void cancel();
+    void finish();
     boolean isFinished();
 }

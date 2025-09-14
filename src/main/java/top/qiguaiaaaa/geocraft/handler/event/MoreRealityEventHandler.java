@@ -219,6 +219,7 @@ public final class MoreRealityEventHandler {
         if(event.getLiquid() != FluidRegistry.WATER) return;
         IBlockState state = event.getState();
         World worldIn = event.getWorld();
+        if(worldIn.rand.nextInt(30) >1) return; //因为压强计算频繁更新，需要降低概率
         BlockPos pos = event.getPos();
         int oldMeta = state.getValue(LEVEL);
         state = MoreRealityFluidPhysicsCore.evaporateWater(worldIn,pos,state,worldIn.rand);
