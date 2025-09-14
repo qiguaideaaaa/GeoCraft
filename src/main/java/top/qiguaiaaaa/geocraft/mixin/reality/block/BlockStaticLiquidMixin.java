@@ -43,7 +43,7 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
             if(!worldIn.isRemote && !FluidPressureSearchManager.isTaskRunning(worldIn,pos)){
                 Collection<BlockPos> res = FluidPressureSearchManager.getTaskResult(worldIn,pos);
                 if(res == null || res.isEmpty()){
-                    sendPressureQuery(worldIn,pos,state,rand);
+                    sendPressureQuery(worldIn,pos,state,rand,false);
                 }else {
                     IBlockState nowState =state;
                     for(BlockPos toPos:res){
@@ -52,6 +52,9 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
                         nowState = worldIn.getBlockState(pos);
                     }
                     nowState = worldIn.getBlockState(pos);
+                    if(nowState!=state && FluidUtil.getFluid(nowState) == thisFluid){
+                        sendPressureQuery(worldIn,pos,state,rand,true);
+                    }
                     if(nowState!=state) return;
                 }
             }
@@ -69,9 +72,9 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
         IVanillaFlowChecker checker = (IVanillaFlowChecker) blockdynamicliquid;
         return checker.canFlow(worldIn,pos,state,rand);
     }
-    protected void sendPressureQuery(World world,BlockPos pos,IBlockState state,Random rand){
+    protected void sendPressureQuery(World world,BlockPos pos,IBlockState state,Random rand,boolean directly){
         IBlockState up = world.getBlockState(pos.up());
-        if(FluidUtil.getFluid(up)!=thisFluid && rand.nextInt(10) == 0) {
+        if(FluidUtil.getFluid(up)!=thisFluid && (directly || rand.nextInt(5) == 0)) {
             FluidPressureSearchManager.addTask(world,new MoreRealityBlockLiquidPressureSearchTask(thisFluid,state,pos));
         }
     }

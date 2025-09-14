@@ -1,10 +1,10 @@
 package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality;
 
-import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.fluids.BlockFluidBase;
 import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchBaseTask;
@@ -16,17 +16,23 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import static top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.MoreRealityBlockLiquidPressureSearchTask.MAX_SEARCH_TIME;
+
 /**
  * @author QiguaiAAAA
  */
-public class MoreRealityBlockLiquidPressureSearchTask extends FluidPressureSearchBaseTask {
-    protected static final int MAX_SEARCH_TIME = 8*256;
+public class MoreRealityBlockFluidClassicPressureSearchTask extends FluidPressureSearchBaseTask {
     protected final Set<BlockPos> res = new HashSet<>();
     protected final int beginQuanta;
+    protected final int quantaPerBlock;
+    protected final int densityDir;
     protected int searchTimes = 0;
-    public MoreRealityBlockLiquidPressureSearchTask(@Nonnull Fluid fluid,@Nonnull IBlockState beginState,@Nonnull BlockPos beginPos) {
+
+    public MoreRealityBlockFluidClassicPressureSearchTask(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos,int quantaPerBlock) {
         super(fluid, beginState, beginPos);
-        beginQuanta = 8-beginState.getValue(BlockLiquid.LEVEL);
+        beginQuanta = quantaPerBlock-beginState.getValue(BlockFluidBase.LEVEL);
+        this.quantaPerBlock = quantaPerBlock;
+        this.densityDir = fluid.getDensity()>0?1:-1;
         queue.add(beginPos);
         visited.add(beginPos);
     }
@@ -48,15 +54,15 @@ public class MoreRealityBlockLiquidPressureSearchTask extends FluidPressureSearc
                     res.add(pos);
                 }
             }else if(FluidUtil.getFluid(state) == fluid){
-                int quanta = 8-state.getValue(BlockLiquid.LEVEL);
-                if((pos.getY()<beginPos.getY() && quanta <8) || (pos.getY() == beginPos.getY() && quanta < beginQuanta-1)) res.add(pos);
+                int quanta = quantaPerBlock-state.getValue(BlockFluidBase.LEVEL);
+                if((pos.getY()<beginPos.getY() && quanta <quantaPerBlock) || (pos.getY() == beginPos.getY() && quanta < beginQuanta-1)) res.add(pos);
             }
-            if(res.size()>8) return res; //够了
+            if(res.size()>quantaPerBlock) return res; //够了
             if(searchTimes>MAX_SEARCH_TIME) return res;
-            for(int[] dir:FluidSearchUtil.DIRS6){
-                if(pos.getY() == beginPos.getY() && dir[1]>0) continue;
+            for(int[] dir: FluidSearchUtil.DIRS6){
+                if(pos.getY() == beginPos.getY() && dir[1]* densityDir >0) continue;
                 curPos.setPos(pos.getX()+dir[0],pos.getY()+dir[1],pos.getZ()+dir[2]);
-                if(curPos.getY()<0) continue;
+                if(curPos.getY()<0 || curPos.getY()>=world.getHeight()) continue;
                 BlockPos curPosIm = curPos.toImmutable();
                 if(visited.contains(curPosIm)) continue;
                 visited.add(curPosIm);
@@ -71,12 +77,16 @@ public class MoreRealityBlockLiquidPressureSearchTask extends FluidPressureSearc
     public boolean canSearchInto(WorldServer world,BlockPos pos,int[] dir){
         if(!world.isBlockLoaded(pos)) return false;
         IBlockState state = world.getBlockState(pos);
-        if(state.getMaterial() == Material.AIR && (dir[1] != 0 || beginQuanta>1 || pos.getY() < beginPos.getY())) return true;
+        if(state.getMaterial() == Material.AIR &&
+                (dir[1] != 0 || beginQuanta>1 ||
+                        ((pos.getY() < beginPos.getY() && densityDir>0) || (pos.getY()>beginPos.getY() && densityDir<0))
+                )
+        ) return true;
         return FluidUtil.getFluid(state) == fluid;
     }
 
     @Override
     public boolean isFinished() {
-        return (!res.isEmpty() && searchTimes>512 ) || (res.size()>8) || queue.isEmpty() || searchTimes>MAX_SEARCH_TIME;
+        return !res.isEmpty() || queue.isEmpty() || searchTimes>MAX_SEARCH_TIME;
     }
 }

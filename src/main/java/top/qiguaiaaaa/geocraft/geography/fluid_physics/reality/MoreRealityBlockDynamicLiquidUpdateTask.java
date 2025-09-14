@@ -14,13 +14,11 @@ import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.IFluidBlock;
-import org.spongepowered.asm.mixin.Shadow;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemManager;
 import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
-import top.qiguaiaaaa.geocraft.configs.SimulationConfig;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateBaseTask;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager;
@@ -85,14 +83,14 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
             return;
         }
 
-        if (!world.isAreaLoaded(pos, Math.max(this.getSlopeFindDistance(world),this.getSlopeFindDistance2(world)))){
-            return;
-        }
 
         //Q=1 坡度流动模式
         if(liquidMeta == 7){
             if(FluidUtil.getFluid(stateBelow) == fluid){
                 this.placeStaticBlock(world,pos,state);
+                return;
+            }
+            if (!world.isAreaLoaded(pos, this.getSlopeFindDistance(world))){
                 return;
             }
             Set<EnumFacing> directions = this.getPossibleFlowDirections(world, pos);
@@ -111,8 +109,7 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
         }
         //可流动方向检查
         final ArrayList<FlowChoice> averageModeFlowDirections = new ArrayList<>();//平均流动模式可用方向
-        Set<EnumFacing> slopeModeFlowDirections = EnumSet.noneOf(EnumFacing.class);//非Q=1坡度模式可用方向
-        this.checkNeighborsToFindFlowChoices(world,pos,liquidQuanta,averageModeFlowDirections,slopeModeFlowDirections);
+        this.checkNeighborsToFindFlowChoices(world,pos,liquidQuanta,averageModeFlowDirections);
 
         if(!averageModeFlowDirections.isEmpty()){ //平均流动模式
             averageModeFlowDirections.sort(Comparator.comparingInt(FlowChoice::getQuanta));
@@ -130,7 +127,7 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
             if (liquidQuanta<=0) world.setBlockToAir(pos); //先更新自身状态
             else {
                 state = state.withProperty(LEVEL,liquidMeta);
-                world.setBlockState(pos, state, net.minecraftforge.common.util.Constants.BlockFlags.SEND_TO_CLIENTS);
+                world.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
                 FluidUpdateManager.scheduleUpdate(world,pos,block, updateRate);
                 world.notifyNeighborsOfStateChange(pos,block, false);
             }
@@ -140,24 +137,7 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
                 BlockPos facingPos = pos.offset(choice.direction);
                 directlyFlowInto(world,facingPos,world.getBlockState(facingPos),8-choice.getQuanta());
             }
-        }else if(!slopeModeFlowDirections.isEmpty()){ //非Q=1坡度模式,现在改用压强
-//            slopeModeFlowDirections = getPossibleFlowDirections(world,pos,slopeModeFlowDirections,liquidQuanta);
-//            if(slopeModeFlowDirections.isEmpty()){
-//                this.placeStaticBlock(world,pos,state);
-//                return;
-//            }
-//            EnumFacing randomFacing = (EnumFacing) slopeModeFlowDirections.toArray()[rand.nextInt(slopeModeFlowDirections.size())];
-//            int newLiquidQuanta = liquidQuanta-1;
-//            int newLiquidMeta = 8-newLiquidQuanta;
-//            //更新自己
-//            state = state.withProperty(LEVEL,newLiquidMeta);
-//            world.setBlockState(pos,state, net.minecraftforge.common.util.Constants.BlockFlags.SEND_TO_CLIENTS);
-//            world.scheduleUpdate(pos,block, updateRate);
-//            world.notifyNeighborsOfStateChange(pos,block,false);
-//            //移动至新位置
-//            setLiquidToFlowingLevel(world,pos.offset(randomFacing),liquidMeta);
-            this.placeStaticBlock(world,pos,state);
-        } else{
+        }else {
             this.placeStaticBlock(world,pos,state);
         }
     }
@@ -168,9 +148,8 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
      * @param pos 方块位置
      * @param liquidQuanta 液体量
      * @param averageModeFlowDirections 平均流动模式下的选择列表
-     * @param slopeModeFlowDirections Q>1 坡度流动模式下的选择集合
      */
-    private void checkNeighborsToFindFlowChoices(World worldIn,BlockPos pos,int liquidQuanta,List<FlowChoice> averageModeFlowDirections,Set<EnumFacing> slopeModeFlowDirections){
+    private void checkNeighborsToFindFlowChoices(World worldIn,BlockPos pos,int liquidQuanta,List<FlowChoice> averageModeFlowDirections){
         for(EnumFacing facing:EnumFacing.Plane.HORIZONTAL){
             IBlockState facingState = worldIn.getBlockState(pos.offset(facing));
             if(!canFlowInto2(worldIn,pos.offset(facing),facingState)) continue;
@@ -181,7 +160,6 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
             if(facingQuanta<liquidQuanta-1){
                 averageModeFlowDirections.add(new FlowChoice(facingQuanta,facing));
             }
-            if(facingQuanta<liquidQuanta) slopeModeFlowDirections.add(facing);
         }
     }
 
@@ -348,103 +326,6 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
         }
 
         return difficulty;
-    }
-
-    /**
-     * Q>1 坡度流动模式的可流动方向寻找算法
-     * @param worldIn 所在世界
-     * @param pos 位置
-     * @param accessibleDirections 可流动的方向
-     * @param thisQuanta 搜寻者的液体量
-     * @return 一个流动方向的集合，意味着最佳的流动方向
-     */
-    private Set<EnumFacing> getPossibleFlowDirections(World worldIn, BlockPos pos,Set<EnumFacing> accessibleDirections,int thisQuanta) {
-        double difficulty = 10000d;
-        Set<EnumFacing> possibleDirections = EnumSet.noneOf(EnumFacing.class);
-
-        for (EnumFacing enumfacing : accessibleDirections) {
-            BlockPos facingPos = pos.offset(enumfacing);
-
-            double slope = this.getSlopeDistance(worldIn, facingPos, 1,thisQuanta, enumfacing.getOpposite());
-
-            if (slope < difficulty)
-                possibleDirections.clear();
-            if (slope <= difficulty) {
-                possibleDirections.add(enumfacing);
-                difficulty = slope;
-            }
-        }
-        if(difficulty == 10000d) possibleDirections.clear();
-        return possibleDirections;
-    }
-
-    /***
-     * Q>1 坡度流动模式的可流动方向寻找内层递归算法
-     * @param worldIn 所在世界
-     * @param pos 位置
-     * @param distance 当前距离原点的距离
-     * @param thisQuanta 搜寻者的液体量
-     * @param from 来源方向
-     * @return 难易度，即坡度的余切值
-     */
-    private double getSlopeDistance(World worldIn, BlockPos pos, int distance,int thisQuanta ,EnumFacing from) {
-        double difficulty = 10000d;
-
-        for (EnumFacing enumfacing : EnumFacing.Plane.HORIZONTAL) {
-            if (enumfacing == from) continue;
-            BlockPos facingPos = pos.offset(enumfacing);
-            IBlockState state = worldIn.getBlockState(facingPos);
-            int quantaDiffer = getQuantaDiffer(state,thisQuanta);
-            boolean isFluid = FluidUtil.isFluid(state);
-            boolean isAir = state.getMaterial() == Material.AIR;
-            if (this.isBlocked(worldIn, facingPos, state) || !canFlowIntoWhenItIsSnowLayer(state,thisQuanta) || (isFluid && quantaDiffer <1)) {
-                continue;
-            }
-            if(isAir){
-                IBlockState stateBelow = worldIn.getBlockState(facingPos.down());
-                if (canMoveDownTo(worldIn,facingPos.down(),stateBelow)) {
-                    return FluidUtil.getFlowDifficulty(distance*8,8+thisQuanta);
-                }else{
-                    return FluidUtil.getFlowDifficulty(distance*8,thisQuanta);
-                }
-            }else if(quantaDiffer >1){ //同样的流体
-                return FluidUtil.getFlowDifficulty(distance*8,thisQuanta-quantaDiffer);
-            }else if(!isFluid){ //例如火把
-                return FluidUtil.getFlowDifficulty(distance*8,thisQuanta);
-            }
-
-            if (distance < this.getSlopeFindDistance2(worldIn)) {
-                double slope = this.getSlopeDistance(worldIn, facingPos, distance + 1,thisQuanta, enumfacing.getOpposite());
-                if (slope < difficulty) difficulty = slope;
-            }
-        }
-
-        return difficulty;
-    }
-
-    /**
-     * 获得对应方块状态的流体量与自身流体量的差值
-     * @param state 对应方块状态
-     * @param thisQuanta 自身流体量
-     * @return 如果不是一个流体，则返回INT整形最大值。如果是一个流体，则返回自身流体量减去对方流体量的结果。
-     */
-    private int getQuantaDiffer(IBlockState state,int thisQuanta){
-        if(!isSameLiquid(state)) return Integer.MIN_VALUE;
-        int quanta = 8-((BlockLiquidAccessor)block).getDepth(state);
-        if(quanta<0) quanta = 0;
-        return thisQuanta - quanta;
-    }
-
-    /**
-     * Q>1 坡度流动模式的搜寻距离
-     * @param worldIn 所在世界
-     */
-    private int getSlopeFindDistance2(World worldIn) {
-        int ans = SimulationConfig.slopeFindDistanceForWaterWhenQuantaAbove1.getValue();
-        if(this.material == Material.LAVA && !worldIn.provider.doesWaterVaporize()){
-            ans = SimulationConfig.slopeFindDistanceForLavaWhenQuantaAbove1.getValue();
-        }
-        return ans;
     }
 
     @Nonnull

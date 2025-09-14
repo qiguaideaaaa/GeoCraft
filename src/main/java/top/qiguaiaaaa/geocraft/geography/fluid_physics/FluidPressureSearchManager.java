@@ -1,5 +1,6 @@
 package top.qiguaiaaaa.geocraft.geography.fluid_physics;
 
+import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
@@ -7,12 +8,14 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
 import top.qiguaiaaaa.geocraft.GeoCraft;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager.*;
 
@@ -20,62 +23,63 @@ import static top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager
  * @author QiguaiAAAA
  */
 public final class FluidPressureSearchManager implements Runnable{
-    static final Map<WorldServer, Triple<Deque<IFluidPressureSearchTask>,Map<BlockPos,Collection<BlockPos>>,Set<BlockPos>>> worldMap = new HashMap<>(); //running的task、结果和running的task的poses
-    static final Map<WorldServer,Set<IFluidPressureSearchTask>> queueToAdd = new HashMap<>(); //等待被加入queue的task
-    static final Map<WorldServer,Set<BlockPos>> queueToAddPos = new HashMap<>(); //等待被加入queue的task的pos
-    static final Map<WorldServer,Set<Pair<BlockPos,Block>>> queueToLoadPos = new HashMap<>();
+    static final Map<WorldServer, WorldPressureInfo> worldMap = new ConcurrentHashMap<>(); //running的task、结果和running的task的poses
+    static final Map<WorldServer,WorldQueueTaskInfo> queueMap = new ConcurrentHashMap<>(); //等待被加入queue的task
+    static final Map<WorldServer,Queue<Pair<BlockPos,Block>>> queueToLoadPos = new ConcurrentHashMap<>();
 
-    public static boolean isTaskRunning(@Nonnull World world,@Nonnull BlockPos pos){
+    public static boolean isTaskRunning(@Nonnull World world,@Nonnull BlockPos pos){ //Minecraft主线程调用
         WorldServer validWorld = getValidWorld(world);
         if(validWorld == null) return false;
-        Triple<Deque<IFluidPressureSearchTask>,Map<BlockPos,Collection<BlockPos>>,Set<BlockPos>> triple = getOrCreateWorldTriple(validWorld);
-        Set<BlockPos> poses = queueToAddPos.computeIfAbsent(validWorld,k->new HashSet<>());
-        return triple.getRight().contains(pos) || poses.contains(pos);
+        WorldPressureInfo runningInfo = getOrCreateWorldInfo(validWorld);
+        WorldQueueTaskInfo queueInfo = queueMap.computeIfAbsent(validWorld,k->new WorldQueueTaskInfo());
+        return runningInfo.getRunningTaskLocks().contains(pos) || queueInfo.queuedTaskLocks.contains(pos);
     }
 
     @Nullable
-    public static Collection<BlockPos> getTaskResult(@Nonnull World world,@Nonnull BlockPos pos){
+    public static Collection<BlockPos> getTaskResult(@Nonnull World world,@Nonnull BlockPos pos){ //Minecraft主线程调用
         WorldServer validWorld = getValidWorld(world);
         if(validWorld == null) return null;
-        Triple<Deque<IFluidPressureSearchTask>,Map<BlockPos,Collection<BlockPos>>,Set<BlockPos>> triple = getOrCreateWorldTriple(validWorld);
-        triple.getRight().remove(pos);
-        return triple.getMiddle().remove(pos);
+        WorldPressureInfo info = getOrCreateWorldInfo(validWorld);
+        info.getRunningTaskLocks().remove(pos);
+        return info.getTaskResults().remove(pos);
     }
 
-    public static void addTask(@Nonnull World world,@Nonnull IFluidPressureSearchTask task){
+    public static void addTask(@Nonnull World world,@Nonnull IFluidPressureSearchTask task){ //Minecraft主线程调用
         WorldServer validWorld = getValidWorld(world);
         if(validWorld == null) return;
-        synchronized (queueToAdd){
-            Set<IFluidPressureSearchTask> queueSet = queueToAdd.computeIfAbsent(validWorld,k-> new HashSet<>());
-            queueSet.add(task);
-            Set<BlockPos> posToAdd = queueToAddPos.computeIfAbsent(validWorld,k-> new HashSet<>());
-            posToAdd.add(task.getBeginPos());
+        synchronized (queueMap){
+            WorldQueueTaskInfo info = queueMap.computeIfAbsent(validWorld,k-> new WorldQueueTaskInfo());
+            info.queueTask(task);
         }
 
     }
 
-    public static void onWorldTick(@Nonnull WorldServer world){
-        synchronized (queueToLoadPos){
-            Set<Pair<BlockPos,Block>> posesToLoad = queueToLoadPos.get(world);
-            if(posesToLoad == null) return;
-            for(Pair<BlockPos, Block> task:posesToLoad){
-                world.scheduleUpdate(task.getLeft(),task.getRight(),1);
-            }
-            posesToLoad.clear();
+    public static void onWorldTick(@Nonnull WorldServer world){ //Minecraft主线程调用
+        Queue<Pair<BlockPos,Block>> posesToLoad = queueToLoadPos.get(world);
+        if(posesToLoad == null) return;
+        for(int i=0;i<MAX_UPDATE_NUM;i++){
+            Pair<BlockPos, Block> task = posesToLoad.poll();
+            if(task == null) break;
+            world.scheduleUpdate(task.getLeft(),task.getRight(),1);
+        }
+
+        if(world.getTotalWorldTime()%600 == 0){
+            WorldPressureInfo info = getOrCreateWorldInfo(world);
+            info.getTaskResults().clear();
         }
     }
 
     @Override
-    public void run() {
+    public void run() {  //自身线程调用
         boolean running = true;
         while (running){
             long startTime = System.currentTimeMillis();
 
             WorldServer[] loadedWorld = FMLCommonHandler.instance().getMinecraftServerInstance().worlds;
             for(WorldServer world:loadedWorld){
-                Triple<Deque<IFluidPressureSearchTask>,Map<BlockPos,Collection<BlockPos>>,Set<BlockPos>> triple = getOrCreateWorldTriple(world);
-                dealWithNewTasks(world,triple);
-                updateTasks(world,triple);
+                WorldPressureInfo info = getOrCreateWorldInfo(world);
+                pushNewTasks(world,info);
+                updateTasks(world,info);
             }
             if(Thread.interrupted()){
                 running = false;
@@ -94,39 +98,35 @@ public final class FluidPressureSearchManager implements Runnable{
         quit();
     }
 
-    static void dealWithNewTasks(WorldServer world,Triple<Deque<IFluidPressureSearchTask>,Map<BlockPos,Collection<BlockPos>>,Set<BlockPos>> triple){
-        synchronized (queueToAdd){
-            Set<IFluidPressureSearchTask> queueSet = queueToAdd.get(world);
-            Set<BlockPos> posesToAdd = queueToAddPos.get(world);
-            if(queueSet != null){
-                for(IFluidPressureSearchTask task:queueSet){
-                    triple.getLeft().addLast(task);
-                    triple.getRight().add(task.getBeginPos());
-                }
-                queueSet.clear();
+    static void pushNewTasks(WorldServer world, WorldPressureInfo info){  //自身线程调用
+        WorldQueueTaskInfo queueInfo = queueMap.get(world);
+
+        if(queueInfo != null){
+            synchronized (queueMap){
+                queueInfo.queuedTasks.forEach(info::pushNewTask);
+                queueInfo.clear();
             }
-            if(posesToAdd != null) posesToAdd.clear();
         }
     }
 
-    static void updateTasks(WorldServer world, Triple<Deque<IFluidPressureSearchTask>,Map<BlockPos,Collection<BlockPos>>,Set<BlockPos>> triple){
-        final Map<BlockPos,Collection<BlockPos>> resMap = triple.getMiddle();
-        final Deque<IFluidPressureSearchTask> queue = triple.getLeft();
+    static void updateTasks(WorldServer world, WorldPressureInfo info){ //自身线程调用
+        final Map<BlockPos,Collection<BlockPos>> resMap = info.getTaskResults();
+        final Deque<IFluidPressureSearchTask> queue = info.getRunningTasks();
         for(int i=0;i<MAX_UPDATE_NUM;i++){
             if(queue.isEmpty()) break;
             final IFluidPressureSearchTask task = queue.poll();
             if(task == null) continue;
             if(task.isFinished()){
-                removeTask(triple,task);
+                info.unlockPos(task);
                 continue;
             }
             if(!world.isBlockLoaded(task.getBeginPos())){
-                removeTask(triple,task);
+                info.unlockPos(task);
                 continue;
             }
             IBlockState beginState = world.getBlockState(task.getBeginPos());
             if(beginState != task.getBeginState()){
-                removeTask(triple,task);
+                info.unlockPos(task);
                 continue;
             }
             try {
@@ -135,7 +135,7 @@ public final class FluidPressureSearchManager implements Runnable{
                     if(res == null) resMap.put(task.getBeginPos(),Collections.emptySet());
                     else resMap.put(task.getBeginPos(),res);
                     scheduleUpdate(world,task.getBeginPos(),beginState.getBlock());
-                    removeTask(triple,task);
+                    info.unlockPos(task);
                 }else{
                     queue.add(task);
                 }
@@ -143,32 +143,66 @@ public final class FluidPressureSearchManager implements Runnable{
                 GeoCraft.getLogger().warn("When loading pressure for fluid {} at {} in world {},",task.getFluid().getUnlocalizedName(),task.getBeginPos(),world.provider.getDimension());
                 GeoCraft.getLogger().warn("FluidPressureSearchManager caught an error:",e);
                 task.cancel();
-                removeTask(triple,task);
+                info.unlockPos(task);
             }
         }
     }
 
-    static void scheduleUpdate(WorldServer world,BlockPos pos,Block block){
-        synchronized (queueToLoadPos){
-            Set<Pair<BlockPos, Block>> scheduleSet = queueToLoadPos.computeIfAbsent(world, k-> new HashSet<>());
-            scheduleSet.add(Pair.of(pos,block));
-        }
-
+    static void scheduleUpdate(WorldServer world,BlockPos pos,Block block){  //自身线程调用
+        Queue<Pair<BlockPos, Block>> scheduleSet = queueToLoadPos.computeIfAbsent(world, k-> new ConcurrentLinkedQueue<>());
+        scheduleSet.add(Pair.of(pos,block));
     }
 
-    static void removeTask(Triple<Deque<IFluidPressureSearchTask>,Map<BlockPos,Collection<BlockPos>>,Set<BlockPos>> triple,IFluidPressureSearchTask task){
-        triple.getRight().remove(task.getBeginPos());
-    }
-
-    static void quit(){
+    static void quit(){  //自身线程调用
         worldMap.clear();
-        queueToAdd.clear();
+        queueMap.clear();
+        queueToLoadPos.clear();
     }
 
     @Nonnull
-    static Triple<Deque<IFluidPressureSearchTask>,Map<BlockPos,Collection<BlockPos>>,Set<BlockPos>> getOrCreateWorldTriple(@Nonnull WorldServer world){
-        synchronized (worldMap){
-            return worldMap.computeIfAbsent(world, k -> Triple.of(new LinkedList<>(),new HashMap<>(),new HashSet<>()));
+    static WorldPressureInfo getOrCreateWorldInfo(@Nonnull WorldServer world){ //多线程调用
+        return worldMap.computeIfAbsent(world,k->new WorldPressureInfo());
+    }
+
+    static class WorldPressureInfo{
+        public final Deque<IFluidPressureSearchTask> runningTasks = new ConcurrentLinkedDeque<>();
+        public final Map<BlockPos,Collection<BlockPos>> taskResults = new ConcurrentHashMap<>();
+        public final Set<BlockPos> runningTaskLocks = new ConcurrentSet<>();
+
+        public Deque<IFluidPressureSearchTask> getRunningTasks() {
+            return runningTasks;
+        }
+
+        public Map<BlockPos, Collection<BlockPos>> getTaskResults() {
+            return taskResults;
+        }
+
+        public Set<BlockPos> getRunningTaskLocks() {
+            return runningTaskLocks;
+        }
+
+        public void pushNewTask(IFluidPressureSearchTask task){
+            runningTasks.add(task);
+            runningTaskLocks.add(task.getBeginPos());
+        }
+
+        public void unlockPos(IFluidPressureSearchTask task){
+            runningTaskLocks.remove(task.getBeginPos());
+        }
+    }
+
+    static class WorldQueueTaskInfo{
+        public final Set<IFluidPressureSearchTask> queuedTasks = new ConcurrentSet<>();
+        public final Set<BlockPos> queuedTaskLocks = new ConcurrentSet<>();
+
+        public void queueTask(IFluidPressureSearchTask task){
+            queuedTasks.add(task);
+            queuedTaskLocks.add(task.getBeginPos());
+        }
+
+        public void clear(){
+            queuedTasks.clear();
+            queuedTaskLocks.clear();
         }
     }
 }
