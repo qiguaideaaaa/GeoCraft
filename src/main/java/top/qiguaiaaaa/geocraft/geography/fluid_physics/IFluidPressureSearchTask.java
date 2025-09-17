@@ -24,4 +24,5 @@ public interface IFluidPressureSearchTask {
     void cancel();
     void finish();
     boolean isFinished();
+    boolean isEqualState(IBlockState curState);
 }

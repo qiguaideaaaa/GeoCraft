@@ -127,10 +127,10 @@ public final class FluidOperationUtil {
         if(srcBlock instanceof BlockLiquid){
             int srcLevel = srcState.getValue(LEVEL);
             worldIn.setBlockToAir(srcPos);
-            worldIn.setBlockState(newPos,BlockLiquid.getFlowingBlock(srcState.getMaterial()).getDefaultState().withProperty(LEVEL,srcLevel), Constants.BlockFlags.SEND_TO_CLIENTS);
+            worldIn.setBlockState(newPos,BlockLiquid.getFlowingBlock(srcState.getMaterial()).getDefaultState().withProperty(LEVEL,srcLevel));
         }else if(srcBlock instanceof IFluidBlock){
             worldIn.setBlockToAir(srcPos);
-            worldIn.setBlockState(newPos,srcState,Constants.BlockFlags.SEND_TO_CLIENTS);
+            worldIn.setBlockState(newPos,srcState);
         }
     }
 

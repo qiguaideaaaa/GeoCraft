@@ -13,7 +13,8 @@ import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateBaseTask;
-import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure.RealityPressureTaskBuilder;
+import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
 import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.util.mixinapi.IMoreRealityBlockFluidBase;
@@ -28,14 +29,14 @@ import static net.minecraftforge.fluids.BlockFluidBase.LEVEL;
  */
 public class MoreRealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask implements IMoreRealityBlockFluidBase<BlockFluidClassic> {
     protected final BlockFluidClassic block;
-    protected final int quantaPerBlock,tickRate,densityDir;
+    protected final byte quantaPerBlock,tickRate,densityDir;
     protected IBlockState state;
     public MoreRealityBlockFluidClassicUpdateTask(@Nonnull Fluid fluid, @Nonnull BlockPos pos,@Nonnull BlockFluidClassic block,int quantaPerBlock,int tickRate,int densityDir) {
         super(fluid, pos);
         this.block = block;
-        this.quantaPerBlock = quantaPerBlock;
-        this.tickRate = tickRate;
-        this.densityDir = densityDir;
+        this.quantaPerBlock = (byte) quantaPerBlock;
+        this.tickRate = (byte) tickRate;
+        this.densityDir = (byte) densityDir;
     }
 
     @Override
@@ -100,7 +101,7 @@ public class MoreRealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask 
             else {
                 state = state.withProperty(LEVEL,meta);
                 world.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
-                FluidUpdateManager.scheduleUpdate(world,pos, block, this.tickRate);
+                BlockUpdater.scheduleUpdate(world,pos, block, this.tickRate);
                 world.notifyNeighborsOfStateChange(pos,block, false);
             }
             for(FlowChoice choice:averageModeFlowDirections){ //向四周流动
@@ -116,12 +117,12 @@ public class MoreRealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask 
 
     protected boolean managePressureTask(World world, Random rand){
         if(FluidPressureSearchManager.isTaskRunning(world,pos)){
-            FluidUpdateManager.scheduleUpdate(world,pos,block,block.tickRate(world));
+            BlockUpdater.scheduleUpdate(world,pos,block,block.tickRate(world));
             return false;
         }
         Collection<BlockPos> res =FluidPressureSearchManager.getTaskResult(world,pos);
         if(res == null || res.isEmpty()){
-            sendPressureQuery(world,rand,1,false);
+            sendPressureQuery(world,rand,BaseUtil.getRandomPressureSearchRange(),false);
             return false;
         }
         IBlockState nowState =state;
@@ -143,14 +144,14 @@ public class MoreRealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask 
         if(random.nextInt(3)<2) return;
         IBlockState up =world.getBlockState(pos.down(densityDir));
         if(up.getBlock() == block){
-            FluidUpdateManager.scheduleUpdate(world,pos.down(densityDir),block,block.tickRate(world));
+            BlockUpdater.scheduleUpdate(world,pos.down(densityDir),block,block.tickRate(world));
         }
     }
 
     protected void sendPressureQuery(World world,Random rand,int range,boolean directly){
         IBlockState up = world.getBlockState(pos.down(densityDir));
         if(FluidUtil.getFluid(up)!=fluid && (directly || rand.nextInt(3) <2)) {
-            FluidPressureSearchManager.addTask(world,new MoreRealityBlockFluidClassicPressureSearchTask(fluid,state,pos, range,quantaPerBlock));
+            FluidPressureSearchManager.addTask(world, RealityPressureTaskBuilder.createModClassicTask(fluid,state,pos, range,quantaPerBlock));
         }
     }
 

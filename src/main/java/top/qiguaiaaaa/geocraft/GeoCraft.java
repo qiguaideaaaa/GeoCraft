@@ -9,6 +9,8 @@ import org.apache.logging.log4j.Logger;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereRegionFileCache;
 import top.qiguaiaaaa.geocraft.command.CommandAtmosphere;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager;
+import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
 import top.qiguaiaaaa.geocraft.world.gen.GeoCraftPostPopulatingGenerator;
 
 @Mod(modid = GeoCraft.MODID, name = GeoCraft.NAME, version = GeoCraft.VERSION, dependencies = "required:mixinbooter;",acceptableRemoteVersions = "*",useMetadata = true)
@@ -46,6 +48,8 @@ public class GeoCraft {
     @EventHandler
     public void onServerStop(FMLServerStoppedEvent event){
         AtmosphereRegionFileCache.clearRegionFileReferences();
+        FluidUpdateManager.onServerStop();
+        BlockUpdater.onServerStop();
         if(pressureThread != null && pressureThread.isAlive()){
             pressureThread.interrupt();
         }

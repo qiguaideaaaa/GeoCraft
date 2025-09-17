@@ -5,6 +5,10 @@ import top.qiguaiaaaa.geocraft.GeoCraft;
 import java.io.File;
 import java.util.Random;
 
+/**
+ * 该类会在Early Mixin时访问
+ * @author QiguaiAAAA
+ */
 public final class BaseUtil {
     private static final Random random = new Random();
     public static File getSuggestedConfigurationFile(){
@@ -45,11 +49,6 @@ public final class BaseUtil {
         return doubles;
     }
 
-    public static double getMemoryAvailablePercent(){
-        Runtime runtime = Runtime.getRuntime();
-        return runtime.freeMemory()/(double)runtime.totalMemory();
-    }
-
     public static int getRandomPressureSearchRange() {
         int rand = random.nextInt(100); // 0-99
 
@@ -59,4 +58,6 @@ public final class BaseUtil {
         if (rand < 99) return 5;        // 95-98 (4%)
         return 6;                       // 99 (1%)
     }
+
+
 }

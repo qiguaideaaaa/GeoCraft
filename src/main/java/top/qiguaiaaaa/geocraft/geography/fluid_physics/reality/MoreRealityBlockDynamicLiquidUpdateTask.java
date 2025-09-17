@@ -2,6 +2,7 @@ package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDynamicLiquid;
+import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.BlockSnow;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -21,7 +22,8 @@ import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateBaseTask;
-import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure.RealityPressureTaskBuilder;
+import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockDynamicLiquidAccessor;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockLiquidAccessor;
 import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
@@ -36,6 +38,7 @@ import static net.minecraft.block.BlockLiquid.LEVEL;
  */
 public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
     protected static final Random random = new Random();
+    protected static final BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
     protected final BlockDynamicLiquid block;
     protected IBlockState state;
     protected Material material;
@@ -72,7 +75,7 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
                 else {
                     state = state.withProperty(LEVEL,liquidMeta);
                     world.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
-                    FluidUpdateManager.scheduleUpdate(world,pos,block, updateRate);
+                    BlockUpdater.scheduleUpdate(world,pos,block, updateRate);
                     world.notifyNeighborsOfStateChange(pos,block, false);
                 }
                 world.setBlockState(pos.down(), ForgeEventFactory.fireFluidPlaceBlockEvent(world, pos.down(), pos, Blocks.STONE.getDefaultState()));
@@ -83,11 +86,19 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
             return;
         }
 
+        if(checkPressureTask(world)){ //压强流动模式
+            BlockUpdater.scheduleUpdate(world,pos,block, updateRate);
+            return;
+        }
+
+        if ((state.getMaterial() == Material.LAVA) && rand.nextInt(4) != 0){ //岩浆速度处理
+            updateRate *= 4;
+        }
 
         //Q=1 坡度流动模式
         if(liquidMeta == 7){
             if(FluidUtil.getFluid(stateBelow) == fluid){
-                this.placeStaticBlock(world,pos,state);
+                this.placeStaticBlock(world,pos,state,FlowingMode.SLOPE_MODE_ON_WATER);
                 return;
             }
             if (!world.isAreaLoaded(pos, this.getSlopeFindDistance(world))){
@@ -95,7 +106,7 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
             }
             Set<EnumFacing> directions = this.getPossibleFlowDirections(world, pos);
             if(directions.isEmpty()){
-                this.placeStaticBlock(world,pos,state);
+                this.placeStaticBlock(world,pos,state,FlowingMode.SLOPE_MODE);
                 return;
             }
 
@@ -104,9 +115,7 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
             this.tryFlowInto(world, pos.offset(randomFacing), world.getBlockState(pos.offset(randomFacing)), 7);
             return;
         }
-        if ((state.getMaterial() == Material.LAVA) && rand.nextInt(4) != 0){ //岩浆速度处理
-            updateRate *= 4;
-        }
+
         //可流动方向检查
         final ArrayList<FlowChoice> averageModeFlowDirections = new ArrayList<>();//平均流动模式可用方向
         this.checkNeighborsToFindFlowChoices(world,pos,liquidQuanta,averageModeFlowDirections);
@@ -122,13 +131,15 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
                     Collections.swap(averageModeFlowDirections,0,1);
                 }
             }
-            liquidQuanta = newLiquidQuanta;
-            liquidMeta = 8 - liquidQuanta;
-            if (liquidQuanta<=0) world.setBlockToAir(pos); //先更新自身状态
+            liquidMeta = 8 - newLiquidQuanta;
+            if (newLiquidQuanta<=0) world.setBlockToAir(pos); //先更新自身状态
             else {
                 state = state.withProperty(LEVEL,liquidMeta);
                 world.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
-                FluidUpdateManager.scheduleUpdate(world,pos,block, updateRate);
+                BlockUpdater.scheduleUpdate(world,pos,block, updateRate);
+                if(!FluidPressureSearchManager.isTaskRunning(world,pos)){
+                    createFluidPressureSearchTask(world,pos,state,FlowingMode.AVERAGE_MODE);
+                }
                 world.notifyNeighborsOfStateChange(pos,block, false);
             }
             for(FlowChoice choice:averageModeFlowDirections){ //向四周流动
@@ -138,7 +149,7 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
                 directlyFlowInto(world,facingPos,world.getBlockState(facingPos),8-choice.getQuanta());
             }
         }else {
-            this.placeStaticBlock(world,pos,state);
+            this.placeStaticBlock(world,pos,state,FlowingMode.NO_MODE);
         }
     }
 
@@ -151,8 +162,8 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
      */
     private void checkNeighborsToFindFlowChoices(World worldIn,BlockPos pos,int liquidQuanta,List<FlowChoice> averageModeFlowDirections){
         for(EnumFacing facing:EnumFacing.Plane.HORIZONTAL){
-            IBlockState facingState = worldIn.getBlockState(pos.offset(facing));
-            if(!canFlowInto(worldIn,pos.offset(facing),facingState)) continue;
+            IBlockState facingState = worldIn.getBlockState(mutablePos.setPos(pos.getX()+facing.getXOffset(),pos.getY(),pos.getZ()+facing.getZOffset()));
+            if(!canFlowInto(worldIn,mutablePos,facingState)) continue;
             if(!canFlowIntoWhenItIsSnowLayer(facingState,liquidQuanta)) continue;
             int facingMeta = ((BlockLiquidAccessor)block).getDepth(facingState);
             if(facingMeta <0 || facingMeta>7) facingMeta = 8;
@@ -172,34 +183,35 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
      * @param tickRate 更新间隔
      */
     private void flowDown(World world,BlockPos currentPos,IBlockState downState,int liquidQuanta,int tickRate){
+        BlockPos downPos = currentPos.down();
         if(downState.getBlock() == Blocks.SNOW_LAYER && fluid == FluidRegistry.WATER){
             int belowLayer = downState.getValue(BlockSnow.LAYERS);
             int totalQuanta = belowLayer+liquidQuanta;
             int frozenQuanta = Math.min(8-belowLayer,liquidQuanta);
             if(totalQuanta<=8){
                 world.setBlockToAir(currentPos);
-                world.setBlockState(currentPos.down(),downState.withProperty(BlockSnow.LAYERS,totalQuanta));
+                world.setBlockState(downPos,downState.withProperty(BlockSnow.LAYERS,totalQuanta));
             }else{
                 int remain = totalQuanta-8;
                 setLiquidToFlowingLevel(world,currentPos,8-remain);
-                FluidUpdateManager.scheduleUpdate(world,currentPos,block,tickRate);
-                world.setBlockState(currentPos.down(),downState.withProperty(BlockSnow.LAYERS,8));
+                BlockUpdater.scheduleUpdate(world,currentPos,block,tickRate);
+                world.setBlockState(downPos,downState.withProperty(BlockSnow.LAYERS,8));
             }
             IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(world,currentPos,true);
             if(accessor == null) return;
             accessor.putHeatToUnderlying(frozenQuanta* AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA);
             return;
         }
-        int belowQuanta = FluidUtil.getFluidQuanta(world,currentPos.down(),downState);
+        int belowQuanta = FluidUtil.getFluidQuanta(world,downPos,downState);
         int totalQuanta = liquidQuanta+belowQuanta;
         if(totalQuanta<=8){
             world.setBlockToAir(currentPos);
-            setLiquidToFlowingLevel(world, currentPos.down(),8-totalQuanta);
+            setLiquidToFlowingLevel(world,downPos,8-totalQuanta);
         }else{
             int remain = totalQuanta-8;
             setLiquidToFlowingLevel(world,currentPos,8-remain);
-            FluidUpdateManager.scheduleUpdate(world,currentPos,block,tickRate);
-            setLiquidToFlowingLevel(world,currentPos.down(),0);
+            BlockUpdater.scheduleUpdate(world,currentPos,block,tickRate);
+            setLiquidToFlowingLevel(world,downPos,0);
         }
     }
 
@@ -323,20 +335,81 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
         return block;
     }
 
+    protected void createFluidPressureSearchTask(World world,BlockPos pos,IBlockState state,FlowingMode mode){
+        switch (mode){
+            case AVERAGE_MODE:
+                FluidPressureSearchManager.addTask(world, RealityPressureTaskBuilder.createVanillaTask(fluid,state,pos,0));
+                break;
+            case SLOPE_MODE:return;
+            default:
+                FluidPressureSearchManager.addTask(world,RealityPressureTaskBuilder.createVanillaTask(fluid,state,pos,2));
+        }
+    }
+
+    protected boolean checkPressureTask(World worldIn){
+        if(!worldIn.isRemote){
+            Collection<BlockPos> res = FluidPressureSearchManager.getTaskResult(worldIn,pos);
+            if(res == null || res.isEmpty()){
+                return false;
+            }
+            IBlockState nowState =state;
+            for(BlockPos toPos:res){
+                if(!nowState.getMaterial().isLiquid()) break;
+                if(tryMoveInto(worldIn,toPos,pos,nowState)) break;
+                nowState = worldIn.getBlockState(pos);
+            }
+            nowState = worldIn.getBlockState(pos);
+            return nowState != state;
+        }
+        return false;
+    }
+
+    protected boolean tryMoveInto(World world,BlockPos toPos,BlockPos srcPos,IBlockState myState){
+        if(!world.isBlockLoaded(toPos)) return false;
+        IBlockState toState = world.getBlockState(toPos);
+        if(toState.getMaterial() == Material.AIR){
+            int quanta = 8 -myState.getValue(BlockLiquid.LEVEL);
+            int movQuanta = srcPos.getY()==toPos.getY()?quanta/2:quanta;
+            if(movQuanta <= 0)return false;
+            quanta -=movQuanta;
+            if(quanta <= 0){
+                world.setBlockToAir(srcPos);
+            }else world.setBlockState(srcPos,block.getDefaultState().withProperty(BlockLiquid.LEVEL,8-quanta));
+            world.setBlockState(toPos,block.getDefaultState().withProperty(BlockLiquid.LEVEL,8-movQuanta));
+            return quanta == 0;
+        }else if(FluidUtil.getFluid(toState) == fluid){
+            int toQuanta = 8-toState.getValue(BlockLiquid.LEVEL);
+            int myQuanta = 8 -myState.getValue(BlockLiquid.LEVEL);
+            if(toPos.getY() == srcPos.getY() && toQuanta>=myQuanta-1) return false;
+            int movQuanta = srcPos.getY()==toPos.getY()?(myQuanta-toQuanta)/2:Math.min(8-toQuanta,myQuanta);
+            myQuanta -=movQuanta;
+            if(myQuanta <= 0){
+                world.setBlockToAir(srcPos);
+            }else world.setBlockState(srcPos,block.getDefaultState().withProperty(BlockLiquid.LEVEL,8-myQuanta));
+            toQuanta += movQuanta;
+            world.setBlockState(toPos,block.getDefaultState().withProperty(BlockLiquid.LEVEL,8-toQuanta));
+            return myQuanta==0;
+        }
+        return false;
+    }
+
     private void tryFlowInto(World worldIn, BlockPos pos, IBlockState state, int level) {
         ((BlockDynamicLiquidAccessor)block).tryFlowInto(worldIn,pos,state,level);
     }
-    private void placeStaticBlock(World worldIn, BlockPos pos, IBlockState currentState){
+    private void placeStaticBlock(World worldIn, BlockPos pos, IBlockState currentState,FlowingMode mode){
         ((BlockDynamicLiquidAccessor)block).placeStaticBlock(worldIn,pos,currentState);
+        if(mode == FlowingMode.SLOPE_MODE) return;
+
         IBlockState newState = worldIn.getBlockState(pos);
         if(newState.getMaterial().isLiquid()){
             if(FluidPressureSearchManager.isTaskRunning(worldIn,pos)){
-                FluidUpdateManager.scheduleUpdate(worldIn,pos,newState.getBlock(), block.tickRate(worldIn));
                 return;
             }
             IBlockState upState = worldIn.getBlockState(pos.up());
-            if(FluidUtil.getFluid(upState) == fluid) return;
-            FluidPressureSearchManager.addTask(worldIn,new MoreRealityBlockLiquidPressureSearchTask(fluid,newState,pos,1));
+            if(FluidUtil.getFluid(upState)==fluid){
+                if(upState.getValue(LEVEL)==0)return;
+            }
+            createFluidPressureSearchTask(worldIn,pos,newState,mode);
         }
     }
     private boolean canFlowInto(World worldIn, BlockPos pos, IBlockState state) {
@@ -347,5 +420,12 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
     }
     private boolean isBlocked(World worldIn, BlockPos pos, IBlockState state){
         return ((BlockDynamicLiquidAccessor)block).isBlocked(worldIn, pos, state);
+    }
+
+    protected enum FlowingMode{
+        NO_MODE,
+        SLOPE_MODE,
+        SLOPE_MODE_ON_WATER,
+        AVERAGE_MODE
     }
 }

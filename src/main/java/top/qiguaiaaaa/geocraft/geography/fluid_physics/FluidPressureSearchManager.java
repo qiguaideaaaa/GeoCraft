@@ -9,6 +9,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import org.apache.commons.lang3.tuple.Pair;
 import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -18,6 +19,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager.*;
+import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
 
 /**
  * @author QiguaiAAAA
@@ -47,20 +49,17 @@ public final class FluidPressureSearchManager implements Runnable{
     public static void addTask(@Nonnull World world,@Nonnull IFluidPressureSearchTask task){ //Minecraft主线程调用
         WorldServer validWorld = getValidWorld(world);
         if(validWorld == null) return;
-        synchronized (queueMap){
-            WorldQueueTaskInfo info = queueMap.computeIfAbsent(validWorld,k-> new WorldQueueTaskInfo());
-            info.queueTask(task);
-        }
-
+        WorldQueueTaskInfo info = queueMap.computeIfAbsent(validWorld,k-> new WorldQueueTaskInfo());
+        info.queueTask(task);
     }
 
     public static void onWorldTick(@Nonnull WorldServer world){ //Minecraft主线程调用
         Queue<Pair<BlockPos,Block>> posesToLoad = queueToLoadPos.get(world);
         if(posesToLoad == null) return;
-        for(int i=0;i<MAX_UPDATE_NUM;i++){
+        for(int i=0;i<MAX_UPDATE_NUM*2;i++){
             Pair<BlockPos, Block> task = posesToLoad.poll();
             if(task == null) break;
-            world.scheduleUpdate(task.getLeft(),task.getRight(),1);
+            BlockUpdater.scheduleUpdate(world,task.getLeft(),task.getRight(),0);
         }
         posesToLoad.clear();
 
@@ -105,9 +104,9 @@ public final class FluidPressureSearchManager implements Runnable{
                 break;
             }
             long usedTime = System.currentTimeMillis()-startTime;
-            if(usedTime<100){
+            if(usedTime<40){
                 try {
-                    Thread.sleep(100-usedTime);
+                    Thread.sleep(40-usedTime);
                 } catch (InterruptedException ignored) {
                     running = false;
                 }
@@ -121,10 +120,8 @@ public final class FluidPressureSearchManager implements Runnable{
         WorldQueueTaskInfo queueInfo = queueMap.get(world);
 
         if(queueInfo != null){
-            synchronized (queueMap){
-                queueInfo.queuedTasks.forEach(info::pushNewTask);
-                queueInfo.clear();
-            }
+            queueInfo.queuedTasks.forEach(info::pushNewTask);
+            queueInfo.clear();
         }
     }
 
@@ -144,7 +141,7 @@ public final class FluidPressureSearchManager implements Runnable{
                 continue;
             }
             IBlockState beginState = world.getBlockState(task.getBeginPos());
-            if(beginState != task.getBeginState()){
+            if(!task.isEqualState(beginState)){
                 info.unlockPos(task);
                 continue;
             }

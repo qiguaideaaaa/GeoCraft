@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality;
+package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure;
 
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -16,25 +16,24 @@ import java.util.Collection;
 /**
  * @author QiguaiAAAA
  */
-public class MoreRealityBlockFluidClassicPressureSearchTask extends MoreRealityPressureSearchTask {
-    protected final int beginQuanta;
-    protected final int quantaPerBlock;
-    protected final int densityDir;
+public class ShortRealityModClassicPressureSearchTask extends ShortRealityPressureSearchTask {
+    protected final byte beginQuanta;
+    protected final byte quantaPerBlock;
+    protected final byte densityDir;
 
-    public MoreRealityBlockFluidClassicPressureSearchTask(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos,int searchRange,int quantaPerBlock) {
+    ShortRealityModClassicPressureSearchTask(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos, int searchRange, int quantaPerBlock) {
         super(fluid, beginState, beginPos,searchRange);
-        beginQuanta = quantaPerBlock-beginState.getValue(BlockFluidBase.LEVEL);
-        this.quantaPerBlock = quantaPerBlock;
-        this.densityDir = fluid.getDensity()>0?1:-1;
+        beginQuanta = (byte) (quantaPerBlock-beginState.getValue(BlockFluidBase.LEVEL));
+        this.quantaPerBlock = (byte) quantaPerBlock;
+        this.densityDir = (byte) (fluid.getDensity()>0?1:-1);
     }
 
     @Nullable
     @Override
     public Collection<BlockPos> search(WorldServer world) {
-        BlockPos.MutableBlockPos curPos = new BlockPos.MutableBlockPos();
         for(int i=0;i<32;i++){
             if(queue.isEmpty()) break;
-            BlockPos pos = queue.poll();
+            BlockPos pos = pull();
             searchTimes++;
             if(!isValidPos(pos)) continue;
             if(!world.isBlockLoaded(pos)) continue;
@@ -42,11 +41,12 @@ public class MoreRealityBlockFluidClassicPressureSearchTask extends MoreRealityP
             if(state.getMaterial() == Material.AIR){
                 air:{
                     if(pos.getY() == beginPos.getY() && beginQuanta == 1) break air;
-                    res.add(pos);
+                    putBlockPosToResults(pos);
                 }
             }else if(FluidUtil.getFluid(state) == fluid){
                 int quanta = quantaPerBlock-state.getValue(BlockFluidBase.LEVEL);
-                if((isLowerPos(pos) && quanta <quantaPerBlock) || (pos.getY() == beginPos.getY() && quanta < beginQuanta-1)) res.add(pos);
+                if((isLowerPos(pos) && quanta <quantaPerBlock) || (pos.getY() == beginPos.getY() && quanta < beginQuanta-1))
+                    putBlockPosToResults(pos);
             }
             if(res.size()>quantaPerBlock) return res; //够了
             if(searchTimes>maxSearchTimes) return res;
@@ -54,13 +54,12 @@ public class MoreRealityBlockFluidClassicPressureSearchTask extends MoreRealityP
             if(state.getMaterial() == Material.AIR) continue;
             for(int[] dir: FluidSearchUtil.DIRS6){
                 if(pos.getY() == beginPos.getY() && dir[1]* densityDir >0) continue;
-                curPos.setPos(pos.getX()+dir[0],pos.getY()+dir[1],pos.getZ()+dir[2]);
-                if(curPos.getY()<0 || curPos.getY()>=world.getHeight()) continue;
-                BlockPos curPosIm = curPos.toImmutable();
-                if(visited.contains(curPosIm)) continue;
-                visited.add(curPosIm);
-                if(canSearchInto(world,curPosIm,dir)){
-                    queue.add(curPosIm);
+                mutablePos.setPos(pos.getX()+dir[0],pos.getY()+dir[1],pos.getZ()+dir[2]);
+                if(mutablePos.getY()<0 || mutablePos.getY()>=world.getHeight()) continue;
+                if(isVisited(mutablePos)) continue;
+                markVisited(mutablePos);
+                if(canSearchInto(world,mutablePos,dir)){
+                    queued(mutablePos);
                 }
             }
         }

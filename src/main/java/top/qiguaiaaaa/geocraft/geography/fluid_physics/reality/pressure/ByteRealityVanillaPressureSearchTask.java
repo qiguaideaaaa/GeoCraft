@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality;
+package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure;
 
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
@@ -14,23 +14,29 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
+ * 注意两边方法需要同步
+ * @see ShortRealityVanillaPressureSearchTask
  * @author QiguaiAAAA
  */
-public class MoreRealityBlockLiquidPressureSearchTask extends MoreRealityPressureSearchTask {
-    protected final int beginQuanta;
+public class ByteRealityVanillaPressureSearchTask extends ByteRealityPressureSearchTask {
+    protected final byte beginQuanta;
 
-    public MoreRealityBlockLiquidPressureSearchTask(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos, int searchRange) {
+    ByteRealityVanillaPressureSearchTask(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos, int searchRange) {
         super(fluid, beginState, beginPos, searchRange);
-        beginQuanta = 8-beginState.getValue(BlockLiquid.LEVEL);
+        beginQuanta = (byte) (8-beginState.getValue(BlockLiquid.LEVEL));
+    }
+
+    @Override
+    public boolean isFinished() {
+        return res.size()>8 || searchTimes>=maxSearchTimes || isQueueEmpty();
     }
 
     @Nullable
     @Override
     public Collection<BlockPos> search(WorldServer world) {
-        BlockPos.MutableBlockPos curPos = new BlockPos.MutableBlockPos();
-        for(int i=0;i<32;i++){
+        for(int i=0;i<64;i++){
             if(queue.isEmpty()) break;
-            BlockPos pos = queue.poll();
+            BlockPos pos = pull();
             searchTimes++;
             if(pos.getY() > beginPos.getY()) continue;
             if(!world.isBlockLoaded(pos)) continue;
@@ -38,11 +44,12 @@ public class MoreRealityBlockLiquidPressureSearchTask extends MoreRealityPressur
             if(state.getMaterial() == Material.AIR){
                 air:{
                     if(pos.getY() == beginPos.getY() && beginQuanta == 1) break air;
-                    res.add(pos);
+                    putBlockPosToResults(pos);
                 }
             }else if(FluidUtil.getFluid(state) == fluid){
                 int quanta = 8-state.getValue(BlockLiquid.LEVEL);
-                if((pos.getY()<beginPos.getY() && quanta <8) || (pos.getY() == beginPos.getY() && quanta < beginQuanta-1)) res.add(pos);
+                if((pos.getY()<beginPos.getY() && quanta <8) || (pos.getY() == beginPos.getY() && quanta < beginQuanta-1))
+                    putBlockPosToResults(pos);
             }
             if(res.size()>8) return res; //够了
             if(searchTimes> maxSearchTimes) return res;
@@ -50,13 +57,12 @@ public class MoreRealityBlockLiquidPressureSearchTask extends MoreRealityPressur
             if(state.getMaterial() == Material.AIR) continue;
             for(int[] dir:FluidSearchUtil.DIRS6){
                 if(pos.getY() == beginPos.getY() && dir[1]>0) continue;
-                curPos.setPos(pos.getX()+dir[0],pos.getY()+dir[1],pos.getZ()+dir[2]);
-                if(curPos.getY()<0) continue;
-                BlockPos curPosIm = curPos.toImmutable();
-                if(visited.contains(curPosIm)) continue;
-                visited.add(curPosIm);
-                if(canSearchInto(world,curPosIm,dir)){
-                    queue.add(curPosIm);
+                mutablePos.setPos(pos.getX()+dir[0],pos.getY()+dir[1],pos.getZ()+dir[2]);
+                if(mutablePos.getY()<0) continue;
+                if(isVisited(mutablePos)) continue;
+                markVisited(mutablePos);
+                if(canSearchInto(world,mutablePos,dir)){
+                    queued(mutablePos);
                 }
             }
         }
@@ -68,5 +74,13 @@ public class MoreRealityBlockLiquidPressureSearchTask extends MoreRealityPressur
         IBlockState state = world.getBlockState(pos);
         if(state.getMaterial() == Material.AIR && (dir[1] != 0 || beginQuanta>1 || pos.getY() < beginPos.getY())) return true;
         return FluidUtil.getFluid(state) == fluid;
+    }
+
+    @Override
+    public boolean isEqualState(IBlockState curState) {
+        if(FluidUtil.getFluid(curState) == fluid){
+            return curState.getValue(BlockLiquid.LEVEL) == 8-beginQuanta;
+        }
+        return false;
     }
 }

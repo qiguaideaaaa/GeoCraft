@@ -18,8 +18,7 @@ import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
-import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager;
-import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.MoreRealityBlockLiquidPressureSearchTask;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure.RealityPressureTaskBuilder;
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
 import top.qiguaiaaaa.geocraft.util.mixinapi.FluidSettable;
 import top.qiguaiaaaa.geocraft.util.mixinapi.IVanillaFlowChecker;
@@ -42,37 +41,36 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
     @Inject(method = "updateTick",at = @At("RETURN"))
     public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
         if(!GeoFluidSetting.isFluidToBePhysical(thisFluid)) return;
+        if(worldIn.isRemote) return;
         if(!canFlow(worldIn,pos,state,rand)){
-            if(!worldIn.isRemote && !FluidPressureSearchManager.isTaskRunning(worldIn,pos)){
-                Collection<BlockPos> res = FluidPressureSearchManager.getTaskResult(worldIn,pos);
-                if(res == null || res.isEmpty()){
-                    sendPressureQuery(worldIn,pos,state,rand,false);
-                }else {
-                    IBlockState nowState =state;
-                    for(BlockPos toPos:res){
-                        if(!nowState.getMaterial().isLiquid()) break;
-                        if(tryMoveInto(worldIn,toPos,pos,nowState)) break;
-                        nowState = worldIn.getBlockState(pos);
-                    }
+            Collection<BlockPos> res = FluidPressureSearchManager.getTaskResult(worldIn,pos);
+
+            boolean debug = false;
+            if(res == null || res.isEmpty()){
+                sendPressureQuery(worldIn,pos,state,rand,false,debug);
+                if(debug) GeoCraft.getLogger().info("{}: no res,send query",pos);
+            }else {
+                IBlockState nowState =state;
+                if(debug) GeoCraft.getLogger().info("{}: has res :",pos);
+                for(BlockPos toPos:res){
+                    if(!nowState.getMaterial().isLiquid()) break;
+                    if(tryMoveInto(worldIn,toPos,pos,nowState)) break;
                     nowState = worldIn.getBlockState(pos);
-                    if(nowState!=state && FluidUtil.getFluid(nowState) == thisFluid){
-                        sendPressureQuery(worldIn,pos,state,rand,true);
-                    }else if(nowState == state){
-                        sendPressureQuery(worldIn,pos,state,rand,false);
-                    }
-                    if(nowState!=state) return;
+                    if(debug) GeoCraft.getLogger().info("{} now State: {}",toPos,nowState);
                 }
+
+                nowState = worldIn.getBlockState(pos);
+                if(nowState!=state && FluidUtil.getFluid(nowState) == thisFluid){
+                    sendPressureQuery(worldIn,pos,nowState,rand,true,debug);
+                }else if(nowState == state){
+                    sendPressureQuery(worldIn,pos,state,rand,false,debug);
+                }
+                if(nowState!=state) return;
             }
             IBlockState newState = EventFactory.afterBlockLiquidStaticUpdate(thisFluid,worldIn,pos,state);
             if(newState != null){
                 worldIn.setBlockState(pos,newState);
                 return;
-            }
-            if(rand.nextInt(3)==0){
-                IBlockState upState = worldIn.getBlockState(pos.up());
-                if(upState.getBlock() == this){
-                    FluidUpdateManager.scheduleUpdate(worldIn,pos.up(),this,this.tickRate(worldIn));
-                }
             }
             return;
         }
@@ -84,10 +82,24 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
         IVanillaFlowChecker checker = (IVanillaFlowChecker) blockdynamicliquid;
         return checker.canFlow(worldIn,pos,state,rand);
     }
-    protected void sendPressureQuery(World world,BlockPos pos,IBlockState state,Random rand,boolean directly){
+    protected void sendPressureQuery(World world,BlockPos pos,IBlockState state,Random rand,boolean directly,boolean debug){
+        if(FluidPressureSearchManager.isTaskRunning(world,pos)){
+            if(debug) GeoCraft.getLogger().info("{}: task running, returned",pos);
+            return;
+        }
         IBlockState up = world.getBlockState(pos.up());
-        if(FluidUtil.getFluid(up)!=thisFluid && (directly || rand.nextInt(3) <2)) {
-            FluidPressureSearchManager.addTask(world,new MoreRealityBlockLiquidPressureSearchTask(thisFluid,state,pos, BaseUtil.getRandomPressureSearchRange()));
+        if(FluidUtil.getFluid(up)==thisFluid){
+            if(up.getValue(LEVEL)==0){
+                if(debug) GeoCraft.getLogger().info("{}: up is full water, returned",pos);
+                return;
+            }
+        }
+        if(directly || rand.nextInt(5) <2) {
+            if(debug)
+                FluidPressureSearchManager.addTask(world,RealityPressureTaskBuilder.createVanillaTask_Debug(thisFluid,state,pos,BaseUtil.getRandomPressureSearchRange()));
+            else FluidPressureSearchManager.addTask(world,
+                    RealityPressureTaskBuilder.createVanillaTask(thisFluid,state,pos, BaseUtil.getRandomPressureSearchRange())
+            );
         }
     }
 
@@ -95,26 +107,26 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
         if(!world.isBlockLoaded(toPos)) return false;
         IBlockState toState = world.getBlockState(toPos);
         if(toState.getMaterial() == Material.AIR){
-            int quanta = 8 -myState.getValue(BlockLiquid.LEVEL);
+            int quanta = 8 -myState.getValue(LEVEL);
             int movQuanta = srcPos.getY()==toPos.getY()?quanta/2:quanta;
             if(movQuanta <= 0)return false;
             quanta -=movQuanta;
             if(quanta <= 0){
                 world.setBlockToAir(srcPos);
-            }else world.setBlockState(srcPos,BlockLiquid.getStaticBlock(material).getDefaultState().withProperty(BlockLiquid.LEVEL,8-quanta));
-            world.setBlockState(toPos,BlockLiquid.getFlowingBlock(material).getDefaultState().withProperty(BlockLiquid.LEVEL,8-movQuanta));
+            }else world.setBlockState(srcPos,this.getDefaultState().withProperty(LEVEL,8-quanta));
+            world.setBlockState(toPos,this.getDefaultState().withProperty(LEVEL,8-movQuanta));
             return quanta == 0;
         }else if(FluidUtil.getFluid(toState) == thisFluid){
-            int toQuanta = 8-toState.getValue(BlockLiquid.LEVEL);
-            int myQuanta = 8 -myState.getValue(BlockLiquid.LEVEL);
+            int toQuanta = 8-toState.getValue(LEVEL);
+            int myQuanta = 8 -myState.getValue(LEVEL);
             if(toPos.getY() == srcPos.getY() && toQuanta>=myQuanta-1) return false;
             int movQuanta = srcPos.getY()==toPos.getY()?(myQuanta-toQuanta)/2:Math.min(8-toQuanta,myQuanta);
             myQuanta -=movQuanta;
             if(myQuanta <= 0){
                 world.setBlockToAir(srcPos);
-            }else world.setBlockState(srcPos,BlockLiquid.getStaticBlock(material).getDefaultState().withProperty(BlockLiquid.LEVEL,8-myQuanta));
+            }else world.setBlockState(srcPos,this.getDefaultState().withProperty(LEVEL,8-myQuanta));
             toQuanta += movQuanta;
-            world.setBlockState(toPos,BlockLiquid.getFlowingBlock(material).getDefaultState().withProperty(BlockLiquid.LEVEL,8-toQuanta));
+            world.setBlockState(toPos,this.getDefaultState().withProperty(LEVEL,8-toQuanta));
             return myQuanta==0;
         }
         return false;
