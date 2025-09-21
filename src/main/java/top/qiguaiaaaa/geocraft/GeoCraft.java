@@ -6,6 +6,7 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.*;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.Logger;
+import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemRunner;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereRegionFileCache;
 import top.qiguaiaaaa.geocraft.command.CommandAtmosphere;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
@@ -45,11 +46,18 @@ public class GeoCraft {
         pressureThread = new Thread(pressureSearchManager,FluidPressureSearchManager.class.toString());
         pressureThread.start();
     }
+
+    @EventHandler
+    public void onServerStopping(FMLServerStoppingEvent event){
+        AtmosphereSystemRunner.onServerStopping(event);
+    }
+
     @EventHandler
     public void onServerStop(FMLServerStoppedEvent event){
         AtmosphereRegionFileCache.clearRegionFileReferences();
         FluidUpdateManager.onServerStop();
         BlockUpdater.onServerStop();
+        AtmosphereSystemRunner.onServerStopped(event);
         if(pressureThread != null && pressureThread.isAlive()){
             pressureThread.interrupt();
         }

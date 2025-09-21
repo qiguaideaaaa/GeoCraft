@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality;
+package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.update;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDynamicLiquid;
@@ -21,12 +21,12 @@ import top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
-import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateBaseTask;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.RealityBlockLiquidUtil;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure.RealityPressureTaskBuilder;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.update.FluidUpdateBaseTask;
 import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
-import top.qiguaiaaaa.geocraft.mixin.common.BlockDynamicLiquidAccessor;
-import top.qiguaiaaaa.geocraft.mixin.common.BlockLiquidAccessor;
-import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.BlockLiquidUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -36,13 +36,11 @@ import static net.minecraft.block.BlockLiquid.LEVEL;
 /**
  * @author QiguaiAAAA
  */
-public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
-    protected static final Random random = new Random();
-    protected static final BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
+public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
     protected final BlockDynamicLiquid block;
     protected IBlockState state;
     protected Material material;
-    public MoreRealityBlockDynamicLiquidUpdateTask(@Nonnull Fluid fluid, @Nonnull BlockPos pos, @Nonnull BlockDynamicLiquid block) {
+    public RealityBlockDynamicLiquidUpdateTask(@Nonnull Fluid fluid, @Nonnull BlockPos pos, @Nonnull BlockDynamicLiquid block) {
         super(fluid, pos);
         this.block = block;
     }
@@ -63,7 +61,7 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
         int updateRate = block.tickRate(world);
 
         IBlockState stateBelow = world.getBlockState(pos.down());
-        boolean canMoveDown = this.canMoveDownTo(world, pos.down(), stateBelow);
+        boolean canMoveDown = RealityBlockLiquidUtil.canMoveDownTo(material,stateBelow);
 
         if(canMoveDown){ //向下流动
             if(isSameLiquid(stateBelow) || (stateBelow.getBlock() == Blocks.SNOW_LAYER && fluid == FluidRegistry.WATER)){
@@ -101,10 +99,10 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
                 this.placeStaticBlock(world,pos,state,FlowingMode.SLOPE_MODE_ON_WATER);
                 return;
             }
-            if (!world.isAreaLoaded(pos, this.getSlopeFindDistance(world))){
+            if (!world.isAreaLoaded(pos, RealityBlockLiquidUtil.getSlopeFindDistance(world,block))){
                 return;
             }
-            Set<EnumFacing> directions = this.getPossibleFlowDirections(world, pos);
+            Set<EnumFacing> directions = RealityBlockLiquidUtil.getPossibleFlowDirections(world, pos,block);
             if(directions.isEmpty()){
                 this.placeStaticBlock(world,pos,state,FlowingMode.SLOPE_MODE);
                 return;
@@ -112,13 +110,13 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
 
             EnumFacing randomFacing = (EnumFacing) directions.toArray()[rand.nextInt(directions.size())];
             world.setBlockToAir(pos);
-            this.tryFlowInto(world, pos.offset(randomFacing), world.getBlockState(pos.offset(randomFacing)), 7);
+            BlockLiquidUtil.tryFlowInto(world, pos.offset(randomFacing), world.getBlockState(pos.offset(randomFacing)),block, 7);
             return;
         }
 
         //可流动方向检查
         final ArrayList<FlowChoice> averageModeFlowDirections = new ArrayList<>();//平均流动模式可用方向
-        this.checkNeighborsToFindFlowChoices(world,pos,liquidQuanta,averageModeFlowDirections);
+        RealityBlockLiquidUtil.checkNeighborsToFindFlowChoices(world,pos,block,liquidQuanta,averageModeFlowDirections);
 
         if(!averageModeFlowDirections.isEmpty()){ //平均流动模式
             averageModeFlowDirections.sort(Comparator.comparingInt(FlowChoice::getQuanta));
@@ -154,27 +152,6 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
     }
 
     /**
-     * 检查方块四周可流动的选择
-     * @param worldIn 所在世界
-     * @param pos 方块位置
-     * @param liquidQuanta 液体量
-     * @param averageModeFlowDirections 平均流动模式下的选择列表
-     */
-    private void checkNeighborsToFindFlowChoices(World worldIn,BlockPos pos,int liquidQuanta,List<FlowChoice> averageModeFlowDirections){
-        for(EnumFacing facing:EnumFacing.Plane.HORIZONTAL){
-            IBlockState facingState = worldIn.getBlockState(mutablePos.setPos(pos.getX()+facing.getXOffset(),pos.getY(),pos.getZ()+facing.getZOffset()));
-            if(!canFlowInto(worldIn,mutablePos,facingState)) continue;
-            if(!canFlowIntoWhenItIsSnowLayer(facingState,liquidQuanta)) continue;
-            int facingMeta = ((BlockLiquidAccessor)block).getDepth(facingState);
-            if(facingMeta <0 || facingMeta>7) facingMeta = 8;
-            int facingQuanta = 8-facingMeta;
-            if(facingQuanta<liquidQuanta-1){
-                averageModeFlowDirections.add(new FlowChoice(facingQuanta,facing));
-            }
-        }
-    }
-
-    /**
      * 在下方有相同流体的情况下，流下去
      * @param world 所在世界
      * @param currentPos 当前位置
@@ -182,7 +159,7 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
      * @param liquidQuanta 当前流体量
      * @param tickRate 更新间隔
      */
-    private void flowDown(World world,BlockPos currentPos,IBlockState downState,int liquidQuanta,int tickRate){
+    protected void flowDown(World world,BlockPos currentPos,IBlockState downState,int liquidQuanta,int tickRate){
         BlockPos downPos = currentPos.down();
         if(downState.getBlock() == Blocks.SNOW_LAYER && fluid == FluidRegistry.WATER){
             int belowLayer = downState.getValue(BlockSnow.LAYERS);
@@ -221,7 +198,7 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
      * @param pos 位置
      * @param newLevel 新等级
      */
-    private void setLiquidToFlowingLevel(World worldIn,BlockPos pos,int newLevel){
+    protected void setLiquidToFlowingLevel(World worldIn,BlockPos pos,int newLevel){
         worldIn.setBlockState(pos, block.getDefaultState().withProperty(LEVEL,newLevel),Constants.BlockFlags.DEFAULT);
     }
 
@@ -232,7 +209,7 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
      * @param state 当前方块状态
      * @param level 流入流体等级
      */
-    private void directlyFlowInto(World worldIn, BlockPos pos, IBlockState state, int level) {
+    protected void directlyFlowInto(World worldIn, BlockPos pos, IBlockState state, int level) {
         FluidOperationUtil.triggerDestroyBlockEffectByFluid(worldIn,pos,state,fluid);
         worldIn.setBlockState(pos, block.getDefaultState().withProperty(LEVEL, level), Constants.BlockFlags.DEFAULT);
     }
@@ -240,93 +217,10 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
     /**
      * 是否是相同液体
      */
-    private boolean isSameLiquid(IBlockState state){
+    protected boolean isSameLiquid(IBlockState state){
         Block block = state.getBlock();
         if(block instanceof IFluidBlock) return false;
         return state.getMaterial() == this.material;
-    }
-
-    /**
-     * 液体是否可以往下流动
-     * @param worldIn 所在世界
-     * @param pos 下方位置
-     * @param state 下方方块状态
-     * @return 如果可以往下流动，则返回true
-     */
-    private boolean canMoveDownTo(World worldIn, BlockPos pos, IBlockState state){
-        if(state.getBlock() instanceof IFluidBlock) return false;
-        Material material = state.getMaterial();
-        if(material.isLiquid()){
-            if(material == Material.WATER && this.material == Material.LAVA) return true;
-            if(material != this.material) return false;
-            return state.getValue(LEVEL) != 0;
-        }
-        if(state.getBlock() == Blocks.SNOW_LAYER){
-            return state.getValue(BlockSnow.LAYERS) < 8;
-        }
-        return !this.isBlocked(worldIn,pos,state);
-    }
-
-    private boolean canFlowIntoWhenItIsSnowLayer(IBlockState state,int thisQuanta){
-        if(fluid != FluidRegistry.WATER) return true;
-        if(state.getBlock() != Blocks.SNOW_LAYER) return true;
-        int layer = state.getValue(BlockSnow.LAYERS);
-        return layer < thisQuanta-2;
-    }
-
-    private Set<EnumFacing> getPossibleFlowDirections(World worldIn, BlockPos pos) {
-        int difficulty = 1000;
-        Set<EnumFacing> possibleDirections = EnumSet.noneOf(EnumFacing.class);
-
-        for (EnumFacing enumfacing : EnumFacing.Plane.HORIZONTAL) {
-            BlockPos facingPos = pos.offset(enumfacing);
-            IBlockState state = worldIn.getBlockState(facingPos);
-
-            if (this.isBlocked(worldIn, facingPos, state) || !canFlowIntoWhenItIsSnowLayer(state,1) || FluidUtil.isFluid(state)) {
-                continue;
-            }
-            int slope;
-            IBlockState stateBelow = worldIn.getBlockState(facingPos.down());
-            if (!canMoveDownTo(worldIn,facingPos.down(),stateBelow)) {
-                slope = this.getSlopeDistance(worldIn, facingPos, 1, enumfacing.getOpposite());
-            } else{
-                slope = 0;
-            }
-
-            if (slope < difficulty)
-                possibleDirections.clear();
-            if (slope <= difficulty) {
-                possibleDirections.add(enumfacing);
-                difficulty = slope;
-            }
-        }
-        if(difficulty == 1000) possibleDirections.clear();
-        return possibleDirections;
-    }
-
-    private int getSlopeDistance(World worldIn, BlockPos pos, int distance, EnumFacing from) {
-        int difficulty = 1000;
-
-        for (EnumFacing enumfacing : EnumFacing.Plane.HORIZONTAL) {
-            if (enumfacing == from) continue;
-            BlockPos facingPos = pos.offset(enumfacing);
-            IBlockState state = worldIn.getBlockState(facingPos);
-
-            if (this.isBlocked(worldIn, facingPos, state) || !canFlowIntoWhenItIsSnowLayer(state,1) || FluidUtil.isFluid(state)) {
-                continue;
-            }
-            IBlockState stateBelow = worldIn.getBlockState(facingPos.down());
-            if (canMoveDownTo(worldIn,facingPos.down(),stateBelow)) {
-                return distance;
-            }
-
-            if (distance < this.getSlopeFindDistance(worldIn)) {
-                int newDistance = this.getSlopeDistance(worldIn, facingPos, distance + 1, enumfacing.getOpposite());
-                if (newDistance < difficulty) difficulty = newDistance;
-            }
-        }
-
-        return difficulty;
     }
 
     @Nonnull
@@ -393,11 +287,8 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
         return false;
     }
 
-    private void tryFlowInto(World worldIn, BlockPos pos, IBlockState state, int level) {
-        ((BlockDynamicLiquidAccessor)block).tryFlowInto(worldIn,pos,state,level);
-    }
-    private void placeStaticBlock(World worldIn, BlockPos pos, IBlockState currentState,FlowingMode mode){
-        ((BlockDynamicLiquidAccessor)block).placeStaticBlock(worldIn,pos,currentState);
+    protected void placeStaticBlock(World worldIn, BlockPos pos, IBlockState currentState,FlowingMode mode){
+        BlockLiquidUtil.placeStaticBlock(worldIn,pos,currentState,block);
         if(mode == FlowingMode.SLOPE_MODE) return;
 
         IBlockState newState = worldIn.getBlockState(pos);
@@ -411,15 +302,6 @@ public class MoreRealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask
             }
             createFluidPressureSearchTask(worldIn,pos,newState,mode);
         }
-    }
-    private boolean canFlowInto(World worldIn, BlockPos pos, IBlockState state) {
-        return ((BlockDynamicLiquidAccessor)block).canFlowInto(worldIn, pos, state);
-    }
-    private int getSlopeFindDistance(World worldIn) {
-        return ((BlockDynamicLiquidAccessor)block).getSlopeFindDistance(worldIn);
-    }
-    private boolean isBlocked(World worldIn, BlockPos pos, IBlockState state){
-        return ((BlockDynamicLiquidAccessor)block).isBlocked(worldIn, pos, state);
     }
 
     protected enum FlowingMode{

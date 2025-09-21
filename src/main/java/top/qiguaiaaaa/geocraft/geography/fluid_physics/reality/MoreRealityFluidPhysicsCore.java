@@ -22,7 +22,7 @@ import java.util.Random;
 
 import static net.minecraft.block.BlockLiquid.LEVEL;
 
-public class MoreRealityFluidPhysicsCore {
+public final class MoreRealityFluidPhysicsCore {
     @Nullable
     public static IBlockState evaporateWater(World world, BlockPos pos, IBlockState state, Random rand){
         int light = world.getLightFor(EnumSkyBlock.SKY,pos);

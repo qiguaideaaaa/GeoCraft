@@ -15,5 +15,4 @@ public class FluidCarbonDioxide extends Fluid {
         setDensity(44);
     }
 
-
 }

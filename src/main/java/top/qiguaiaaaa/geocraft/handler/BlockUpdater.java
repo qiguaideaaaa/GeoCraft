@@ -9,6 +9,7 @@ import org.apache.commons.lang3.tuple.Triple;
 import top.qiguaiaaaa.geocraft.util.misc.ExtendedNextTickListEntry;
 
 import java.util.*;
+import java.util.function.Function;
 
 import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
 
@@ -16,6 +17,7 @@ import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
  * @author QiguaiAAAA
  */
 public final class BlockUpdater {
+    private static final Function<WorldServer,LinkedList<ExtendedNextTickListEntry>> CREATE_SCHEDULE_LIST = k -> new LinkedList<>();
     static final int MAX_UPDATE_NUM = 65536*4;
     static final Map<WorldServer, List<ExtendedNextTickListEntry>> WORLD_SCHEDULE_MAP = new HashMap<>();
     static final List<ExtendedNextTickListEntry> READY_TO_UPDATES = new ArrayList<>(MAX_UPDATE_NUM/4);
@@ -27,7 +29,7 @@ public final class BlockUpdater {
         }
         WorldServer validWorld = getValidWorld(world);
         if(validWorld == null) return;
-        List<ExtendedNextTickListEntry> schedules = WORLD_SCHEDULE_MAP.computeIfAbsent(validWorld,k -> new LinkedList<>());
+        List<ExtendedNextTickListEntry> schedules = WORLD_SCHEDULE_MAP.computeIfAbsent(validWorld,CREATE_SCHEDULE_LIST);
         schedules.add(new ExtendedNextTickListEntry(world,pos,block,delay,0));
     }
 

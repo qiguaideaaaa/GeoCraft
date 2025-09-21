@@ -1,5 +1,6 @@
 package top.qiguaiaaaa.geocraft.mixin.reality.block;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.BlockStaticLiquid;
 import net.minecraft.block.material.Material;
@@ -16,14 +17,17 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import top.qiguaiaaaa.geocraft.mixin.common.BlockAccessor;
-import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
 
 import static net.minecraft.block.BlockLiquid.LEVEL;
 
 @Mixin(value = BlockLiquid.class)
-public abstract class BlockLiquidMixin {
+public abstract class BlockLiquidMixin extends Block {
+    public BlockLiquidMixin(Material materialIn) {
+        super(materialIn);
+    }
+
     @Inject(method = "getFlow",at = @At("HEAD"),cancellable = true)
     protected void getFlow(IBlockAccess worldIn, BlockPos pos, IBlockState state, CallbackInfoReturnable<Vec3d> cir){
         if(state.getBlock() instanceof BlockStaticLiquid){
@@ -38,7 +42,7 @@ public abstract class BlockLiquidMixin {
     @Inject(method = "checkForMixing",at = @At("HEAD"),cancellable = true)
     public void checkForMixing(World worldIn, BlockPos pos, IBlockState state, CallbackInfoReturnable<Boolean> cir) {
         cir.cancel();
-        if (((BlockAccessor)this).getMaterial() == Material.LAVA) {
+        if (material == Material.LAVA) {
             boolean flag = false;
             EnumFacing waterFacing = null;
             for (EnumFacing facing : EnumFacing.values()) {

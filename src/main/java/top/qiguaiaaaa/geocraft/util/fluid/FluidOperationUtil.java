@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.util;
+package top.qiguaiaaaa.geocraft.util.fluid;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
@@ -6,6 +6,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.SoundEvents;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
@@ -13,10 +14,12 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.*;
+import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.configs.GeneralConfig;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.SimulationMode;
 import top.qiguaiaaaa.geocraft.api.util.exception.UnsupportedFluidException;
 
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;

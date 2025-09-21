@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.util;
+package top.qiguaiaaaa.geocraft.util.fluid;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;

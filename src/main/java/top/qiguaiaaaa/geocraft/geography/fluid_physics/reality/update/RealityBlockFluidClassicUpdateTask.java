@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality;
+package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.update;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -12,11 +12,11 @@ import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
-import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateBaseTask;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.update.FluidUpdateBaseTask;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure.RealityPressureTaskBuilder;
 import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
-import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.util.mixinapi.IMoreRealityBlockFluidBase;
 
 import javax.annotation.Nonnull;
@@ -27,11 +27,11 @@ import static net.minecraftforge.fluids.BlockFluidBase.LEVEL;
 /**
  * @author QiguaiAAAA
  */
-public class MoreRealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask implements IMoreRealityBlockFluidBase<BlockFluidClassic> {
+public class RealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask implements IMoreRealityBlockFluidBase<BlockFluidClassic> {
     protected final BlockFluidClassic block;
     protected final byte quantaPerBlock,tickRate,densityDir;
     protected IBlockState state;
-    public MoreRealityBlockFluidClassicUpdateTask(@Nonnull Fluid fluid, @Nonnull BlockPos pos,@Nonnull BlockFluidClassic block,int quantaPerBlock,int tickRate,int densityDir) {
+    public RealityBlockFluidClassicUpdateTask(@Nonnull Fluid fluid, @Nonnull BlockPos pos, @Nonnull BlockFluidClassic block, int quantaPerBlock, int tickRate, int densityDir) {
         super(fluid, pos);
         this.block = block;
         this.quantaPerBlock = (byte) quantaPerBlock;

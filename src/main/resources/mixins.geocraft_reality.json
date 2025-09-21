@@ -14,5 +14,7 @@
     "block.BlockSnowBlockMixin"
   ],
   "client": [
+    "client.BlockLiquidMixin",
+    "client.BlockFluidBaseMixin"
   ]
 }

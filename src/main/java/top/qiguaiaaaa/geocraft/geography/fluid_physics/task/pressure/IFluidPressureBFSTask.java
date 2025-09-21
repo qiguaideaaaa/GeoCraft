@@ -1,7 +1,6 @@
-package top.qiguaiaaaa.geocraft.geography.fluid_physics.task;
+package top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure;
 
 import net.minecraft.util.math.BlockPos;
-import top.qiguaiaaaa.geocraft.geography.fluid_physics.IFluidPressureSearchTask;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -22,6 +21,7 @@ public interface IFluidPressureBFSTask extends IFluidPressureSearchTask {
      * @param pos 被访问的位置
      */
     void markVisited(@Nonnull BlockPos pos);
+    int getVisitedSize();
 
     boolean isQueueEmpty();
 
@@ -32,12 +32,25 @@ public interface IFluidPressureBFSTask extends IFluidPressureSearchTask {
     void queued(@Nonnull BlockPos pos);
 
     /**
-     * 取出队列中的第一个位置
+     * 取出队列中的第一个位置，会从队列中移除第一个位置
      * @return 第一个位置
      */
     @Nonnull
     BlockPos pull();
 
+    /**
+     * 获取队列中的第一个位置，不会在队列中将其移除
+     * @return 第一个位置
+     */
+    @Nonnull
+    BlockPos peek();
+
+    int getQueueSize();
+
+    /**
+     * 获取结果集合
+     * @return 一个BlockPos集合
+     */
     @Nonnull
     Collection<BlockPos> getResultCollection();
 

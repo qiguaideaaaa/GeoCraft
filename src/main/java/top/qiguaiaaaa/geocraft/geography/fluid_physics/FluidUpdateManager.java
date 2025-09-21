@@ -8,6 +8,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.update.IFluidUpdateTask;
 import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
 
 import javax.annotation.Nonnull;
@@ -15,6 +16,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.function.Function;
 
 import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
 
@@ -72,10 +74,12 @@ public final class FluidUpdateManager {
     }
 
     static Pair<PriorityQueue<IFluidUpdateTask>,PriorityQueue<IFluidUpdateTask>> getOrCreateQueues(@Nonnull WorldServer world){
-        return updateTaskQueuesMap.computeIfAbsent(world,k ->
-                Pair.of(
-                new PriorityQueue<>(Comparator.comparingInt(value -> value.getPos().getY())) //小根堆，向下流的流体放这里
-                ,new PriorityQueue<>((v1,v2) -> v2.getPos().getY()-v1.getPos().getY()) //大根堆，向上流的流体放这里
-        ));
+        return updateTaskQueuesMap.computeIfAbsent(world,CREATE_QUEUES);
     }
+
+    private static final Function<WorldServer,Pair<PriorityQueue<IFluidUpdateTask>,PriorityQueue<IFluidUpdateTask>>> CREATE_QUEUES =
+            k->Pair.of(
+                    new PriorityQueue<>(Comparator.comparingInt(value -> value.getPos().getY())) //小根堆，向下流的流体放这里
+                    ,new PriorityQueue<>((v1,v2) -> v2.getPos().getY()-v1.getPos().getY()) //大根堆，向上流的流体放这里
+            );
 }

@@ -20,8 +20,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockFluidBaseAccessor;
-import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
-import top.qiguaiaaaa.geocraft.util.FluidSearchUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidSearchUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 
 import javax.annotation.Nonnull;

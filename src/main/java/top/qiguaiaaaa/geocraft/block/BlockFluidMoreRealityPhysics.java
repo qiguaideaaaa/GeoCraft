@@ -11,7 +11,7 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.BlockFluidFinite;
 import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
-import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 
 import javax.annotation.Nonnull;

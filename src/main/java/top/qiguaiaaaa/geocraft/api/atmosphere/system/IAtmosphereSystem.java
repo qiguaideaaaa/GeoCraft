@@ -3,6 +3,8 @@ package top.qiguaiaaaa.geocraft.api.atmosphere.system;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
+import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
@@ -40,9 +42,22 @@ public interface IAtmosphereSystem {
     void onChunkUnloaded(@Nonnull Chunk chunk);
 
     /**
-     * 保存所有大气
+     * 当对应世界要保存的时候，处理大气
      */
-    void saveAllAtmospheres();
+    void onWorldSave();
+
+    /**
+     * 当服务器正在停止的时候，处理大气
+     * @param event 服务器正在停止事件
+     */
+    void onServerStopping(@Nonnull FMLServerStoppingEvent event);
+
+    /**
+     * 当服务器停止的时候
+     * @param event 服务器停止事件
+     */
+    default void onServerStopped(@Nonnull FMLServerStoppedEvent event){}
+
     boolean isAtmosphereLoaded(@Nonnull ChunkPos pos);
 
     /**

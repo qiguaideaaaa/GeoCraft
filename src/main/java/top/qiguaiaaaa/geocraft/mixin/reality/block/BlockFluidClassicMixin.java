@@ -4,7 +4,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -20,10 +19,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
-import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager;
-import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.MoreRealityBlockFluidClassicUpdateTask;
-import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.update.RealityBlockFluidClassicUpdateTask;
 import top.qiguaiaaaa.geocraft.util.mixinapi.IMoreRealityBlockFluidBase;
 
 import java.util.*;
@@ -43,7 +40,7 @@ public abstract class BlockFluidClassicMixin extends BlockFluidBase implements I
     public void updateTick(World world, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
         if(!GeoFluidSetting.isFluidToBePhysical(this.getFluid())) return;
         ci.cancel();
-        FluidUpdateManager.addTask(world,new MoreRealityBlockFluidClassicUpdateTask(this.getFluid(),pos,getThis(),quantaPerBlock,tickRate,densityDir));
+        FluidUpdateManager.addTask(world,new RealityBlockFluidClassicUpdateTask(this.getFluid(),pos,getThis(),quantaPerBlock,tickRate,densityDir));
     }
 
     @Inject(method = "drain",at = @At("HEAD"),cancellable = true,remap = false)
@@ -57,7 +54,10 @@ public abstract class BlockFluidClassicMixin extends BlockFluidBase implements I
         cir.setReturnValue(fluidStack);
         cir.cancel();
     }
-    //下面这段代码参考自Forge的BlockFluidFinite类
+
+    /**
+     * 参考自Forge的BlockFluidFinite类
+     */
     @Inject(method = "place",at =@At("HEAD"),cancellable = true,remap = false)
     private void place(World world, BlockPos pos, FluidStack fluidStack, boolean doPlace, CallbackInfoReturnable<Integer> cir) {
         if(!GeoFluidSetting.isFluidToBePhysical(this.getFluid())) return;

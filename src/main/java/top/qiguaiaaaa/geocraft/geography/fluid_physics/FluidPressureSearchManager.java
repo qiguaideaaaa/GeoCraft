@@ -9,6 +9,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import org.apache.commons.lang3.tuple.Pair;
 import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTask;
 import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
 
 import javax.annotation.Nonnull;
@@ -17,7 +18,10 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Function;
 
+import static top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager.WorldPressureInfo.CREATE_WORLD_PRESSURE_INFO;
+import static top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager.WorldQueueTaskInfo.CREATE_WORLD_QUEUE_TASK_INFO;
 import static top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager.*;
 import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
 
@@ -25,6 +29,7 @@ import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
  * @author QiguaiAAAA
  */
 public final class FluidPressureSearchManager implements Runnable{
+    private static final Function<WorldServer,ConcurrentLinkedQueue<Pair<BlockPos, Block>>> CREATE_QUEUE = k -> new ConcurrentLinkedQueue<>();
     static final Map<WorldServer, WorldPressureInfo> worldMap = new ConcurrentHashMap<>(); //running的task、结果和running的task的poses
     static final Map<WorldServer,WorldQueueTaskInfo> queueMap = new ConcurrentHashMap<>(); //等待被加入queue的task
     static final Map<WorldServer,Queue<Pair<BlockPos,Block>>> queueToLoadPos = new ConcurrentHashMap<>();
@@ -33,7 +38,7 @@ public final class FluidPressureSearchManager implements Runnable{
         WorldServer validWorld = getValidWorld(world);
         if(validWorld == null) return false;
         WorldPressureInfo runningInfo = getOrCreateWorldInfo(validWorld);
-        WorldQueueTaskInfo queueInfo = queueMap.computeIfAbsent(validWorld,k->new WorldQueueTaskInfo());
+        WorldQueueTaskInfo queueInfo = queueMap.computeIfAbsent(validWorld,CREATE_WORLD_QUEUE_TASK_INFO);
         return runningInfo.getRunningTaskLocks().contains(pos) || queueInfo.queuedTaskLocks.contains(pos);
     }
 
@@ -49,7 +54,7 @@ public final class FluidPressureSearchManager implements Runnable{
     public static void addTask(@Nonnull World world,@Nonnull IFluidPressureSearchTask task){ //Minecraft主线程调用
         WorldServer validWorld = getValidWorld(world);
         if(validWorld == null) return;
-        WorldQueueTaskInfo info = queueMap.computeIfAbsent(validWorld,k-> new WorldQueueTaskInfo());
+        WorldQueueTaskInfo info = queueMap.computeIfAbsent(validWorld,CREATE_WORLD_QUEUE_TASK_INFO);
         info.queueTask(task);
     }
 
@@ -166,7 +171,7 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     static void scheduleUpdate(WorldServer world,BlockPos pos,Block block){  //自身线程调用
-        Queue<Pair<BlockPos, Block>> scheduleSet = queueToLoadPos.computeIfAbsent(world, k-> new ConcurrentLinkedQueue<>());
+        Queue<Pair<BlockPos, Block>> scheduleSet = queueToLoadPos.computeIfAbsent(world, CREATE_QUEUE);
         scheduleSet.add(Pair.of(pos,block));
     }
 
@@ -178,10 +183,11 @@ public final class FluidPressureSearchManager implements Runnable{
 
     @Nonnull
     static WorldPressureInfo getOrCreateWorldInfo(@Nonnull WorldServer world){ //多线程调用
-        return worldMap.computeIfAbsent(world,k->new WorldPressureInfo());
+        return worldMap.computeIfAbsent(world,CREATE_WORLD_PRESSURE_INFO);
     }
 
     static class WorldPressureInfo{
+        static final Function<WorldServer,WorldPressureInfo> CREATE_WORLD_PRESSURE_INFO = k-> new WorldPressureInfo();
         public final Deque<IFluidPressureSearchTask> runningTasks = new ConcurrentLinkedDeque<>();
         public final Map<BlockPos,Collection<BlockPos>> taskResults = new ConcurrentHashMap<>();
         public final Set<BlockPos> runningTaskLocks = new ConcurrentSet<>();
@@ -209,6 +215,7 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     static class WorldQueueTaskInfo{
+        static final Function<WorldServer,WorldQueueTaskInfo> CREATE_WORLD_QUEUE_TASK_INFO = k-> new WorldQueueTaskInfo();
         public final Set<IFluidPressureSearchTask> queuedTasks = new ConcurrentSet<>();
         public final Set<BlockPos> queuedTaskLocks = new ConcurrentSet<>();
 

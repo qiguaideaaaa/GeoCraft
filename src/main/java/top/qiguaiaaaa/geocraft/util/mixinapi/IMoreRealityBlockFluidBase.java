@@ -8,7 +8,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.BlockFluidBase;
 import net.minecraftforge.fluids.Fluid;
-import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.configs.SimulationConfig;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockFluidBaseAccessor;

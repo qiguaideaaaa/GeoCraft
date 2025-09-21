@@ -1,10 +1,11 @@
 package top.qiguaiaaaa.geocraft.api.atmosphere;
 
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.event.terraingen.PopulateChunkEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
+import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
@@ -41,17 +42,23 @@ public class AtmosphereSystemRunner {
     public static void onWorldSave(WorldEvent.Save event){
         IAtmosphereSystem system = getAtmosphereSystem(event.getWorld());
         if(system == null) return;
-        system.saveAllAtmospheres();
+        system.onWorldSave();
     }
 
-//    @SubscribeEvent
-//    public static void onChunkGenerated(PopulateChunkEvent.Post event){
-//        WorldServer server = getValidWorld(event.getWorld());
-//        if(server == null) return;
-//        IAtmosphereSystem system = getAtmosphereSystem(server);
-//        if(system == null) return;
-//        system.onChunkGenerated(server.getChunk(event.getChunkX(),event.getChunkZ()));
-//    }
+    public static void onServerStopping(FMLServerStoppingEvent event){
+        for(IAtmosphereSystem system:atmosphereSystems.values()){
+            if(system == null) continue;
+            system.onServerStopping(event);
+        }
+    }
+
+    public static void onServerStopped(FMLServerStoppedEvent event){
+        for(IAtmosphereSystem system:atmosphereSystems.values()){
+            if(system == null) continue;
+            system.onServerStopped(event);
+        }
+        atmosphereSystems.clear();
+    }
 
     @SubscribeEvent
     public static void onPreAtmosphereGenerate(AtmosphereGenerateEvent.Pre event){

@@ -37,8 +37,8 @@ import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.block.IBlockDirt;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.MoreRealityFluidPhysicsCore;
-import top.qiguaiaaaa.geocraft.util.FluidMixinUtil;
-import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidMixinUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.util.WaterUtil;
 import top.qiguaiaaaa.geocraft.util.wrappers.InfiniteFluidBucketWrapper;
 import top.qiguaiaaaa.geocraft.util.wrappers.PhysicsBlockLiquidWrapper;
@@ -219,7 +219,7 @@ public final class MoreRealityEventHandler {
         if(event.getLiquid() != FluidRegistry.WATER) return;
         IBlockState state = event.getState();
         World worldIn = event.getWorld();
-        if(worldIn.rand.nextInt(30) >1) return; //因为压强计算频繁更新，需要降低概率
+        if(worldIn.rand.nextInt(5) >1) return; //因为压强计算频繁更新，需要降低概率
         BlockPos pos = event.getPos();
         int oldMeta = state.getValue(LEVEL);
         state = MoreRealityFluidPhysicsCore.evaporateWater(worldIn,pos,state,worldIn.rand);

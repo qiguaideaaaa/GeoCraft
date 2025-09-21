@@ -1,14 +1,15 @@
-package top.qiguaiaaaa.geocraft.geography.fluid_physics;
+package top.qiguaiaaaa.geocraft.geography.fluid_physics.task.update;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fluids.Fluid;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.update.IFluidUpdateTask;
 
 import javax.annotation.Nonnull;
 
 /**
  * @author QiguaiAAAA
  */
-public abstract class FluidUpdateBaseTask implements IFluidUpdateTask{
+public abstract class FluidUpdateBaseTask implements IFluidUpdateTask {
     protected final Fluid fluid;
     protected final BlockPos pos;
 

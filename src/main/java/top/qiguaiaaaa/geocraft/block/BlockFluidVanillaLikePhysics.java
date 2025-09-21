@@ -11,8 +11,8 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fluids.BlockFluidClassic;
 import net.minecraftforge.fluids.Fluid;
-import top.qiguaiaaaa.geocraft.util.FluidOperationUtil;
-import top.qiguaiaaaa.geocraft.util.FluidSearchUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidSearchUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 
 import javax.annotation.Nonnull;

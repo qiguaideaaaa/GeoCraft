@@ -6,7 +6,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.capability.wrappers.FluidBlockWrapper;
 import top.qiguaiaaaa.geocraft.api.util.math.PlaceChoice;
-import top.qiguaiaaaa.geocraft.util.FluidSearchUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidSearchUtil;
 
 import java.util.Set;
 

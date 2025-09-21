@@ -3,6 +3,7 @@ package top.qiguaiaaaa.geocraft.api.atmosphere.system;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
@@ -47,7 +48,12 @@ public abstract class BaseAtmosphereSystem implements IAtmosphereSystem{
     }
 
     @Override
-    public void saveAllAtmospheres() {
+    public void onWorldSave() {
+        dataProvider.saveAllAtmosphereData();
+    }
+
+    @Override
+    public void onServerStopping(@Nonnull FMLServerStoppingEvent event) {
         Collection<AtmosphereData> dataList = dataProvider.getLoadedAtmosphereDataCollection();
         for(AtmosphereData data:dataList){
             if(data.getAtmosphere() == null) continue;
@@ -56,7 +62,7 @@ public abstract class BaseAtmosphereSystem implements IAtmosphereSystem{
                 data.saveAtmosphere();
             }
         }
-        dataProvider.saveAllAtmosphereData();
+        onWorldSave();
     }
 
     @Override

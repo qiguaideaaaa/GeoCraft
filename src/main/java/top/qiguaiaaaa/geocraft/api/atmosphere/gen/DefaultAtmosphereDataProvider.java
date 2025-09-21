@@ -97,9 +97,9 @@ public class DefaultAtmosphereDataProvider implements IAtmosphereDataProvider {
     public void saveAllAtmosphereData() {
         for(AtmosphereData data:loadedAtmosphere.values()){
             saveAtmosphereData(data);
-            atmosphereLoader.flush();
+//            atmosphereLoader.flush();
         }
-        APIUtil.LOGGER.info("All Atmosphere Data for DIM{} has saved!",world.provider.getDimension());
+        APIUtil.LOGGER.info("All Atmosphere Data in DIM{} has saved!",world.provider.getDimension());
     }
 
     /**

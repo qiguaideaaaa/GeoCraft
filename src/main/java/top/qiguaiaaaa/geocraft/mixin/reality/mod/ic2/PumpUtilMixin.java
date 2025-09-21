@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
-import top.qiguaiaaaa.geocraft.util.FluidSearchUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidSearchUtil;
 
 import java.util.Optional;
 

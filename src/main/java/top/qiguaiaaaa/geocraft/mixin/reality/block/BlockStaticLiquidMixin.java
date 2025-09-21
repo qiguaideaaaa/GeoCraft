@@ -28,6 +28,7 @@ import java.util.Random;
 
 @Mixin(value = BlockStaticLiquid.class)
 public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowChecker, FluidSettable {
+    private static final boolean debug = false;
     private Fluid thisFluid;
 
     protected BlockStaticLiquidMixin(Material materialIn) {
@@ -40,14 +41,13 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
     }
     @Inject(method = "updateTick",at = @At("RETURN"))
     public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
-        if(!GeoFluidSetting.isFluidToBePhysical(thisFluid)) return;
         if(worldIn.isRemote) return;
+        if(!GeoFluidSetting.isFluidToBePhysical(thisFluid)) return;
         if(!canFlow(worldIn,pos,state,rand)){
             Collection<BlockPos> res = FluidPressureSearchManager.getTaskResult(worldIn,pos);
 
-            boolean debug = false;
             if(res == null || res.isEmpty()){
-                sendPressureQuery(worldIn,pos,state,rand,false,debug);
+                sendPressureQuery(worldIn,pos,state,rand,false);
                 if(debug) GeoCraft.getLogger().info("{}: no res,send query",pos);
             }else {
                 IBlockState nowState =state;
@@ -61,9 +61,9 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
 
                 nowState = worldIn.getBlockState(pos);
                 if(nowState!=state && FluidUtil.getFluid(nowState) == thisFluid){
-                    sendPressureQuery(worldIn,pos,nowState,rand,true,debug);
+                    sendPressureQuery(worldIn,pos,nowState,rand,true);
                 }else if(nowState == state){
-                    sendPressureQuery(worldIn,pos,state,rand,false,debug);
+                    sendPressureQuery(worldIn,pos,state,rand,false);
                 }
                 if(nowState!=state) return;
             }
@@ -82,7 +82,7 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
         IVanillaFlowChecker checker = (IVanillaFlowChecker) blockdynamicliquid;
         return checker.canFlow(worldIn,pos,state,rand);
     }
-    protected void sendPressureQuery(World world,BlockPos pos,IBlockState state,Random rand,boolean directly,boolean debug){
+    protected void sendPressureQuery(World world,BlockPos pos,IBlockState state,Random rand,boolean directly){
         if(FluidPressureSearchManager.isTaskRunning(world,pos)){
             if(debug) GeoCraft.getLogger().info("{}: task running, returned",pos);
             return;
@@ -95,9 +95,11 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
             }
         }
         if(directly || rand.nextInt(5) <2) {
-            if(debug)
+            if(debug){
                 FluidPressureSearchManager.addTask(world,RealityPressureTaskBuilder.createVanillaTask_Debug(thisFluid,state,pos,BaseUtil.getRandomPressureSearchRange()));
-            else FluidPressureSearchManager.addTask(world,
+                return;
+            }
+            FluidPressureSearchManager.addTask(world,
                     RealityPressureTaskBuilder.createVanillaTask(thisFluid,state,pos, BaseUtil.getRandomPressureSearchRange())
             );
         }

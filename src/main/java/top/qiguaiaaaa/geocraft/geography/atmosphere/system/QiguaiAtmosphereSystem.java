@@ -68,9 +68,8 @@ public abstract class QiguaiAtmosphereSystem extends BaseAtmosphereSystem {
                     }
                     if(atmosphere.isLoaded()){
                         atmosphere.updateTick(data.getChunk());
-                        data.saveAtmosphere();
                         if(atmosphere.tickTime()%4 == 3){
-                            dataProvider.saveAtmosphereData(data.pos.x,data.pos.z);
+                            data.saveAtmosphere();
                         }
                     }
                 }

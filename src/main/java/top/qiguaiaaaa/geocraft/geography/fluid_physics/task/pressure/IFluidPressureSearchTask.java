@@ -1,4 +1,4 @@
-package top.qiguaiaaaa.geocraft.geography.fluid_physics;
+package top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
@@ -20,9 +20,9 @@ public interface IFluidPressureSearchTask {
     @Nonnull
     IBlockState getBeginState();
     @Nullable
-    Collection<BlockPos> search(WorldServer world);
+    Collection<BlockPos> search(@Nonnull WorldServer world);
     void cancel();
     void finish();
     boolean isFinished();
-    boolean isEqualState(IBlockState curState);
+    boolean isEqualState(@Nonnull IBlockState curState);
 }
