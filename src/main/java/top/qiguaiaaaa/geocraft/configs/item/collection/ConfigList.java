@@ -27,33 +27,68 @@
 
 package top.qiguaiaaaa.geocraft.configs.item.collection;
 
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
-import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableHashSet;
+import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableList;
 
 import javax.annotation.Nonnull;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
-public class ConfigSet<ValueType> extends ConfigItem<ConfigurableHashSet<ValueType>> {
+public class ConfigList<ValueType> extends ConfigItem<ConfigurableList<ValueType>> {
     protected final Function<String,ValueType> parser;
 
-    public ConfigSet(String category, String configKey, ConfigurableHashSet<ValueType> defaultValue, Function<String,ValueType> parser) {
+    protected int maxListSize;
+
+    protected boolean isListSizeFixed = false;
+
+    protected Pattern validatedPattern = null;
+
+    public ConfigList(ConfigCategory category, String configKey, ConfigurableList<ValueType> defaultValue, Function<String,ValueType> parser) {
         this(category, configKey, defaultValue,null,parser);
     }
 
-    public ConfigSet(String category, String configKey, ConfigurableHashSet<ValueType> defaultValue, String comment, Function<String,ValueType> parser) {
+    public ConfigList(ConfigCategory category, String configKey, ConfigurableList<ValueType> defaultValue, String comment, Function<String,ValueType> parser) {
         this(category,configKey,defaultValue,comment,parser,false);
     }
 
-    public ConfigSet(String category, String configKey, ConfigurableHashSet<ValueType> defaultValue, String comment, Function<String,ValueType> parser, boolean isFinal) {
+    public ConfigList(ConfigCategory category, String configKey, ConfigurableList<ValueType> defaultValue, String comment, Function<String,ValueType> parser, boolean isFinal) {
+        this(category, configKey, defaultValue, comment,-1,parser,isFinal);
+    }
+
+    public ConfigList(ConfigCategory category, String configKey, ConfigurableList<ValueType> defaultValue, String comment, int maxListSize, Function<String,ValueType> parser, boolean isFinal) {
         super(category, configKey, defaultValue, comment, isFinal);
         this.parser = parser;
+        this.maxListSize = maxListSize;
+    }
+
+    public ConfigList<ValueType> setMaxListSize(int maxListSize) {
+        this.maxListSize = maxListSize;
+        return this;
+    }
+
+    public ConfigList<ValueType> setListSizeFixed(boolean listSizeFixed) {
+        isListSizeFixed = listSizeFixed;
+        return this;
+    }
+
+    public ConfigList<ValueType> setValidatedPattern(Pattern validatedPattern) {
+        this.validatedPattern = validatedPattern;
+        return this;
+    }
+
+    @Override
+    public void load(@Nonnull Configuration config) {
+        Property val = config.get(category.getPath(),key,defaultValue.toStringList(),comment,isListSizeFixed,maxListSize,validatedPattern);
+        load(val);
     }
 
     @Override
     protected void load(@Nonnull Property property) {
-        value = new ConfigurableHashSet<>();
+        value = new ConfigurableList<>();
         String[] strings = property.getStringList();
         for(String string:strings){
             try {

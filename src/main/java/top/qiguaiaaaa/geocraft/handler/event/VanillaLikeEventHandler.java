@@ -47,7 +47,7 @@ import top.qiguaiaaaa.geocraft.geography.fluid_physics.vanilla.VanillaFluidPhysi
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
 import top.qiguaiaaaa.geocraft.util.WaterUtil;
 
-import static top.qiguaiaaaa.geocraft.configs.SimulationConfig.fluidsNotToSimulateInVanillaLike;
+import static top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig.fluidsNotToSimulateInVanillaLike;
 
 public final class VanillaLikeEventHandler{
     @SubscribeEvent(priority = EventPriority.HIGH)

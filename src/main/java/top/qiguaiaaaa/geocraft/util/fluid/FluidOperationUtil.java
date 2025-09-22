@@ -33,7 +33,6 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
@@ -41,12 +40,10 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.*;
-import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.configs.GeneralConfig;
-import top.qiguaiaaaa.geocraft.api.configs.value.geo.SimulationMode;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.FluidPhysicsMode;
 import top.qiguaiaaaa.geocraft.api.util.exception.UnsupportedFluidException;
 
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -114,7 +111,7 @@ public final class FluidOperationUtil {
     }
 
     /**
-     * 将指定位置的流体源移动到新的位置，并将原流体源改为LEVEL = 1的流体方块，仅适用于{@link SimulationMode}偏原版流体的情况
+     * 将指定位置的流体源移动到新的位置，并将原流体源改为LEVEL = 1的流体方块，仅适用于{@link FluidPhysicsMode}偏原版流体的情况
      * @param worldIn 世界
      * @param srcPos 源位置
      * @param newPos 新位置

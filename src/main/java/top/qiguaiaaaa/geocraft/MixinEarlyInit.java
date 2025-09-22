@@ -33,8 +33,8 @@ import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import net.minecraftforge.fml.relauncher.Side;
 import top.qiguaiaaaa.geocraft.configs.GeneralConfig;
-import top.qiguaiaaaa.geocraft.configs.SimulationConfig;
-import top.qiguaiaaaa.geocraft.api.configs.value.geo.SimulationMode;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.FluidPhysicsMode;
 import zone.rong.mixinbooter.IEarlyMixinLoader;
 
 import javax.annotation.Nullable;
@@ -51,7 +51,7 @@ public class MixinEarlyInit implements IFMLLoadingPlugin, IEarlyMixinLoader {
     public List<String> getMixinConfigs() {
         CommonProxy.earlyInit();
         List<String> mixinList =  Lists.newArrayList("mixins.geocraft.json");
-        SimulationMode mode = SimulationConfig.SIMULATION_MODE.getValue();
+        FluidPhysicsMode mode = FluidPhysicsConfig.FLUID_PHYSICS_MODE.getValue();
         switch (mode){
             case VANILLA:{
                 break;

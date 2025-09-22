@@ -38,10 +38,10 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import top.qiguaiaaaa.geocraft.api.block.IPermeableBlock;
-import top.qiguaiaaaa.geocraft.api.configs.value.geo.SimulationMode;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.FluidPhysicsMode;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
-import top.qiguaiaaaa.geocraft.configs.SimulationConfig;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -56,7 +56,7 @@ public interface IBlockDirt extends IPermeableBlock {
      * @return 湿度变化
      */
     default int dropWaterDown(World worldIn, BlockPos pos, IBlockState state){
-        if(SimulationConfig.SIMULATION_MODE.getValue() == SimulationMode.MORE_REALITY){
+        if(FluidPhysicsConfig.FLUID_PHYSICS_MODE.getValue() == FluidPhysicsMode.MORE_REALITY){
             BlockPos down = pos.down();
             IBlockState downState = worldIn.getBlockState(down);
             if(downState.getMaterial() == Material.AIR){
@@ -170,7 +170,7 @@ public interface IBlockDirt extends IPermeableBlock {
     default void dropWaterWhenBroken(World world, BlockPos pos, IBlockState state){
         int humidity = state.getValue(HUMIDITY);
         if(humidity == 0) return;
-        if(SimulationConfig.SIMULATION_MODE.getValue() != SimulationMode.MORE_REALITY) return;
+        if(FluidPhysicsConfig.FLUID_PHYSICS_MODE.getValue() != FluidPhysicsMode.MORE_REALITY) return;
         world.setBlockState(pos, Blocks.FLOWING_WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,8-humidity),Constants.BlockFlags.DEFAULT);
     }
 

@@ -25,43 +25,43 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.configs.item.collection;
+package top.qiguaiaaaa.geocraft.api.configs;
 
 import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.config.Property;
-import top.qiguaiaaaa.geocraft.GeoCraft;
-import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableHashSet;
 
-import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * @author QiguaiAAAA
+ */
+public class ConfigCategory {
+    public static final ConfigCategory GENERAL = new ConfigCategory(Configuration.CATEGORY_GENERAL);
+    public final String name;
+    public final ConfigCategory parent;
+    protected String comment;
 
 
-public class ConfigIntegerSet extends ConfigSet<Integer>{
-    public ConfigIntegerSet(String category, String configKey, ConfigurableHashSet<Integer> defaultValue) {
-        this(category, configKey, defaultValue,null);
+    public ConfigCategory(String name) {
+        this(null,name);
+    }
+    public ConfigCategory(ConfigCategory parent,String name){
+        this.parent = parent;
+        this.name = name;
     }
 
-    public ConfigIntegerSet(String category, String configKey, ConfigurableHashSet<Integer> defaultValue, String comment) {
-        this(category, configKey, defaultValue, comment,false);
+    public ConfigCategory setComment(String comment) {
+        this.comment = comment;
+        return this;
     }
 
-    public ConfigIntegerSet(String category, String configKey, ConfigurableHashSet<Integer> defaultValue, String comment, boolean isFinal) {
-        super(category, configKey, defaultValue, comment,Integer::parseInt, isFinal);
+    public String getComment() {
+        return comment;
     }
 
-    @Override
-    public void load(@Nonnull Configuration config) {
-        Property val = config.get(category,key,getDefaultValues(),comment);
-        load(val);
+    public ConfigCategory getChildCategory(String name){
+        return new ConfigCategory(this,name);
     }
 
-    protected int[] getDefaultValues(){
-        int[] ints = new int[defaultValue.size()];
-        int i=0;
-        for(Integer integer:defaultValue){
-            ints[i++]=integer;
-        }
-        return ints;
+    public String getPath(){
+        if(parent == null) return name;
+        return parent.getPath()+ Configuration.CATEGORY_SPLITTER+name;
     }
 }

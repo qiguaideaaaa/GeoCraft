@@ -29,6 +29,7 @@ package top.qiguaiaaaa.geocraft.api.configs.item;
 
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
+import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,16 +40,16 @@ import javax.annotation.Nullable;
  */
 public abstract class ConfigItem<ValueType> {
     /**
-     * @see #ConfigItem(String, String, Object, String, boolean) 
+     * @see #ConfigItem(ConfigCategory, String, Object, String, boolean)
      */
-    public ConfigItem(@Nonnull String category,@Nonnull String configKey,@Nonnull ValueType defaultValue){
+    public ConfigItem(@Nonnull ConfigCategory category, @Nonnull String configKey, @Nonnull ValueType defaultValue){
         this(category,configKey,defaultValue,null,false);
     }
 
     /**
-     * @see #ConfigItem(String, String, Object,String,boolean) 
+     * @see #ConfigItem(ConfigCategory, String, Object,String,boolean)
      */
-    public ConfigItem(String category,String configKey,ValueType defaultValue,String comment){
+    public ConfigItem(ConfigCategory category,String configKey,ValueType defaultValue,String comment){
         this(category,configKey,defaultValue,comment,false);
     }
 
@@ -60,7 +61,7 @@ public abstract class ConfigItem<ValueType> {
      * @param comment 配置的注释
      * @param isFinal 配置是否在初始化后不可更改
      */
-    public ConfigItem(@Nonnull String category, @Nonnull String configKey, @Nonnull ValueType defaultValue, @Nullable String comment, boolean isFinal){
+    public ConfigItem(@Nonnull ConfigCategory category, @Nonnull String configKey, @Nonnull ValueType defaultValue, @Nullable String comment, boolean isFinal){
         this.category = category;
         this.key = configKey;
         this.defaultValue = defaultValue;
@@ -68,7 +69,7 @@ public abstract class ConfigItem<ValueType> {
         this.isFinal = isFinal;
         this.comment = comment;
     }
-    protected final String category;
+    protected final ConfigCategory category;
     protected final String key;
     protected final ValueType defaultValue;
     protected final String comment;
@@ -76,7 +77,7 @@ public abstract class ConfigItem<ValueType> {
     protected ValueType value;
 
     @Nonnull
-    public String getCategory() {
+    public ConfigCategory getCategory() {
         return category;
     }
 
@@ -106,7 +107,7 @@ public abstract class ConfigItem<ValueType> {
      */
     @Nonnull
     public String getPath(){
-        return category+ Configuration.CATEGORY_SPLITTER+key;
+        return category.getPath()+ Configuration.CATEGORY_SPLITTER+key;
     }
 
     /**
@@ -139,7 +140,7 @@ public abstract class ConfigItem<ValueType> {
      * @param config 指定的配置文件
      */
     public void load(@Nonnull Configuration config){
-        Property val = config.get(category,key,defaultValue.toString(),comment);
+        Property val = config.get(category.getPath(),key,defaultValue.toString(),comment);
         load(val);
     }
 

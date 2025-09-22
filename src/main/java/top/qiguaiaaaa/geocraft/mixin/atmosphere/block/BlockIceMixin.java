@@ -46,8 +46,9 @@ import java.util.Random;
 
 @Mixin(value = BlockIce.class)
 public class BlockIceMixin {
-    @Inject(method = "updateTick",at =@At("RETURN"))
+    @Inject(method = "updateTick",at =@At("TAIL"))
     private void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
+        if(worldIn.isRemote) return;
         if(worldIn.getBlockState(pos).getBlock() != (Object) this) return;
         int light = worldIn.getLightFor(EnumSkyBlock.SKY,pos);
         if(light == 0) return;

@@ -37,7 +37,7 @@ import net.minecraftforge.fluids.BlockFluidBase;
 import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
-import top.qiguaiaaaa.geocraft.configs.SimulationConfig;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockFluidBaseAccessor;
 
 import java.util.EnumSet;
@@ -180,7 +180,7 @@ public interface IMoreRealityBlockFluidBase<BlockType extends BlockFluidBase> {
                 return FluidUtil.getFlowDifficulty(distance*quantaPerBlock,thisQuanta);
             }
 
-            if (distance < (quantaPerBlock* SimulationConfig.slopeFindDistanceMultiplierForModFluidWhenQuantaAbove1.getValue())/2) {
+            if (distance < (quantaPerBlock* FluidPhysicsConfig.slopeFindDistanceMultiplierForModFluidWhenQuantaAbove1.getValue())/2) {
                 double slope = this.getSlopeDistance(worldIn, facingPos, distance + 1,densityDir,quantaPerBlock,thisQuanta, enumfacing.getOpposite());
                 if (slope < difficulty) difficulty = slope;
             }

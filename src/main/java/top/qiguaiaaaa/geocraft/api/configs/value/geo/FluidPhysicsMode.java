@@ -25,57 +25,33 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.api.configs.value.collection;
+package top.qiguaiaaaa.geocraft.api.configs.value.geo;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import javax.annotation.Nullable;
 
 /**
- * 一个用于列表配置项的配置类型
- * @param <V> 列表存储的对象类型，存储的对象应当覆写{@link Object#toString()}
+ * 当前游戏使用的水物理模拟模式<br/>
+ * 只有天圆地方自己的模拟模式
  */
-public class ConfigurableHashSet<V> extends HashSet<V> {
-    /**
-     * @see HashSet#HashSet()
-     */
-    public ConfigurableHashSet() {
-        super();
+public enum FluidPhysicsMode {
+    VANILLA,
+    VANILLA_LIKE,
+    MORE_REALITY;
+
+    private boolean isStringMatched(@Nullable String s){
+        return toString().equalsIgnoreCase(s);
     }
 
     /**
-     * @see HashSet#HashSet(Collection) 
+     * 将对应字符串反序列化为对应模拟模式
+     * @param content 字符串
+     * @return 模拟模式
      */
-    public ConfigurableHashSet(@Nonnull Collection<? extends V> c) {
-        super(c);
-    }
-
-    /**
-     * @see HashSet#HashSet(int, float)  
-     */
-    public ConfigurableHashSet(int initialCapacity, float loadFactor) {
-        super(initialCapacity, loadFactor);
-    }
-
-    /**
-     * @see HashSet#HashSet(int)
-     */
-    public ConfigurableHashSet(int initialCapacity) {
-        super(initialCapacity);
-    }
-
-    /**
-     * 将列表序列化为String列表
-     * @return 一个String列表，表示该列表的内容
-     */
-    @Nonnull
-    public String[] toStringList() {
-        final List<String> stringList = new ArrayList<>();
-        for(V v:this){
-            stringList.add(v.toString());
+    public static @Nonnull FluidPhysicsMode getInstanceByString(@Nonnull String content) {
+        for(FluidPhysicsMode mode:values()){
+            if(mode.isStringMatched(content.trim())) return mode;
         }
-        return stringList.toArray(new String[0]);
+        return MORE_REALITY;
     }
 }

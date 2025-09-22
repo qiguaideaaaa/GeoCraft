@@ -27,29 +27,47 @@
 
 package top.qiguaiaaaa.geocraft.configs;
 
+import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
+
 import static top.qiguaiaaaa.geocraft.configs.AtmosphereConfig.*;
+import static top.qiguaiaaaa.geocraft.configs.ConfigurationLoader.registerConfigCategory;
 import static top.qiguaiaaaa.geocraft.configs.GeneralConfig.*;
-import static top.qiguaiaaaa.geocraft.configs.SimulationConfig.*;
+import static top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig.*;
 import static top.qiguaiaaaa.geocraft.configs.ConfigurationLoader.registerConfigItem;
 
 public class ConfigInit {
     private static boolean hasLoaded = false;
     public static void initConfigs(){
         if(hasLoaded) return;
+        // GENERAL
+        registerConfigCategory(ConfigCategory.GENERAL);
         registerConfigItem(leastTemperatureForFluidToCompletelyDestroyBlock);
         registerConfigItem(ALLOW_CLIENT_TO_READ_HUMIDITY_DATA);
 
-        registerConfigItem(SIMULATION_MODE);
+        //Fluid Physics
+        registerConfigCategory(CATEGORY_SIMULATION);
+        registerConfigItem(FLUID_PHYSICS_MODE);
         // Vanilla Like Simulation Config
+        registerConfigCategory(CATEGORY_SIMULATION_VANILLA_LIKE);
         registerConfigItem(enableInfiniteWater);
         registerConfigItem(disableInfiniteFluidForAllModFluid);
         registerConfigItem(fluidsNotToSimulateInVanillaLike);
+        registerConfigItem(PRESSURE_SYSTEM_FOR_VANILLA_LIKE);
 
+        registerConfigCategory(CATEGORY_SIMULATION_VANILLA_LIKE_VERTICAL_FLOWING);
         registerConfigItem(findSourceMaxIterationsWhenHorizontalFlowing);
         registerConfigItem(findSourceMaxIterationsWhenVerticalFlowing);
+        registerConfigCategory(CATEGORY_SIMULATION_VANILLA_LIKE_HORIZONTAL_FLOWING);
         registerConfigItem(findSourceMaxSameLevelIterationsWhenVerticalFlowing);
         registerConfigItem(findSourceMaxSameLevelIterationsWhenHorizontalFlowing);
         //More Reality Simulation Config
+        registerConfigCategory(CATEGORY_SIMULATION_MORE_REALITY);
+
+        registerConfigCategory(CATEGORY_SIMULATION_MORE_REALITY_PRESSURE);
+        registerConfigItem(PRESSURE_SYSTEM_FOR_REALITY);
+
+        registerConfigItem(slopeModeForModsWhenOnFluids);
+        registerConfigItem(slopeModeForVanillaWhenOnLiquids);
         registerConfigItem(slopeFindDistanceForWaterWhenQuantaAbove1);
         registerConfigItem(slopeFindDistanceForLavaWhenQuantaAbove1);
         registerConfigItem(slopeFindDistanceMultiplierForModFluidWhenQuantaAbove1);
@@ -58,12 +76,18 @@ public class ConfigInit {
         registerConfigItem(bottleFindFluidMaxDistance);
         registerConfigItem(fluidsWhoseBucketsBehavesAsVanillaBuckets);
         registerConfigItem(fluidsNotToSimulate);
+
+        registerConfigCategory(CATEGORY_SIMULATION_MORE_REALITY_MOD_SUPPORT);
         //** IC2 Config
+        registerConfigCategory(CATEGORY_SIMULATION_MORE_REALITY_MOD_SUPPORT_IC2);
         registerConfigItem(enableSupportForIC2);
         registerConfigItem(IC2PumpFluidSearchMaxIterations);
         //** IE Config
+        registerConfigCategory(CATEGORY_SIMULATION_MORE_REALITY_MOD_SUPPORT_IE);
         registerConfigItem(enableSupportForIE);
 
+        //Atmosphere
+        registerConfigCategory(CATEGORY_ATMOSPHERE);
         registerConfigItem(ENABLE_DETAIL_LOGGING);
         registerConfigItem(ATMOSPHERE_SYSTEM_TYPES);
         registerConfigItem(SPECIFIC_HEAT_CAPACITIES);

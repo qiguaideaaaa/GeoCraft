@@ -31,10 +31,10 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.registries.IForgeRegistry;
 import top.qiguaiaaaa.geocraft.api.GeoCraftProperties;
-import top.qiguaiaaaa.geocraft.api.configs.value.geo.SimulationMode;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.FluidPhysicsMode;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 import top.qiguaiaaaa.geocraft.api.property.GeographyProperty;
-import top.qiguaiaaaa.geocraft.configs.SimulationConfig;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.geography.property.*;
 import top.qiguaiaaaa.geocraft.handler.event.AtmosphereEventHandler;
 import top.qiguaiaaaa.geocraft.handler.event.MoreRealityEventHandler;
@@ -66,7 +66,7 @@ public final class RegistryHandler {
     }
     public static void registerEventHandler(){
         EventFactory.EVENT_BUS.register(AtmosphereEventHandler.class);
-        SimulationMode mode = SimulationConfig.SIMULATION_MODE.getValue();
+        FluidPhysicsMode mode = FluidPhysicsConfig.FLUID_PHYSICS_MODE.getValue();
         switch (mode){
             case MORE_REALITY:{
                 registerMoreRealityEventHandler();

@@ -29,6 +29,7 @@ package top.qiguaiaaaa.geocraft.api.configs.item.number;
 
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
+import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 
 import javax.annotation.Nonnull;
@@ -38,17 +39,20 @@ import javax.annotation.Nullable;
  * {@link Double}配置项
  */
 public class ConfigDouble extends ConfigItem<Double> {
+    protected double minValue = Double.NEGATIVE_INFINITY;
+    protected double maxValue = Double.POSITIVE_INFINITY;
+
     /**
-     * @see #ConfigDouble(String, String, double, String, boolean)
+     * @see #ConfigDouble(ConfigCategory, String, double, String, boolean)
      */
-    public ConfigDouble(@Nonnull String category,@Nonnull String configKey, double defaultValue) {
+    public ConfigDouble(@Nonnull ConfigCategory category,@Nonnull String configKey, double defaultValue) {
         super(category, configKey, defaultValue);
     }
 
     /**
-     * @see #ConfigDouble(String, String, double, String, boolean)
+     * @see #ConfigDouble(ConfigCategory, String, double, String, boolean)
      */
-    public ConfigDouble(@Nonnull String category, @Nonnull String configKey, double defaultValue,@Nullable String comment) {
+    public ConfigDouble(@Nonnull ConfigCategory category, @Nonnull String configKey, double defaultValue,@Nullable String comment) {
         super(category, configKey, defaultValue, comment);
     }
 
@@ -60,8 +64,32 @@ public class ConfigDouble extends ConfigItem<Double> {
      * @param comment 配置的注释
      * @param isFinal 配置是否在初始化后不可更改
      */
-    public ConfigDouble(@Nonnull String category,@Nonnull String configKey, double defaultValue,@Nullable String comment, boolean isFinal) {
+    public ConfigDouble(@Nonnull ConfigCategory category,@Nonnull String configKey, double defaultValue,@Nullable String comment, boolean isFinal) {
+        this(category, configKey, defaultValue, comment,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,isFinal);
+    }
+
+    public ConfigDouble(@Nonnull ConfigCategory category, @Nonnull String configKey, double defaultValue, @Nullable String comment, double min, double max, boolean isFinal) {
         super(category, configKey, defaultValue, comment, isFinal);
+        this.minValue = min;
+        this.maxValue = max;
+    }
+
+    public ConfigDouble setMaxValue(double maxValue) {
+        this.maxValue = maxValue;
+        return this;
+    }
+
+    public ConfigDouble setMinValue(double minValue) {
+        this.minValue = minValue;
+        return this;
+    }
+
+    public double getMinValue() {
+        return minValue;
+    }
+
+    public double getMaxValue() {
+        return maxValue;
     }
 
     /**
@@ -70,7 +98,8 @@ public class ConfigDouble extends ConfigItem<Double> {
      */
     @Override
     public void load(@Nonnull Configuration config) {
-        Property property = config.get(category,key,defaultValue,comment);
+        Property property = config.get(category.getPath(),key,defaultValue,comment,minValue,maxValue);
+        property.setComment((comment == null?"":comment) + " [range: " + minValue + " ~ " + maxValue + ", default: " + defaultValue + "]");
         load(property);
     }
 

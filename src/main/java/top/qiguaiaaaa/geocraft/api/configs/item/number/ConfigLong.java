@@ -29,6 +29,7 @@ package top.qiguaiaaaa.geocraft.api.configs.item.number;
 
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
+import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 
 import javax.annotation.Nonnull;
@@ -38,18 +39,27 @@ import javax.annotation.Nullable;
  * {@link Long}配置项
  */
 public class ConfigLong extends ConfigItem<Long> {
+    protected long minValue = Long.MIN_VALUE,maxValue = Long.MAX_VALUE;
+
     /**
-     * @see #ConfigLong(String, String, long, String, boolean)
+     * @see #ConfigLong(ConfigCategory, String, long, String, long, long, boolean)
      */
-    public ConfigLong(@Nonnull String category,@Nonnull String configKey, long defaultValue) {
+    public ConfigLong(@Nonnull ConfigCategory category,@Nonnull String configKey, long defaultValue) {
         super(category, configKey, defaultValue);
     }
 
     /**
-     * @see #ConfigLong(String, String, long, String, boolean)
+     * @see #ConfigLong(ConfigCategory, String, long, String, long, long, boolean)
      */
-    public ConfigLong(@Nonnull String category,@Nonnull String configKey, long defaultValue,@Nullable String comment) {
+    public ConfigLong(@Nonnull ConfigCategory category,@Nonnull String configKey, long defaultValue,@Nullable String comment) {
         super(category, configKey, defaultValue, comment);
+    }
+
+    /**
+     * @see #ConfigLong(ConfigCategory, String, long, String, long, long, boolean)
+     */
+    public ConfigLong(@Nonnull ConfigCategory category, @Nonnull String configKey, long defaultValue, @Nullable String comment, boolean isFinal) {
+        super(category, configKey, defaultValue, comment, isFinal);
     }
 
     /**
@@ -58,10 +68,32 @@ public class ConfigLong extends ConfigItem<Long> {
      * @param configKey 配置的key
      * @param defaultValue 配置的默认值
      * @param comment 配置的注释
+     * @param min 最小值
+     * @param max 最大值
      * @param isFinal 配置是否在初始化后不可更改
      */
-    public ConfigLong(@Nonnull String category,@Nonnull String configKey, long defaultValue,@Nullable String comment, boolean isFinal) {
+    public ConfigLong(@Nonnull ConfigCategory category, @Nonnull String configKey, long defaultValue, @Nullable String comment,long min,long max, boolean isFinal) {
         super(category, configKey, defaultValue, comment, isFinal);
+        this.minValue = min;
+        this.maxValue = max;
+    }
+
+    public ConfigLong setMinValue(long minValue) {
+        this.minValue = minValue;
+        return this;
+    }
+
+    public ConfigLong setMaxValue(long maxValue) {
+        this.maxValue = maxValue;
+        return this;
+    }
+
+    public long getMaxValue() {
+        return maxValue;
+    }
+
+    public long getMinValue() {
+        return minValue;
     }
 
     /**
@@ -70,7 +102,8 @@ public class ConfigLong extends ConfigItem<Long> {
      */
     @Override
     public void load(@Nonnull Configuration config) {
-        Property property = config.get(category,key,defaultValue,comment);
+        Property property = config.get(category.getPath(),key,defaultValue,comment,minValue,maxValue);
+        property.setComment((comment == null?"":comment) + " [range: " + minValue + " ~ " + maxValue + ", default: " + defaultValue + "]");
         load(property);
     }
 

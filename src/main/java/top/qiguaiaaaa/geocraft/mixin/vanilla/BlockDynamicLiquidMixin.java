@@ -54,7 +54,7 @@ import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import java.util.*;
 
 import static net.minecraft.block.BlockLiquid.LEVEL;
-import static top.qiguaiaaaa.geocraft.configs.SimulationConfig.*;
+import static top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig.*;
 
 @Mixin(value = BlockDynamicLiquid.class)
 public class BlockDynamicLiquidMixin implements FluidSettable {

@@ -28,6 +28,7 @@
 package top.qiguaiaaaa.geocraft.api.configs.item.base;
 
 import net.minecraftforge.common.config.Property;
+import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 
 import javax.annotation.Nonnull;
@@ -38,16 +39,16 @@ import javax.annotation.Nullable;
  */
 public class ConfigString extends ConfigItem<String> {
     /**
-     * @see #ConfigString(String, String, String, String, boolean)
+     * @see #ConfigString(ConfigCategory, String, String, String, boolean)
      */
-    public ConfigString(@Nonnull String category,@Nonnull String configKey,@Nonnull String defaultValue) {
+    public ConfigString(@Nonnull ConfigCategory category,@Nonnull String configKey,@Nonnull String defaultValue) {
         super(category, configKey, defaultValue);
     }
 
     /**
-     * @see #ConfigString(String, String, String, String, boolean)
+     * @see #ConfigString(ConfigCategory, String, String, String, boolean)
      */
-    public ConfigString(@Nonnull String category,@Nonnull String configKey,@Nonnull String defaultValue,@Nullable String comment) {
+    public ConfigString(@Nonnull ConfigCategory category,@Nonnull String configKey,@Nonnull String defaultValue,@Nullable String comment) {
         super(category, configKey, defaultValue, comment);
     }
 
@@ -59,7 +60,7 @@ public class ConfigString extends ConfigItem<String> {
      * @param comment 配置的注释
      * @param isFinal 配置是否在初始化后不可更改
      */
-    public ConfigString(@Nonnull String category,@Nonnull String configKey,@Nonnull String defaultValue,@Nullable String comment, boolean isFinal) {
+    public ConfigString(@Nonnull ConfigCategory category, @Nonnull String configKey, @Nonnull String defaultValue, @Nullable String comment, boolean isFinal) {
         super(category, configKey, defaultValue, comment, isFinal);
     }
 

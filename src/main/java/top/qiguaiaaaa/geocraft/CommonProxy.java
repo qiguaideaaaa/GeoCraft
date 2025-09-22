@@ -35,12 +35,12 @@ import top.qiguaiaaaa.geocraft.configs.ConfigurationLoader;
 import top.qiguaiaaaa.geocraft.handler.FluidHandler;
 import top.qiguaiaaaa.geocraft.handler.RegistryHandler;
 import top.qiguaiaaaa.geocraft.handler.event.MoreRealityEventHandler;
-import top.qiguaiaaaa.geocraft.api.configs.value.geo.SimulationMode;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.FluidPhysicsMode;
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
 import top.qiguaiaaaa.geocraft.util.MixinUtil;
 
 import java.io.File;
-import static top.qiguaiaaaa.geocraft.configs.SimulationConfig.SIMULATION_MODE;
+import static top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig.FLUID_PHYSICS_MODE;
 
 public class CommonProxy {
     private static boolean isConfigInitialised = false;
@@ -67,9 +67,9 @@ public class CommonProxy {
     public void postInit(FMLPostInitializationEvent event) {
         MixinUtil.linkLiquidWithFluid();
         FluidHandler.initRegisteredFluids();
-        if(SIMULATION_MODE.getValue() == SimulationMode.MORE_REALITY){
+        if(FLUID_PHYSICS_MODE.getValue() == FluidPhysicsMode.MORE_REALITY){
             MoreRealityEventHandler.onPostInit(event);
-        }else if(SIMULATION_MODE.getValue() == SimulationMode.VANILLA_LIKE){
+        }else if(FLUID_PHYSICS_MODE.getValue() == FluidPhysicsMode.VANILLA_LIKE){
 
         }
     }

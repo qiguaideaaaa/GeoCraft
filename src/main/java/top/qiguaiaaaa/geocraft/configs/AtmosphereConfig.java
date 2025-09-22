@@ -28,9 +28,9 @@
 package top.qiguaiaaaa.geocraft.configs;
 
 import net.minecraftforge.common.config.Configuration;
+import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.base.ConfigBoolean;
 import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
-import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableHashSet;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemType;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.BlockIntegerEntry;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.ConfigEntry;
@@ -38,16 +38,13 @@ import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockProp
 import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockState;
 import top.qiguaiaaaa.geocraft.api.setting.GeoAtmosphereSetting;
 import top.qiguaiaaaa.geocraft.api.setting.GeoBlockSetting;
-import top.qiguaiaaaa.geocraft.configs.item.collection.ConfigIntegerSet;
 import top.qiguaiaaaa.geocraft.configs.item.map.ConfigMap;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 
 public final class AtmosphereConfig {
-    public static final String CATEGORY_ATMOSPHERE = "atmosphere";
+    public static final ConfigCategory CATEGORY_ATMOSPHERE = new ConfigCategory("atmosphere");
     public static final ConfigBoolean ENABLE_DETAIL_LOGGING = new ConfigBoolean(CATEGORY_ATMOSPHERE,"enableDetailLogging",
             false,"开启详细的大气日志记录",true){
         @Override
@@ -380,7 +377,7 @@ public final class AtmosphereConfig {
     public static final ConfigBoolean ALLOW_CAULDRON_GET_INFINITE_WATER = new ConfigBoolean(CATEGORY_ATMOSPHERE,"allowCauldronGetInfiniteWater",
             false,"是否允许炼药锅接无限量的水，即在接水时不会消耗大气水");
     public static final ConfigInteger ATMOSPHERE_UNDERLYING_RECALCULATE_GAP = new ConfigInteger(CATEGORY_ATMOSPHERE,
-            "atmosphereUnderlyingRecalculateGap",400,"大气重新计算下垫面性质的间隔时间，单位为大气刻"){
+            "atmosphereUnderlyingRecalculateGap",400,"大气重新计算下垫面性质的间隔时间，单位为大气刻",2,Integer.MAX_VALUE,false){
         @Override
         public void load(@Nonnull Configuration config) {
             super.load(config);

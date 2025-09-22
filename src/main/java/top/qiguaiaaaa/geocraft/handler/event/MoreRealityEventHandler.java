@@ -75,7 +75,7 @@ import java.util.Objects;
 
 import static net.minecraft.block.BlockLiquid.LEVEL;
 import static net.minecraftforge.fluids.FluidUtil.tryPlaceFluid;
-import static top.qiguaiaaaa.geocraft.configs.SimulationConfig.*;
+import static top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig.*;
 
 public final class MoreRealityEventHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)

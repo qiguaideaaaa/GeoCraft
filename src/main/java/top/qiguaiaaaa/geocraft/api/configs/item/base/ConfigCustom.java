@@ -28,6 +28,7 @@
 package top.qiguaiaaaa.geocraft.api.configs.item.base;
 
 import net.minecraftforge.common.config.Property;
+import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 
 import javax.annotation.Nonnull;
@@ -41,16 +42,16 @@ import java.util.function.Function;
 public class ConfigCustom<V> extends ConfigItem<V> {
     protected final Function<String,V> parser; //转换器，将字符串反序列化为对应配置值
     /**
-     * @see #ConfigCustom(String, String, Object, String, Function, boolean)
+     * @see #ConfigCustom(ConfigCategory, String, Object, String, Function, boolean)
      */
-    public ConfigCustom(@Nonnull String category,@Nonnull String configKey,@Nonnull V defaultValue,@Nonnull Function<String,V> parser) {
+    public ConfigCustom(@Nonnull ConfigCategory category,@Nonnull String configKey,@Nonnull V defaultValue,@Nonnull Function<String,V> parser) {
         this(category,configKey,defaultValue,null,parser);
     }
 
     /**
-     * @see #ConfigCustom(String, String, Object, String, Function, boolean)
+     * @see #ConfigCustom(ConfigCategory, String, Object, String, Function, boolean)
      */
-    public ConfigCustom(@Nonnull String category, @Nonnull String configKey, @Nonnull V defaultValue, @Nullable String comment,@Nonnull Function<String,V> parser) {
+    public ConfigCustom(@Nonnull ConfigCategory category, @Nonnull String configKey, @Nonnull V defaultValue, @Nullable String comment, @Nonnull Function<String,V> parser) {
         this(category,configKey,defaultValue,comment,parser,false);
     }
 
@@ -63,7 +64,7 @@ public class ConfigCustom<V> extends ConfigItem<V> {
      * @param parser 反序列化器，用于将字符串反序列化为对应配置值
      * @param isFinal 配置是否在初始化后不可更改
      */
-    public ConfigCustom(@Nonnull String category,@Nonnull String configKey,@Nonnull V defaultValue,@Nullable String comment,@Nonnull Function<String,V> parser,boolean isFinal) {
+    public ConfigCustom(@Nonnull ConfigCategory category,@Nonnull String configKey,@Nonnull V defaultValue,@Nullable String comment,@Nonnull Function<String,V> parser,boolean isFinal) {
         super(category, configKey, defaultValue, comment, isFinal);
         this.parser = parser;
     }

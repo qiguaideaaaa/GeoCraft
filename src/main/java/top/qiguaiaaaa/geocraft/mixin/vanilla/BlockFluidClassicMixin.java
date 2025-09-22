@@ -55,7 +55,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 
 import static net.minecraft.block.BlockLiquid.LEVEL;
-import static top.qiguaiaaaa.geocraft.configs.SimulationConfig.*;
+import static top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig.*;
 
 @Mixin(value = BlockFluidClassic.class)
 public class BlockFluidClassicMixin {

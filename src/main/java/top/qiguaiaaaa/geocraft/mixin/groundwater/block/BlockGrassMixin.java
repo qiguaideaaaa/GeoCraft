@@ -28,7 +28,6 @@
 package top.qiguaiaaaa.geocraft.mixin.groundwater.block;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockDirt;
 import net.minecraft.block.BlockGrass;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.BlockStateContainer;
@@ -39,6 +38,7 @@ import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import top.qiguaiaaaa.geocraft.block.IBlockDirt;
@@ -93,33 +93,22 @@ public class BlockGrassMixin extends Block implements IBlockDirt{
         dropWaterWhenBroken(worldIn, pos, state);
     }
 
-    @Inject(method = "updateTick",at =@At("HEAD"), cancellable = true)
-    public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
-        ci.cancel();
-        if (worldIn.isRemote) return;
-        if (!worldIn.isAreaLoaded(pos, 3)) return;
-        if (worldIn.getLightFromNeighbors(pos.up()) < 4 && worldIn.getBlockState(pos.up()).getLightOpacity(worldIn, pos.up()) > 2) {
-            worldIn.setBlockState(pos, Blocks.DIRT.getDefaultState().withProperty(HUMIDITY,state.getValue(HUMIDITY)));
-            return;
-        }
-        if (worldIn.getLightFromNeighbors(pos.up()) < 9) {
-            return;
-        }
-        for (int i = 0; i < 4; i++) {
-            BlockPos blockpos = pos.add(rand.nextInt(3) - 1, rand.nextInt(5) - 3, rand.nextInt(3) - 1);
+    @Redirect(method = "updateTick",at =
+    @At(value = "INVOKE",
+            target = "Lnet/minecraft/world/World;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;)Z",
+            ordinal = 0))
+    public boolean updateTick_TurnToDirt(World instance, BlockPos pos, IBlockState state) {
+        IBlockState curState = instance.getBlockState(pos);
+        return instance.setBlockState(pos, state.withProperty(HUMIDITY,curState.getValue(HUMIDITY)));
+    }
 
-            if (blockpos.getY() >= 0 && blockpos.getY() < 256 && !worldIn.isBlockLoaded(blockpos))
-                return;
-
-            IBlockState upState = worldIn.getBlockState(blockpos.up());
-            IBlockState currentState = worldIn.getBlockState(blockpos);
-
-            if (currentState.getBlock() == Blocks.DIRT
-                    && currentState.getValue(BlockDirt.VARIANT) == BlockDirt.DirtType.DIRT
-                    && worldIn.getLightFromNeighbors(blockpos.up()) >= 4 && upState.getLightOpacity(worldIn, pos.up()) <= 2) {
-                worldIn.setBlockState(blockpos, Blocks.GRASS.getDefaultState().withProperty(HUMIDITY,currentState.getValue(HUMIDITY)));
-            }
-        }
+    @Redirect(method = "updateTick",at =
+    @At(value = "INVOKE",
+            target = "Lnet/minecraft/world/World;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;)Z",
+            ordinal = 1))
+    public boolean updateTick_TurnToGrass(World instance, BlockPos pos, IBlockState state) {
+        IBlockState curState = instance.getBlockState(pos);
+        return instance.setBlockState(pos, Blocks.GRASS.getDefaultState().withProperty(HUMIDITY,curState.getValue(HUMIDITY)));
     }
 
     @Override

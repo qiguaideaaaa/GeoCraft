@@ -25,50 +25,41 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.configs;
+package top.qiguaiaaaa.geocraft.configs.item.collection;
 
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
-import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
+import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableList;
 
-import java.io.File;
-import java.util.ArrayList;
+import javax.annotation.Nonnull;
 
 
-public class ConfigurationLoader {
-    private static boolean initialised = false;
-    private static Configuration config;
-    private static final ArrayList<ConfigItem<?>> configItems = new ArrayList<>();
-    private static final ArrayList<ConfigCategory> configCategories = new ArrayList<>();
-
-    public static void init(File configFile){
-        if(initialised) return;
-        config = new Configuration(configFile);
-        config.load();
-        initialised = true;
-    }
-    public static void registerConfigItem(ConfigItem<?> item){
-        if(item == null) return;
-        if(configItems.contains(item)) return;
-        configItems.add(item);
+public class ConfigIntegerList extends ConfigList<Integer> {
+    public ConfigIntegerList(ConfigCategory category, String configKey, ConfigurableList<Integer> defaultValue) {
+        this(category, configKey, defaultValue,null);
     }
 
-    public static void registerConfigCategory(ConfigCategory category){
-        if(category == null) return;
-        if(configCategories.contains(category)) return;
-        configCategories.add(category);
+    public ConfigIntegerList(ConfigCategory category, String configKey, ConfigurableList<Integer> defaultValue, String comment) {
+        this(category, configKey, defaultValue, comment,false);
     }
 
-    public static void load(){
-        for(ConfigCategory category:configCategories){
-            config.setCategoryComment(category.getPath(),category.getComment());
+    public ConfigIntegerList(ConfigCategory category, String configKey, ConfigurableList<Integer> defaultValue, String comment, boolean isFinal) {
+        super(category, configKey, defaultValue, comment,Integer::parseInt, isFinal);
+    }
+
+    @Override
+    public void load(@Nonnull Configuration config) {
+        Property val = config.get(category.getPath(),key,getDefaultValues(),comment);
+        load(val);
+    }
+
+    protected int[] getDefaultValues(){
+        int[] ints = new int[defaultValue.size()];
+        int i=0;
+        for(Integer integer:defaultValue){
+            ints[i++]=integer;
         }
-        for(ConfigItem<?> item:configItems){
-            item.load(config);
-        }
-        config.save();
-    }
-    public static boolean isInitialised(){
-        return initialised;
+        return ints;
     }
 }

@@ -41,7 +41,7 @@ import top.qiguaiaaaa.geocraft.util.fluid.FluidSearchUtil;
 
 import java.util.Optional;
 
-import static top.qiguaiaaaa.geocraft.configs.SimulationConfig.IC2PumpFluidSearchMaxIterations;
+import static top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig.IC2PumpFluidSearchMaxIterations;
 
 @Mixin(value = PumpUtil.class,remap = false)
 public class PumpUtilMixin {

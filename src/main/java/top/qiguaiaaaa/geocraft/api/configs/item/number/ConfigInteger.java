@@ -30,6 +30,7 @@ package top.qiguaiaaaa.geocraft.api.configs.item.number;
 
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
+import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 
 import javax.annotation.Nonnull;
@@ -39,18 +40,28 @@ import javax.annotation.Nullable;
  * {@link Integer}配置项
  */
 public class ConfigInteger extends ConfigItem<Integer> {
+    protected int minValue = Integer.MIN_VALUE,
+    maxValue = Integer.MAX_VALUE;
+
     /**
-     * @see #ConfigInteger(String, String, int, String, boolean)
+     * @see #ConfigInteger(ConfigCategory, String, int, String, int, int, boolean)
      */
-    public ConfigInteger(@Nonnull String category,@Nonnull String configKey, int defaultValue) {
+    public ConfigInteger(@Nonnull ConfigCategory category,@Nonnull String configKey, int defaultValue) {
         super(category, configKey, defaultValue);
     }
 
     /**
-     * @see #ConfigInteger(String, String, int, String, boolean) 
+     * @see #ConfigInteger(ConfigCategory, String, int, String, int, int, boolean)
      */
-    public ConfigInteger(@Nonnull String category,@Nonnull String configKey, int defaultValue,@Nullable String comment) {
+    public ConfigInteger(@Nonnull ConfigCategory category,@Nonnull String configKey, int defaultValue,@Nullable String comment) {
         super(category, configKey, defaultValue, comment);
+    }
+
+    /**
+     * @see #ConfigInteger(ConfigCategory, String, int, String, int, int, boolean)
+     */
+    public ConfigInteger(@Nonnull ConfigCategory category,@Nonnull String configKey, int defaultValue,@Nullable String comment, boolean isFinal) {
+        this(category, configKey, defaultValue, comment,Integer.MIN_VALUE,Integer.MAX_VALUE, isFinal);
     }
 
     /**
@@ -59,10 +70,32 @@ public class ConfigInteger extends ConfigItem<Integer> {
      * @param configKey 配置的key
      * @param defaultValue 配置的默认值
      * @param comment 配置的注释
+     * @param min 最小值
+     * @param max 最大值
      * @param isFinal 配置是否在初始化后不可更改
      */
-    public ConfigInteger(@Nonnull String category,@Nonnull String configKey, int defaultValue,@Nullable String comment, boolean isFinal) {
+    public ConfigInteger(@Nonnull ConfigCategory category, @Nonnull String configKey, int defaultValue, @Nullable String comment, int min, int max, boolean isFinal) {
         super(category, configKey, defaultValue, comment, isFinal);
+        this.minValue = min;
+        this.maxValue = max;
+    }
+
+    public ConfigInteger setMinValue(int minValue) {
+        this.minValue = minValue;
+        return this;
+    }
+
+    public ConfigInteger setMaxValue(int maxValue) {
+        this.maxValue = maxValue;
+        return this;
+    }
+
+    public int getMinValue() {
+        return minValue;
+    }
+
+    public int getMaxValue() {
+        return maxValue;
     }
 
     /**
@@ -71,7 +104,8 @@ public class ConfigInteger extends ConfigItem<Integer> {
      */
     @Override
     public void load(@Nonnull Configuration config) {
-        Property property = config.get(category,key,defaultValue,comment);
+        Property property = config.get(category.getPath(),key,defaultValue,comment,minValue,maxValue);
+        property.setComment((comment == null?"":comment) + " [range: " + minValue + " ~ " + maxValue + ", default: " + defaultValue + "]");
         load(property);
     }
 
