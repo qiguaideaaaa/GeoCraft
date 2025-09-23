@@ -27,7 +27,9 @@
 
 package top.qiguaiaaaa.geocraft.mixin.vanilla;
 
+import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.BlockStaticLiquid;
+import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -43,8 +45,12 @@ import top.qiguaiaaaa.geocraft.util.mixinapi.FluidSettable;
 import java.util.Random;
 
 @Mixin(value = BlockStaticLiquid.class)
-public class BlockStaticLiquidMixin implements FluidSettable {
+public class BlockStaticLiquidMixin extends BlockLiquid implements FluidSettable {
     private Fluid thisFluid;
+
+    protected BlockStaticLiquidMixin(Material materialIn) {
+        super(materialIn);
+    }
 
     @Inject(method = "updateTick",at = @At("RETURN"))
     public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {

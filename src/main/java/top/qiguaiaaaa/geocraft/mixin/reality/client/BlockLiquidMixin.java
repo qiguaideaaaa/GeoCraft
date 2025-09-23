@@ -97,24 +97,26 @@ public abstract class BlockLiquidMixin extends Block{
         double y = pos.getY();
         double z = pos.getZ();
 
+        BlockPos up = pos.up(),down = pos.down();
+
         if (this.material == Material.WATER) {
             if(stateIn.getBlock() instanceof BlockDynamicLiquid){
                 if (rand.nextInt(64) == 0) {
-                    worldIn.playSound(x + 0.5D, y + 0.5D, z + 0.5D, SoundEvents.BLOCK_WATER_AMBIENT, SoundCategory.BLOCKS, rand.nextFloat() * 0.25F + 0.75F, rand.nextFloat() + 0.5F, false);
+                    worldIn.playSound(x + 0.5, y + 0.5, z + 0.5, SoundEvents.BLOCK_WATER_AMBIENT, SoundCategory.BLOCKS, rand.nextFloat() * 0.25F + 0.75F, rand.nextFloat() + 0.5F, false);
                 }
             } else if (rand.nextInt(10) == 0) {
-                worldIn.spawnParticle(EnumParticleTypes.SUSPENDED, x + rand.nextFloat(), y + rand.nextFloat(), z +rand.nextFloat(), 0.0D, 0.0D, 0.0D);
+                worldIn.spawnParticle(EnumParticleTypes.SUSPENDED, x + rand.nextFloat(), y + rand.nextFloat(), z +rand.nextFloat(), 0, 0, 0);
             }
         }
 
-        if (this.material == Material.LAVA && worldIn.getBlockState(pos.up()).getMaterial() == Material.AIR && !worldIn.getBlockState(pos.up()).isOpaqueCube()) {
+        if (this.material == Material.LAVA && worldIn.getBlockState(up).getMaterial() == Material.AIR && !worldIn.getBlockState(up).isOpaqueCube()) {
             if (rand.nextInt(100) == 0) {
                 double quanta = 8- stateIn.getValue(LEVEL);
                 if(quanta<=0) quanta = 0.0;
                 double rndX = x + rand.nextFloat();
                 double rndY = y + stateIn.getBoundingBox(worldIn, pos).maxY*(quanta/8);
                 double rndZ = z + rand.nextFloat();
-                worldIn.spawnParticle(EnumParticleTypes.LAVA, rndX, rndY, rndZ, 0.0D, 0.0D, 0.0D);
+                worldIn.spawnParticle(EnumParticleTypes.LAVA, rndX, rndY, rndZ, 0, 0, 0);
                 worldIn.playSound(rndX, rndY, rndZ, SoundEvents.BLOCK_LAVA_POP, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F, false);
             }
 
@@ -122,7 +124,7 @@ public abstract class BlockLiquidMixin extends Block{
                 worldIn.playSound(x, y, z, SoundEvents.BLOCK_LAVA_AMBIENT, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F, false);
             }
         }
-        IBlockState downState = worldIn.getBlockState(pos.down());
+        IBlockState downState = worldIn.getBlockState(down);
         if(!downState.isTopSolid()) return;
         final int rndNext =  downState.getBlock() instanceof IPermeableBlock?10:100;
         if (rand.nextInt(rndNext) == 0) {
@@ -130,13 +132,13 @@ public abstract class BlockLiquidMixin extends Block{
 
             if (!material.blocksMovement() && !material.isLiquid()) {
                 double rndX = x + rand.nextFloat();
-                double rndY = y - 1.05D;
+                double rndY = y - 1.05;
                 double rndZ = z + rand.nextFloat();
 
                 if (this.material == Material.WATER) {
-                    worldIn.spawnParticle(EnumParticleTypes.DRIP_WATER, rndX, rndY, rndZ, 0.0D, 0.0D, 0.0D);
+                    worldIn.spawnParticle(EnumParticleTypes.DRIP_WATER, rndX, rndY, rndZ, 0, 0, 0);
                 } else {
-                    worldIn.spawnParticle(EnumParticleTypes.DRIP_LAVA, rndX, rndY, rndZ, 0.0D, 0.0D, 0.0D);
+                    worldIn.spawnParticle(EnumParticleTypes.DRIP_LAVA, rndX, rndY, rndZ, 0, 0, 0);
                 }
             }
         }

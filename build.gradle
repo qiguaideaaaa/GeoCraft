@@ -4,6 +4,7 @@ buildscript {
     repositories {
         maven { url = 'https://files.minecraftforge.net/maven' }
         maven { url = 'https://repo.spongepowered.org/maven' }
+        maven { url = 'https://maven.cleanroommc.com'}
         maven { url = "https://oss.sonatype.org/content/repositories/releases/" }
         maven { url = "https://repo.typesafe.com/typesafe/releases/" }
         maven { url = "https://repo1.maven.org/maven2/" }
@@ -114,11 +115,23 @@ dependencies {
         exclude module: 'gson'
     }
 
+    annotationProcessor 'org.ow2.asm:asm-debug-all:5.2'
+    annotationProcessor 'com.google.guava:guava:32.1.2-jre'
+    annotationProcessor 'com.google.code.gson:gson:2.8.9'
+
     // You may put jars on which you depend on in ./libs or you may define them like so..
     // compile "some.group:artifact:version:classifier"
     // compile "some.group:artifact:version"
 
-    compile files('libs/!mixinbooter-10.5.jar')
+    implementation ('zone.rong:mixinbooter:10.6') {
+        transitive = false
+    }
+    annotationProcessor ('zone.rong:mixinbooter:10.6') {
+        transitive = false
+    }
+
+//    compile files('libs/!mixinbooter-10.5.jar')
+    implementation fg.deobf('com.github.jbredwards:fluidlogged-api:1.12.2-Latest-SNAPSHOT')
     implementation fg.deobf("curse.maven:IndustrialCraft-242638:3838713")
 
     implementation fg.deobf("curse.maven:ImmersiveEngineering-231951:2974106")
@@ -148,8 +161,9 @@ repositories {
     maven { url = "https://cursemaven.com" }
     maven { url = "https://files.minecraftforge.net/maven" }
     maven { url = "https://repo.spongepowered.org/maven" }
-    maven { url = "https://maven.aliyun.com/repository/public" } // 阿里云镜像
     maven { url = "https://plugins.gradle.org/m2/" }
+    maven { url = 'https://jitpack.io' }
+    maven { url = 'https://maven.cleanroommc.com'}
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..

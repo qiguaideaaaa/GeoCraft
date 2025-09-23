@@ -41,37 +41,37 @@ import top.qiguaiaaaa.geocraft.configs.item.collection.ConfigList;
  * 关于流体物理的配置项目
  */
 public final class FluidPhysicsConfig {
-    public static final ConfigCategory CATEGORY_SIMULATION = new ConfigCategory("fluid_physics")
+    public static final ConfigCategory CATEGORY_FLUID_PHYSICS = new ConfigCategory("fluid_physics")
             .setComment("流体物理配置项");
     public static final ConfigCustom<FluidPhysicsMode> FLUID_PHYSICS_MODE =
-            new ConfigCustom<>(CATEGORY_SIMULATION,"fluidPhysicsMode", FluidPhysicsMode.MORE_REALITY,
+            new ConfigCustom<>(CATEGORY_FLUID_PHYSICS,"fluidPhysicsMode", FluidPhysicsMode.MORE_REALITY,
                     "设置流体物理模式 Set Fluid Physics Mode.\n" +
                             "支持的模式 Support Values: VANILLA | VANILLA_LIKE | MORE_REALITY （原版 | 类原版 | 更真实一些）", FluidPhysicsMode::getInstanceByString,true);
     // *******************************
     // Vanilla Like Simulation Config
     // *******************************
-    public static final ConfigCategory CATEGORY_SIMULATION_VANILLA_LIKE = CATEGORY_SIMULATION.getChildCategory("vanilla_like")
+    public static final ConfigCategory CATEGORY_FLUID_PHYSICS_VANILLA_LIKE = CATEGORY_FLUID_PHYSICS.getChildCategory("vanilla_like")
             .setComment("设置流体物理模式为"+FluidPhysicsMode.VANILLA_LIKE+"时的参数");
 
     public static final ConfigBoolean PRESSURE_SYSTEM_FOR_VANILLA_LIKE =
-            new ConfigBoolean(CATEGORY_SIMULATION_VANILLA_LIKE,"enablePressureSystem",true,
+            new ConfigBoolean(CATEGORY_FLUID_PHYSICS_VANILLA_LIKE,"enablePressureSystem",true,
                     "是否启用压强系统。\n" +
                             "Enable Pressure System");
 
     public static final ConfigBoolean enableInfiniteWater =
-            new ConfigBoolean(CATEGORY_SIMULATION_VANILLA_LIKE,"enableInfiniteWater",false,
+            new ConfigBoolean(CATEGORY_FLUID_PHYSICS_VANILLA_LIKE,"enableInfiniteWater",false,
                     "是否启用无限水。注意启用之后，由于未经测试，可能会引发一些BUG。\n" +
                             "Set it to true to enable infinite water function of vanilla. PS: Enabling it may cause some problems.");
     public static final ConfigBoolean disableInfiniteFluidForAllModFluid =
-            new ConfigBoolean(CATEGORY_SIMULATION_VANILLA_LIKE,"disableInfiniteFluidForAllModFluid",true,
+            new ConfigBoolean(CATEGORY_FLUID_PHYSICS_VANILLA_LIKE,"disableInfiniteFluidForAllModFluid",true,
                     "是否禁止所有模组中具有无限液体源功能的液体产生液体源的能力。注意因为未经测试，关闭此选项可能会产生一些BUG。\n" +
                             "Set it to false to enable infinite fluid function of supported fluids in mods. PS: Disabling it may cause some problem.");
     public static final ConfigList<ConfigurableFluid> fluidsNotToSimulateInVanillaLike =
-            new ConfigList<>(CATEGORY_SIMULATION_VANILLA_LIKE,"fluidBlackList",
+            new ConfigList<>(CATEGORY_FLUID_PHYSICS_VANILLA_LIKE,"fluidBlackList",
                     new ConfigurableList<>(),
                     "不受此模式影响的流体", ConfigurableFluid::new);
     public static final ConfigCategory CATEGORY_SIMULATION_VANILLA_LIKE_VERTICAL_FLOWING =
-            CATEGORY_SIMULATION_VANILLA_LIKE.getChildCategory("vertical_flowing")
+            CATEGORY_FLUID_PHYSICS_VANILLA_LIKE.getChildCategory("vertical_flowing")
                     .setComment("设置流体垂直流动时的参数");
     public static final ConfigInteger findSourceMaxIterationsWhenVerticalFlowing =
             new ConfigInteger(CATEGORY_SIMULATION_VANILLA_LIKE_VERTICAL_FLOWING,"maxIterations",255,
@@ -82,7 +82,7 @@ public final class FluidPhysicsConfig {
                     "流体垂直流动时，在寻找可被移动的流体源时，在同一流体等级上遍历的最大迭代次数。\n" +
                             "Maximum iterations to find a fluid source block via same level fluid block when vertical flowing.",0,Integer.MAX_VALUE,false);
     public static final ConfigCategory CATEGORY_SIMULATION_VANILLA_LIKE_HORIZONTAL_FLOWING =
-            CATEGORY_SIMULATION_VANILLA_LIKE.getChildCategory("horizontal_flowing")
+            CATEGORY_FLUID_PHYSICS_VANILLA_LIKE.getChildCategory("horizontal_flowing")
                     .setComment("设置流体水平流动时的参数");
     public static final ConfigInteger findSourceMaxIterationsWhenHorizontalFlowing =
             new ConfigInteger(CATEGORY_SIMULATION_VANILLA_LIKE_HORIZONTAL_FLOWING,"maxIterations",17,
@@ -93,7 +93,7 @@ public final class FluidPhysicsConfig {
                     "流体水平流动时，在寻找可被移动流体源时，在同一流体等级上遍历的最大迭代次数。\n" +
                             "Maximum iterations to find a fluid source block via same level fluid block when horizontally flowing.",0,Integer.MAX_VALUE,false);
     //More Reality Simulation Config
-    public static final ConfigCategory CATEGORY_SIMULATION_MORE_REALITY = CATEGORY_SIMULATION.getChildCategory("more_reality")
+    public static final ConfigCategory CATEGORY_SIMULATION_MORE_REALITY = CATEGORY_FLUID_PHYSICS.getChildCategory("more_reality")
             .setComment("设置流体物理模式为"+FluidPhysicsMode.MORE_REALITY+"时的参数");
 
     public static final ConfigCategory CATEGORY_SIMULATION_MORE_REALITY_PRESSURE = CATEGORY_SIMULATION_MORE_REALITY.getChildCategory("pressure_system")

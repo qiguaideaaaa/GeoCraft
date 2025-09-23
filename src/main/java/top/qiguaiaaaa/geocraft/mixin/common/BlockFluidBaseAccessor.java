@@ -39,14 +39,8 @@ public interface BlockFluidBaseAccessor {
     @Accessor(value = "quantaPerBlock",remap = false)
     int getQuantaPerBlock();
 
-    @Accessor(value = "quantaPerBlockFloat",remap = false)
-    float getQuantaPerBlockFloat();
-
     @Accessor(value = "tickRate",remap = false)
     int getTickRate();
-
-    @Accessor(value = "densityDir",remap = false)
-    int getDensityDir();
 
     @Invoker(value = "hasVerticalFlow",remap = false)
     boolean hasVerticalFlowR(IBlockAccess world, BlockPos pos);

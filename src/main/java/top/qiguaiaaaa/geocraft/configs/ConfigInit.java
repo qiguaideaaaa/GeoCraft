@@ -45,10 +45,10 @@ public class ConfigInit {
         registerConfigItem(ALLOW_CLIENT_TO_READ_HUMIDITY_DATA);
 
         //Fluid Physics
-        registerConfigCategory(CATEGORY_SIMULATION);
+        registerConfigCategory(CATEGORY_FLUID_PHYSICS);
         registerConfigItem(FLUID_PHYSICS_MODE);
         // Vanilla Like Simulation Config
-        registerConfigCategory(CATEGORY_SIMULATION_VANILLA_LIKE);
+        registerConfigCategory(CATEGORY_FLUID_PHYSICS_VANILLA_LIKE);
         registerConfigItem(enableInfiniteWater);
         registerConfigItem(disableInfiniteFluidForAllModFluid);
         registerConfigItem(fluidsNotToSimulateInVanillaLike);

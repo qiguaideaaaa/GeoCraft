@@ -27,7 +27,6 @@
 
 package top.qiguaiaaaa.geocraft.mixin.vanilla;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockDynamicLiquid;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
@@ -45,65 +44,65 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
+import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.util.fluid.FluidSearchUtil;
 import top.qiguaiaaaa.geocraft.util.mixinapi.FluidSettable;
-import top.qiguaiaaaa.geocraft.mixin.common.BlockLiquidAccessor;
-import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
 
-import static net.minecraft.block.BlockLiquid.LEVEL;
 import static top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig.*;
 
 @Mixin(value = BlockDynamicLiquid.class)
-public class BlockDynamicLiquidMixin implements FluidSettable {
+public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettable {
     @Shadow
     int adjacentSourceBlocks;
     private Fluid thisFluid;
-    private Block thisBlock;
-    private Material thisMaterial;
-    @Inject(method = "<init>",at = @At("RETURN"))
-    private void onInit(Material materialIn, CallbackInfo ci) {
-        thisBlock = (Block)(Object)this;
-        thisMaterial = materialIn;
+
+    protected BlockDynamicLiquidMixin(Material materialIn) {
+        super(materialIn);
     }
+
     /**
      * @author QiguaiAAAA
-     * @reason No
      */
     @Inject(method = "updateTick",at = @At("HEAD"),cancellable = true)
     public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
         if(!GeoFluidSetting.isFluidToBePhysical(thisFluid)) return;
         ci.cancel();
+        if(worldIn.isRemote) return;
         if (!worldIn.isAreaLoaded(pos, this.getSlopeFindDistance(worldIn))) return;
         int liquidMeta = state.getValue(LEVEL);
         int spreadLevel = getSpreadLevel(worldIn);
 
-        int updateRate = thisBlock.tickRate(worldIn);
+        int updateRate = this.tickRate(worldIn);
 
-        IBlockState stateBelow = worldIn.getBlockState(pos.down());
+        BlockPos downPos = pos.down();
+        IBlockState stateBelow = worldIn.getBlockState(downPos);
 
         //是否能够往下流
         Optional<BlockPos> sourcePosOption = Optional.empty();
         if(liquidMeta == 0) sourcePosOption = Optional.of(pos);
-        boolean canMoveSourceDown = this.canMoveInto(worldIn, pos.down(), stateBelow);
+        boolean canMoveSourceDown = this.canMoveInto(worldIn, downPos, stateBelow);
         if(canMoveSourceDown){
             if (!sourcePosOption.isPresent())
-                sourcePosOption = FluidSearchUtil.findSource(worldIn,pos,thisMaterial,false,false,
+                sourcePosOption = FluidSearchUtil.findSource(worldIn,pos,material,false,false,
                         findSourceMaxIterationsWhenVerticalFlowing.getValue(),
                         findSourceMaxSameLevelIterationsWhenVerticalFlowing.getValue());
             if(sourcePosOption.isPresent()){
-                FluidOperationUtil.moveFluidSource(worldIn,sourcePosOption.get(),pos.down());
+                FluidOperationUtil.moveFluidSource(worldIn,sourcePosOption.get(),downPos);
                 if(sourcePosOption.get() == pos) return;
             }
         }else if(liquidMeta == 1){
-            sourcePosOption = FluidSearchUtil.findSource(worldIn,pos,thisMaterial,true,false,
+            sourcePosOption = FluidSearchUtil.findSource(worldIn,pos,material,true,false,
                     findSourceMaxIterationsWhenHorizontalFlowing.getValue(),
                     findSourceMaxSameLevelIterationsWhenHorizontalFlowing.getValue());
             if(sourcePosOption.isPresent()){
                 FluidOperationUtil.moveFluidSource(worldIn,sourcePosOption.get(),pos);
-                worldIn.scheduleUpdate(pos,BlockLiquid.getStaticBlock(thisMaterial),updateRate);
+                worldIn.scheduleUpdate(pos,BlockLiquid.getStaticBlock(material),updateRate);
                 return;
             }
         }
@@ -122,7 +121,7 @@ public class BlockDynamicLiquidMixin implements FluidSettable {
 
             if (newLiquidMeta >= 8 || 相邻方块最高等级 < 0) newLiquidMeta = -1;
             //垂直方向处理
-            int upBlockMeta = ((BlockLiquidAccessor)this).getDepth(worldIn.getBlockState(pos.up()));
+            int upBlockMeta = this.getDepth(worldIn.getBlockState(pos.up()));
 
             if (upBlockMeta >= 0) {
                 if (upBlockMeta >= 8) newLiquidMeta = upBlockMeta;
@@ -130,19 +129,18 @@ public class BlockDynamicLiquidMixin implements FluidSettable {
             }
             //无限水
             if(enableInfiniteWater.getValue()){
-                if (this.adjacentSourceBlocks >= 2 && ForgeEventFactory.canCreateFluidSource(worldIn, pos, state, thisMaterial == Material.WATER)) {
-                    IBlockState iblockstate = worldIn.getBlockState(pos.down());
+                if (this.adjacentSourceBlocks >= 2 && ForgeEventFactory.canCreateFluidSource(worldIn, pos, state, material == Material.WATER)) {
 
-                    if (iblockstate.getMaterial().isSolid()) {
+                    if (stateBelow.getMaterial().isSolid()) {
                         newLiquidMeta = 0;
-                    } else if (iblockstate.getMaterial() == thisMaterial && iblockstate.getValue(LEVEL) == 0) {
+                    } else if (stateBelow.getMaterial() == material && stateBelow.getValue(LEVEL) == 0) {
                         newLiquidMeta = 0;
                     }
                 }
             }
             boolean isQuantaDecreasing = newLiquidMeta < 8 && newLiquidMeta > liquidMeta;
             //岩浆处理
-            if (!noSourceFound && (thisMaterial == Material.LAVA) && isQuantaDecreasing && rand.nextInt(4) != 0){
+            if (!noSourceFound && (material == Material.LAVA) && isQuantaDecreasing && rand.nextInt(4) != 0){
                 updateRate *= 4;
             }
 
@@ -155,24 +153,24 @@ public class BlockDynamicLiquidMixin implements FluidSettable {
                 else {
                     state = state.withProperty(LEVEL, newLiquidMeta);
                     worldIn.setBlockState(pos, state, 2);
-                    worldIn.scheduleUpdate(pos, (Block)(Object)this, updateRate);
-                    worldIn.notifyNeighborsOfStateChange(pos, (Block)(Object)this, false);
+                    worldIn.scheduleUpdate(pos, this, updateRate);
+                    worldIn.notifyNeighborsOfStateChange(pos, this, false);
                 }
             }
         } else {
             this.placeStaticBlock(worldIn, pos, state);
         }
         if(liquidMeta <0) return;
-        stateBelow = worldIn.getBlockState(pos.down());
-        if (canFlowInto(worldIn, pos.down(), stateBelow)) {
-            if (thisMaterial == Material.LAVA && stateBelow.getMaterial() == Material.WATER) {
-                worldIn.setBlockState(pos.down(), ForgeEventFactory.fireFluidPlaceBlockEvent(worldIn, pos.down(), pos, Blocks.STONE.getDefaultState()));
-                FluidOperationUtil.triggerFluidMixEffects(worldIn, pos.down());
+        stateBelow = worldIn.getBlockState(downPos);
+        if (canFlowInto(worldIn, downPos, stateBelow)) {
+            if (material == Material.LAVA && stateBelow.getMaterial() == Material.WATER) {
+                worldIn.setBlockState(downPos, ForgeEventFactory.fireFluidPlaceBlockEvent(worldIn, downPos, pos, Blocks.STONE.getDefaultState()));
+                FluidOperationUtil.triggerFluidMixEffects(worldIn, downPos);
                 return;
             }
-            if (liquidMeta >= 8) this.tryFlowInto(worldIn, pos.down(), stateBelow, liquidMeta);
-            else this.tryFlowInto(worldIn, pos.down(), stateBelow, liquidMeta + 8);
-        } else if (FluidUtil.isFullFluid(worldIn,pos.down(),stateBelow) || this.isBlocked(worldIn, pos.down(), stateBelow)){//横向流动
+            if (liquidMeta >= 8) this.tryFlowInto(worldIn, downPos, stateBelow, liquidMeta);
+            else this.tryFlowInto(worldIn, downPos, stateBelow, liquidMeta + 8);
+        } else if (FluidUtil.isFullFluid(worldIn,downPos,stateBelow) || this.isBlocked(worldIn, downPos, stateBelow)){//横向流动
             Set<EnumFacing> directions = this.getPossibleFlowDirections(worldIn, pos);
             int nextLiquidState = liquidMeta + spreadLevel;
 
@@ -187,17 +185,19 @@ public class BlockDynamicLiquidMixin implements FluidSettable {
         if(state.getBlock() instanceof IFluidBlock) return false;
         Material material = state.getMaterial();
         if(material.isLiquid()){
-            if(material != thisMaterial) return false;
+            if(material != this.material) return false;
             return state.getValue(LEVEL) != 0;
         }
         return !this.isBlocked(worldIn,pos,state);
     }
+
     private int getSpreadLevel(World world){
-        if (thisMaterial == Material.LAVA && !world.provider.doesWaterVaporize()) {
+        if (material == Material.LAVA && !world.provider.doesWaterVaporize()) {
             return 2;
         }
         return 1;
     }
+
     @Shadow
     private void tryFlowInto(World worldIn, BlockPos pos, IBlockState state, int level) {}
     @Shadow
@@ -211,7 +211,7 @@ public class BlockDynamicLiquidMixin implements FluidSettable {
     @Shadow
     private void placeStaticBlock(World worldIn, BlockPos pos, IBlockState currentState){}
     @Shadow
-    private Set<EnumFacing> getPossibleFlowDirections(World worldIn, BlockPos pos) {return null;}
+    private Set<EnumFacing> getPossibleFlowDirections(World worldIn, BlockPos pos) {return Collections.emptySet();}
     @Shadow
     private boolean isBlocked(World worldIn, BlockPos pos, IBlockState state){return false;}
 

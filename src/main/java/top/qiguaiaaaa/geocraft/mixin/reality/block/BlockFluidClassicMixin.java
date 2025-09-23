@@ -48,12 +48,11 @@ import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.update.RealityBlockFluidClassicUpdateTask;
-import top.qiguaiaaaa.geocraft.util.mixinapi.IMoreRealityBlockFluidBase;
 
-import java.util.*;
+import java.util.Random;
 
 @Mixin(value = BlockFluidClassic.class)
-public abstract class BlockFluidClassicMixin extends BlockFluidBase implements IMoreRealityBlockFluidBase<BlockFluidClassic> {
+public abstract class BlockFluidClassicMixin extends BlockFluidBase {
 
     public BlockFluidClassicMixin(Fluid fluid, Material material, MapColor mapColor) {
         super(fluid, material, mapColor);
@@ -67,7 +66,8 @@ public abstract class BlockFluidClassicMixin extends BlockFluidBase implements I
     public void updateTick(World world, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
         if(!GeoFluidSetting.isFluidToBePhysical(this.getFluid())) return;
         ci.cancel();
-        FluidUpdateManager.addTask(world,new RealityBlockFluidClassicUpdateTask(this.getFluid(),pos,getThis(),quantaPerBlock,tickRate,densityDir));
+        if(world.isRemote) return;
+        FluidUpdateManager.addTask(world,new RealityBlockFluidClassicUpdateTask(this.getFluid(),pos,(BlockFluidClassic)(Block) this,quantaPerBlock,tickRate,densityDir));
     }
 
     @Inject(method = "drain",at = @At("HEAD"),cancellable = true,remap = false)
@@ -121,10 +121,5 @@ public abstract class BlockFluidClassicMixin extends BlockFluidBase implements I
         if(!GeoFluidSetting.isFluidToBePhysical(this.getFluid())) return;
         cir.setReturnValue(true);
         cir.cancel();
-    }
-
-    @Override
-    public BlockFluidClassic getThis() {
-        return (BlockFluidClassic) (Block)this;
     }
 }

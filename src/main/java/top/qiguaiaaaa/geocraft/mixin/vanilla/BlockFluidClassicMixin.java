@@ -36,76 +36,72 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.fluids.BlockFluidBase;
 import net.minecraftforge.fluids.BlockFluidClassic;
 import net.minecraftforge.fluids.Fluid;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
+import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockFluidBaseAccessor;
 import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.util.fluid.FluidSearchUtil;
-import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 
-import static net.minecraft.block.BlockLiquid.LEVEL;
 import static top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig.*;
 
 @Mixin(value = BlockFluidClassic.class)
-public class BlockFluidClassicMixin {
+public abstract class BlockFluidClassicMixin extends BlockFluidBase {
     @Final
     @Shadow(remap = false)
     protected static final List<EnumFacing> SIDES = Collections.unmodifiableList(Arrays.asList(
             EnumFacing.WEST, EnumFacing.EAST, EnumFacing.NORTH, EnumFacing.SOUTH));
     @Shadow(remap = false)
     protected boolean canCreateSources;
-    private BlockFluidClassic thisBlock;
-    @Inject(method = "<init>(Lnet/minecraftforge/fluids/Fluid;Lnet/minecraft/block/material/Material;Lnet/minecraft/block/material/MapColor;)V",at = @At("RETURN"))
-    private void onInit(Fluid fluid, Material material, MapColor mapColor, CallbackInfo ci) {
-        thisBlock = (BlockFluidClassic) (Object)this;
+
+    public BlockFluidClassicMixin(Fluid fluid, Material material, MapColor mapColor) {
+        super(fluid, material, mapColor);
     }
-    @Inject(method = "<init>(Lnet/minecraftforge/fluids/Fluid;Lnet/minecraft/block/material/Material;)V",at = @At("RETURN"))
-    private void onInit(Fluid fluid, Material material, CallbackInfo ci) {
-        thisBlock = (BlockFluidClassic) (Object)this;
+
+    public BlockFluidClassicMixin(Fluid fluid, Material material) {
+        super(fluid, material);
     }
+
     /**
      * @author QiguaiAAAA
      * @reason Configure for Forge Fluids
      */
     @Overwrite
     public void updateTick(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random rand) {
-        if(!GeoFluidSetting.isFluidToBePhysical(thisBlock.getFluid())) return;
-        int quantaPerBlock = ((BlockFluidBaseAccessor) this).getQuantaPerBlock();
-        int densityDir = ((BlockFluidBaseAccessor) this).getDensityDir();
+        if(!GeoFluidSetting.isFluidToBePhysical(this.getFluid())) return;
         int quantaRemaining = quantaPerBlock - state.getValue(LEVEL);
-        int expQuanta = -101;
+        int newQuanta;
 
         //是否能够往下流
         Optional<BlockPos> sourcePosOption = Optional.empty();
         if(quantaRemaining == quantaPerBlock) sourcePosOption = Optional.of(pos);
-        boolean canMoveSourceDown = this.canMoveInto(world, pos.up(densityDir));
+        final BlockPos downPos = pos.up(densityDir);
+        boolean canMoveSourceDown = this.canMoveInto(world, downPos);
         if(canMoveSourceDown){
             if (!sourcePosOption.isPresent())
-                sourcePosOption = FluidSearchUtil.findSource(world,pos,thisBlock.getFluid(),false,false,
+                sourcePosOption = FluidSearchUtil.findSource(world,pos,this.getFluid(),false,false,
                         findSourceMaxIterationsWhenVerticalFlowing.getValue(),
                         findSourceMaxSameLevelIterationsWhenVerticalFlowing.getValue());
             if(sourcePosOption.isPresent()){
-                FluidOperationUtil.moveFluidSource(world,sourcePosOption.get(),pos.up(densityDir));
+                FluidOperationUtil.moveFluidSource(world,sourcePosOption.get(),downPos);
                 if(sourcePosOption.get() == pos) return;
             }
         }else if(quantaRemaining == quantaPerBlock-1){
-            sourcePosOption = FluidSearchUtil.findSource(world,pos,thisBlock.getFluid(),true,false,
+            sourcePosOption = FluidSearchUtil.findSource(world,pos,this.getFluid(),true,false,
                     findSourceMaxIterationsWhenHorizontalFlowing.getValue(),
                     findSourceMaxSameLevelIterationsWhenHorizontalFlowing.getValue());
             if(sourcePosOption.isPresent()){
                 FluidOperationUtil.moveFluidSource(world,sourcePosOption.get(),pos);
-                world.scheduleUpdate(pos, thisBlock, ((BlockFluidBaseAccessor) this).getTickRate());
+                world.scheduleUpdate(pos, this, tickRate);
                 return;
             }
         }
@@ -118,33 +114,33 @@ public class BlockFluidClassicMixin {
                     if (isSourceBlock(world, pos.offset(side))) adjacentSourceBlocks++;
 
             // 无限液体
-            if (!disableInfiniteFluidForAllModFluid.getValue() && adjacentSourceBlocks >= 2 && (world.getBlockState(pos.up(densityDir)).getMaterial().isSolid() || isSourceBlock(world, pos.up(densityDir)))) {
-                expQuanta = quantaPerBlock;
-            } else if (((BlockFluidBaseAccessor)this).hasVerticalFlowR(world, pos) && !isSameFluidUnder(world,pos.up(densityDir))) {//垂直流入
-                expQuanta = quantaPerBlock - 1;
+            if (!disableInfiniteFluidForAllModFluid.getValue() && adjacentSourceBlocks >= 2 && (world.getBlockState(downPos).getMaterial().isSolid() || isSourceBlock(world, downPos))) {
+                newQuanta = quantaPerBlock;
+            } else if (((BlockFluidBaseAccessor)this).hasVerticalFlowR(world, pos) && !isSameFluidUnder(world,downPos)) {//垂直流入
+                newQuanta = quantaPerBlock - 1;
             } else { //水平流动
                 int maxQuanta = -100;
                 for (EnumFacing side : EnumFacing.Plane.HORIZONTAL) {
                     maxQuanta = getLargerQuanta(world, pos.offset(side), maxQuanta);
                 }
-                expQuanta = maxQuanta - 1;
+                newQuanta = maxQuanta - 1;
             }
 
             // 更新液体状态
-            if (expQuanta != quantaRemaining) {
-                quantaRemaining = expQuanta;
-                if (expQuanta <= 0) {
+            if (newQuanta != quantaRemaining) {
+                quantaRemaining = newQuanta;
+                if (newQuanta <= 0) {
                     world.setBlockToAir(pos);
                 } else {
-                    world.setBlockState(pos, state.withProperty(LEVEL, quantaPerBlock - expQuanta), Constants.BlockFlags.SEND_TO_CLIENTS);
-                    world.scheduleUpdate(pos, thisBlock, ((BlockFluidBaseAccessor) this).getTickRate());
-                    world.notifyNeighborsOfStateChange(pos, thisBlock, false);
+                    world.setBlockState(pos, state.withProperty(LEVEL, quantaPerBlock - newQuanta), Constants.BlockFlags.SEND_TO_CLIENTS);
+                    world.scheduleUpdate(pos, this, tickRate);
+                    world.notifyNeighborsOfStateChange(pos, this, false);
                 }
             }
         }
         // 垂直流入
-        if (thisBlock.canDisplace(world, pos.up(densityDir))) {
-            flowIntoBlock(world, pos.up(densityDir), 1);
+        if (this.canDisplace(world, downPos)) {
+            flowIntoBlock(world, downPos, 1);
             return;
         }
 
@@ -152,7 +148,7 @@ public class BlockFluidClassicMixin {
         int flowMeta = quantaPerBlock - quantaRemaining + 1;
         if (flowMeta >= quantaPerBlock) return;
 
-        if (FluidUtil.isFullFluid(world,pos.up(densityDir),world.getBlockState(pos.up(densityDir))) || !isFlowingVertically(world, pos)) {
+        if (FluidUtil.isFullFluid(world,downPos,world.getBlockState(downPos)) || !isFlowingVertically(world, pos)) {
             if (((BlockFluidBaseAccessor)this).hasVerticalFlowR(world, pos)) flowMeta = 1;
             boolean[] flowTo = getOptimalFlowDirections(world, pos);
             for (int i = 0; i < 4; i++)
@@ -162,14 +158,14 @@ public class BlockFluidClassicMixin {
     private boolean canMoveInto(World worldIn,BlockPos pos){
         IBlockState state = worldIn.getBlockState(pos);
         if(FluidUtil.isFluid(state)){
-            if(FluidUtil.getFluid(state) != thisBlock.getFluid()) return false;
+            if(FluidUtil.getFluid(state) != this.getFluid()) return false;
             return state.getValue(LEVEL) != 0;
         }
-        return thisBlock.canDisplace(worldIn,pos);
+        return this.canDisplace(worldIn,pos);
     }
 
     private boolean isSameFluidUnder(World worldIn,BlockPos pos){
-        Fluid thisFluid = thisBlock.getFluid();
+        Fluid thisFluid = this.getFluid();
         Fluid underFluid = FluidUtil.getFluid(worldIn.getBlockState(pos));
         return thisFluid == underFluid;
     }
