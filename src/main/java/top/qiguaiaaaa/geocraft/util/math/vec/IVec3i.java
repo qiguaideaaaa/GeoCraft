@@ -27,6 +27,9 @@
 
 package top.qiguaiaaaa.geocraft.util.math.vec;
 
+import top.qiguaiaaaa.geocraft.util.math.Int10;
+import top.qiguaiaaaa.geocraft.util.math.Int21;
+
 import javax.annotation.Nonnull;
 
 import static top.qiguaiaaaa.geocraft.util.math.Int10.toInt10;
@@ -37,6 +40,14 @@ import static top.qiguaiaaaa.geocraft.util.math.Int21.toInt21;
  * @author QiguaiAAAA
  */
 public interface IVec3i {
+    int X_INT_OFFSET = 20, Y_INT_OFFSET = 10, Z_INT_OFFSET = 0,
+    X_LONG_OFFSET = 42, Y_LONG_OFFSET = 21, Z_LONG_OFFSET=0;
+    int X_INT_MASK = Int10.ALL_MASK<< X_INT_OFFSET,
+    Y_INT_MASK = Int10.ALL_MASK<< Y_INT_OFFSET,
+    Z_INT_MASK = Int10.ALL_MASK<< Z_INT_OFFSET;
+    long X_LONG_MASK = Int21.ALL_MASK<<X_LONG_OFFSET,
+    Y_LONG_MASK = Int21.ALL_MASK << Y_LONG_OFFSET,
+    Z_LONG_MASK = Int21.ALL_MASK<<Z_LONG_OFFSET;
     int getX();
     int getY();
     int getZ();
@@ -45,10 +56,10 @@ public interface IVec3i {
     IVec3i toImmutable();
 
     default int toInt() {
-        return toInt10(getX())<<20 | toInt10(getY())<<10 | toInt10(getZ());
+        return toInt10(getX())<< X_INT_OFFSET | toInt10(getY())<< Y_INT_OFFSET | toInt10(getZ());
     }
 
     default long toLong(){
-        return toInt21(getX()) <<42 | toInt21(getY()) <<21 | toInt21(getZ());
+        return toInt21(getX()) <<X_LONG_OFFSET | toInt21(getY()) <<Y_LONG_OFFSET | toInt21(getZ());
     }
 }

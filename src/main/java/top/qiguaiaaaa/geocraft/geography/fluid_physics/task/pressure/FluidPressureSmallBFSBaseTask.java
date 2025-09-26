@@ -27,17 +27,21 @@
 
 package top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure;
 
+import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fluids.Fluid;
+import top.qiguaiaaaa.geocraft.util.math.Int10;
+import top.qiguaiaaaa.geocraft.util.math.vec.IVec3i;
 
 import javax.annotation.Nonnull;
 
 import java.util.Set;
 
-import static top.qiguaiaaaa.geocraft.util.math.vec.BlockPosHelper.getRelativePos_BS;
+import static top.qiguaiaaaa.geocraft.util.math.vec.IVec3i.X_INT_OFFSET;
+import static top.qiguaiaaaa.geocraft.util.math.vec.IVec3i.Y_INT_OFFSET;
 import static top.qiguaiaaaa.geocraft.util.math.vec.RelativeBlockPosS.Mutable.MUTABLE;
 
 /**
@@ -46,7 +50,10 @@ import static top.qiguaiaaaa.geocraft.util.math.vec.RelativeBlockPosS.Mutable.MU
  */
 public abstract class FluidPressureSmallBFSBaseTask extends FluidPressureBFSBaseTask{
     public static final int MAX_RELATIVE_POS_OFFSET = (1<<(Integer.SIZE/3)-1)-1;
+    private static final BlockPos.MutableBlockPos mutablePosForQueue = new BlockPos.MutableBlockPos(); //注意,仅单线程使用
     protected final IntSet visited = new IntOpenHashSet();
+    protected final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
+
 
     public FluidPressureSmallBFSBaseTask(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos) {
         super(fluid, beginState, beginPos);
@@ -76,12 +83,55 @@ public abstract class FluidPressureSmallBFSBaseTask extends FluidPressureBFSBase
         visited.add(MUTABLE.setPos(beginPos,pos).toInt());
     }
 
+    @Override
+    public boolean isQueueEmpty() {
+        return queue.isEmpty();
+    }
+
     /**
      * {@inheritDoc}
      * @param pos {@inheritDoc}
      */
     @Override
     public void queued(@Nonnull BlockPos pos){
-        queue.add(getRelativePos_BS(beginPos,pos).toImmutable());
+        queue.enqueue(MUTABLE.setPos(beginPos,pos).toInt());
+    }
+
+    @Nonnull
+    @Override
+    public BlockPos pull() {
+        int relativePos = queue.dequeueInt();
+        return getPosFromInt(relativePos);
+    }
+
+    @Nonnull
+    @Override
+    public BlockPos peek() {
+        int relativePos = queue.firstInt();
+        return getPosFromInt(relativePos);
+    }
+
+    @Override
+    public int getQueueSize() {
+        return queue.size();
+    }
+
+    protected BlockPos getPosFromInt(int posInt){
+        final int x = Int10.toInt((posInt& IVec3i.X_INT_MASK)>> X_INT_OFFSET),
+                y = Int10.toInt((posInt&IVec3i.Y_INT_MASK)>> Y_INT_OFFSET),
+                z = Int10.toInt(posInt&IVec3i.Z_INT_MASK);
+        return mutablePosForQueue.setPos(beginPos.getX()+x,beginPos.getY()+y,beginPos.getZ()+z);
+    }
+
+    @Override
+    public void cancel() {
+        visited.clear();
+        queue.clear();
+    }
+
+    @Override
+    public void finish() {
+        visited.clear();
+        queue.clear();
     }
 }

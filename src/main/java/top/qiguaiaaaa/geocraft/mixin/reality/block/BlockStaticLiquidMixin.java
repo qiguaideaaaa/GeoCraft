@@ -44,8 +44,10 @@ import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure.RealityPressureTaskBuilder;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTaskResult;
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
 import top.qiguaiaaaa.geocraft.util.mixinapi.FluidSettable;
 import top.qiguaiaaaa.geocraft.util.mixinapi.IVanillaFlowChecker;
@@ -71,28 +73,31 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
         if(worldIn.isRemote) return;
         if(!GeoFluidSetting.isFluidToBePhysical(thisFluid)) return;
         if(!canFlow(worldIn,pos,state,rand)){
-            Collection<BlockPos> res = FluidPressureSearchManager.getTaskResult(worldIn,pos);
+            if(FluidPhysicsConfig.PRESSURE_SYSTEM_FOR_REALITY.getValue()){
+                IFluidPressureSearchTaskResult res = FluidPressureSearchManager.getTaskResult(worldIn,pos);
 
-            if(res == null || res.isEmpty()){
-                sendPressureQuery(worldIn,pos,state,rand,false);
-                if(debug) GeoCraft.getLogger().info("{}: no res,send query",pos);
-            }else {
-                IBlockState nowState =state;
-                if(debug) GeoCraft.getLogger().info("{}: has res :",pos);
-                for(BlockPos toPos:res){
-                    if(!nowState.getMaterial().isLiquid()) break;
-                    if(tryMoveInto(worldIn,toPos,pos,nowState)) break;
-                    nowState = worldIn.getBlockState(pos);
-                    if(debug) GeoCraft.getLogger().info("{} now State: {}",toPos,nowState);
-                }
-
-                nowState = worldIn.getBlockState(pos);
-                if(nowState!=state && FluidUtil.getFluid(nowState) == thisFluid){
-                    sendPressureQuery(worldIn,pos,nowState,rand,true);
-                }else if(nowState == state){
+                if(res == null || res.isEmpty()){
                     sendPressureQuery(worldIn,pos,state,rand,false);
+                    if(debug) GeoCraft.getLogger().info("{}: no res,send query",pos);
+                }else {
+                    IBlockState nowState =state;
+                    if(debug) GeoCraft.getLogger().info("{}: has res :",pos);
+                    while (res.hasNext()) {
+                        BlockPos toPos = res.next();
+                        if(!nowState.getMaterial().isLiquid()) break;
+                        if(tryMoveInto(worldIn,toPos,pos,nowState)) break;
+                        nowState = worldIn.getBlockState(pos);
+                        if(debug) GeoCraft.getLogger().info("{} now State: {}",toPos,nowState);
+                    }
+
+                    nowState = worldIn.getBlockState(pos);
+                    if(nowState!=state && FluidUtil.getFluid(nowState) == thisFluid){
+                        sendPressureQuery(worldIn,pos,nowState,rand,true);
+                    }else if(nowState == state){
+                        sendPressureQuery(worldIn,pos,state,rand,false);
+                    }
+                    if(nowState!=state) return;
                 }
-                if(nowState!=state) return;
             }
             IBlockState newState = EventFactory.afterBlockLiquidStaticUpdate(thisFluid,worldIn,pos,state);
             if(newState != null){

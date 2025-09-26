@@ -33,6 +33,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTaskResult;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -100,7 +101,7 @@ public class 小范围原版物理压强广搜任务 extends 小范围物理压�
 
         @Nullable
         @Override
-        public Collection<BlockPos> search(@Nonnull WorldServer world) {
+        public IFluidPressureSearchTaskResult search(@Nonnull WorldServer world) {
             search_Debug(world);
             return super.search(world);
         }

@@ -64,6 +64,7 @@ public final class BlockUpdater {
         final List<ExtendedNextTickListEntry> schedules = WORLD_SCHEDULE_MAP.get(world);
         if(schedules == null) return;
         int size = schedules.size();
+        boolean drop = false;
         for(int i=0,j=0;i<size && j <size;i++){
             ExtendedNextTickListEntry entry = schedules.get(j);
             if(world.getTotalWorldTime()<entry.scheduledTime){
@@ -71,6 +72,8 @@ public final class BlockUpdater {
                 continue;
             }
             schedules.remove(j);
+            if(drop) continue;
+            drop = READY_TO_UPDATES.size()>MAX_UPDATE_NUM;
             READY_TO_UPDATES.add(entry);
         }
         for(ExtendedNextTickListEntry entry:READY_TO_UPDATES){

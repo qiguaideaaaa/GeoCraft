@@ -36,6 +36,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fluids.IFluidBlock;
 
 import static net.minecraft.block.BlockLiquid.LEVEL;
 
@@ -60,6 +61,7 @@ public final class BlockLiquidUtil {
     }
 
     public static int getDepth(IBlockState state,BlockLiquid liquid){
+        if(state.getBlock() instanceof IFluidBlock) return -1;
         return state.getMaterial() == liquid.getDefaultState().getMaterial() ? state.getValue(LEVEL) : -1;
     }
 

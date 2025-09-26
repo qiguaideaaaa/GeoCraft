@@ -27,6 +27,7 @@
 
 package top.qiguaiaaaa.geocraft.mixin.vanilla;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -43,8 +44,14 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.vanilla_like.mixin.IVanillaLikeFluidBlock;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.vanilla_like.update.VanillaLikeBlockFluidClassicUpdateTask;
 import top.qiguaiaaaa.geocraft.mixin.common.BlockFluidBaseAccessor;
 import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.util.fluid.FluidSearchUtil;
@@ -55,7 +62,7 @@ import java.util.*;
 import static top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig.*;
 
 @Mixin(value = BlockFluidClassic.class)
-public abstract class BlockFluidClassicMixin extends BlockFluidBase {
+public abstract class BlockFluidClassicMixin extends BlockFluidBase implements IVanillaLikeFluidBlock {
     @Final
     @Shadow(remap = false)
     protected static final List<EnumFacing> SIDES = Collections.unmodifiableList(Arrays.asList(
@@ -75,9 +82,16 @@ public abstract class BlockFluidClassicMixin extends BlockFluidBase {
      * @author QiguaiAAAA
      * @reason Configure for Forge Fluids
      */
-    @Overwrite
-    public void updateTick(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random rand) {
+    @Inject(method = "updateTick",at= @At("HEAD"),cancellable = true)
+    public void updateTick(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random rand, CallbackInfo ci) {
         if(!GeoFluidSetting.isFluidToBePhysical(this.getFluid())) return;
+        ci.cancel();
+        if(world.isRemote) return;
+        FluidUpdateManager.addTask(world,new VanillaLikeBlockFluidClassicUpdateTask(getFluid(),pos,(BlockFluidClassic) (Block)this));
+    }
+
+    @Override
+    public void onFlowingTask(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random rand) {
         int quantaRemaining = quantaPerBlock - state.getValue(LEVEL);
         int newQuanta;
 
@@ -155,6 +169,7 @@ public abstract class BlockFluidClassicMixin extends BlockFluidBase {
                 if (flowTo[i]) flowIntoBlock(world, pos.offset(SIDES.get(i)), flowMeta);
         }
     }
+
     private boolean canMoveInto(World worldIn,BlockPos pos){
         IBlockState state = worldIn.getBlockState(pos);
         if(FluidUtil.isFluid(state)){

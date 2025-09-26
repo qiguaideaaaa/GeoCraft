@@ -47,9 +47,11 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.RealityBlockLiquidUtil;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure.RealityPressureTaskBuilder;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTaskResult;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.update.FluidUpdateBaseTask;
 import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
 import top.qiguaiaaaa.geocraft.util.fluid.BlockLiquidUtil;
@@ -87,7 +89,8 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
         int liquidQuanta = 8-liquidMeta;
         int updateRate = block.tickRate(world);
 
-        IBlockState stateBelow = world.getBlockState(pos.down());
+        BlockPos downPos = pos.down();
+        IBlockState stateBelow = world.getBlockState(downPos);
         boolean canMoveDown = RealityBlockLiquidUtil.canMoveDownTo(material,stateBelow);
 
         if(canMoveDown){ //向下流动
@@ -103,10 +106,10 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
                     BlockUpdater.scheduleUpdate(world,pos,block, updateRate);
                     world.notifyNeighborsOfStateChange(pos,block, false);
                 }
-                world.setBlockState(pos.down(), ForgeEventFactory.fireFluidPlaceBlockEvent(world, pos.down(), pos, Blocks.STONE.getDefaultState()));
-                FluidOperationUtil.triggerFluidMixEffects(world,pos.down());
+                world.setBlockState(downPos, ForgeEventFactory.fireFluidPlaceBlockEvent(world, downPos, pos, Blocks.STONE.getDefaultState()));
+                FluidOperationUtil.triggerFluidMixEffects(world,downPos);
             }else{
-                FluidOperationUtil.moveFluid(world,pos,pos.down());
+                FluidOperationUtil.moveFluid(world,pos,downPos);
             }
             return;
         }
@@ -162,7 +165,7 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
                 state = state.withProperty(LEVEL,liquidMeta);
                 world.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
                 BlockUpdater.scheduleUpdate(world,pos,block, updateRate);
-                if(!FluidPressureSearchManager.isTaskRunning(world,pos)){
+                if(FluidPhysicsConfig.PRESSURE_SYSTEM_FOR_REALITY.getValue() && !FluidPressureSearchManager.isTaskRunning(world,pos)){
                     createFluidPressureSearchTask(world,pos,state,FlowingMode.AVERAGE_MODE);
                 }
                 world.notifyNeighborsOfStateChange(pos,block, false);
@@ -269,12 +272,13 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
 
     protected boolean checkPressureTask(World worldIn){
         if(!worldIn.isRemote){
-            Collection<BlockPos> res = FluidPressureSearchManager.getTaskResult(worldIn,pos);
+            IFluidPressureSearchTaskResult res = FluidPressureSearchManager.getTaskResult(worldIn,pos);
             if(res == null || res.isEmpty()){
                 return false;
             }
             IBlockState nowState =state;
-            for(BlockPos toPos:res){
+            while (res.hasNext()){
+                BlockPos toPos = res.next();
                 if(!nowState.getMaterial().isLiquid()) break;
                 if(tryMoveInto(worldIn,toPos,pos,nowState)) break;
                 nowState = worldIn.getBlockState(pos);
@@ -317,6 +321,7 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
     protected void placeStaticBlock(World worldIn, BlockPos pos, IBlockState currentState,FlowingMode mode){
         BlockLiquidUtil.placeStaticBlock(worldIn,pos,currentState,block);
         if(mode == FlowingMode.SLOPE_MODE) return;
+        if(!FluidPhysicsConfig.PRESSURE_SYSTEM_FOR_REALITY.getValue()) return;
 
         IBlockState newState = worldIn.getBlockState(pos);
         if(newState.getMaterial().isLiquid()){

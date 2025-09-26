@@ -33,6 +33,7 @@ package top.qiguaiaaaa.geocraft.util.math;
 public final class Int21 {
     public static final int SIGN_MASK = 0x100000;
     public static final int CONTENT_MASK = 0xFFFFF;
+    public static final long ALL_MASK = 0x1FFFFF;
     private final int val;
 
     public Int21(int v){
@@ -60,5 +61,9 @@ public final class Int21 {
     public static long toInt21(int v){
         if(v>=0) return v;
         return SIGN_MASK | ((-v) & CONTENT_MASK);
+    }
+
+    public static int toInt(long int21){
+        return (int) ((SIGN_MASK&int21)==0?int21:-(int21&CONTENT_MASK));
     }
 }

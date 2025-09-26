@@ -39,6 +39,7 @@ import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTaskResult;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.update.FluidUpdateBaseTask;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure.RealityPressureTaskBuilder;
 import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
@@ -147,13 +148,14 @@ public class RealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask impl
             BlockUpdater.scheduleUpdate(world,pos,block,block.tickRate(world));
             return false;
         }
-        Collection<BlockPos> res =FluidPressureSearchManager.getTaskResult(world,pos);
+        IFluidPressureSearchTaskResult res =FluidPressureSearchManager.getTaskResult(world,pos);
         if(res == null || res.isEmpty()){
             sendPressureQuery(world,rand,BaseUtil.getRandomPressureSearchRange(),false);
             return false;
         }
         IBlockState nowState =state;
-        for(BlockPos toPos:res){
+        while (res.hasNext()){
+            BlockPos toPos = res.next();
             if(FluidUtil.getFluid(nowState) != fluid) break;
             if(tryMoveInto(world,toPos,pos,nowState)) break;
             nowState = world.getBlockState(pos);

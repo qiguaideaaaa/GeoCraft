@@ -33,6 +33,7 @@ package top.qiguaiaaaa.geocraft.util.math;
 public final class Int10 {
     public static final int SIGN_MASK = 0x200;
     public static final int CONTENT_MASK = 0x1FF;
+    public static final int ALL_MASK = 0x3FF;
 
     private final short val;
 
@@ -61,5 +62,9 @@ public final class Int10 {
     public static int toInt10(int v){
         if(v>=0) return v;
         return SIGN_MASK | ((-v) & CONTENT_MASK);
+    }
+
+    public static int toInt(int int10){
+        return (SIGN_MASK&int10)==0?int10:-(int10&CONTENT_MASK);
     }
 }

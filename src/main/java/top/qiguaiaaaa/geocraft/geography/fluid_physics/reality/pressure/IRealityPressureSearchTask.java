@@ -25,31 +25,22 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure;
+package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure;
 
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.fluids.Fluid;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.Collection;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTask;
 
 /**
  * @author QiguaiAAAA
  */
-public interface IFluidPressureSearchTask {
-    @Nonnull
-    Fluid getFluid();
-    @Nonnull
-    BlockPos getBeginPos();
-    @Nonnull
-    IBlockState getBeginState();
-    @Nullable
-    IFluidPressureSearchTaskResult search(@Nonnull WorldServer world);
-    void cancel();
-    void finish();
-    boolean isFinished();
-    boolean isEqualState(@Nonnull IBlockState curState);
+public interface IRealityPressureSearchTask extends IFluidPressureSearchTask {
+    BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
+    int getMaxSearchTimes();
+    byte getBeginQuanta();
+    byte getQuantaPerBlock();
+    boolean hasFoundEnoughResults();
+
+    static int getMaxSearchTimesFromRange(int searchRange){
+        return (1<<(searchRange+5));
+    }
 }

@@ -36,13 +36,8 @@ import javax.annotation.Nonnull;
 /**
  * @author QiguaiAAAA
  */
-public interface IRealityPressureBFSTask extends IFluidPressureBFSTask {
-    BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
-    byte getBeginQuanta();
-    byte getQuantaPerBlock();
+public interface IRealityPressureBFSTask extends IFluidPressureBFSTask,IRealityPressureSearchTask {
     int getSearchTimes();
-    int getMaxSearchTimes();
-    boolean hasFoundEnoughResults();
     boolean hasSearchTimeReachedMax();
 
     boolean search_Inner(@Nonnull WorldServer world, @Nonnull BlockPos pos);

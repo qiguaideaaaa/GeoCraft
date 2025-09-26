@@ -35,6 +35,7 @@ import static top.qiguaiaaaa.geocraft.util.math.Int10.toInt10;
  * @author QiguaiAAAA
  */
 public class Vec3b implements IVec3i{
+    public static final Vec3b NULL_VEC = new Vec3b((byte) 0, (byte) 0, (byte) 0);
     protected byte x,y,z;
     public Vec3b(byte x,byte y,byte z){
         this.x = x;

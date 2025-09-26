@@ -164,10 +164,12 @@ public class RelativeBlockPosB extends Vec3b{
          */
         public CenteredMutable(Vec3i origin,Vec3i target){
             super(origin,target);
+            setCenterPos(origin);
         }
 
         public CenteredMutable(IVec3i origin, IVec3i target){
             super(origin,target);
+            setCenterPos(origin);
         }
 
         public CenteredMutable(IVec3i vec){

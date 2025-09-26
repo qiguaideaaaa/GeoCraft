@@ -31,32 +31,25 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fluids.Fluid;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.FluidPressureSearchTaskSmallRangeRelativeResult;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.FluidPressureSmallBFSBaseTask;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTaskResult;
 import top.qiguaiaaaa.geocraft.util.math.vec.RelativeBlockPosB;
+import top.qiguaiaaaa.geocraft.util.math.vec.RelativeBlockPosS;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author QiguaiAAAA
  */
 public abstract class 小范围物理压强广搜任务 extends FluidPressureSmallBFSBaseTask implements IRealityPressureBFSTask{
+    private static final RelativeBlockPosS.Mutable mutablePosForRes = new RelativeBlockPosS.Mutable();
     protected static final short TIMES_PER_SEARCH = 128;
     protected final short maxSearchTimes;
-    protected final Set<BlockPos> res = new LinkedHashSet<>();
+    protected final FluidPressureSearchTaskSmallRangeRelativeResult res;
     protected short searchTimes = 0;
-
-    @Override
-    public void queued(@Nonnull BlockPos pos) {
-        if(maxSearchTimes<=Byte.MAX_VALUE){
-            queue.add(RelativeBlockPosB.Mutable.MUTABLE.setPos(beginPos,pos).toImmutable());
-            return;
-        }
-        super.queued(pos);
-    }
 
     public 小范围物理压强广搜任务(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos, int searchRange) {
         super(fluid, beginState, beginPos);
@@ -64,18 +57,19 @@ public abstract class 小范围物理压强广搜任务 extends FluidPressureSma
         markVisited(beginPos);
         if(searchRange >4) throw new IllegalArgumentException("FluidPressureSmallBFSBaseTask can not handle search range larger than 511 blocks!");
         else if(searchRange == 4) maxSearchTimes = MAX_RELATIVE_POS_OFFSET;
-        else maxSearchTimes = (short) (1<<(searchRange+5));
+        else maxSearchTimes = (short) IRealityPressureSearchTask.getMaxSearchTimesFromRange(searchRange);
+        res = new FluidPressureSearchTaskSmallRangeRelativeResult(beginPos);
     }
 
     @Nonnull
     @Override
     public Collection<BlockPos> getResultCollection() {
-        return res;
+        return res.toResultCollection();
     }
 
     @Override
     public void putBlockPosToResults(@Nonnull BlockPos pos) {
-        res.add(pos.toImmutable());
+        res.put(mutablePosForRes.setPos(beginPos,pos));
     }
 
     @Override
@@ -105,13 +99,12 @@ public abstract class 小范围物理压强广搜任务 extends FluidPressureSma
 
     @Nullable
     @Override
-    public Collection<BlockPos> search(@Nonnull WorldServer world) {
+    public IFluidPressureSearchTaskResult search(@Nonnull WorldServer world) {
         for(int i=0;i<TIMES_PER_SEARCH;i++){
             if(isQueueEmpty()) break;
             BlockPos pos = pull();
             searchTimes++;
-            if(search_Inner(world,pos))
-                return res;
+            if(search_Inner(world,pos)) break;
         }
         return res;
     }

@@ -31,12 +31,15 @@ import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import org.apache.commons.lang3.tuple.Pair;
 import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.FluidPressureSearchTaskEmptyResult;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTask;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTaskResult;
 import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
 
 import javax.annotation.Nonnull;
@@ -57,9 +60,16 @@ import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
  */
 public final class FluidPressureSearchManager implements Runnable{
     private static final Function<WorldServer,ConcurrentLinkedQueue<Pair<BlockPos, Block>>> CREATE_QUEUE = k -> new ConcurrentLinkedQueue<>();
+    private static final Object NOTIFY_OBJECT = new Object();
+    private static Status status = Status.STOP;
     static final Map<WorldServer, WorldPressureInfo> worldMap = new ConcurrentHashMap<>(); //running的task、结果和running的task的poses
     static final Map<WorldServer,WorldQueueTaskInfo> queueMap = new ConcurrentHashMap<>(); //等待被加入queue的task
     static final Map<WorldServer,Queue<Pair<BlockPos,Block>>> queueToLoadPos = new ConcurrentHashMap<>();
+
+    @Nullable
+    public static Object requestInterrupt(){
+        return NOTIFY_OBJECT;
+    }
 
     public static boolean isTaskRunning(@Nonnull World world,@Nonnull BlockPos pos){ //Minecraft主线程调用
         WorldServer validWorld = getValidWorld(world);
@@ -70,7 +80,7 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     @Nullable
-    public static Collection<BlockPos> getTaskResult(@Nonnull World world,@Nonnull BlockPos pos){ //Minecraft主线程调用
+    public static IFluidPressureSearchTaskResult getTaskResult(@Nonnull World world,@Nonnull BlockPos pos){ //Minecraft主线程调用
         WorldServer validWorld = getValidWorld(world);
         if(validWorld == null) return null;
         WorldPressureInfo info = getOrCreateWorldInfo(validWorld);
@@ -103,6 +113,7 @@ public final class FluidPressureSearchManager implements Runnable{
 
     @Override
     public void run() {  //自身线程调用
+        status = Status.RUNNING;
         boolean running = true;
         while (running){
             long startTime = System.currentTimeMillis();
@@ -146,6 +157,7 @@ public final class FluidPressureSearchManager implements Runnable{
         }
         GeoCraft.getLogger().info("FluidPressureSearchManager quited");
         quit();
+        status = Status.STOP;
     }
 
     static void pushNewTasks(WorldServer world, WorldPressureInfo info){  //自身线程调用
@@ -158,7 +170,7 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     static void updateTasks(WorldServer world, WorldPressureInfo info){ //自身线程调用
-        final Map<BlockPos,Collection<BlockPos>> resMap = info.getTaskResults();
+        final Map<BlockPos,IFluidPressureSearchTaskResult> resMap = info.getTaskResults();
         final Deque<IFluidPressureSearchTask> queue = info.getRunningTasks();
         for(int i=0;i<MAX_UPDATE_NUM;i++){
             if(queue.isEmpty()) break;
@@ -178,10 +190,9 @@ public final class FluidPressureSearchManager implements Runnable{
                 continue;
             }
             try {
-                Collection<BlockPos> res = task.search(world);
+                IFluidPressureSearchTaskResult res = task.search(world);
                 if(task.isFinished()){
-                    if(res == null) resMap.put(task.getBeginPos(),Collections.emptySet());
-                    else resMap.put(task.getBeginPos(),res);
+                    if(res != null) resMap.put(task.getBeginPos(),res);
                     scheduleUpdate(world,task.getBeginPos(),beginState.getBlock());
                     info.unlockPos(task);
                     task.finish();
@@ -216,14 +227,14 @@ public final class FluidPressureSearchManager implements Runnable{
     static class WorldPressureInfo{
         static final Function<WorldServer,WorldPressureInfo> CREATE_WORLD_PRESSURE_INFO = k-> new WorldPressureInfo();
         public final Deque<IFluidPressureSearchTask> runningTasks = new ConcurrentLinkedDeque<>();
-        public final Map<BlockPos,Collection<BlockPos>> taskResults = new ConcurrentHashMap<>();
+        public final Map<BlockPos,IFluidPressureSearchTaskResult> taskResults = new ConcurrentHashMap<>();
         public final Set<BlockPos> runningTaskLocks = new ConcurrentSet<>();
 
         public Deque<IFluidPressureSearchTask> getRunningTasks() {
             return runningTasks;
         }
 
-        public Map<BlockPos, Collection<BlockPos>> getTaskResults() {
+        public Map<BlockPos, IFluidPressureSearchTaskResult> getTaskResults() {
             return taskResults;
         }
 
@@ -255,5 +266,12 @@ public final class FluidPressureSearchManager implements Runnable{
             queuedTasks.clear();
             queuedTaskLocks.clear();
         }
+    }
+
+    enum Status{
+        STOP,
+        RUNNING,
+        INTERRUPT_REQUESTED,
+        INTERRUPT
     }
 }

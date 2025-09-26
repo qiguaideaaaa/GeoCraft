@@ -109,19 +109,15 @@ dependencies {
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2855'
 
-    compile ('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
-        exclude module: 'guava'
-        exclude module: 'commons-io'
-        exclude module: 'gson'
-    }
+//    compile ('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
+//        exclude module: 'guava'
+//        exclude module: 'commons-io'
+//        exclude module: 'gson'
+//    }
 
     annotationProcessor 'org.ow2.asm:asm-debug-all:5.2'
     annotationProcessor 'com.google.guava:guava:32.1.2-jre'
     annotationProcessor 'com.google.code.gson:gson:2.8.9'
-
-    // You may put jars on which you depend on in ./libs or you may define them like so..
-    // compile "some.group:artifact:version:classifier"
-    // compile "some.group:artifact:version"
 
     implementation ('zone.rong:mixinbooter:10.6') {
         transitive = false
@@ -131,6 +127,7 @@ dependencies {
     }
 
 //    compile files('libs/!mixinbooter-10.5.jar')
+
     implementation fg.deobf('com.github.jbredwards:fluidlogged-api:1.12.2-Latest-SNAPSHOT')
     implementation fg.deobf("curse.maven:IndustrialCraft-242638:3838713")
 

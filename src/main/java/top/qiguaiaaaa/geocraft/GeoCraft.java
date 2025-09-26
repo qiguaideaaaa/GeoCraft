@@ -70,7 +70,7 @@ public class GeoCraft {
     public void onServerStarting(FMLServerStartingEvent event){
         event.registerServerCommand(new CommandAtmosphere());
         FluidPressureSearchManager pressureSearchManager = new FluidPressureSearchManager();
-        pressureThread = new Thread(pressureSearchManager,FluidPressureSearchManager.class.toString());
+        pressureThread = new Thread(pressureSearchManager,"FluidPressureSystem");
         pressureThread.start();
     }
 

@@ -147,10 +147,12 @@ public class RelativeBlockPosS extends Vec3s{
          */
         public CenteredMutable(Vec3i origin,Vec3i target){
             super(origin,target);
+            setCenterPos(origin.getX(),origin.getY(),origin.getZ());
         }
 
         public CenteredMutable(IVec3i origin,IVec3i target){
             super(origin,target);
+            setCenterPos(origin.getX(),origin.getY(),origin.getZ());
         }
 
         /**

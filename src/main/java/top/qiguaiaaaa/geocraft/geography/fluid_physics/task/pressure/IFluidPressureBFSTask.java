@@ -81,7 +81,5 @@ public interface IFluidPressureBFSTask extends IFluidPressureSearchTask {
     @Nonnull
     Collection<BlockPos> getResultCollection();
 
-    default void putBlockPosToResults(@Nonnull BlockPos pos){
-        getResultCollection().add(pos.toImmutable());
-    }
+    void putBlockPosToResults(@Nonnull BlockPos pos);
 }

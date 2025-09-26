@@ -25,31 +25,28 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure;
+package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure;
 
+import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldServer;
 import net.minecraftforge.fluids.Fluid;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.Collection;
 
 /**
  * @author QiguaiAAAA
  */
-public interface IFluidPressureSearchTask {
-    @Nonnull
-    Fluid getFluid();
-    @Nonnull
-    BlockPos getBeginPos();
-    @Nonnull
-    IBlockState getBeginState();
-    @Nullable
-    IFluidPressureSearchTaskResult search(@Nonnull WorldServer world);
-    void cancel();
-    void finish();
-    boolean isFinished();
-    boolean isEqualState(@Nonnull IBlockState curState);
+public class 小范围原版物理压强单次广搜任务 extends 小范围物理压强单次广搜任务 implements IRealityVanillaPressureBFSTask{
+    protected final byte beginQuanta;
+
+    小范围原版物理压强单次广搜任务(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos, int searchRange) {
+        super(fluid, beginState, beginPos, searchRange);
+        beginQuanta = (byte) (8-beginState.getValue(BlockLiquid.LEVEL));
+    }
+
+    @Override
+    public byte getBeginQuanta() {
+        return beginQuanta;
+    }
 }

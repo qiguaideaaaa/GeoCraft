@@ -67,7 +67,7 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
     public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
         if(!GeoFluidSetting.isFluidToBePhysical(thisFluid)) return;
         ci.cancel();
-        if (!worldIn.isAreaLoaded(pos,1)){
+        if (!worldIn.isBlockLoaded(pos)){
             return;
         }
         FluidUpdateManager.addTask(worldIn,new RealityBlockDynamicLiquidUpdateTask(thisFluid,pos,(BlockDynamicLiquid) (Block)this));

@@ -30,6 +30,7 @@ package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fluids.Fluid;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.FluidPressureSmallBFSBaseTask;
 
 import javax.annotation.Nonnull;
 
@@ -38,7 +39,11 @@ import javax.annotation.Nonnull;
  */
 public final class RealityPressureTaskBuilder {
     @Nonnull
-    public static IRealityVanillaPressureBFSTask createVanillaTask(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos, int searchRange){
+    public static IRealityVanillaPressureSearchTask createVanillaTask(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos, int searchRange){
+        int maxSearchTimes = IRealityPressureSearchTask.getMaxSearchTimesFromRange(searchRange);
+        if(maxSearchTimes<= 小范围物理压强广搜任务.TIMES_PER_SEARCH){
+            return new 小范围原版物理压强单次广搜任务(fluid, beginState, beginPos, searchRange);
+        }
         if(searchRange<5)
             return new 小范围原版物理压强广搜任务(fluid, beginState, beginPos, searchRange);
         return new 大范围原版物理压强广搜任务(fluid, beginState, beginPos, searchRange);

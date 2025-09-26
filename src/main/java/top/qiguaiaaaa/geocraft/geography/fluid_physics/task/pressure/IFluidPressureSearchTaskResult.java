@@ -27,29 +27,22 @@
 
 package top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure;
 
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.fluids.Fluid;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * @author QiguaiAAAA
  */
-public interface IFluidPressureSearchTask {
-    @Nonnull
-    Fluid getFluid();
-    @Nonnull
-    BlockPos getBeginPos();
-    @Nonnull
-    IBlockState getBeginState();
+public interface IFluidPressureSearchTaskResult extends Iterator<BlockPos> {
+    int size();
+
+    default boolean isEmpty(){
+        return size() == 0;
+    }
+
+    @Override
     @Nullable
-    IFluidPressureSearchTaskResult search(@Nonnull WorldServer world);
-    void cancel();
-    void finish();
-    boolean isFinished();
-    boolean isEqualState(@Nonnull IBlockState curState);
+    BlockPos next();
 }
