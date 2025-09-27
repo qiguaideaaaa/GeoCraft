@@ -125,9 +125,11 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
 
         //Q=1 坡度流动模式
         if(liquidMeta == 7){
-            if(FluidUtil.getFluid(stateBelow) == fluid){
-                this.placeStaticBlock(world,pos,state,FlowingMode.SLOPE_MODE_ON_WATER);
-                return;
+            if(!FluidPhysicsConfig.slopeModeForVanillaWhenOnLiquidsAndQuantaIs1.getValue()){
+                if(FluidUtil.getFluid(stateBelow) == fluid){
+                    this.placeStaticBlock(world,pos,state,FlowingMode.SLOPE_MODE_ON_WATER);
+                    return;
+                }
             }
             if (!world.isAreaLoaded(pos, RealityBlockLiquidUtil.getSlopeFindDistance(world,block))){
                 return;
@@ -146,7 +148,8 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
 
         //可流动方向检查
         final ArrayList<FlowChoice> averageModeFlowDirections = new ArrayList<>();//平均流动模式可用方向
-        RealityBlockLiquidUtil.checkNeighborsToFindFlowChoices(world,pos,block,liquidQuanta,averageModeFlowDirections);
+        Set<EnumFacing> slopeModeFlowDirections = FluidPhysicsConfig.slopeModeForVanillaWhenOnLiquidsAndQuantaAbove1.getValue()?EnumSet.noneOf(EnumFacing.class):null;//非Q=1坡度模式可用方向
+        RealityBlockLiquidUtil.checkNeighborsToFindFlowChoices(world,pos,block,liquidQuanta,averageModeFlowDirections,slopeModeFlowDirections);
 
         if(!averageModeFlowDirections.isEmpty()){ //平均流动模式
             averageModeFlowDirections.sort(Comparator.comparingInt(FlowChoice::getQuanta));
@@ -176,6 +179,26 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
                 BlockPos facingPos = pos.offset(choice.direction);
                 directlyFlowInto(world,facingPos,world.getBlockState(facingPos),8-choice.getQuanta());
             }
+        }else if(slopeModeFlowDirections != null && !slopeModeFlowDirections.isEmpty()) { //非Q=1坡度模式
+            if(!world.isAreaLoaded(pos,RealityBlockLiquidUtil.getSlopeFindDistance2(world,block))){
+                this.placeStaticBlock(world,pos,state,FlowingMode.NO_MODE);
+                return;
+            }
+            slopeModeFlowDirections = RealityBlockLiquidUtil.getPossibleFlowDirections(world, pos, slopeModeFlowDirections, liquidQuanta,block);
+            if (slopeModeFlowDirections.isEmpty()) {
+                this.placeStaticBlock(world, pos, state,FlowingMode.SLOPE_MODE_ON_WATER_2);
+                return;
+            }
+            EnumFacing randomFacing = (EnumFacing) slopeModeFlowDirections.toArray()[rand.nextInt(slopeModeFlowDirections.size())];
+            int newLiquidQuanta = liquidQuanta - 1;
+            int newLiquidMeta = 8 - newLiquidQuanta;
+            //更新自己
+            state = state.withProperty(LEVEL, newLiquidMeta);
+            world.setBlockState(pos, state, Constants.BlockFlags.DEFAULT);
+            BlockUpdater.scheduleUpdate(world,pos, block, updateRate);
+            world.notifyNeighborsOfStateChange(pos, block, false);
+            //移动至新位置
+            setLiquidToFlowingLevel(world, pos.offset(randomFacing), liquidMeta);
         }else {
             this.placeStaticBlock(world,pos,state,FlowingMode.NO_MODE);
         }
@@ -271,6 +294,7 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
     }
 
     protected boolean checkPressureTask(World worldIn){
+        if(!FluidPhysicsConfig.PRESSURE_SYSTEM_FOR_REALITY.getValue()) return false;
         if(!worldIn.isRemote){
             IFluidPressureSearchTaskResult res = FluidPressureSearchManager.getTaskResult(worldIn,pos);
             if(res == null || res.isEmpty()){
@@ -340,6 +364,7 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
         NO_MODE,
         SLOPE_MODE,
         SLOPE_MODE_ON_WATER,
+        SLOPE_MODE_ON_WATER_2,
         AVERAGE_MODE
     }
 }

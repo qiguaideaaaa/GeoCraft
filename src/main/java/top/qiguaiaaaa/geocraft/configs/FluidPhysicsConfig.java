@@ -35,7 +35,9 @@ import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
 import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableList;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.FluidPhysicsMode;
 import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableFluid;
+import top.qiguaiaaaa.geocraft.configs.item.collection.ConfigIntegerWeightDistribution;
 import top.qiguaiaaaa.geocraft.configs.item.collection.ConfigList;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
 
 /**
  * 关于流体物理的配置项目
@@ -43,12 +45,91 @@ import top.qiguaiaaaa.geocraft.configs.item.collection.ConfigList;
 public final class FluidPhysicsConfig {
     public static final ConfigCategory CATEGORY_FLUID_PHYSICS = new ConfigCategory("fluid_physics")
             .setComment("流体物理配置项");
+
+    public static final ConfigInteger leastTemperatureForFluidToCompletelyDestroyBlock =
+            new ConfigInteger(CATEGORY_FLUID_PHYSICS,"leastTemperatureForFluidToCompletelyDestroyBlock",1237,
+                    "在流体流动过程中，完全摧毁可摧毁方块（即不会留下掉落物）的最低流体温度，单位为开尔文（K）。",
+                    0,Integer.MAX_VALUE,false);
     public static final ConfigCustom<FluidPhysicsMode> FLUID_PHYSICS_MODE =
             new ConfigCustom<>(CATEGORY_FLUID_PHYSICS,"fluidPhysicsMode", FluidPhysicsMode.MORE_REALITY,
                     "设置流体物理模式 Set Fluid Physics Mode.\n" +
                             "支持的模式 Support Values: VANILLA | VANILLA_LIKE | MORE_REALITY （原版 | 类原版 | 更真实一些）", FluidPhysicsMode::getInstanceByString,true);
+    //********************************
+    // Fluid Updater Config
+    //********************************
+
+    public static final ConfigCategory CATEGORY_FLUID_UPDATER = CATEGORY_FLUID_PHYSICS.getChildCategory("fluid_updater")
+            .setComment("流体更新任务相关\n");
+
+    public static final ConfigInteger FLUID_UPDATER_MAX_TASKS_PER_TICK = new ConfigInteger(CATEGORY_FLUID_UPDATER,
+            "maxTasksPerTick",65536*4,
+            "1游戏刻内更新的流体方块数量上限\n" +
+                    "The max num of fluid blocks to update within a Game Tick.",1,Integer.MAX_VALUE,true);
+
+    public static final ConfigBoolean FLUID_UPDATER_DROP_EXCESS_TASKS = new ConfigBoolean(CATEGORY_FLUID_UPDATER,
+            "dropExcessTasks",true,
+            "是否在完成任务更新后，丢弃超额的流体更新任务");
+
+    //********************************
+    // Fluid Pressure System Config
+    //********************************
+
+    public static final ConfigCategory CATEGORY_FLUID_PRESSURE_SYSTEM = CATEGORY_FLUID_PHYSICS.getChildCategory(FluidPressureSearchManager.CONFIG_CATEGORY_NAME);
+
+    public static final ConfigBoolean RUN_PRESSURE_SYSTEM_AS_ASYNC = new ConfigBoolean(CATEGORY_FLUID_PRESSURE_SYSTEM,
+            "async",true,
+            "压强系统以多线程模式执行，这可以有效提高性能，但可能导致潜在的多线程并发异常。默认启用，若异步执行的压强系统导致了诸如游戏崩溃的异常，请尝试将此选项改为false以使压强系统同步运行。\n" +
+                    "Allow Pressure System running as async, which can greatly improve performance. This option is enabled by default." +
+                    "However,if async caused some strange problems such as GAME CRASH, you can try to disable it to make Pressure System run as sync.");
+
+    public static final ConfigInteger PRESSURE_TICK_DURATION = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
+            "pressureTickDuration",40,
+            "1压强刻的理想时长，单位为毫秒。\n" +
+                    "The expected milliseconds duration for 1 pressure tick.",
+            10,Integer.MAX_VALUE,false
+    );
+
+    public static final ConfigInteger PRESSURE_MAX_TASKS_PER_TICK = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
+            "maxTasksPerPressureSystemTick",65536*2,
+            "压强系统在一压强刻内最大处理的压强任务数量，若将此值设置过低可能导致任务堆积，过高可能导致在大量流体更新时的卡顿问题。\n" +
+                    "Max number of tasks to be dealt within a Pressure Tick. Set it much lower may cause tasks to be accumulate or may cause lagging when " +
+                    "there are many fluid blocks updating.",1,Integer.MAX_VALUE,true);
+
+    public static final ConfigInteger PRESSURE_MAX_UPDATES_PER_TICK = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
+            "maxUpdatesPerGameTick",65536*4,
+            "压强系统在一游戏刻内通知已完成压强任务的方块的最大数量，若总需要通知的方块数量超过该值，则多余的方块会被放弃更新。\n" +
+                    "Max number of blocks to be notified within a Game Tick. If the total number of blocks to notify excesses this value, the left part whill be ignored.",
+            1,Integer.MAX_VALUE,true);
+
+    public static final ConfigInteger PRESSURE_DROP_EXCESS_TASKS_PERIOD = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
+            "dropExcessTasksPeriod",200,
+            "压强系清理并丢弃过量的压强任务的周期，单位为压强刻。过高的值可能导致内存泄漏。注意，若此值过低，由于压强系统采用的队列的size()方法的时间复杂度为O(n)，频繁的清理也会导致性能下降。\n" +
+                    "The period for Pressure System to clean up excess tasks in Pressure Tick." +
+                    "Much higher value may cause potentially memory leak. If the value is too low, the performance may also drop.",2,Integer.MAX_VALUE,false);
+
+    public static final ConfigInteger PRESSURE_EMPTY_RESULTS_PERIOD = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
+            "cleanTaskResultsPeriod",60,
+            "清理压强计算结果的周期，单位游戏刻。过高的值可能导致内存泄漏，过低可能导致压强计算的结果来不及被获取就被清理。\n" +
+                    "The period to clean up calculated results in Game Tick. Much higher value may cause potentially memory leak, and much lower value may cause" +
+                    "the result is being cleaned up before being received.",
+            2,Integer.MAX_VALUE,false
+    );
+
+    public static final ConfigInteger PRESSURE_CLEAN_UP_THRESHOLD = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
+            "dropExcessTasksThreshold",65536,
+            "压强系统在清理任务时，清理触发的阈值任务数量。\n" +
+                    "The threshold for Pressure System to clean excess tasks.",
+            0,Integer.MAX_VALUE,false
+    );
+
+    public static final ConfigBoolean PAUSE_PRESSURE_SYSTEM_WHILE_CHUNK_SAVING = new ConfigBoolean(CATEGORY_FLUID_PRESSURE_SYSTEM,
+            "pausePressureSystemWhileChunkSaving",true,
+            "当压强系统异步加载的时候，在区块保持时停止压强系统运行，以防止可能的多线程竞争导致的崩溃问题。\n" +
+                    "Pause Async Pressure System while chunk is saving to prevent potential crash.",true);
+
+
     // *******************************
-    // Vanilla Like Simulation Config
+    // Vanilla Like Fluid Physics Config
     // *******************************
     public static final ConfigCategory CATEGORY_FLUID_PHYSICS_VANILLA_LIKE = CATEGORY_FLUID_PHYSICS.getChildCategory("vanilla_like")
             .setComment("设置流体物理模式为"+FluidPhysicsMode.VANILLA_LIKE+"时的参数");
@@ -92,9 +173,14 @@ public final class FluidPhysicsConfig {
             new ConfigInteger(CATEGORY_SIMULATION_VANILLA_LIKE_HORIZONTAL_FLOWING,"maxSameLevelIterations",16,
                     "流体水平流动时，在寻找可被移动流体源时，在同一流体等级上遍历的最大迭代次数。\n" +
                             "Maximum iterations to find a fluid source block via same level fluid block when horizontally flowing.",0,Integer.MAX_VALUE,false);
-    //More Reality Simulation Config
+    //******************************
+    //More Reality Fluid Physics Config
+    //******************************
     public static final ConfigCategory CATEGORY_SIMULATION_MORE_REALITY = CATEGORY_FLUID_PHYSICS.getChildCategory("more_reality")
             .setComment("设置流体物理模式为"+FluidPhysicsMode.MORE_REALITY+"时的参数");
+
+    // ********************
+    // Pressure System
 
     public static final ConfigCategory CATEGORY_SIMULATION_MORE_REALITY_PRESSURE = CATEGORY_SIMULATION_MORE_REALITY.getChildCategory("pressure_system")
             .setComment("压强系统参数");
@@ -103,27 +189,91 @@ public final class FluidPhysicsConfig {
             "enablePressureSystem",true,"是否启用压强系统\n" +
             "Enable Pressure System.");
 
+    public static final ConfigDouble POSSIBILITY_FOR_STATIC_VANILLA_LIQUID_TO_CREATE_PRESSURE_TASK = new ConfigDouble(CATEGORY_SIMULATION_MORE_REALITY_PRESSURE,
+            "possibilityForVanillaStaticLiquidToCreatePressureTask",0.4,
+            "原版流体处于静止状态时，创建压强任务的可能性。过高的值可能导致压强任务的频繁创建，从而导致卡顿。\n" +
+                    "Possibility for Vanilla static liquids to create a pressure task. Higher value may cause the pressure tasks to be created frequently and then cause lagging.",
+            0.0001,0.9999,false
+    );
 
-    public static final ConfigBoolean slopeModeForVanillaWhenOnLiquids =
-            new ConfigBoolean(CATEGORY_SIMULATION_MORE_REALITY,"enableSlopeModeForVanillaLiquidsWhenOnLiquid",false,
-                    "当液体下方也为该液体的时候，为原版液体使用坡度流动算法。");
+    public static final ConfigDouble POSSIBILITY_FOR_CLASSIC_FLUIDS_TO_CREATE_PRESSURE_TASK = new ConfigDouble(CATEGORY_SIMULATION_MORE_REALITY_PRESSURE,
+            "possibilityForModClassicFluidsToCreatePressureTask",0.4,
+            "继承自BlockFluidClassic的模组流体处于静止状态时，创建压强任务的可能性。过高的值可能导致压强任务的频繁创建，从而导致卡顿。\n" +
+                    "Possibility for Vanilla static liquids to create a pressure task. Higher value may cause the pressure tasks to be created frequently and then cause lagging.",
+            0.0001,0.9999,false
+    );
+
+    public static final ConfigIntegerWeightDistribution WEIGHT_DISTRIBUTION_FOR_PRESSURE_SEARCH_RANGE = new ConfigIntegerWeightDistribution(CATEGORY_SIMULATION_MORE_REALITY_PRESSURE,
+            "pressureSearchRangeWeights",new ConfigurableList<>(0,0,0,80,10,5,4,1),
+            "压强搜寻的范围等级概率分布。第一个表示范围等级为-1的权重，第二个表示为范围等级为0的权重，以此类推。\n" +
+                    "例如，[0,0,0,80,10,5,4,1]表示下面的概率分布\n" +
+                    "范围等级 -> 概率\n" +
+                    "-1 -> 0%\n" +
+                    "0 -> 0%\n" +
+                    "1 -> 0%\n" +
+                    "2 -> 80%\n" +
+                    "3 -> 10%\n" +
+                    "4 -> 5%\n" +
+                    "5 -> 4%\n" +
+                    "6 -> 1%\n" +
+                    "压强搜寻具体范围，即广度优先搜索的迭代最大次数，等于2^(范围等级+5)。例如，范围等级为2表示迭代最大次数为128。本列表支持的最小范围等级为-1，表示迭代最大次数为16。")
+            .setMinValue(0)
+            .setBegin(-1)
+            .setMaxListSize(17);
+
+    public static final ConfigInteger REALITY_MAX_SEARCH_TIMES_PER_SEARCH_FOR_SMALL_RANGE_TASK = new ConfigInteger(CATEGORY_SIMULATION_MORE_REALITY_PRESSURE,
+            "maxSearchTimesPerSearchForSmallRangeTask",128,
+            "小范围流体压强任务在单次更新中，最大的迭代次数。若任务的搜索范围小于该值，则该任务会被转换为单次搜寻任务，从而大幅度减少内存开销。但值越大也意味着对CPU性能要求更高。\n" +
+                    "Max iterated times in a single search for Small Range Pressure Search Task.If the search range of task is smaller than or equal to this, " +
+                    "the Task will be transformed to single search task to reduce memory usage. However, higher value means more cpu load needed.",
+            1,511,true);
+
+    public static final ConfigInteger REALITY_MAX_SEARCH_TIMES_PER_SEARCH_FOR_LARGE_RANGE_TASK = new ConfigInteger(CATEGORY_SIMULATION_MORE_REALITY_PRESSURE,
+            "maxSearchTimesPerSearchForLargeRangeTask",256,
+            "大范围流体压强任务在单次更新中，最大的迭代次数。值越大意味着对CPU性能要求更高。\n" +
+                    "Max iterated times in a single search for Large Range Pressure Search Task. Higher value means more cpu load needed.",
+            1, 1048575,true);
+
+    // Ended
+    //**********************
+
+    //**********************
+    // Slope Algorithm
+
+    public static final ConfigCategory CATEGORY_MORE_REALITY_SLOPE = CATEGORY_SIMULATION_MORE_REALITY.getChildCategory("slope_algorithm");
+
+    public static final ConfigBoolean slopeModeForVanillaWhenOnLiquidsAndQuantaIs1 =
+            new ConfigBoolean(CATEGORY_MORE_REALITY_SLOPE,"enableSlopeModeForVanillaLiquidsWhenOnLiquidAndQuantaIs1",false,
+                    "当单层液体下方也为该液体的时候，为原版液体使用坡度流动算法。");
+
+    public static final ConfigBoolean slopeModeForVanillaWhenOnLiquidsAndQuantaAbove1 =
+            new ConfigBoolean(CATEGORY_MORE_REALITY_SLOPE,"enableSlopeModeForVanillaLiquidsWhenOnLiquidAndQuantaAbove1",false,
+                    "当多层液体下方也为该液体的时候，为原版液体使用坡度流动算法。");
     public static final ConfigInteger slopeFindDistanceForWaterWhenQuantaAbove1 =
-            new ConfigInteger(CATEGORY_SIMULATION_MORE_REALITY,"slopeFindDistanceForWaterWhenQuantaAbove1",6,
+            new ConfigInteger(CATEGORY_MORE_REALITY_SLOPE,"slopeFindDistanceForWaterWhenQuantaAbove1",6,
                     "在原版水液体量大于1，且周围无液体量低于其超过1的方块时，寻找可流动方位的最大曼哈顿距离。该值越大，液体越稀，对性能的要求越高。",
                     1,Integer.MAX_VALUE,false);
     public static final ConfigInteger slopeFindDistanceForLavaWhenQuantaAbove1 =
-            new ConfigInteger(CATEGORY_SIMULATION_MORE_REALITY,"slopeFindDistanceForLavaWhenQuantaAbove1",4,
+            new ConfigInteger(CATEGORY_MORE_REALITY_SLOPE,"slopeFindDistanceForLavaWhenQuantaAbove1",4,
                     "在原版岩浆液体量大于1，且周围无液体量低于其超过1的方块时，寻找可流动方位的最大曼哈顿距离。该值越大，液体越稀，对性能的要求越高。",
                     1,Integer.MAX_VALUE,false);
 
-    public static final ConfigBoolean slopeModeForModsWhenOnFluids =
-            new ConfigBoolean(CATEGORY_SIMULATION_MORE_REALITY,"enableSlopeModeForModFluidsWhenOnFluid",false,
-                    "当流体下方也为该流体的时候，为模组流体使用坡度流动算法。");
+    public static final ConfigBoolean slopeModeForModsWhenOnFluidsAndQuantaIs1 =
+            new ConfigBoolean(CATEGORY_MORE_REALITY_SLOPE,"enableSlopeModeForModFluidsWhenOnFluidAndQuantaIs1",false,
+                    "当单层流体下方也为该流体的时候，为模组流体使用坡度流动算法。");
+
+    public static final ConfigBoolean slopeModeForModsWhenOnFluidsAndQuantaAbove1 =
+            new ConfigBoolean(CATEGORY_MORE_REALITY_SLOPE,"enableSlopeModeForModFluidsWhenOnFluidAndQuantaAbove1",false,
+                    "当多层流体下方也为该流体的时候，为模组流体使用坡度流动算法。");
     public static final ConfigDouble slopeFindDistanceMultiplierForModFluidWhenQuantaAbove1 =
-            new ConfigDouble(CATEGORY_SIMULATION_MORE_REALITY,"slopeFindDistanceMultiplierForModFluidWhenQuantaAbove1",1.5d,
+            new ConfigDouble(CATEGORY_MORE_REALITY_SLOPE,"slopeFindDistanceMultiplierForModFluidWhenQuantaAbove1",1.5d,
                     "当流体量大于1，且周围无流体量低于其超过1的方块时，其他模组所添加的流体寻找可流动方位的最大曼哈顿距离乘数。该值越大，液体越稀，对性能的要求越高。\n" +
                             "实际流体寻找可流动方位的最大曼哈顿距离 = ( (满液体方块液体量 * 该乘数) / 2 ) 向下取整",
                     0.1d,Double.POSITIVE_INFINITY,false);
+
+    // Ended
+    //**********************
+
     public static final ConfigInteger bucketFindFluidMaxDistance =
             new ConfigInteger(CATEGORY_SIMULATION_MORE_REALITY,"bucketFindFluidMaxDistance",5,
                     "空桶装流体时的寻找流体的最大范围（即从起点到范围边界的曼哈顿距离）。",
@@ -164,5 +314,4 @@ public final class FluidPhysicsConfig {
             new ConfigBoolean(CATEGORY_SIMULATION_MORE_REALITY_MOD_SUPPORT_IE,"ImmersiveEngineeringSupport",true,
                     "如果你已经安装了沉浸工程，那么这将控制模组是否启用沉浸工程的相关支持，例如具有物理性质的混凝土液体。\n" +
                             "If you have installed Immersive Engineering, this option will control whether the mod enable supports for Immersive Engineering or not.",true);
-
 }

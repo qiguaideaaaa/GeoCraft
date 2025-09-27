@@ -35,6 +35,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.update.IFluidUpdateTask;
 import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
 
@@ -53,8 +54,12 @@ import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
  */
 @Mod.EventBusSubscriber
 public final class FluidUpdateManager {
-    static final int MAX_UPDATE_NUM = 65536*2;
+    static final int MAX_UPDATE_NUM;
     static final Map<WorldServer, Pair<PriorityQueue<IFluidUpdateTask>,PriorityQueue<IFluidUpdateTask>>> updateTaskQueuesMap = new HashMap<>();
+
+    static {
+        MAX_UPDATE_NUM = FluidPhysicsConfig.FLUID_UPDATER_MAX_TASKS_PER_TICK.getValue();
+    }
 
     public static void addTask(@Nonnull World world,@Nonnull IFluidUpdateTask task){
         WorldServer validWorld = getValidWorld(world);
@@ -84,7 +89,7 @@ public final class FluidUpdateManager {
     }
 
     static void updateTasks(@Nonnull WorldServer world,@Nonnull PriorityQueue<IFluidUpdateTask> queue){
-        for(int i=0;i<MAX_UPDATE_NUM*2;i++){
+        for(int i=0;i<MAX_UPDATE_NUM;i++){
             if(queue.isEmpty()) break;
             IFluidUpdateTask task = queue.poll();
             if(task == null) continue;
@@ -97,6 +102,9 @@ public final class FluidUpdateManager {
                 GeoCraft.getLogger().warn("When updating fluid {} at {} in world {},",task.getFluid().getUnlocalizedName(),task.getPos(),world.provider.getDimension());
                 GeoCraft.getLogger().warn("FluidUpdateManager caught an error:",e);
             }
+        }
+        if(FluidPhysicsConfig.FLUID_UPDATER_DROP_EXCESS_TASKS.getValue()){
+            queue.clear();
         }
     }
 

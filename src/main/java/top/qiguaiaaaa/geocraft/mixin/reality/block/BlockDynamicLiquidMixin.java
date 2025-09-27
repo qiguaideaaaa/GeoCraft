@@ -46,6 +46,7 @@ import top.qiguaiaaaa.geocraft.api.block.IPermeableBlock;
 import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.RealityBlockLiquidUtil;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.update.RealityBlockDynamicLiquidUpdateTask;
@@ -91,15 +92,23 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
 
         //坡度流动模式
         if(liquidMeta == 7){
-            if(FluidUtil.getFluid(stateBelow) == thisFluid) return false;
+            if(!FluidPhysicsConfig.slopeModeForVanillaWhenOnLiquidsAndQuantaIs1.getValue() && FluidUtil.getFluid(stateBelow) == thisFluid) return false;
             Set<EnumFacing> directions = RealityBlockLiquidUtil.getPossibleFlowDirections(worldIn, pos,this);
             return !directions.isEmpty();
         }
         //可流动方向检查
         final ArrayList<FlowChoice> averageModeFlowDirections = new ArrayList<>();//平均流动模式可用方向
-        RealityBlockLiquidUtil.checkNeighborsToFindFlowChoices(worldIn,pos,this,liquidQuanta,averageModeFlowDirections);
+        Set<EnumFacing> slopeModeFlowDirections = FluidPhysicsConfig.slopeModeForVanillaWhenOnLiquidsAndQuantaAbove1.getValue()?EnumSet.noneOf(EnumFacing.class):null;//非Q=1坡度模式可用方向
+        RealityBlockLiquidUtil.checkNeighborsToFindFlowChoices(worldIn,pos,this,liquidQuanta,averageModeFlowDirections,slopeModeFlowDirections);
 
-        return !averageModeFlowDirections.isEmpty();
+        if(!averageModeFlowDirections.isEmpty()){ //平均流动模式
+            return true;
+        }else if(slopeModeFlowDirections != null && !slopeModeFlowDirections.isEmpty()){ //Q>1坡度模式
+            if(!worldIn.isAreaLoaded(pos,RealityBlockLiquidUtil.getSlopeFindDistance2(worldIn,this))) return false;
+            slopeModeFlowDirections = RealityBlockLiquidUtil.getPossibleFlowDirections(worldIn,pos,slopeModeFlowDirections,liquidQuanta,this);
+            return !slopeModeFlowDirections.isEmpty();
+        }
+        return false;
     }
 
     @Inject(method = "getPossibleFlowDirections",at = @At("HEAD"),cancellable = true)

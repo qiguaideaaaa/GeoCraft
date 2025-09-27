@@ -28,6 +28,7 @@
 package top.qiguaiaaaa.geocraft.util;
 
 import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 
 import java.io.File;
 import java.util.Random;
@@ -77,13 +78,7 @@ public final class BaseUtil {
     }
 
     public static int getRandomPressureSearchRange() {
-        int rand = random.nextInt(100); // 0-99
-
-        if (rand < 80) return 2;        // 0-79 (80%)
-        if (rand < 90) return 3;        // 80-89 (10%)
-        if (rand < 95) return 4;        // 90-94 (5%)
-        if (rand < 99) return 5;        // 95-98 (4%)
-        return 6;                       // 99 (1%)
+        return FluidPhysicsConfig.WEIGHT_DISTRIBUTION_FOR_PRESSURE_SEARCH_RANGE.getRandomResult(random);
     }
 
 

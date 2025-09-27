@@ -29,6 +29,7 @@ package top.qiguaiaaaa.geocraft.util.fluid;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDoor;
+import net.minecraft.block.BlockDynamicLiquid;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -41,10 +42,10 @@ import net.minecraftforge.fluids.IFluidBlock;
 import static net.minecraft.block.BlockLiquid.LEVEL;
 
 /**
+ * 参考{@link BlockDynamicLiquid}和{@link BlockLiquid}实现
  * @author QiguaiAAAA
  */
 public final class BlockLiquidUtil {
-
     /**
      * 对应方块状态是否阻挡{@link BlockLiquid}的流动
      * @param state 需要检测的方块状态

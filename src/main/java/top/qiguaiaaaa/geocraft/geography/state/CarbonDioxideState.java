@@ -48,6 +48,6 @@ public class CarbonDioxideState extends FluidState {
     @Nonnull
     @Override
     public String getNBTTagKey() {
-        return null;
+        return "carbon_dioxide";
     }
 }

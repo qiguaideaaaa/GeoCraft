@@ -31,6 +31,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fluids.Fluid;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.FluidPressureLargeBFSBaseTask;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.FluidPressureSearchTaskLargeRangeRelativeResult;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTaskResult;
@@ -45,10 +46,15 @@ import java.util.Collection;
  */
 public abstract class 大范围物理压强广搜任务 extends FluidPressureLargeBFSBaseTask implements IRealityPressureBFSTask{
     private static final RelativeBlockPosI.Mutable mutablePosForRes = new RelativeBlockPosI.Mutable();
-    protected static final int TIMES_PER_SEARCH = 256;
+    protected static final int TIMES_PER_SEARCH;
     protected final int maxSearchTimes;
     protected final FluidPressureSearchTaskLargeRangeRelativeResult res;
     protected int searchTimes = 0;
+
+    static {
+        TIMES_PER_SEARCH = FluidPhysicsConfig.REALITY_MAX_SEARCH_TIMES_PER_SEARCH_FOR_LARGE_RANGE_TASK.getValue();
+    }
+
     public 大范围物理压强广搜任务(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos, int searchRange) {
         super(fluid, beginState, beginPos);
         queued(beginPos);

@@ -38,6 +38,7 @@ import net.minecraftforge.fluids.BlockFluidClassic;
 import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTaskResult;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.update.FluidUpdateBaseTask;
@@ -179,7 +180,7 @@ public class RealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask impl
 
     protected void sendPressureQuery(World world,Random rand,int range,boolean directly){
         IBlockState up = world.getBlockState(pos.down(densityDir));
-        if(FluidUtil.getFluid(up)!=fluid && (directly || rand.nextInt(3) <2)) {
+        if(FluidUtil.getFluid(up)!=fluid && (directly || BaseUtil.getRandomResult(rand, FluidPhysicsConfig.POSSIBILITY_FOR_CLASSIC_FLUIDS_TO_CREATE_PRESSURE_TASK.getValue()))) {
             FluidPressureSearchManager.addTask(world, RealityPressureTaskBuilder.createModClassicTask(fluid,state,pos, range,quantaPerBlock));
         }
     }

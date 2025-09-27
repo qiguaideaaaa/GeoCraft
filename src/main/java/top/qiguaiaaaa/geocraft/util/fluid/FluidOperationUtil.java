@@ -40,6 +40,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.*;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.configs.GeneralConfig;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.FluidPhysicsMode;
 import top.qiguaiaaaa.geocraft.api.util.exception.UnsupportedFluidException;
@@ -187,7 +188,7 @@ public final class FluidOperationUtil {
     public static boolean triggerDestroyBlockEffectByFluid(World worldIn, BlockPos pos, IBlockState state, Fluid destroyer){
         if(state.getMaterial() == Material.AIR) return false;
         if(isFluid(state)) return false;
-        boolean canDropItem = (destroyer == null || destroyer.getTemperature(worldIn, pos) < GeneralConfig.leastTemperatureForFluidToCompletelyDestroyBlock.getValue());
+        boolean canDropItem = (destroyer == null || destroyer.getTemperature(worldIn, pos) < FluidPhysicsConfig.leastTemperatureForFluidToCompletelyDestroyBlock.getValue());
         if(canDropItem && state.getBlock() != Blocks.SNOW_LAYER){
             state.getBlock().dropBlockAsItem(worldIn,pos,state,0);
         }else if(!canDropItem){
@@ -279,7 +280,8 @@ public final class FluidOperationUtil {
     }
 
     /**
-     * 在指定位置生成高温液体流动声音
+     * 在指定位置生成高温液体流动声音<br/>
+     * 基于{@link BlockLiquid#triggerMixEffects(World, BlockPos)}实现
      * @param worldIn 所在世界
      * @param pos 位置
      */

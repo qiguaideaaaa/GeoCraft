@@ -36,6 +36,7 @@ import org.apache.logging.log4j.Logger;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereSystemRunner;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereRegionFileCache;
 import top.qiguaiaaaa.geocraft.command.CommandAtmosphere;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager;
 import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
@@ -49,8 +50,6 @@ public class GeoCraft {
     @SidedProxy(clientSide = "top.qiguaiaaaa.geocraft.ClientProxy",serverSide = "top.qiguaiaaaa.geocraft.CommonProxy")
     private static CommonProxy proxy;
     private static Logger logger;
-
-    private static Thread pressureThread;
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -69,25 +68,30 @@ public class GeoCraft {
     @EventHandler
     public void onServerStarting(FMLServerStartingEvent event){
         event.registerServerCommand(new CommandAtmosphere());
-        FluidPressureSearchManager pressureSearchManager = new FluidPressureSearchManager();
-        pressureThread = new Thread(pressureSearchManager,"FluidPressureSystem");
-        pressureThread.start();
+        if(FluidPhysicsConfig.RUN_PRESSURE_SYSTEM_AS_ASYNC.getValue()){
+            FluidPressureSearchManager.asyncRun();
+        }else{
+            FluidPressureSearchManager.syncRun();
+        }
+
     }
 
     @EventHandler
     public void onServerStopping(FMLServerStoppingEvent event){
         AtmosphereSystemRunner.onServerStopping(event);
+        if(FluidPhysicsConfig.RUN_PRESSURE_SYSTEM_AS_ASYNC.getValue()){
+            FluidPressureSearchManager.asyncStop();
+        }else{
+            FluidPressureSearchManager.syncStop();
+        }
+        FluidUpdateManager.onServerStop();
+        BlockUpdater.onServerStop();
     }
 
     @EventHandler
     public void onServerStop(FMLServerStoppedEvent event){
         AtmosphereRegionFileCache.clearRegionFileReferences();
-        FluidUpdateManager.onServerStop();
-        BlockUpdater.onServerStop();
         AtmosphereSystemRunner.onServerStopped(event);
-        if(pressureThread != null && pressureThread.isAlive()){
-            pressureThread.interrupt();
-        }
     }
     public static Logger getLogger(){
         return logger;

@@ -30,12 +30,15 @@ package top.qiguaiaaaa.geocraft.configs.item.collection;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
+import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
 import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableList;
 
 import javax.annotation.Nonnull;
 
 
 public class ConfigIntegerList extends ConfigList<Integer> {
+    protected int minValue = Integer.MIN_VALUE,
+            maxValue = Integer.MAX_VALUE;
     public ConfigIntegerList(ConfigCategory category, String configKey, ConfigurableList<Integer> defaultValue) {
         this(category, configKey, defaultValue,null);
     }
@@ -48,9 +51,34 @@ public class ConfigIntegerList extends ConfigList<Integer> {
         super(category, configKey, defaultValue, comment,Integer::parseInt, isFinal);
     }
 
+    public ConfigIntegerList setMinValue(int minValue) {
+        this.minValue = minValue;
+        return this;
+    }
+
+    public ConfigIntegerList setMaxValue(int maxValue) {
+        this.maxValue = maxValue;
+        return this;
+    }
+
+    public int getMinValue() {
+        return minValue;
+    }
+
+    public int getMaxValue() {
+        return maxValue;
+    }
+
+    @Override
+    public ConfigIntegerList setMaxListSize(int maxListSize) {
+        super.setMaxListSize(maxListSize);
+        return this;
+    }
+
     @Override
     public void load(@Nonnull Configuration config) {
-        Property val = config.get(category.getPath(),key,getDefaultValues(),comment);
+        Property val = config.get(category.getPath(),key,getDefaultValues(),comment,minValue,maxValue,isListSizeFixed,maxListSize);
+        val.setComment((comment==null?"":comment)+" [range: " + minValue + " ~ " + maxValue + (maxListSize>=0?", maxSize: " + maxListSize:"") + "]");
         load(val);
     }
 

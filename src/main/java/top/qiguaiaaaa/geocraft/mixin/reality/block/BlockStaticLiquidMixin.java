@@ -120,13 +120,11 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
             return;
         }
         IBlockState up = world.getBlockState(pos.up());
-        if(FluidUtil.getFluid(up)==thisFluid){
-            if(up.getValue(LEVEL)==0){
-                if(debug) GeoCraft.getLogger().info("{}: up is full water, returned",pos);
-                return;
-            }
+        if(FluidUtil.getFluid(up)==thisFluid && up.getValue(LEVEL)==0){
+            if(debug) GeoCraft.getLogger().info("{}: up is full water, returned",pos);
+            return;
         }
-        if(directly || rand.nextInt(5) <2) {
+        if(directly || BaseUtil.getRandomResult(rand,FluidPhysicsConfig.POSSIBILITY_FOR_STATIC_VANILLA_LIQUID_TO_CREATE_PRESSURE_TASK.getValue())) {
             if(debug){
                 FluidPressureSearchManager.addTask(world,RealityPressureTaskBuilder.createVanillaTask_Debug(thisFluid,state,pos,BaseUtil.getRandomPressureSearchRange()));
                 return;

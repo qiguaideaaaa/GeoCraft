@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
 public class ConfigList<ValueType> extends ConfigItem<ConfigurableList<ValueType>> {
     protected final Function<String,ValueType> parser;
 
-    protected int maxListSize;
+    protected int maxListSize = -1;
 
     protected boolean isListSizeFixed = false;
 
@@ -89,6 +89,7 @@ public class ConfigList<ValueType> extends ConfigItem<ConfigurableList<ValueType
     @Override
     protected void load(@Nonnull Property property) {
         value = new ConfigurableList<>();
+
         String[] strings = property.getStringList();
         for(String string:strings){
             try {
