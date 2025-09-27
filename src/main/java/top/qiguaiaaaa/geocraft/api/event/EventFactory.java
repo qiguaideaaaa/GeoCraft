@@ -82,8 +82,8 @@ public final class EventFactory {
         AtmosphereGenerateEvent.Pre event = new AtmosphereGenerateEvent.Pre(world,chunk);
         EVENT_BUS.post(event);
     }
-    public static IBlockState afterBlockLiquidStaticUpdate(@Nonnull Fluid fluid, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state){
-        StaticLiquidUpdateEvent.After event = new StaticLiquidUpdateEvent.After(fluid,world,pos,state);
+    public static IBlockState afterBlockLiquidStaticUpdate(@Nonnull Fluid fluid, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state,boolean randomTick){
+        StaticLiquidUpdateEvent.After event = new StaticLiquidUpdateEvent.After(fluid,world,pos,state,randomTick);
         EVENT_BUS.post(event);
         if(event.getResult() == Result.ALLOW){
             return event.getNewState();

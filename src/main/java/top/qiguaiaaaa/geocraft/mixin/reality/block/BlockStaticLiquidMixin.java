@@ -37,6 +37,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -52,23 +53,35 @@ import top.qiguaiaaaa.geocraft.util.BaseUtil;
 import top.qiguaiaaaa.geocraft.util.mixinapi.FluidSettable;
 import top.qiguaiaaaa.geocraft.util.mixinapi.IVanillaFlowChecker;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Random;
 
 @Mixin(value = BlockStaticLiquid.class)
 public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowChecker, FluidSettable {
+    @Unique
     private static final boolean debug = false;
+    @Unique
     private Fluid thisFluid;
+    @Unique
+    private boolean curRandomTick = false;
 
     protected BlockStaticLiquidMixin(Material materialIn) {
         super(materialIn);
+    }
+
+    @Override
+    public void randomTick(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random random) {
+        curRandomTick = true;
+        super.randomTick(worldIn, pos, state, random);
+        curRandomTick = false;
     }
 
     @Inject(method = "<init>",at = @At("RETURN"))
     private void onInit(Material materialIn, CallbackInfo ci) {
         this.setTickRandomly(true);
     }
-    @Inject(method = "updateTick",at = @At("RETURN"))
+    @Inject(method = "updateTick",at = @At("TAIL"))
     public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci) {
         if(worldIn.isRemote) return;
         if(!GeoFluidSetting.isFluidToBePhysical(thisFluid)) return;
@@ -99,7 +112,7 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
                     if(nowState!=state) return;
                 }
             }
-            IBlockState newState = EventFactory.afterBlockLiquidStaticUpdate(thisFluid,worldIn,pos,state);
+            IBlockState newState = EventFactory.afterBlockLiquidStaticUpdate(thisFluid,worldIn,pos,state,curRandomTick);
             if(newState != null){
                 worldIn.setBlockState(pos,newState);
                 return;
@@ -108,12 +121,15 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
         }
         updateLiquid(worldIn,pos,state);
     }
+
     @Override
     public boolean canFlow(World worldIn, BlockPos pos, IBlockState state, Random rand) {
         BlockDynamicLiquid blockdynamicliquid = BlockLiquid.getFlowingBlock(this.material);
         IVanillaFlowChecker checker = (IVanillaFlowChecker) blockdynamicliquid;
         return checker.canFlow(worldIn,pos,state,rand);
     }
+
+    @Unique
     protected void sendPressureQuery(World world,BlockPos pos,IBlockState state,Random rand,boolean directly){
         if(FluidPressureSearchManager.isTaskRunning(world,pos)){
             if(debug) GeoCraft.getLogger().info("{}: task running, returned",pos);
@@ -135,6 +151,7 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
         }
     }
 
+    @Unique
     protected boolean tryMoveInto(World world,BlockPos toPos,BlockPos srcPos,IBlockState myState){
         if(!world.isBlockLoaded(toPos)) return false;
         IBlockState toState = world.getBlockState(toPos);

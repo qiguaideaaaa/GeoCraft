@@ -84,7 +84,7 @@ public final class FluidPhysicsConfig {
 
     public static final ConfigInteger PRESSURE_TICK_DURATION = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
             "pressureTickDuration",40,
-            "1压强刻的理想时长，单位为毫秒。\n" +
+            "1压强刻的理想时长，单位为毫秒。仅在多线程模式下有效。\n" +
                     "The expected milliseconds duration for 1 pressure tick.",
             10,Integer.MAX_VALUE,false
     );

@@ -35,6 +35,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
@@ -59,6 +62,7 @@ import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
  * 该类管理者压强系统的计算
  * @author QiguaiAAAA
  */
+@Mod.EventBusSubscriber(modid = GeoCraft.MODID)
 public final class FluidPressureSearchManager implements Runnable{
     public static final String THREAD_NAME = "FluidPressureSystem", CONFIG_CATEGORY_NAME = "pressure_system";
     private static final int MAX_UPDATE_TASKS, MAX_UPDATE_BLOCKS;
@@ -236,30 +240,40 @@ public final class FluidPressureSearchManager implements Runnable{
 
     /**
      * 该方法会将等待更新的方块加入{@link BlockUpdater}的更新队列<br/>
-     * 若压强系统以同步方式运行，则在一tick内还会执行压强任务<br/>
      * 当且仅当{@link MinecraftServer}线程调用
      * @param world 需要tick的世界
      */
     public static void onWorldTick(@Nonnull WorldServer world){
         if(status == Status.STOP) return;
         Queue<Pair<BlockPos,Block>> posesToLoad = queueToLoadPos.get(world);
-        if(posesToLoad == null) return;
-        for(int i=0;i<MAX_UPDATE_BLOCKS;i++){
-            Pair<BlockPos, Block> task = posesToLoad.poll();
-            if(task == null) break;
-            BlockUpdater.scheduleUpdate(world,task.getLeft(),task.getRight(),0);
+        if(posesToLoad != null){
+            for(int i=0;i<MAX_UPDATE_BLOCKS;i++){
+                Pair<BlockPos, Block> task = posesToLoad.poll();
+                if(task == null) break;
+                BlockUpdater.scheduleUpdate(world,task.getLeft(),task.getRight(),0);
+            }
+            posesToLoad.clear();
         }
-        posesToLoad.clear();
 
         if(world.getTotalWorldTime()%FluidPhysicsConfig.PRESSURE_EMPTY_RESULTS_PERIOD.getValue() == 0){
             WorldPressureInfo info = getOrCreateWorldInfo(world);
             info.getTaskResults().clear();
         }
+    }
+
+    /**
+     * 若压强系统以同步方式运行，该方法会执行压强任务<br/>
+     * 当且仅当{@link MinecraftServer}线程调用
+     * @param event Server Tick事件
+     */
+    @SubscribeEvent
+    public static void onServerTick(@Nonnull TickEvent.ServerTickEvent event){
+        if(status == Status.STOP) return;
         if(isRunningAsync()) return;
+        if(event.phase == TickEvent.Phase.END) return;
         try {
             core();
         }catch (InterruptedException ignore){}
-
     }
 
     /**

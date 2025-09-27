@@ -44,13 +44,19 @@ import javax.annotation.Nullable;
  */
 public class StaticLiquidUpdateEvent extends BlockEvent {
     private final Fluid liquid;
-    public StaticLiquidUpdateEvent(@Nonnull Fluid liquid,@Nonnull World world,@Nonnull BlockPos pos,@Nonnull IBlockState state) {
+    private final boolean randomTick;
+    public StaticLiquidUpdateEvent(@Nonnull Fluid liquid,@Nonnull World world,@Nonnull BlockPos pos,@Nonnull IBlockState state,boolean randomTick) {
         super(world, pos, state);
         this.liquid = liquid;
+        this.randomTick = randomTick;
     }
     @Nonnull
     public Fluid getLiquid() {
         return liquid;
+    }
+
+    public boolean isRandomTick() {
+        return randomTick;
     }
 
     /**
@@ -60,8 +66,8 @@ public class StaticLiquidUpdateEvent extends BlockEvent {
     @HasResult
     public static class After extends StaticLiquidUpdateEvent{
         private IBlockState newState;
-        public After(@Nonnull Fluid liquid,@Nonnull World world,@Nonnull BlockPos pos,@Nonnull IBlockState state) {
-            super(liquid, world, pos, state);
+        public After(@Nonnull Fluid liquid,@Nonnull World world,@Nonnull BlockPos pos,@Nonnull IBlockState state,boolean randomTick) {
+            super(liquid, world, pos, state,randomTick);
         }
 
         /**

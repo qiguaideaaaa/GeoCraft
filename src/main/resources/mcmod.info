@@ -2,7 +2,7 @@
 {
   "modid": "geocraft",
   "name": "GeoCraft",
-  "description": "Bring REAL natural Geography into Minecraft! \n给Minecraft带来真实的自然地理!",
+  "description": "Bring REAL Geography into Minecraft! \n给Minecraft带来真实的自然地理!",
   "version": "@version@",
   "mcversion": "@mcVersion@",
   "url": "",
