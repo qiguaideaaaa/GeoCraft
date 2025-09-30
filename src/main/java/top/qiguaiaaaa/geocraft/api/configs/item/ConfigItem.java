@@ -69,12 +69,14 @@ public abstract class ConfigItem<ValueType> {
         this.isFinal = isFinal;
         this.comment = comment;
     }
+
     protected final ConfigCategory category;
     protected final String key;
     protected final ValueType defaultValue;
     protected final String comment;
     protected final boolean isFinal; //配置初始化后是否不可更改
     protected ValueType value;
+    protected Property property;
 
     @Nonnull
     public ConfigCategory getCategory() {
@@ -140,8 +142,16 @@ public abstract class ConfigItem<ValueType> {
      * @param config 指定的配置文件
      */
     public void load(@Nonnull Configuration config){
-        Property val = config.get(category.getPath(),key,defaultValue.toString(),comment);
-        load(val);
+        property = config.get(category.getPath(),key,defaultValue.toString(),comment);
+        load(property);
+    }
+
+    /**
+     * 保存当前配置项目。若在保存前没有{@link #load(Configuration)}则不会生效
+     */
+    public void save(){
+        if(property == null) return;
+        property.setValue(value.toString());
     }
 
     /**

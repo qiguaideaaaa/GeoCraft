@@ -50,8 +50,8 @@ public class AtmosphereEventHandler {
         WorldServer server= event.getWorld();
         WorldProvider provider = server.provider;
         int dimension = provider.getDimension();
-        AtmosphereSystemType type = AtmosphereConfig.ATMOSPHERE_SYSTEM_TYPES.getValue().get(dimension);
-        if(type == null || type == AtmosphereSystemType.NO_ATMOSPHERE_SYSTEM || type == AtmosphereSystemType.THIRD_PARTY_ATMOSPHERE_SYSTEM) return;
+        AtmosphereSystemType type = event.getType();
+        if(type == AtmosphereSystemType.NO_ATMOSPHERE_SYSTEM || type == AtmosphereSystemType.THIRD_PARTY_ATMOSPHERE_SYSTEM) return;
         AtmosphereWorldInfo info = new AtmosphereWorldInfo(server);
         IAtmosphereSystem system = null;
 

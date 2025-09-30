@@ -36,6 +36,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
 
 import javax.annotation.Nonnull;
@@ -52,8 +54,13 @@ public abstract class ChunkProviderServerMixin implements IChunkProvider {
     locals = LocalCapture.CAPTURE_FAILEXCEPTION)
     private void preTick(CallbackInfoReturnable<Boolean> ci, @Nonnull @Local Iterator<Long> iterator){
         if(!iterator.hasNext()) return;
+        long beginTime = System.currentTimeMillis();
         try {
-            FluidPressureSearchManager.requestInterrupt();
+            FluidPressureSearchManager.requestInterrupt(FluidPhysicsConfig.PAUSE_TIME_FOR_PRESSURE_PRE_CHUNK_SAVING.getValue());
+            long diff = System.currentTimeMillis()-beginTime;
+            if(diff>= FluidPhysicsConfig.PAUSE_TIME_FOR_PRESSURE_PRE_CHUNK_SAVING.getValue()){
+                GeoCraft.getLogger().warn("Is there any wrong with Pressure System? Server thread wait time exceeded {} ms.",diff);
+            }
         }catch (InterruptedException ignored){
         }
     }

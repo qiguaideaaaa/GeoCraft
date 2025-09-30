@@ -31,6 +31,7 @@ import net.minecraftforge.common.config.Configuration;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.base.ConfigBoolean;
 import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemInfo;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemType;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.BlockIntegerEntry;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.ConfigEntry;
@@ -38,11 +39,15 @@ import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockProp
 import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockState;
 import top.qiguaiaaaa.geocraft.api.setting.GeoAtmosphereSetting;
 import top.qiguaiaaaa.geocraft.api.setting.GeoBlockSetting;
-import top.qiguaiaaaa.geocraft.configs.item.map.ConfigMap;
+import top.qiguaiaaaa.geocraft.api.configs.item.map.ConfigMap;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.info.HallAtmosphereSystemInfo;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.info.SurfaceAtmosphereSystemInfo;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.info.VanillaAtmosphereSystemInfo;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public final class AtmosphereConfig {
     public static final ConfigCategory CATEGORY_ATMOSPHERE = new ConfigCategory("atmosphere");
     public static final ConfigBoolean ENABLE_DETAIL_LOGGING = new ConfigBoolean(CATEGORY_ATMOSPHERE,"enableDetailLogging",
@@ -53,8 +58,8 @@ public final class AtmosphereConfig {
             GeoAtmosphereSetting.setEnableDetailedLogging(value);
         }
     };
-    public static final ConfigMap<Integer, AtmosphereSystemType> ATMOSPHERE_SYSTEM_TYPES =
-            new ConfigMap<>(CATEGORY_ATMOSPHERE,"customAtmosphereSystem",
+    public static final ConfigMap<Integer, AtmosphereSystemInfo> ATMOSPHERE_SYSTEM_TYPES =
+            new ConfigMap<Integer, AtmosphereSystemInfo>(CATEGORY_ATMOSPHERE,"customAtmosphereSystem",
                     "配置每个维度使用的大气系统。注意，切换大气系统后原大气系统的数据可能丢失，建议提前备份。\n" +
                             "Configure the atmosphere system for each dimension. ATTENSION: Changing of atmosphere system may cause data loss on old atmosphere system, and a backup is recommended.\n" +
                             "可选值 Available values:\n" +
@@ -63,10 +68,17 @@ public final class AtmosphereConfig {
                             "hall - 地狱大气系统 Atmosphere system designed for Hall.\n" +
                             "third_party - 第三方大气系统，更改为此值以使用第三方模组提供的大气系统. Third-party atmosphere system provided by other mods.\n" +
                             "none - 无大气系统. No atmosphere system.",
-                    Integer::parseInt,AtmosphereSystemType::getInstanceByString,
-                    new ConfigEntry<>(0,AtmosphereSystemType.SURFACE_ATMOSPHERE_SYSTEM),
-                    new ConfigEntry<>(-1,AtmosphereSystemType.HALL_ATMOSPHERE_SYSTEM),
-                    new ConfigEntry<>(1,AtmosphereSystemType.VANILLA_ATMOSPHERE_SYSTEM));
+                    Integer::parseInt,AtmosphereSystemInfo::new,
+                    new ConfigEntry<>(0, SurfaceAtmosphereSystemInfo.create()),
+                    new ConfigEntry<>(-1, HallAtmosphereSystemInfo.create()),
+                    new ConfigEntry<>(1, VanillaAtmosphereSystemInfo.create())){
+                @Override
+                public void load(@Nonnull Configuration config) {
+                    super.load(config);
+                    GeoAtmosphereSetting.setAtmosphereSystemInfoMap(value);
+                }
+            };
+
     public static final ConfigMap<ConfigurableBlockState,Integer> SPECIFIC_HEAT_CAPACITIES =
             new ConfigMap<ConfigurableBlockState,Integer>(CATEGORY_ATMOSPHERE,"specificHeatCapacities","方块每1立方分米的热容，默认为2000，单位为FE/(dm^3·K),可以用 比热容*密度/1000 计算(国际标准单位)",ConfigurableBlockState::getInstanceByString, Integer::parseInt,
                     //水

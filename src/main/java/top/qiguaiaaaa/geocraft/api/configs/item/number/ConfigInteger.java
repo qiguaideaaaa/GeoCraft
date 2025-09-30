@@ -98,14 +98,21 @@ public class ConfigInteger extends ConfigItem<Integer> {
         return maxValue;
     }
 
+    @Override
+    public void save() {
+        if(property == null) return;
+        property.setValue(value);
+        property.setComment(getPolishedComment());
+    }
+
     /**
      * {@inheritDoc}
      * @param config {@inheritDoc}
      */
     @Override
     public void load(@Nonnull Configuration config) {
-        Property property = config.get(category.getPath(),key,defaultValue,comment,minValue,maxValue);
-        property.setComment((comment == null?"":comment) + " [range: " + minValue + " ~ " + maxValue + ", default: " + defaultValue + "]");
+        property = config.get(category.getPath(),key,defaultValue,comment,minValue,maxValue);
+        property.setComment(getPolishedComment());
         load(property);
     }
 
@@ -116,5 +123,9 @@ public class ConfigInteger extends ConfigItem<Integer> {
     @Override
     protected void load(@Nonnull Property property) {
         this.value = property.getInt(defaultValue);
+    }
+
+    protected String getPolishedComment(){
+        return (comment == null?"":comment) + " [range: " + minValue + " ~ " + maxValue + ", default: " + defaultValue + "]";
     }
 }

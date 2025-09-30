@@ -25,48 +25,31 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.api.configs;
+package top.qiguaiaaaa.geocraft.geography.atmosphere.info;
 
-import net.minecraftforge.common.config.Configuration;
+import com.google.gson.JsonObject;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemInfo;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemType;
+
+import javax.annotation.Nonnull;
 
 /**
  * @author QiguaiAAAA
  */
-public class ConfigCategory {
-    public static final ConfigCategory GENERAL = new ConfigCategory(Configuration.CATEGORY_GENERAL);
-    public final String name;
-    public final ConfigCategory parent;
-    protected String comment;
-
-
-    public ConfigCategory(String name) {
-        this(null,name);
-    }
-    public ConfigCategory(ConfigCategory parent,String name){
-        this.parent = parent;
-        this.name = name;
+public class HallAtmosphereSystemInfo extends AtmosphereSystemInfo {
+    public static HallAtmosphereSystemInfo create(){
+        JsonObject object = new JsonObject();
+        object.addProperty(FILED_ID, AtmosphereSystemType.HALL_ATMOSPHERE_SYSTEM.configName);
+        return new HallAtmosphereSystemInfo(object);
     }
 
-    public ConfigCategory setComment(String comment) {
-        this.comment = comment;
-        return this;
+    HallAtmosphereSystemInfo(@Nonnull JsonObject object) {
+        super(object);
     }
 
-    public String getComment() {
-        return comment;
-    }
-
-    public ConfigCategory getChildCategory(String name){
-        return new ConfigCategory(this,name);
-    }
-
-    public String getPath(){
-        if(parent == null) return name;
-        return parent.getPath()+ Configuration.CATEGORY_SPLITTER+name;
-    }
-
+    @Nonnull
     @Override
-    public String toString() {
-        return getPath();
+    public AtmosphereSystemType getType() {
+        return AtmosphereSystemType.HALL_ATMOSPHERE_SYSTEM;
     }
 }

@@ -25,12 +25,11 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.configs.item.collection;
+package top.qiguaiaaaa.geocraft.api.configs.item.collection;
 
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
-import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
 import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableList;
 
 import javax.annotation.Nonnull;
@@ -76,16 +75,36 @@ public class ConfigIntegerList extends ConfigList<Integer> {
     }
 
     @Override
+    public void save() {
+        if(property == null) return;
+        property.setValues(getValues());
+        property.setComment(getPolishedComment());
+    }
+
+    @Override
     public void load(@Nonnull Configuration config) {
-        Property val = config.get(category.getPath(),key,getDefaultValues(),comment,minValue,maxValue,isListSizeFixed,maxListSize);
-        val.setComment((comment==null?"":comment)+" [range: " + minValue + " ~ " + maxValue + (maxListSize>=0?", maxSize: " + maxListSize:"") + "]");
-        load(val);
+        property = config.get(category.getPath(),key,getDefaultValues(),comment,minValue,maxValue,isListSizeFixed,maxListSize);
+        property.setComment(getPolishedComment());
+        load(property);
+    }
+
+    protected String getPolishedComment(){
+        return (comment==null?"":comment)+" [range: " + minValue + " ~ " + maxValue + (maxListSize>=0?", maxSize: " + maxListSize:"") + "]";
     }
 
     protected int[] getDefaultValues(){
         int[] ints = new int[defaultValue.size()];
         int i=0;
         for(Integer integer:defaultValue){
+            ints[i++]=integer;
+        }
+        return ints;
+    }
+
+    protected int[] getValues(){
+        int[] ints = new int[value.size()];
+        int i=0;
+        for(Integer integer:value){
             ints[i++]=integer;
         }
         return ints;

@@ -31,6 +31,8 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemInfo;
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -54,10 +56,12 @@ public class AtmosphereSystemEvent extends Event {
      */
     @Cancelable
     public static class Create extends AtmosphereSystemEvent{
+        private final AtmosphereSystemInfo systemInfo;
         private IAtmosphereSystem systemToBeUsed;
 
-        public Create(@Nonnull WorldServer world) {
+        public Create(@Nonnull WorldServer world,@Nonnull AtmosphereSystemInfo info) {
             super(world);
+            systemInfo = info;
         }
 
         /**
@@ -67,6 +71,16 @@ public class AtmosphereSystemEvent extends Event {
         @Nullable
         public IAtmosphereSystem getSystem() {
             return systemToBeUsed;
+        }
+
+        @Nonnull
+        public AtmosphereSystemType getType(){
+            return systemInfo.getType();
+        }
+
+        @Nonnull
+        public AtmosphereSystemInfo getSystemInfo() {
+            return systemInfo;
         }
 
         /**

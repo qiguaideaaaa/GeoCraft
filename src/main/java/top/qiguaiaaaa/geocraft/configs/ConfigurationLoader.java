@@ -66,8 +66,20 @@ public class ConfigurationLoader {
         for(ConfigItem<?> item:configItems){
             item.load(config);
         }
+        save();
+    }
+
+    public static void save(){
+        if(config == null) return;
+        for(ConfigCategory category:configCategories){
+            config.setCategoryComment(category.getPath(),category.getComment());
+        }
+        for(ConfigItem<?> item:configItems){
+            item.save();
+        }
         config.save();
     }
+
     public static boolean isInitialised(){
         return initialised;
     }

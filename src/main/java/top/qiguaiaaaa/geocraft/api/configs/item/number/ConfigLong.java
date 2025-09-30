@@ -102,9 +102,16 @@ public class ConfigLong extends ConfigItem<Long> {
      */
     @Override
     public void load(@Nonnull Configuration config) {
-        Property property = config.get(category.getPath(),key,defaultValue,comment,minValue,maxValue);
-        property.setComment((comment == null?"":comment) + " [range: " + minValue + " ~ " + maxValue + ", default: " + defaultValue + "]");
+        property = config.get(category.getPath(),key,defaultValue,comment,minValue,maxValue);
+        property.setComment(getPolishedComment());
         load(property);
+    }
+
+    @Override
+    public void save() {
+        if(property == null) return;
+        property.setValue(value);
+        property.setComment(getPolishedComment());
     }
 
     /**
@@ -114,5 +121,10 @@ public class ConfigLong extends ConfigItem<Long> {
     @Override
     protected void load(@Nonnull Property property) {
         this.value = property.getLong(defaultValue);
+    }
+
+    @Nonnull
+    protected String getPolishedComment(){
+        return (comment == null?"":comment) + " [range: " + minValue + " ~ " + maxValue + ", default: " + defaultValue + "]";
     }
 }

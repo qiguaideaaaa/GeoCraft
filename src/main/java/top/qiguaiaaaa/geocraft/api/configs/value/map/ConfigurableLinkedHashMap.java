@@ -27,6 +27,8 @@
 
 package top.qiguaiaaaa.geocraft.api.configs.value.map;
 
+import top.qiguaiaaaa.geocraft.api.util.exception.ConfigParseError;
+
 import javax.annotation.Nonnull;
 import java.util.*;
 
@@ -39,6 +41,17 @@ import java.util.*;
 public class ConfigurableLinkedHashMap<K,V> extends LinkedHashMap<K,V> {
     public static final String SPLIT = "->";
 
+    public static final char BEGIN_CHAR = '『',END_CHAR = '』';
+
+    public static final String BEGIN_CHARS=BEGIN_CHAR+"",END_CHARS=END_CHAR+"";
+
+    public static final char PAIR_END = '、';
+
+    public static final String PAIR_END_S = "、";
+
+    public static final String NORMAL_BEGIN_CHAR = "\\"+BEGIN_CHAR,
+    NORMAL_END_CHAR = "\\"+END_CHAR;
+
     /**
      * 将该Map序列化为一个字符串列表
      * @return 序列化后的字符串列表
@@ -46,9 +59,146 @@ public class ConfigurableLinkedHashMap<K,V> extends LinkedHashMap<K,V> {
     @Nonnull
     public String[] toStringList() {
         List<String> stringList = new ArrayList<>();
-        for(Map.Entry<K,V> entry:entrySet()){
-            stringList.add(entry.getKey().toString()+SPLIT+entry.getValue().toString());
+        Iterator<Map.Entry<K,V>> iterator = entrySet().iterator();
+        while (iterator.hasNext()){
+            Map.Entry<K,V> entry = iterator.next();
+            stringList.add(
+                    toSerialisedString(entry.getKey().toString())
+                            +SPLIT
+                            +toSerialisedString(entry.getValue().toString())
+                            +(iterator.hasNext()?PAIR_END:""));
         }
         return stringList.toArray(new String[0]);
+    }
+
+    public static String toSerialisedString(@Nonnull String str){
+        if(str.contains(PAIR_END_S) || str.contains(SPLIT) || str.contains(BEGIN_CHARS)){
+            String serialised = str.replace("\\","\\\\")
+                    .replace(BEGIN_CHARS,NORMAL_BEGIN_CHAR)
+                    .replace(END_CHARS,NORMAL_END_CHAR);
+            return BEGIN_CHAR+serialised+END_CHAR;
+        }
+        return str;
+    }
+
+    public static String[] spiltKeyPair(@Nonnull String str) throws ConfigParseError{
+        boolean insideQuote = false;
+        boolean shouldBePacked = false;
+        boolean isIgnored = false;
+        boolean isBegin = true;
+        for (int i = 0; i < str.length() - 1; i++) {
+            char c = str.charAt(i);
+            char next = str.charAt(i + 1);
+
+            if(isIgnored){
+                isIgnored = false;
+                continue;
+            }
+
+            if(Character.isWhitespace(c)) continue;
+
+            if (c == BEGIN_CHAR) {
+                if(isBegin){
+                    shouldBePacked = true;
+                    insideQuote = true;
+                    isBegin = false;
+                    continue;
+                }
+                if(shouldBePacked) throw new ConfigParseError("illegal begin char at location "+i);
+                continue;
+            } else if (c == END_CHAR) {
+                if(isBegin){
+                    isBegin = false;
+                    continue;
+                }
+                if(!shouldBePacked) continue;
+                if(!insideQuote) throw new ConfigParseError("illegal end char at location "+i);
+                insideQuote = false;
+                continue;
+            }else if(insideQuote && c == '\\'){
+                isIgnored = true;
+            }
+
+            isBegin = false;
+
+            if(isIgnored) continue;
+
+            if (!insideQuote && c == '-' && next == '>') {
+                String key = str.substring(0, i);
+                String value = str.substring(i + 2);
+
+                return new String[]{deserializeString(key), deserializeString(value)};
+            }
+
+            if(!insideQuote && shouldBePacked){
+                throw new ConfigParseError("illegal char at location "+i);
+            }
+        }
+        return null;
+    }
+
+    public static String deserializeString(@Nonnull String str) throws ConfigParseError{
+        if (str.isEmpty()) return "";
+
+        final StringBuilder res = new StringBuilder();
+
+        boolean insideQuote = false;
+        boolean shouldBePacked = false;
+        boolean isIgnored = false;
+        boolean isBegin = true;
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+
+            if(isIgnored){
+                res.append(c);
+                isIgnored = false;
+                continue;
+            }
+
+            if(Character.isWhitespace(c)){
+                res.append(c);
+                continue;
+            }
+
+            if (c == BEGIN_CHAR) {
+                if(isBegin){
+                    shouldBePacked = true;
+                    insideQuote = true;
+                    isBegin = false;
+                    continue;
+                }
+                if(shouldBePacked) throw new ConfigParseError("illegal begin char at location "+i);
+                res.append(c);
+                continue;
+            } else if (c == END_CHAR) {
+                if(isBegin){
+                    res.append(c);
+                    isBegin = false;
+                    continue;
+                }
+                if(!shouldBePacked){
+                    res.append(c);
+                    continue;
+                }
+                if(!insideQuote) throw new ConfigParseError("illegal end char at location "+i);
+                insideQuote = false;
+                continue;
+            }else if(insideQuote && c == '\\'){
+                isIgnored = true;
+            }
+
+            isBegin = false;
+
+            if(isIgnored) continue;
+
+            if(!insideQuote && shouldBePacked){
+                throw new ConfigParseError("illegal char at location "+i);
+            }
+            res.append(c);
+        }
+
+        if(insideQuote) throw new ConfigParseError("No end char found in "+str+"!");
+
+        return res.toString();
     }
 }

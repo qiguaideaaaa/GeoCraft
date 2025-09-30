@@ -25,11 +25,11 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.configs.item.collection;
+package top.qiguaiaaaa.geocraft.api.configs.item.collection;
 
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
-import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.api.GeoCraftAPI;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableList;
@@ -81,9 +81,16 @@ public class ConfigList<ValueType> extends ConfigItem<ConfigurableList<ValueType
     }
 
     @Override
+    public void save() {
+        if(property == null) return;
+        property.setValues(value.toStringList());
+        property.setComment(comment);
+    }
+
+    @Override
     public void load(@Nonnull Configuration config) {
-        Property val = config.get(category.getPath(),key,defaultValue.toStringList(),comment,isListSizeFixed,maxListSize,validatedPattern);
-        load(val);
+        property = config.get(category.getPath(),key,defaultValue.toStringList(),comment,isListSizeFixed,maxListSize,validatedPattern);
+        load(property);
     }
 
     @Override
@@ -96,8 +103,8 @@ public class ConfigList<ValueType> extends ConfigItem<ConfigurableList<ValueType
                 ValueType loadedVal = parser.apply(string);
                 value.add(loadedVal);
             }catch (Throwable e){
-                GeoCraft.getLogger().warn("loading configuration {} in {} error",string,category);
-                GeoCraft.getLogger().warn("Error Detailed:",e);
+                GeoCraftAPI.LOGGER.warn("loading configuration {} in {} error",string,category);
+                GeoCraftAPI.LOGGER.warn("Error Detailed:",e);
             }
         }
     }

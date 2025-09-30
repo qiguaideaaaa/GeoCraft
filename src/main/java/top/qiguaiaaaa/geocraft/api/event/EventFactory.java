@@ -50,6 +50,7 @@ import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereUpdateEvent;
 import top.qiguaiaaaa.geocraft.api.event.player.FillGlassBottleEvent;
 import top.qiguaiaaaa.geocraft.api.event.player.FillGlassBottleEvent.FillGlassBottleOnAreaEffectCloudEvent;
 import top.qiguaiaaaa.geocraft.api.event.player.FillGlassBottleEvent.FillGlassBottleOnFluidEvent;
+import top.qiguaiaaaa.geocraft.api.setting.GeoAtmosphereSetting;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -92,7 +93,7 @@ public final class EventFactory {
     }
 
     public static IAtmosphereSystem onAtmosphereSystemCreate(@Nonnull WorldServer server){
-        AtmosphereSystemEvent.Create event = new AtmosphereSystemEvent.Create(server);
+        AtmosphereSystemEvent.Create event = new AtmosphereSystemEvent.Create(server, GeoAtmosphereSetting.getAtmosphereSystemInfo(server.provider.getDimension()));
         EVENT_BUS.post(event);
         if(event.isCanceled()) return null;
         return event.getSystem();

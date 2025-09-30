@@ -67,7 +67,7 @@ public final class FluidPressureSearchManager implements Runnable{
     public static final String THREAD_NAME = "FluidPressureSystem", CONFIG_CATEGORY_NAME = "pressure_system";
     private static final int MAX_UPDATE_TASKS, MAX_UPDATE_BLOCKS;
     private static final FluidPressureSearchManager INSTANCE = new FluidPressureSearchManager();
-    private static final Object NOTIFY_OBJECT = new Object();
+    private static final Object NOTIFY_OBJECT = new Object(),STATUS_LOCK = new Object();
     private static final Function<WorldServer,ConcurrentLinkedQueue<Pair<BlockPos, Block>>> CREATE_QUEUE = k -> new ConcurrentLinkedQueue<>();
     private static volatile Status status = Status.STOP;
     private static final AtomicLong totalTimes = new AtomicLong(0);
@@ -156,27 +156,34 @@ public final class FluidPressureSearchManager implements Runnable{
      * 请求暂停压强系统运行<br/>
      * 当压强系统运行时，该方法会强制调用线程等待压强系统暂停<br/>
      * 当且仅当{@link MinecraftServer}线程调用
+     * @param waitTime 等待时长
      * @throws InterruptedException 若在暂停过程中线程被中断，则抛出此错误
      */
-    public static void requestInterrupt() throws InterruptedException {
+    public static void requestInterrupt(int waitTime) throws InterruptedException {
         if(!isRunningAsync()) return;
-        switch (status){
-            case RUNNING:
-                status = Status.INTERRUPT_REQUESTED;
-                synchronized (NOTIFY_OBJECT){
-                    GeoCraft.getLogger().debug("Wait for {} to pause.",THREAD_NAME);
-                    NOTIFY_OBJECT.wait(10);
-                    return;
-                }
-            case INTERRUPT_REQUESTED:
-                synchronized (NOTIFY_OBJECT){
-                    GeoCraft.getLogger().debug("Wait for {} to pause.",THREAD_NAME);
-                    NOTIFY_OBJECT.wait(10);
-                    return;
-                }
-            case STOP:
-            case INTERRUPT:
-            default:
+        boolean needWait = false;
+        synchronized (STATUS_LOCK){
+            switch (status){
+                case RUNNING:
+                    status = Status.INTERRUPT_REQUESTED;
+                    needWait = true;
+                    break;
+                case INTERRUPT_REQUESTED:
+                    needWait = true;
+                    break;
+                case SLEEPING:
+                    status = Status.INTERRUPT_REQUESTED;
+                    break;
+                case STOP:
+                case INTERRUPT:
+                default:
+            }
+        }
+        if(needWait) {
+            synchronized (NOTIFY_OBJECT){
+                GeoCraft.getLogger().debug("Wait for {} to pause.",THREAD_NAME);
+                NOTIFY_OBJECT.wait(waitTime);
+            }
         }
     }
 
@@ -186,12 +193,19 @@ public final class FluidPressureSearchManager implements Runnable{
      */
     public static void resume(){
         if(!isRunningAsync()) return;
-        if(status != Status.STOP){
+        boolean needNotify = false;
+        synchronized (STATUS_LOCK){
+            if(status != Status.STOP && status != Status.SLEEPING){
+                needNotify = true;
+                status = Status.RUNNING;
+            }
+        }
+        if(needNotify){
             synchronized (NOTIFY_OBJECT){
                 NOTIFY_OBJECT.notifyAll();
             }
-            status = Status.RUNNING;
         }
+
     }
 
     /**
@@ -282,7 +296,9 @@ public final class FluidPressureSearchManager implements Runnable{
      */
     @Override
     public void run() {  //自身线程调用
-        status = Status.RUNNING;
+        synchronized (STATUS_LOCK){
+            status = Status.RUNNING;
+        }
         boolean running = true;
         while (running){
             long startTime = System.currentTimeMillis();
@@ -302,15 +318,24 @@ public final class FluidPressureSearchManager implements Runnable{
             int duration = FluidPhysicsConfig.PRESSURE_TICK_DURATION.getValue();
             if(usedTime<duration){
                 try {
+                    synchronized (STATUS_LOCK){
+                        checkInterruptStatus();
+                        status = Status.SLEEPING;
+                    }
                     Thread.sleep(duration-usedTime);
                 } catch (InterruptedException ignored) {
                     running = false;
+                }
+                synchronized (STATUS_LOCK){
+                    status = Status.RUNNING;
                 }
             }
         }
         GeoCraft.getLogger().info("{} quited",THREAD_NAME);
         quit();
-        status = Status.STOP;
+        synchronized (STATUS_LOCK){
+            status = Status.STOP;
+        }
     }
 
     /**
@@ -405,7 +430,7 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     /**
-     * 检查当前的请求中断状态，配合{@link #requestInterrupt()}<br/>
+     * 检查当前的请求中断状态，配合{@link #requestInterrupt(int)}<br/>
      * 若发现{@link #status}为{@link Status#INTERRUPT_REQUESTED}，则进入等待状态，直到被{@link #resume()}<br/>
      * 当且仅当{@link FluidPressureSearchManager}线程调用
      * @author QiguaiAAAA
@@ -413,17 +438,30 @@ public final class FluidPressureSearchManager implements Runnable{
      */
     static void checkInterruptStatus() throws InterruptedException {
         if(!isRunningAsync()) return;
-        if(status == Status.INTERRUPT_REQUESTED){
-            status = Status.INTERRUPT;
+        boolean needWait = false;
+        synchronized (STATUS_LOCK){
+            if(status == Status.INTERRUPT_REQUESTED){
+                status = Status.INTERRUPT;
+                needWait = true;
+            }
+        }
+        if(needWait){
             long time = System.nanoTime();
             synchronized (NOTIFY_OBJECT){
                 NOTIFY_OBJECT.notifyAll();
                 GeoCraft.getLogger().debug("FluidPressureSystem paused.");
-                NOTIFY_OBJECT.wait(40);
+                NOTIFY_OBJECT.wait(FluidPhysicsConfig.PAUSE_TIME_FOR_PRESSURE_SYSTEM.getValue());
             }
-            GeoCraft.getLogger().debug("FluidPressureSystem resumed. Paused {} ns",System.nanoTime()-time);
-            status = Status.RUNNING;
+            long diff = System.nanoTime()-time;
+            GeoCraft.getLogger().debug("FluidPressureSystem resumed. Paused {} ns",diff);
+            if(diff/1000000.0>=FluidPhysicsConfig.PAUSE_TIME_FOR_PRESSURE_SYSTEM.getValue()){
+                GeoCraft.getLogger().warn("FluidPressureSystem resumed after being paused {} ms because reaching the max pause time.",diff/1000000.0);
+            }
+            synchronized (STATUS_LOCK){
+                status = Status.RUNNING;
+            }
         }
+
     }
 
     /**
@@ -537,6 +575,7 @@ public final class FluidPressureSearchManager implements Runnable{
          * {@link FluidPressureSearchManager}处于正常运行状态
          */
         RUNNING,
+        SLEEPING,
         /**
          * {@link FluidPressureSearchManager}处于运行状态，但被要求暂停运行
          */

@@ -27,6 +27,12 @@
 
 package top.qiguaiaaaa.geocraft.api.setting;
 
+import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemInfo;
+import top.qiguaiaaaa.geocraft.api.configs.value.map.ConfigurableLinkedHashMap;
+
+import javax.annotation.Nonnull;
+import java.util.Map;
+
 /**
  * 查询天圆地方关于大气相关的配置
  * @author QiguaiAAAA
@@ -50,6 +56,8 @@ public final class GeoAtmosphereSetting {
      */
     private static boolean ENABLE_DETAILED_LOGGING = false;
 
+    private static Map<Integer, AtmosphereSystemInfo> ATMOSPHERE_SYSTEM_INFO_MAP;
+
     public static void setUnderlyingReloadGap(int gap){
         if(gap <1) return;
         UNDERLYING_RELOAD_GAP = gap;
@@ -57,6 +65,11 @@ public final class GeoAtmosphereSetting {
 
     public static void setEnableDetailedLogging(boolean enableDetailedLogging) {
         ENABLE_DETAILED_LOGGING = enableDetailedLogging;
+    }
+
+    public static void setAtmosphereSystemInfoMap(@Nonnull ConfigurableLinkedHashMap<Integer,AtmosphereSystemInfo> infoMap){
+        if(ATMOSPHERE_SYSTEM_INFO_MAP != null) return;
+        ATMOSPHERE_SYSTEM_INFO_MAP = infoMap;
     }
 
     /**
@@ -79,6 +92,17 @@ public final class GeoAtmosphereSetting {
 
     public static int getSimulationGap() {
         return ATMOSPHERE_TICK_SECONDS_IN_SIMULATION;
+    }
+
+    /**
+     * 获取指定维度的大气信息
+     * @param dim 维度
+     * @return 返回对应的大气信息。若无，则返回
+     */
+    @Nonnull
+    public static AtmosphereSystemInfo getAtmosphereSystemInfo(int dim){
+        AtmosphereSystemInfo info = ATMOSPHERE_SYSTEM_INFO_MAP.get(dim);
+        return info==null?AtmosphereSystemInfo.Final.FINAL:info;
     }
 
     public static boolean isEnableDetailedLogging() {

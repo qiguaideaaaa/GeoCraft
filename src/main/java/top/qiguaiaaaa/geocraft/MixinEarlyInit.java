@@ -32,6 +32,8 @@ import net.minecraftforge.common.ForgeVersion;
 import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import net.minecraftforge.fml.relauncher.Side;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import top.qiguaiaaaa.geocraft.configs.GeneralConfig;
 import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.FluidPhysicsMode;
@@ -46,6 +48,7 @@ import java.util.Map;
 @IFMLLoadingPlugin.MCVersion(ForgeVersion.mcVersion)
 public class MixinEarlyInit implements IFMLLoadingPlugin, IEarlyMixinLoader {
     public static final boolean isClient = FMLLaunchHandler.side() == Side.CLIENT;
+    public static final Logger LOGGER = LogManager.getLogger(GeoCraft.MODID + " Init");
 
     @Override
     public List<String> getMixinConfigs() {
@@ -74,7 +77,7 @@ public class MixinEarlyInit implements IFMLLoadingPlugin, IEarlyMixinLoader {
         }
         mixinList.add("mixins/ground_water/mixins.geocraft_ground_water.json");
         mixinList.add("mixins.geocraft_atmosphere.json");
-        System.out.println("GeoCraft's Fluid Physics is using mode "+mode);
+        LOGGER.info("天圆地方(GeoCraft)'s Fluid Physics is using {} mode",mode);
 
         return mixinList;
     }

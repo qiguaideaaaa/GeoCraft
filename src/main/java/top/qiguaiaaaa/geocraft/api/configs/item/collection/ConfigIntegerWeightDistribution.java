@@ -25,7 +25,7 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.configs.item.collection;
+package top.qiguaiaaaa.geocraft.api.configs.item.collection;
 
 import net.minecraftforge.common.config.Configuration;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;

@@ -31,8 +31,9 @@ import javax.annotation.Nonnull;
 
 /**
  * 维度使用的大气系统类型，用于判断采用哪个大气系统<br/>
- * 该类只有天圆地方本身的大气系统类型，通过判断玩家是否指定{@link #THIRD_PARTY_ATMOSPHERE_SYSTEM}以判断是否使用第三方模组大气系统。第三方模组应自行实现大气系统类型的配置<br/>
- * 若类型为{@link #NO_ATMOSPHERE_SYSTEM}，则不应添加大气系统
+ * 该类只有天圆地方本身的大气系统类型，通过判断玩家是否指定{@link #THIRD_PARTY_ATMOSPHERE_SYSTEM}以判断是否使用第三方模组大气系统。<br/>
+ * 若类型为{@link #NO_ATMOSPHERE_SYSTEM}，则不应添加大气系统<br/>
+ * 具体大气系统的配置信息需要查看{@link AtmosphereSystemInfo}
  */
 public enum AtmosphereSystemType {
     SURFACE_ATMOSPHERE_SYSTEM("surface"),
@@ -56,10 +57,11 @@ public enum AtmosphereSystemType {
      */
     @Nonnull
     public static AtmosphereSystemType getInstanceByString(@Nonnull String s){
+        if(s.trim().isEmpty()) return NO_ATMOSPHERE_SYSTEM;
         for(AtmosphereSystemType type:values()){
             if(type.isStringMatched(s.trim())) return type;
         }
-        return NO_ATMOSPHERE_SYSTEM;
+        return THIRD_PARTY_ATMOSPHERE_SYSTEM;
     }
 
     @Override

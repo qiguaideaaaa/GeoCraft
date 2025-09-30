@@ -35,13 +35,14 @@ import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
 import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableList;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.FluidPhysicsMode;
 import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableFluid;
-import top.qiguaiaaaa.geocraft.configs.item.collection.ConfigIntegerWeightDistribution;
-import top.qiguaiaaaa.geocraft.configs.item.collection.ConfigList;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.ConfigIntegerWeightDistribution;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.ConfigList;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
 
 /**
  * 关于流体物理的配置项目
  */
+@SuppressWarnings("unused")
 public final class FluidPhysicsConfig {
     public static final ConfigCategory CATEGORY_FLUID_PHYSICS = new ConfigCategory("fluid_physics")
             .setComment("流体物理配置项");
@@ -103,7 +104,7 @@ public final class FluidPhysicsConfig {
 
     public static final ConfigInteger PRESSURE_DROP_EXCESS_TASKS_PERIOD = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
             "dropExcessTasksPeriod",200,
-            "压强系清理并丢弃过量的压强任务的周期，单位为压强刻。过高的值可能导致内存泄漏。注意，若此值过低，由于压强系统采用的队列的size()方法的时间复杂度为O(n)，频繁的清理也会导致性能下降。\n" +
+            "压强系统清理并丢弃过量的压强任务的周期，单位为压强刻。过高的值可能导致内存泄漏。注意，若此值过低，由于压强系统采用的队列的size()方法的时间复杂度为O(n)，频繁的清理也会导致性能下降。\n" +
                     "The period for Pressure System to clean up excess tasks in Pressure Tick." +
                     "Much higher value may cause potentially memory leak. If the value is too low, the performance may also drop.",2,Integer.MAX_VALUE,false);
 
@@ -124,15 +125,28 @@ public final class FluidPhysicsConfig {
 
     public static final ConfigBoolean PAUSE_PRESSURE_SYSTEM_WHILE_CHUNK_SAVING = new ConfigBoolean(CATEGORY_FLUID_PRESSURE_SYSTEM,
             "pausePressureSystemWhileChunkSaving",true,
-            "当压强系统异步加载的时候，在区块保持时停止压强系统运行，以防止可能的多线程竞争导致的崩溃问题。\n" +
+            "当压强系统异步加载的时候，在区块保存时停止压强系统运行，以防止可能的多线程竞争导致的崩溃问题。\n" +
                     "Pause Async Pressure System while chunk is saving to prevent potential crash.",true);
+
+    public static final ConfigInteger PAUSE_TIME_FOR_PRESSURE_PRE_CHUNK_SAVING = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
+            "maxWaitTimeForServerThreadBeforeChunkSaving",20,
+            "Minecraft服务器线程在区块保存前等待压强系统停止运行的最大等待时长，单位为毫秒。将此值设置为0则允许线程一直等待下去。\n" +
+                    "Max waiting time for Minecraft Server Thread to wait until Pressure System stops before saving chunks. Set it to 0 to allow permanent waiting.",
+            0,Integer.MAX_VALUE,false);
+
+    public static final ConfigInteger PAUSE_TIME_FOR_PRESSURE_SYSTEM = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
+            "maxPauseTimeForPressureSystem",40,
+            "压强系统暂停运行的最长时间，单位为毫秒。将此值设置为0则允许压强系统一直等待下去，直到被其他线程唤醒。\n" +
+                    "Max pause time for the pressure system (ms). A value of 0 means it will wait indefinitely until another thread resumes it.",
+            0,Integer.MAX_VALUE,false);
 
 
     // *******************************
     // Vanilla Like Fluid Physics Config
     // *******************************
     public static final ConfigCategory CATEGORY_FLUID_PHYSICS_VANILLA_LIKE = CATEGORY_FLUID_PHYSICS.getChildCategory("vanilla_like")
-            .setComment("设置流体物理模式为"+FluidPhysicsMode.VANILLA_LIKE+"时的参数");
+            .setComment("设置流体物理模式为"+FluidPhysicsMode.VANILLA_LIKE+"时的参数\n" +
+                    "Parameters when fluid physics mode is set to " + FluidPhysicsMode.VANILLA_LIKE);
 
     public static final ConfigBoolean PRESSURE_SYSTEM_FOR_VANILLA_LIKE =
             new ConfigBoolean(CATEGORY_FLUID_PHYSICS_VANILLA_LIKE,"enablePressureSystem",true,
@@ -193,14 +207,14 @@ public final class FluidPhysicsConfig {
             "possibilityForVanillaStaticLiquidToCreatePressureTask",0.4,
             "原版流体处于静止状态时，创建压强任务的可能性。过高的值可能导致压强任务的频繁创建，从而导致卡顿。\n" +
                     "Possibility for Vanilla static liquids to create a pressure task. Higher value may cause the pressure tasks to be created frequently and then cause lagging.",
-            0.0001,0.9999,false
+            0,0.9999,false
     );
 
     public static final ConfigDouble POSSIBILITY_FOR_CLASSIC_FLUIDS_TO_CREATE_PRESSURE_TASK = new ConfigDouble(CATEGORY_SIMULATION_MORE_REALITY_PRESSURE,
             "possibilityForModClassicFluidsToCreatePressureTask",0.4,
             "继承自BlockFluidClassic的模组流体处于静止状态时，创建压强任务的可能性。过高的值可能导致压强任务的频繁创建，从而导致卡顿。\n" +
                     "Possibility for Vanilla static liquids to create a pressure task. Higher value may cause the pressure tasks to be created frequently and then cause lagging.",
-            0.0001,0.9999,false
+            0,0.9999,false
     );
 
     public static final ConfigIntegerWeightDistribution WEIGHT_DISTRIBUTION_FOR_PRESSURE_SEARCH_RANGE = new ConfigIntegerWeightDistribution(CATEGORY_SIMULATION_MORE_REALITY_PRESSURE,

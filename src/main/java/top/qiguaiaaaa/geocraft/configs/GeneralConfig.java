@@ -33,6 +33,7 @@ import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
 
 import static top.qiguaiaaaa.geocraft.api.configs.ConfigCategory.GENERAL;
 
+@SuppressWarnings("unused")
 public final class GeneralConfig {
     public static final ConfigBoolean ALLOW_CLIENT_TO_READ_HUMIDITY_DATA = new ConfigBoolean(GENERAL,
             "allowClientToReadHumidityData",false,

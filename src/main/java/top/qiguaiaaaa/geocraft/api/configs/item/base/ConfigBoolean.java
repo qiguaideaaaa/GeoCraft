@@ -65,13 +65,20 @@ public class ConfigBoolean extends ConfigItem<Boolean> {
         super(category, configKey, defaultValue, comment, isFinal);
     }
 
+    @Override
+    public void save() {
+        if(property == null) return;
+        property.setValue(value);
+        property.setComment(comment);
+    }
+
     /**
      * {@inheritDoc}
      * @param config {@inheritDoc}
      */
     @Override
     public void load(@Nonnull Configuration config) {
-        Property property = config.get(category.getPath(),key,defaultValue,comment);
+        property = config.get(category.getPath(),key,defaultValue,comment);
         load(property);
     }
 
