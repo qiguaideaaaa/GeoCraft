@@ -35,18 +35,17 @@ import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.FluidPressureSearchTaskSmallRangeRelativeResult;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.FluidPressureSmallBFSBaseTask;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTaskResult;
-import top.qiguaiaaaa.geocraft.util.math.vec.RelativeBlockPosB;
-import top.qiguaiaaaa.geocraft.util.math.vec.RelativeBlockPosS;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
+import static top.qiguaiaaaa.geocraft.geography.fluid_physics.ThreadLocalHelper.MUTABLE_POS_S_FOR_REALITY_BFS_RES;
+
 /**
  * @author QiguaiAAAA
  */
 public abstract class 小范围物理压强广搜任务 extends FluidPressureSmallBFSBaseTask implements IRealityPressureBFSTask{
-    private static final RelativeBlockPosS.Mutable mutablePosForRes = new RelativeBlockPosS.Mutable();
     protected static final short TIMES_PER_SEARCH;
     protected final short maxSearchTimes;
     protected final FluidPressureSearchTaskSmallRangeRelativeResult res;
@@ -74,7 +73,7 @@ public abstract class 小范围物理压强广搜任务 extends FluidPressureSma
 
     @Override
     public void putBlockPosToResults(@Nonnull BlockPos pos) {
-        res.put(mutablePosForRes.setPos(beginPos,pos));
+        res.put(MUTABLE_POS_S_FOR_REALITY_BFS_RES.get().setPos(beginPos,pos));
     }
 
     @Override

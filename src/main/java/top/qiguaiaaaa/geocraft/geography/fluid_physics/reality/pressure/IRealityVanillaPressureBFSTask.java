@@ -35,6 +35,8 @@ import top.qiguaiaaaa.geocraft.util.fluid.FluidSearchUtil;
 
 import javax.annotation.Nonnull;
 
+import static top.qiguaiaaaa.geocraft.geography.fluid_physics.ThreadLocalHelper.MUTABLE_BLOCK_POS_FOR_REALITY_BFS;
+
 /**
  * @author QiguaiAAAA
  */
@@ -42,6 +44,7 @@ public interface IRealityVanillaPressureBFSTask extends IRealityPressureBFSTask,
     @Override
     default boolean search_Inner(@Nonnull WorldServer world,@Nonnull BlockPos pos){
         if(!world.isBlockLoaded(pos)) return false;
+        final BlockPos.MutableBlockPos mutablePos = MUTABLE_BLOCK_POS_FOR_REALITY_BFS.get();
         IBlockState state = world.getBlockState(pos);
         if(checkIfValid(world,state,pos)){
             putBlockPosToResults(pos);

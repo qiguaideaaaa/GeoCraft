@@ -34,16 +34,19 @@ import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.ConfigurableLinkedHashMap;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.ConfigEntry;
-import top.qiguaiaaaa.geocraft.api.util.APIUtil;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
 import java.util.function.Function;
 
 public class ConfigMap<K,V> extends ConfigItem<ConfigurableLinkedHashMap<K,V>> {
 
     protected final Function<String,K> parserK;
     protected final Function<String,V> parserV;
+
+    protected Class<K> keyClass;
+    protected Class<V> valClass;
+
+    protected String keyComment,valueComment;
 
     @SafeVarargs
     public ConfigMap(ConfigCategory category, String configKey, Function<String,K> parserK, Function<String,V> parserV, ConfigEntry<K,V>... entries) {
@@ -66,16 +69,36 @@ public class ConfigMap<K,V> extends ConfigItem<ConfigurableLinkedHashMap<K,V>> {
         }
     }
 
+    public ConfigMap<K,V> setKeyClass(@Nonnull Class<K> cls){
+        this.keyClass = cls;
+        return this;
+    }
+
+    public ConfigMap<K,V> setValueClass(@Nonnull Class<V> cls){
+        this.valClass = cls;
+        return this;
+    }
+
+    public ConfigMap<K,V> setKeyComment(@Nonnull String comment){
+        this.keyComment = comment;
+        return this;
+    }
+
+    public ConfigMap<K,V> setValueComment(@Nonnull String comment){
+        this.valueComment = comment;
+        return this;
+    }
+
     @Override
     public void save() {
         if(property == null) return;
         property.setValues(value.toStringList());
-        property.setComment(comment);
+        property.setComment(getPolishedComment());
     }
 
     @Override
     public void load(@Nonnull Configuration config) {
-        property = config.get(category.getPath(),key,defaultValue.toStringList(),comment);
+        property = config.get(category.getPath(),key,defaultValue.toStringList(),getPolishedComment());
         load(property);
     }
 
@@ -162,5 +185,21 @@ public class ConfigMap<K,V> extends ConfigItem<ConfigurableLinkedHashMap<K,V>> {
             GeoCraftAPI.LOGGER.warn("Loading configuration {} in {} error",pair,category);
             GeoCraftAPI.LOGGER.warn("Error Detailed:",e);
         }
+    }
+
+    protected String getPolishedComment(){
+        StringBuilder builder = new StringBuilder(comment);
+        if(keyClass != null && valClass != null)
+            builder.append('\n')
+                    .append("类型 Type: Map<")
+                    .append(keyClass.getSimpleName())
+                    .append(" -> ")
+                    .append(valClass.getSimpleName())
+                    .append(" >");
+        if(keyComment != null)
+            builder.append("\n键说明 Key Info:\n").append(keyComment);
+        if(valueComment != null)
+            builder.append("\n值说明 Value Info:\n").append(valueComment);
+        return builder.toString();
     }
 }

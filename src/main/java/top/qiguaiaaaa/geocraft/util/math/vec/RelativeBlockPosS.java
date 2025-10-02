@@ -54,7 +54,7 @@ public class RelativeBlockPosS extends Vec3s{
     }
 
     public static class Mutable extends RelativeBlockPosS{
-        public static final Mutable MUTABLE = new Mutable();
+        public static final ThreadLocal<Mutable> MUTABLE = ThreadLocal.withInitial(Mutable::new);
         public Mutable(){
             super((short) 0, (short) 0, (short) 0);
         }

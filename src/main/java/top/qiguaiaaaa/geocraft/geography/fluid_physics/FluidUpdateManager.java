@@ -52,7 +52,6 @@ import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
  * 流体更新管理器，为保证最佳效果所有流体的更新应该走这个管理器
  * @author QiguaiAAAA
  */
-@Mod.EventBusSubscriber
 public final class FluidUpdateManager {
     static final int MAX_UPDATE_NUM;
     static final Map<WorldServer, Pair<PriorityQueue<IFluidUpdateTask>,PriorityQueue<IFluidUpdateTask>>> updateTaskQueuesMap = new HashMap<>();
@@ -76,13 +75,7 @@ public final class FluidUpdateManager {
         updateTaskQueuesMap.clear();
     }
 
-    @SubscribeEvent
-    public static void onWorldTick(TickEvent.WorldTickEvent event){
-        if(event.phase == TickEvent.Phase.START) return;
-        WorldServer world = getValidWorld(event.world);
-        if(world == null) return;
-        FluidPressureSearchManager.onWorldTick(world);
-        BlockUpdater.onWorldTick(world);
+    public static void onWorldTick(@Nonnull WorldServer world){
         Pair<PriorityQueue<IFluidUpdateTask>,PriorityQueue<IFluidUpdateTask>> queues = getOrCreateQueues(world);
         updateTasks(world,queues.getLeft());
         updateTasks(world,queues.getRight());

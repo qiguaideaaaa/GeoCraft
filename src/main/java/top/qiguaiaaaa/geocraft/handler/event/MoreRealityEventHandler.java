@@ -64,6 +64,7 @@ import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.block.IBlockDirt;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.MoreRealityFluidPhysicsCore;
+import top.qiguaiaaaa.geocraft.handler.ServerStatusMonitor;
 import top.qiguaiaaaa.geocraft.util.fluid.FluidMixinUtil;
 import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.util.WaterUtil;
@@ -247,6 +248,7 @@ public final class MoreRealityEventHandler {
         IBlockState state = event.getState();
         World worldIn = event.getWorld();
         if(!event.isRandomTick()){
+            if(ServerStatusMonitor.isServerLagging()) return;
             if(worldIn.rand.nextInt(50) >1) return; //因为压强计算频繁更新，需要降低概率
         }
         BlockPos pos = event.getPos();

@@ -37,10 +37,13 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.storage.StorageAtmosphereDataLoade
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemType;
 import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereSystemEvent;
-import top.qiguaiaaaa.geocraft.geography.atmosphere.system.HallAtmosphereSystem;
+import top.qiguaiaaaa.geocraft.configs.ConfigurationLoader;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.info.CloseAtmosphereSystemInfo;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.info.SurfaceAtmosphereSystemInfo;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.info.VanillaAtmosphereSystemInfo;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.system.CloseAtmosphereSystem;
 import top.qiguaiaaaa.geocraft.geography.atmosphere.system.SurfaceAtmosphereSystem;
 import top.qiguaiaaaa.geocraft.geography.atmosphere.system.VanillaAtmosphereSystem;
-import top.qiguaiaaaa.geocraft.configs.AtmosphereConfig;
 
 import java.io.File;
 
@@ -62,14 +65,16 @@ public class AtmosphereEventHandler {
 
         if(type == AtmosphereSystemType.SURFACE_ATMOSPHERE_SYSTEM){
             StorageAtmosphereDataLoader loader = new StorageAtmosphereDataLoader(new File(server.getSaveHandler().getWorldDirectory(),saveFolder));
-            system = new SurfaceAtmosphereSystem(server,info,new DefaultAtmosphereDataProvider(server,loader));
-        }else if(type == AtmosphereSystemType.HALL_ATMOSPHERE_SYSTEM){
+            system = new SurfaceAtmosphereSystem(server,info, SurfaceAtmosphereSystemInfo.create(event.getSystemInfo().getDetails()),new DefaultAtmosphereDataProvider(server,loader));
+        }else if(type == AtmosphereSystemType.CLOSE_ATMOSPHERE_SYSTEM){
             StorageAtmosphereDataLoader loader = new StorageAtmosphereDataLoader(new File(server.getSaveHandler().getWorldDirectory(),saveFolder));
-            system = new HallAtmosphereSystem(server,info,new DefaultAtmosphereDataProvider(server,loader));
+            system = new CloseAtmosphereSystem(server,info, CloseAtmosphereSystemInfo.create(event.getSystemInfo().getDetails()),new DefaultAtmosphereDataProvider(server,loader));
         }else if(type == AtmosphereSystemType.VANILLA_ATMOSPHERE_SYSTEM){
             StorageAtmosphereDataLoader loader = new StorageAtmosphereDataLoader(new File(server.getSaveHandler().getWorldDirectory(),saveFolder));
-            system = new VanillaAtmosphereSystem(server,info,new DefaultAtmosphereDataProvider(server,loader));
+            system = new VanillaAtmosphereSystem(server,info, VanillaAtmosphereSystemInfo.create(event.getSystemInfo().getDetails()),new DefaultAtmosphereDataProvider(server,loader));
         }
+
+        ConfigurationLoader.save();
 
         GeoCraft.getLogger().info("Dimension DIM{} is using atmosphere system type {}",dimension,type);
 

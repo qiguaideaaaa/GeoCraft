@@ -40,6 +40,7 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.layer.AtmosphereLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.Layer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.raypack.HeatPack;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
+import top.qiguaiaaaa.geocraft.api.atmosphere.weather.Weather;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.state.FluidState;
@@ -192,6 +193,17 @@ public class SurfaceAtmosphere extends QiguaiAtmosphere {
         AtmosphereLayer layer = getAtmosphereLayer(pos);
         if(layer == null) return TemperatureProperty.UNAVAILABLE;
         return layer.getTemperature(pos, false);
+    }
+
+    @Nonnull
+    @Override
+    public Weather getWeather(@Nonnull BlockPos pos) {
+        if(worldInfo.getWorld().getWorldInfo().isThundering()){
+            return Weather.THUNDERING_RAIN;
+        }else if(worldInfo.getWorld().getWorldInfo().isRaining()){
+            return Weather.MIDDLE_RAIN;
+        }
+        return Weather.SUNNY;
     }
 
     @Override

@@ -27,9 +27,13 @@
 
 package top.qiguaiaaaa.geocraft.configs;
 
+import net.minecraftforge.common.config.Config;
 import top.qiguaiaaaa.geocraft.MixinEarlyInit;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
+import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigDouble;
+import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
+import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigLong;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -58,7 +62,31 @@ public final class ConfigInit {
             if(!Modifier.isPublic(modifiers)) continue;
             try {
                 Object val = field.get(null);
+                if(field.isAnnotationPresent(Config.Ignore.class)){
+                    continue;
+                }
+                if(val instanceof ConfigInteger){
+                    if(field.isAnnotationPresent(Config.RangeInt.class)){
+                        Config.RangeInt range = field.getAnnotation(Config.RangeInt.class);
+                        ConfigInteger integer = (ConfigInteger) val;
+                        integer.setMinValue(range.min())
+                                .setMaxValue(range.max());
+                    }
+                }else if(val instanceof ConfigDouble) {
+                    if (field.isAnnotationPresent(Config.RangeDouble.class)) {
+                        Config.RangeDouble range = field.getAnnotation(Config.RangeDouble.class);
+                        ConfigDouble d = (ConfigDouble) val;
+                        d.setMinValue(range.min())
+                                .setMaxValue(range.max());
+                    }
+                }
+
                 if(val instanceof ConfigCategory){
+                    if(field.isAnnotationPresent(Config.Comment.class)){
+                        Config.Comment comment = field.getAnnotation(Config.Comment.class);
+                        ConfigCategory category = (ConfigCategory) val;
+                        category.setComment(String.join("\n",comment.value()));
+                    }
                     registerConfigCategory((ConfigCategory) val);
                 }else if(val instanceof ConfigItem<?>){
                     registerConfigItem((ConfigItem<?>) val);

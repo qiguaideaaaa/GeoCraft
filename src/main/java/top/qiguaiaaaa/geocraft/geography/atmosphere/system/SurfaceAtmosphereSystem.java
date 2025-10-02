@@ -42,6 +42,7 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 import top.qiguaiaaaa.geocraft.geography.atmosphere.SurfaceAtmosphere;
 import top.qiguaiaaaa.geocraft.geography.atmosphere.accessor.SurfaceAtmosphereAccessor;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.info.SurfaceAtmosphereSystemInfo;
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
 import top.qiguaiaaaa.geocraft.util.ChunkUtil;
 import top.qiguaiaaaa.geocraft.util.WaterUtil;
@@ -56,71 +57,13 @@ import static top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil.Constants.WATER_ME
  * 主世界大气系统
  */
 public class SurfaceAtmosphereSystem extends QiguaiAtmosphereSystem {
-    public SurfaceAtmosphereSystem(WorldServer world, AtmosphereWorldInfo worldInfo, IAtmosphereDataProvider dataProvider){
-        super(world,worldInfo, dataProvider);
-    }
-
-    @Override
-    public void updateTick(){
-        if(stopped) return;
-        updateAtmospheres();
-        Iterator<Chunk> persistentChunkIterator = world.getPersistentChunkIterable(world.getPlayerChunkMap().getChunkIterator());
-        while (persistentChunkIterator.hasNext()){
-            Chunk chunk = persistentChunkIterator.next();
-            updateBlocks(chunk);
-        }
-
-        dataProvider.tick();
+    public SurfaceAtmosphereSystem(WorldServer world, AtmosphereWorldInfo worldInfo, SurfaceAtmosphereSystemInfo systemInfo, IAtmosphereDataProvider dataProvider){
+        super(world,worldInfo,systemInfo, dataProvider);
     }
 
     @Override
     public IAtmosphereAccessor getAccessor(@Nonnull AtmosphereData data, @Nonnull BlockPos pos, boolean notAir) {
         return new SurfaceAtmosphereAccessor(this,data,pos,notAir);
-    }
-
-    /**
-     * 处理下雨等事件
-     */
-    protected void updateBlocks(Chunk chunk){
-        AtmosphereData data = dataProvider.getLoadedAtmosphereData(chunk.x,chunk.z);
-        if(data == null) return;
-        Atmosphere atmosphere = data.getAtmosphere();
-        if(atmosphere ==null) return;
-        if(data.getChunk() == null){
-            this.onChunkLoaded(chunk); //若大气处于无区块加载状态,先处理大气
-        }
-
-        if(!atmosphere.isLoaded()) return;
-        int x = chunk.x * 16;
-        int z = chunk.z * 16;
-        int rand = world.rand.nextInt();
-        BlockPos randPos = world.getPrecipitationHeight(new BlockPos(x + (rand & 15), 0, z + (rand >> 8 & 15)));
-        BlockPos pos = randPos.down();
-
-        boolean isRaining = world.isRaining();
-
-        if (!world.isAreaLoaded(pos, 1)) return;
-
-        IAtmosphereAccessor freezeAccessor = getAccessor(data,pos,true);
-
-        double rainPossibility = isRaining?WaterUtil.getRainPossibility(atmosphere,randPos):0;
-        double freezePossibility = WaterUtil.getFreezePossibility(freezeAccessor);
-
-        if (BaseUtil.getRandomResult(world.rand,freezePossibility) && WaterUtil.canWaterFreeze(world,pos,true)) {
-            world.setBlockState(pos, Blocks.ICE.getDefaultState());
-            freezeAccessor.putHeatToUnderlying(WATER_MELT_LATENT_HEAT_PER_QUANTA*8);
-        }
-
-        if(!BaseUtil.getRandomResult(world.rand,rainPossibility)){
-            return;
-        }
-
-        IBlockState newState = EventFactory.onAtmosphereRainAndSnow(chunk,atmosphere,randPos,rainPossibility);
-        if(newState != null){
-            world.setBlockState(randPos,newState);
-        }
-
-        world.getBlockState(pos).getBlock().fillWithRain(world, pos);
     }
 
     @Nullable
@@ -146,7 +89,7 @@ public class SurfaceAtmosphereSystem extends QiguaiAtmosphereSystem {
         AtmosphereLayer layer = atmosphere.getBottomAtmosphereLayer();
         if(layer == null) return;
         Biome mainBiome = ChunkUtil.getMainBiome(chunk);
-        layer.addSteam(null,(int) mainBiome.getRainfall()*4000);
-        layer.addWater(null,(int) mainBiome.getRainfall()*1000);
+        layer.addSteam(null,(int) (mainBiome.getRainfall()*4000));
+        layer.addWater(null,(int) (mainBiome.getRainfall()*1000));
     }
 }

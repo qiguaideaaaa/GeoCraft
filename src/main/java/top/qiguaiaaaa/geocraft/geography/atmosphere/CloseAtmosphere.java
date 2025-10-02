@@ -39,10 +39,11 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.layer.AtmosphereLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.Layer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.UnderlyingLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
+import top.qiguaiaaaa.geocraft.api.atmosphere.weather.Weather;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 import top.qiguaiaaaa.geocraft.api.util.math.ExtendedChunkPos;
-import top.qiguaiaaaa.geocraft.geography.atmosphere.layer.hall.ClosedAtmosphereLayer;
-import top.qiguaiaaaa.geocraft.geography.atmosphere.layer.hall.ConstantUnderlying;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.layer.close.ClosedAtmosphereLayer;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.layer.close.ConstantUnderlying;
 import top.qiguaiaaaa.geocraft.util.ChunkUtil;
 
 import javax.annotation.Nonnull;
@@ -50,11 +51,11 @@ import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.Map;
 
-public class HallAtmosphere extends QiguaiAtmosphere {
+public class CloseAtmosphere extends QiguaiAtmosphere {
     protected float constTemperature;
     protected final ConstantUnderlying underlying = new ConstantUnderlying(this);
     protected final ClosedAtmosphereLayer atmosphereLayer = new ClosedAtmosphereLayer(this);
-    public HallAtmosphere(float temp){
+    public CloseAtmosphere(float temp){
         this.constTemperature = temp;
         layers.add(underlying);
         layers.add(atmosphereLayer);
@@ -67,6 +68,12 @@ public class HallAtmosphere extends QiguaiAtmosphere {
     @Override
     public float getTemperature(@Nonnull BlockPos pos, boolean notAir) {
         return constTemperature;
+    }
+
+    @Nonnull
+    @Override
+    public Weather getWeather(@Nonnull BlockPos pos) {
+        return Weather.SUNNY;
     }
 
     @Nullable
@@ -84,6 +91,20 @@ public class HallAtmosphere extends QiguaiAtmosphere {
     @Override
     public double getCloudExponent() {
         return 0;
+    }
+
+    public void setConstTemperature(float temperature){
+        constTemperature = temperature;
+        underlying.getTemperature().set(temperature);
+        atmosphereLayer.getTemperature().set(temperature);
+    }
+
+    public void setMaxWindSpeed(double maxWindSpeed){
+        atmosphereLayer.setMaxWindSpeed(maxWindSpeed);
+    }
+
+    public void setPressure(double pressure){
+        atmosphereLayer.setPressure(pressure);
     }
 
     @Override

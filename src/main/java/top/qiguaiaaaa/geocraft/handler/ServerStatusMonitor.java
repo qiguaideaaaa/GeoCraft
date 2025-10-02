@@ -1,0 +1,124 @@
+/*
+ * Copyright 2025 QiguaiAAAA
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * 版权所有 2025 QiguaiAAAA
+ * 根据Apache许可证第2.0版（“本许可证”）许可；
+ * 除非符合本许可证的规定，否则你不得使用此文件。
+ * 你可以在此获取本许可证的副本：
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 除非所适用法律要求或经书面同意，在本许可证下分发的软件是“按原样”分发的，
+ * 没有任何形式的担保或条件，不论明示或默示。
+ * 请查阅本许可证了解有关本许可证下许可和限制的具体要求。
+ * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
+ */
+
+package top.qiguaiaaaa.geocraft.handler;
+
+import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.configs.GeneralConfig;
+
+import javax.annotation.Nonnull;
+
+/**
+ * @author QiguaiAAAA
+ */
+@Mod.EventBusSubscriber(modid = GeoCraft.MODID)
+public final class ServerStatusMonitor {
+    static final short recordTicks = 1<<5,longTermTicks = 1<<8;
+    static final long[] recentMSPerTick = new long[recordTicks],
+    longTermMSPerTick = new long[longTermTicks];
+    static short curTick = 0,curLongTick = 0;
+    static long tickBeginTime;
+    static double averageMSPerTick,longAverageMSPerTick;
+    static boolean lagging = false,alarming = false;
+
+    private ServerStatusMonitor(){}
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onServerTickStart(@Nonnull TickEvent.ServerTickEvent event){
+        if(event.phase == TickEvent.Phase.END){
+            return;
+        }
+        tickBeginTime = System.currentTimeMillis();
+        lagging = false;
+        alarming = false;
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onServerTickEnd(@Nonnull TickEvent.ServerTickEvent event){
+        if(event.phase == TickEvent.Phase.START){
+            return;
+        }
+        long duration = System.currentTimeMillis()-tickBeginTime;
+        recentMSPerTick[curTick++] = duration;
+        longTermMSPerTick[curLongTick++] = duration;
+        curTick &= (recordTicks-1);
+        curLongTick &= (longTermTicks-1);
+        long sum = 0;
+        for(long ms : recentMSPerTick){
+            sum += ms;
+        }
+        averageMSPerTick = sum/(double)recordTicks;
+        sum = 0;
+        for(long ms:longTermMSPerTick){
+            sum += ms;
+        }
+        longAverageMSPerTick = sum/(double)longTermTicks;
+
+        if(FMLCommonHandler.instance().getMinecraftServerInstance().getTickCounter() % 120 == 0){
+            GeoCraft.getLogger().info("long average {} ms, recent average {} ms",
+                    longAverageMSPerTick,averageMSPerTick);
+        }
+    }
+
+    public static double getAverageTimePerTick() {
+        return averageMSPerTick;
+    }
+
+    public static long getCurrentTickTime(){
+        return System.currentTimeMillis() - tickBeginTime;
+    }
+
+    public static boolean isServerLagging(){
+        return lagging || (lagging = longAverageMSPerTick > 40
+                || (averageMSPerTick >  GeneralConfig.AVERAGE_TICK_DELAY_THRESHOLD.getValue())
+                || (GeneralConfig.ENABLE_SINGLE_TICK_DELAY_DETECT.getValue()
+                && getCurrentTickTime() > GeneralConfig.SINGLE_TICK_DELAY_THRESHOLD.getValue()));
+    }
+
+    public static boolean isServerCloselyLagging(){
+        return alarming || (alarming = longAverageMSPerTick > 60
+                || (averageMSPerTick >GeneralConfig.AVERAGE_TICK_DELAY_WARNING_THRESHOLD.getValue())
+                || (GeneralConfig.ENABLE_SINGLE_TICK_DELAY_DETECT.getValue()
+                        && getCurrentTickTime() > GeneralConfig.SINGLE_TICK_DELAY_WARNING_THRESHOLD.getValue()));
+    }
+
+    public static int getRecommendedBlockFlags(){
+        if(ServerStatusMonitor.isServerLagging()){
+            return Constants.BlockFlags.SEND_TO_CLIENTS;
+        }
+        if(ServerStatusMonitor.isServerCloselyLagging()){
+            return Constants.BlockFlags.SEND_TO_CLIENTS;
+        }
+        return Constants.BlockFlags.DEFAULT;
+    }
+}

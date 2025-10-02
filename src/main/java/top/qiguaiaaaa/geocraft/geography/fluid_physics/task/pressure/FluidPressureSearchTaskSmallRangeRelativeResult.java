@@ -31,14 +31,19 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
+import top.qiguaiaaaa.geocraft.api.util.annotation.MultiThread;
+import top.qiguaiaaaa.geocraft.api.util.annotation.ThreadOnly;
+import top.qiguaiaaaa.geocraft.api.util.annotation.ThreadType;
 import top.qiguaiaaaa.geocraft.util.math.Int10;
 import top.qiguaiaaaa.geocraft.util.math.vec.IVec3i;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
+import static top.qiguaiaaaa.geocraft.geography.fluid_physics.ThreadLocalHelper.MUTABLE_BLOCK_POS_FOR_RES;
 import static top.qiguaiaaaa.geocraft.util.math.vec.IVec3i.X_INT_OFFSET;
 import static top.qiguaiaaaa.geocraft.util.math.vec.IVec3i.Y_INT_OFFSET;
 
@@ -46,9 +51,9 @@ import static top.qiguaiaaaa.geocraft.util.math.vec.IVec3i.Y_INT_OFFSET;
  * @author QiguaiAAAA
  */
 public class FluidPressureSearchTaskSmallRangeRelativeResult implements IFluidPressureSearchTaskResult{
-    private static final BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos(); //仅Minecraft 服务器线程使用
     protected final int cx, cy, cz;
     protected final IntList res = new IntArrayList();
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     protected int curIndex = 0;
 
     public FluidPressureSearchTaskSmallRangeRelativeResult(int cx, int cy, int cz) {
@@ -65,10 +70,13 @@ public class FluidPressureSearchTaskSmallRangeRelativeResult implements IFluidPr
         this(centerPos.getX(),centerPos.getY(),centerPos.getZ());
     }
 
-    public void put(IVec3i pos){
+    @ThreadOnly(ThreadType.FLUID_PRESSURE_TASKS)
+    public void put(@Nonnull IVec3i pos){
         res.add(pos.toInt());
     }
 
+    @ThreadOnly(ThreadType.FLUID_PRESSURE_TASKS)
+    @Nonnull
     public Collection<BlockPos> toResultCollection(){
         ArrayList<BlockPos> list = new ArrayList<>(res.size());
         for(int p:res){
@@ -77,6 +85,7 @@ public class FluidPressureSearchTaskSmallRangeRelativeResult implements IFluidPr
         return list;
     }
 
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     @Override
     public boolean hasNext() {
         return curIndex < res.size();
@@ -90,6 +99,7 @@ public class FluidPressureSearchTaskSmallRangeRelativeResult implements IFluidPr
     /**
      * @return 返回一个BlockPos.MutableBlockPos的结果位置
      */
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     @Override
     @Nullable
     public BlockPos next() {
@@ -97,10 +107,11 @@ public class FluidPressureSearchTaskSmallRangeRelativeResult implements IFluidPr
         return getPosFromInt(res.get(curIndex++));
     }
 
+    @MultiThread({ThreadType.MINECRAFT_SERVER,ThreadType.FLUID_PRESSURE_TASKS})
     protected BlockPos getPosFromInt(int posInt){
         final int x = Int10.toInt((posInt& IVec3i.X_INT_MASK)>> X_INT_OFFSET),
                 y = Int10.toInt((posInt&IVec3i.Y_INT_MASK)>> Y_INT_OFFSET),
                 z = Int10.toInt(posInt&IVec3i.Z_INT_MASK);
-        return mutablePos.setPos(cx+x,cy+y,cz+z);
+        return  MUTABLE_BLOCK_POS_FOR_RES.get().setPos(cx+x,cy+y,cz+z);
     }
 }

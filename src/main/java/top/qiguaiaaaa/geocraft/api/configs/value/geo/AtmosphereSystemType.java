@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
 public enum AtmosphereSystemType {
     SURFACE_ATMOSPHERE_SYSTEM("surface"),
     VANILLA_ATMOSPHERE_SYSTEM("vanilla"),
-    HALL_ATMOSPHERE_SYSTEM("hall"),
+    CLOSE_ATMOSPHERE_SYSTEM("close"),
     THIRD_PARTY_ATMOSPHERE_SYSTEM("third_party"),
     NO_ATMOSPHERE_SYSTEM("none");
     public final String configName;

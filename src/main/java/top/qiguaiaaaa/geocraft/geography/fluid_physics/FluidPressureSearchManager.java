@@ -40,17 +40,20 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.api.util.annotation.ConditionalThreadOnly;
+import top.qiguaiaaaa.geocraft.api.util.annotation.MultiThread;
+import top.qiguaiaaaa.geocraft.api.util.annotation.ThreadOnly;
+import top.qiguaiaaaa.geocraft.api.util.annotation.ThreadType;
 import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTask;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTaskResult;
 import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
+import top.qiguaiaaaa.geocraft.util.misc.FixedCollection;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
@@ -62,19 +65,27 @@ import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
  * 该类管理者压强系统的计算
  * @author QiguaiAAAA
  */
-@Mod.EventBusSubscriber(modid = GeoCraft.MODID)
 public final class FluidPressureSearchManager implements Runnable{
     public static final String THREAD_NAME = "FluidPressureSystem", CONFIG_CATEGORY_NAME = "pressure_system";
     private static final int MAX_UPDATE_TASKS, MAX_UPDATE_BLOCKS;
     private static final FluidPressureSearchManager INSTANCE = new FluidPressureSearchManager();
     private static final Object NOTIFY_OBJECT = new Object(),STATUS_LOCK = new Object();
     private static final Function<WorldServer,ConcurrentLinkedQueue<Pair<BlockPos, Block>>> CREATE_QUEUE = k -> new ConcurrentLinkedQueue<>();
+    @ThreadOnly(ThreadType.FLUID_PRESSURE_MANAGER)
+    private static final Collection<RunnableFluidPressureSearchTask> QUEUE_SUBMIT_TASKS = new FixedCollection<>(110);
+    @ThreadOnly(ThreadType.FLUID_PRESSURE_MANAGER)
+    private static ThreadPoolExecutor threadPool = null;
+    @MultiThread({ThreadType.MINECRAFT_SERVER,ThreadType.FLUID_PRESSURE_MANAGER})
     private static volatile Status status = Status.STOP;
     private static final AtomicLong totalTimes = new AtomicLong(0);
+    @MultiThread({ThreadType.MINECRAFT_SERVER,ThreadType.FLUID_PRESSURE_MANAGER})
     static final Map<WorldServer, WorldPressureInfo> worldMap = new ConcurrentHashMap<>(); //running的task、结果和running的task的poses
+    @MultiThread({ThreadType.MINECRAFT_SERVER,ThreadType.FLUID_PRESSURE_MANAGER})
     static final Map<WorldServer,WorldQueueTaskInfo> queueMap = new ConcurrentHashMap<>(); //等待被加入queue的task
+    @MultiThread({ThreadType.MINECRAFT_SERVER,ThreadType.FLUID_PRESSURE_MANAGER})
     static final Map<WorldServer,Queue<Pair<BlockPos,Block>>> queueToLoadPos = new ConcurrentHashMap<>();
 
+    @MultiThread({ThreadType.MINECRAFT_SERVER,ThreadType.FLUID_PRESSURE_MANAGER})
     static Thread thread;
 
     static {
@@ -82,12 +93,13 @@ public final class FluidPressureSearchManager implements Runnable{
         MAX_UPDATE_BLOCKS = FluidPhysicsConfig.PRESSURE_MAX_UPDATES_PER_TICK.getValue();
     }
 
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     FluidPressureSearchManager(){}
 
     /**
-     * 要求压强系统以异步方式开始运行<br/>
-     * 当且仅当{@link MinecraftServer}线程调用
+     * 要求压强系统以异步方式开始运行
      */
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     public static void asyncRun(){
         thread = new Thread(INSTANCE,THREAD_NAME);
         thread.start();
@@ -95,9 +107,9 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     /**
-     * 要求压强系统以同步方式运行。若此时压强系统正以异步方式运行，则异步线程会中止<br/>
-     * 当且仅当{@link MinecraftServer}线程调用
+     * 要求压强系统以同步方式运行。若此时压强系统正以异步方式运行，则异步线程会中止
      */
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     public static void syncRun(){
         clear();
         GeoCraft.getLogger().info("{} started in sync",THREAD_NAME);
@@ -110,9 +122,9 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     /**
-     * 若压强系统以异步方式运行，则要求压强系统停止运行<br/>
-     * 当且仅当{@link MinecraftServer}线程调用
+     * 若压强系统以异步方式运行，则要求压强系统停止运行
      */
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     public static void asyncStop(){
         if(thread != null && thread.isAlive()){
             thread.interrupt();
@@ -121,9 +133,9 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     /**
-     * 若压强系统以同步方式一下，则要求压强系统停止运行，理论上不应当在压强系统异步运行时调用，尽管这也会终止异步运行<br/>
-     * 当且仅当{@link MinecraftServer}线程调用
+     * 若压强系统以同步方式一下，则要求压强系统停止运行，理论上不应当在压强系统异步运行时调用，尽管这也会终止异步运行
      */
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     public static void syncStop(){
         status = Status.STOP;
         clear();
@@ -154,11 +166,11 @@ public final class FluidPressureSearchManager implements Runnable{
 
     /**
      * 请求暂停压强系统运行<br/>
-     * 当压强系统运行时，该方法会强制调用线程等待压强系统暂停<br/>
-     * 当且仅当{@link MinecraftServer}线程调用
+     * 当压强系统运行时，该方法会强制调用线程等待压强系统暂停
      * @param waitTime 等待时长
      * @throws InterruptedException 若在暂停过程中线程被中断，则抛出此错误
      */
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     public static void requestInterrupt(int waitTime) throws InterruptedException {
         if(!isRunningAsync()) return;
         boolean needWait = false;
@@ -188,9 +200,9 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     /**
-     * 若压强系统当前处于暂停状态，则恢复压强系统的运行，同时唤醒所有在{@link #NOTIFY_OBJECT}上等待的线程<br/>
-     * 当且仅当{@link MinecraftServer}线程调用
+     * 若压强系统当前处于暂停状态，则恢复压强系统的运行，同时唤醒所有在{@link #NOTIFY_OBJECT}上等待的线程
      */
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     public static void resume(){
         if(!isRunningAsync()) return;
         boolean needNotify = false;
@@ -209,12 +221,12 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     /**
-     * 检测指定位置是否有任务在运行<br/>
-     * 当且仅当{@link MinecraftServer}线程调用
+     * 检测指定位置是否有任务在运行
      * @param world 世界
      * @param pos 位置
      * @return 若有，则返回true
      */
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     public static boolean isTaskRunning(@Nonnull World world,@Nonnull BlockPos pos){
         WorldServer validWorld = getValidWorld(world);
         if(validWorld == null) return false;
@@ -224,12 +236,12 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     /**
-     * 获取指定位置的压强搜寻任务结果<br/>
-     * 当且仅当{@link MinecraftServer}线程调用
+     * 获取指定位置的压强搜寻任务结果
      * @param world 世界
      * @param pos 位置
      * @return 若有结果，则返回{@link IFluidPressureSearchTaskResult}，否则返回null
      */
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     @Nullable
     public static IFluidPressureSearchTaskResult getTaskResult(@Nonnull World world,@Nonnull BlockPos pos){
         WorldServer validWorld = getValidWorld(world);
@@ -240,11 +252,11 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     /**
-     * 在指定世界添加一个压强搜寻任务<br/>
-     * 当且仅当{@link MinecraftServer}线程调用
+     * 在指定世界添加一个压强搜寻任务
      * @param world 世界
      * @param task 压强搜寻任务
      */
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     public static void addTask(@Nonnull World world,@Nonnull IFluidPressureSearchTask task){
         WorldServer validWorld = getValidWorld(world);
         if(validWorld == null) return;
@@ -253,10 +265,10 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     /**
-     * 该方法会将等待更新的方块加入{@link BlockUpdater}的更新队列<br/>
-     * 当且仅当{@link MinecraftServer}线程调用
+     * 该方法会将等待更新的方块加入{@link BlockUpdater}的更新队列
      * @param world 需要tick的世界
      */
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     public static void onWorldTick(@Nonnull WorldServer world){
         if(status == Status.STOP) return;
         Queue<Pair<BlockPos,Block>> posesToLoad = queueToLoadPos.get(world);
@@ -264,7 +276,7 @@ public final class FluidPressureSearchManager implements Runnable{
             for(int i=0;i<MAX_UPDATE_BLOCKS;i++){
                 Pair<BlockPos, Block> task = posesToLoad.poll();
                 if(task == null) break;
-                BlockUpdater.scheduleUpdate(world,task.getLeft(),task.getRight(),0);
+                BlockUpdater.scheduleUpdate(world,task.getLeft(),task.getRight(),world.rand.nextInt(5));
             }
             posesToLoad.clear();
         }
@@ -276,30 +288,34 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     /**
-     * 若压强系统以同步方式运行，该方法会执行压强任务<br/>
-     * 当且仅当{@link MinecraftServer}线程调用
+     * 若压强系统以同步方式运行，该方法会执行压强任务
      * @param event Server Tick事件
      */
-    @SubscribeEvent
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     public static void onServerTick(@Nonnull TickEvent.ServerTickEvent event){
-        if(status == Status.STOP) return;
         if(isRunningAsync()) return;
-        if(event.phase == TickEvent.Phase.END) return;
         try {
             core();
         }catch (InterruptedException ignore){}
     }
 
     /**
-     * 异步执行时，压强系统线程的运行方法<br/>
-     * 当且仅当{@link FluidPressureSearchManager}线程调用
+     * 异步执行时，压强系统线程的运行方法
      */
+    @ThreadOnly(ThreadType.FLUID_PRESSURE_MANAGER)
     @Override
     public void run() {  //自身线程调用
         synchronized (STATUS_LOCK){
             status = Status.RUNNING;
         }
         boolean running = true;
+        if(FluidPhysicsConfig.PRESSURE_USING_THREAD_POOL.getValue()){
+            if(threadPool != null && !threadPool.isShutdown()){
+                GeoCraft.getLogger().warn("What's the f**k? Found existing thread pool! Shutdown it.");
+                threadPool.shutdownNow();
+            }
+            threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(FluidPhysicsConfig.PRESSURE_THREAD_COUNT.getValue());
+        }
         while (running){
             long startTime = System.currentTimeMillis();
             try {
@@ -323,11 +339,12 @@ public final class FluidPressureSearchManager implements Runnable{
                         status = Status.SLEEPING;
                     }
                     Thread.sleep(duration-usedTime);
+                    synchronized (STATUS_LOCK){
+                        checkInterruptStatus();
+                        status = Status.RUNNING;
+                    }
                 } catch (InterruptedException ignored) {
                     running = false;
-                }
-                synchronized (STATUS_LOCK){
-                    status = Status.RUNNING;
                 }
             }
         }
@@ -342,6 +359,7 @@ public final class FluidPressureSearchManager implements Runnable{
      * 压强系统的核心运行方法，若同步运行时则由{@link MinecraftServer}调用，若异步运行则由{@link FluidPressureSearchManager}线程调用
      * @throws InterruptedException 线程中断时调用
      */
+    @ConditionalThreadOnly({ThreadType.FLUID_PRESSURE_MANAGER,ThreadType.MINECRAFT_SERVER})
     static void core() throws InterruptedException {
         totalTimes.incrementAndGet();
         final WorldServer[] loadedWorld = FMLCommonHandler.instance().getMinecraftServerInstance().worlds;
@@ -368,11 +386,11 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     /**
-     * 将指定世界处于{@link #queueMap}等待队列的任务加入运行任务队列{@link WorldPressureInfo#runningTasks}<br/>
-     * 当且仅当{@link FluidPressureSearchManager}线程调用
+     * 将指定世界处于{@link #queueMap}等待队列的任务加入运行任务队列{@link WorldPressureInfo#runningTasks}
      * @param world 世界
      * @param info 该世界的压强任务信息
      */
+    @ConditionalThreadOnly({ThreadType.FLUID_PRESSURE_MANAGER,ThreadType.MINECRAFT_SERVER})
     static void pushNewTasks(WorldServer world, WorldPressureInfo info){  //自身线程调用
         WorldQueueTaskInfo queueInfo = queueMap.get(world);
 
@@ -383,13 +401,17 @@ public final class FluidPressureSearchManager implements Runnable{
     }
 
     /**
-     * 更新指定世界的压强任务<br/>
-     * 当且仅当{@link FluidPressureSearchManager}线程调用
+     * 更新指定世界的压强任务
      * @param world 世界
      * @param info 该世界的压强信息
      * @throws InterruptedException 线程中断时抛出
      */
-    static void updateTasks(WorldServer world, WorldPressureInfo info) throws InterruptedException { //自身线程调用
+    @ConditionalThreadOnly({ThreadType.FLUID_PRESSURE_MANAGER,ThreadType.MINECRAFT_SERVER})
+    static void updateTasks(@Nonnull WorldServer world,@Nonnull WorldPressureInfo info) throws InterruptedException { //自身线程调用
+        if(isRunningAsync() && isRunningWithThreadPool()){
+            updateTasksInPool(info);
+            return;
+        }
         final Map<BlockPos,IFluidPressureSearchTaskResult> resMap = info.getTaskResults();
         final Deque<IFluidPressureSearchTask> queue = info.getRunningTasks();
         for(int i=0;i<MAX_UPDATE_TASKS;i++){
@@ -425,6 +447,42 @@ public final class FluidPressureSearchManager implements Runnable{
                 task.cancel();
                 info.unlockPos(task);
             }
+            if(isRunningAsync()){
+                checkInterruptStatus();
+            }
+        }
+    }
+
+    @ThreadOnly(ThreadType.FLUID_PRESSURE_MANAGER)
+    static void updateTasksInPool(@Nonnull WorldPressureInfo info) throws InterruptedException{
+        int maxUpdateTasksNum = MAX_UPDATE_TASKS;
+        final Deque<IFluidPressureSearchTask> queue = info.getRunningTasks();
+        while (maxUpdateTasksNum>0){
+            if(queue.isEmpty()) break;
+            int nextUpdateNum = Math.min(maxUpdateTasksNum,100);
+            maxUpdateTasksNum -= nextUpdateNum;
+            while (nextUpdateNum>0){
+                nextUpdateNum--;
+                if(queue.isEmpty()) break;
+                IFluidPressureSearchTask task = queue.poll();
+                if(task == null) continue;
+                if(task.isFinished()){
+                    info.unlockPos(task);
+                    continue;
+                }
+                if(!info.world.isBlockLoaded(task.getBeginPos())){
+                    info.unlockPos(task);
+                    continue;
+                }
+                IBlockState beginState = info.world.getBlockState(task.getBeginPos());
+                if(!task.isEqualState(beginState)){
+                    info.unlockPos(task);
+                    continue;
+                }
+                QUEUE_SUBMIT_TASKS.add(new RunnableFluidPressureSearchTask(info,task));
+            }
+            threadPool.invokeAll(QUEUE_SUBMIT_TASKS);
+            QUEUE_SUBMIT_TASKS.clear();
             checkInterruptStatus();
         }
     }
@@ -436,6 +494,7 @@ public final class FluidPressureSearchManager implements Runnable{
      * @author QiguaiAAAA
      * @throws InterruptedException 等待过程中若线程中断，则抛出
      */
+    @ThreadOnly(ThreadType.FLUID_PRESSURE_MANAGER)
     static void checkInterruptStatus() throws InterruptedException {
         if(!isRunningAsync()) return;
         boolean needWait = false;
@@ -461,29 +520,38 @@ public final class FluidPressureSearchManager implements Runnable{
                 status = Status.RUNNING;
             }
         }
+    }
 
+    @ThreadOnly(ThreadType.FLUID_PRESSURE_MANAGER)
+    static boolean isRunningWithThreadPool(){
+        return threadPool != null;
     }
 
     /**
-     * 将指定位置列入计划更新<br/>
-     * 当且仅当{@link FluidPressureSearchManager}线程调用
+     * 将指定位置列入计划更新
      * @param world 世界
      * @param pos 更新位置
      * @param block 预期方块
      * @author QiguaiAAAA
      */
+    @ConditionalThreadOnly({ThreadType.FLUID_PRESSURE_MANAGER,ThreadType.MINECRAFT_SERVER})
     static void scheduleUpdate(WorldServer world,BlockPos pos,Block block){
         Queue<Pair<BlockPos, Block>> scheduleSet = queueToLoadPos.computeIfAbsent(world, CREATE_QUEUE);
         scheduleSet.add(Pair.of(pos,block));
     }
 
     /**
-     * 当压强线程退出的时候，进行退出操作<br/>
-     * 当且仅当{@link FluidPressureSearchManager}线程调用
+     * 当压强线程退出的时候，进行退出操作
      * @author QiguaiAAAA
      */
+    @ThreadOnly(ThreadType.FLUID_PRESSURE_MANAGER)
     static void quit(){  //自身线程调用
         clear();
+        ThreadLocalHelper.clear();
+        if(threadPool != null && !threadPool.isShutdown()){
+            threadPool.shutdownNow();
+            threadPool = null;
+        }
         thread = null;
     }
 
@@ -503,6 +571,7 @@ public final class FluidPressureSearchManager implements Runnable{
      * @param world 世界，需要为{@link WorldServer}类型
      * @return 当前世界的压强信息
      */
+    @MultiThread({ThreadType.MINECRAFT_SERVER,ThreadType.FLUID_PRESSURE_MANAGER})
     @Nonnull
     static WorldPressureInfo getOrCreateWorldInfo(@Nonnull WorldServer world){
         return worldMap.computeIfAbsent(world,CREATE_WORLD_PRESSURE_INFO);
@@ -513,8 +582,16 @@ public final class FluidPressureSearchManager implements Runnable{
      * 该类会被{@link MinecraftServer}和{@link FluidPressureSearchManager}多线程调用
      * @author QiguaiAAAA
      */
+    @MultiThread({ThreadType.MINECRAFT_SERVER,ThreadType.FLUID_PRESSURE_MANAGER,ThreadType.FLUID_PRESSURE_TASKS})
     static class WorldPressureInfo{
-        static final Function<WorldServer,WorldPressureInfo> CREATE_WORLD_PRESSURE_INFO = k-> new WorldPressureInfo();
+        static final Function<WorldServer,WorldPressureInfo> CREATE_WORLD_PRESSURE_INFO = WorldPressureInfo::new;
+
+        public final WorldServer world;
+
+        private WorldPressureInfo(WorldServer world){
+            this.world = world;
+        }
+
         public final Deque<IFluidPressureSearchTask> runningTasks = new ConcurrentLinkedDeque<>();
         public final Map<BlockPos,IFluidPressureSearchTaskResult> taskResults = new ConcurrentHashMap<>();
         public final Set<BlockPos> runningTaskLocks = new ConcurrentSet<>();
@@ -546,6 +623,7 @@ public final class FluidPressureSearchManager implements Runnable{
      * 该类会被{@link MinecraftServer}和{@link FluidPressureSearchManager}多线程调用
      * @author QiguaiAAAA
      */
+    @MultiThread({ThreadType.MINECRAFT_SERVER,ThreadType.FLUID_PRESSURE_MANAGER})
     static class WorldQueueTaskInfo{
         static final Function<WorldServer,WorldQueueTaskInfo> CREATE_WORLD_QUEUE_TASK_INFO = k-> new WorldQueueTaskInfo();
         public final Set<IFluidPressureSearchTask> queuedTasks = new ConcurrentSet<>();
@@ -584,5 +662,40 @@ public final class FluidPressureSearchManager implements Runnable{
          * {@link FluidPressureSearchManager}处于暂停状态
          */
         INTERRUPT
+    }
+
+    private static class RunnableFluidPressureSearchTask implements Callable<Void>{
+
+        private final WorldPressureInfo info;
+        private final IFluidPressureSearchTask task;
+
+        @ThreadOnly(ThreadType.FLUID_PRESSURE_MANAGER)
+        public RunnableFluidPressureSearchTask(@Nonnull WorldPressureInfo info,@Nonnull IFluidPressureSearchTask task) {
+            this.info = info;
+            this.task = task;
+        }
+
+        @Override
+        @ThreadOnly(ThreadType.FLUID_PRESSURE_TASKS)
+        public Void call() {
+            try {
+                IFluidPressureSearchTaskResult res = task.search(info.world);
+                if(task.isFinished()){
+                    if(res != null) info.getTaskResults().put(task.getBeginPos(),res);
+                    scheduleUpdate(info.world,task.getBeginPos(),task.getBeginState().getBlock());
+                    info.unlockPos(task);
+                    task.finish();
+                }else{
+                    info.getRunningTasks().add(task);
+                }
+            }catch (Throwable e){
+                GeoCraft.getLogger().warn("When loading pressure for fluid {} at {} in world {},",
+                        task.getFluid().getUnlocalizedName(),task.getBeginPos(),info.world.provider.getDimension());
+                GeoCraft.getLogger().warn("FluidPressureSearchManager caught an error:",e);
+                task.cancel();
+                info.unlockPos(task);
+            }
+            return null;
+        }
     }
 }

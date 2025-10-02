@@ -43,6 +43,7 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.layer.AtmosphereLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.Layer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.UnderlyingLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
+import top.qiguaiaaaa.geocraft.api.atmosphere.weather.Weather;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 import top.qiguaiaaaa.geocraft.api.util.math.ExtendedChunkPos;
 import top.qiguaiaaaa.geocraft.geography.atmosphere.layer.vanilla.VanillaAtmosphereLayer;
@@ -56,6 +57,9 @@ import java.util.EnumMap;
 import java.util.Map;
 
 public class VanillaAtmosphere extends QiguaiAtmosphere {
+    protected double thunderingCloud = 60,
+    rainCloud = 30;
+    protected int waterDrainMaxMultiplier = 50000;
     protected Biome biome = Biomes.PLAINS;
     protected VanillaUnderlying underlying = new VanillaUnderlying(this);
     protected VanillaAtmosphereLayer atmosphereLayer = new VanillaAtmosphereLayer(this);
@@ -65,6 +69,19 @@ public class VanillaAtmosphere extends QiguaiAtmosphere {
         underlying.setUpperLayer(atmosphereLayer);
         atmosphereLayer.setLowerLayer(underlying);
     }
+
+    public void setRainCloud(double rainCloud) {
+        this.rainCloud = rainCloud;
+    }
+
+    public void setThunderingCloud(double thunderingCloud) {
+        this.thunderingCloud = thunderingCloud;
+    }
+
+    public void setWaterDrainMaxMultiplier(int waterDrainMaxMultiplier) {
+        this.waterDrainMaxMultiplier = waterDrainMaxMultiplier;
+    }
+
     @Override
     public float getTemperature(@Nonnull BlockPos pos, boolean notAir) {
         Biome curBiome = biome;
@@ -88,8 +105,8 @@ public class VanillaAtmosphere extends QiguaiAtmosphere {
 
     @Override
     public double getCloudExponent() {
-        if(worldInfo.getWorld().getWorldInfo().isThundering()) return 100;
-        if(worldInfo.getWorld().getWorldInfo().isRaining()) return 50;
+        if(worldInfo.getWorld().getWorldInfo().isThundering()) return thunderingCloud;
+        if(worldInfo.getWorld().getWorldInfo().isRaining()) return rainCloud;
         return biome.getRainfall()*10;
     }
 
@@ -141,19 +158,37 @@ public class VanillaAtmosphere extends QiguaiAtmosphere {
         if(worldInfo.getWorld().isBlockLoaded(pos)){
             curBiome = worldInfo.getWorld().getBiome(pos);
         }
-        return (int) Math.min(amount,curBiome.getRainfall()*50000);
+        return (int) Math.min(amount,curBiome.getRainfall()*waterDrainMaxMultiplier);
     }
 
     @Override
     public void putHeat(double Q, BlockPos pos) {}
 
+    @Nonnull
+    @Override
+    public Weather getWeather(@Nonnull BlockPos pos) {
+        Biome curBiome = biome;
+        if(worldInfo.getWorld().isBlockLoaded(pos)){
+            biome = worldInfo.getWorld().getBiome(pos);
+        }
+        if(!biome.canRain()){
+            return Weather.SUNNY;
+        }
+        if(worldInfo.getWorld().getWorldInfo().isThundering()){
+            return Weather.THUNDERING_RAIN;
+        }else if(worldInfo.getWorld().getWorldInfo().isRaining()){
+            return Weather.MIDDLE_RAIN;
+        }
+        return Weather.SUNNY;
+    }
+
     @Override
     public double getWaterPressure(@Nonnull BlockPos pos) {
         if(worldInfo.getWorld().isBlockLoaded(pos)){
             Biome curBiome = worldInfo.getWorld().getBiome(pos);
-            return curBiome.getRainfall()*3000;
+            return curBiome.getRainfall()*300;
         }
-        return biome.getRainfall()*3000;
+        return biome.getRainfall()*300;
     }
 
     @Override

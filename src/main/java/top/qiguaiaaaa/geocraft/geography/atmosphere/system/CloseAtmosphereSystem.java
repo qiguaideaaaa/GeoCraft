@@ -35,17 +35,23 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
-import top.qiguaiaaaa.geocraft.geography.atmosphere.HallAtmosphere;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.CloseAtmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.DirectAtmosphereAccessor;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.info.CloseAtmosphereSystemInfo;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class HallAtmosphereSystem extends QiguaiAtmosphereSystem {
-    public static final float HALL_TEMP = 400;
+public class CloseAtmosphereSystem extends QiguaiAtmosphereSystem {
+    public static final float HELL_TEMP = 400;
+    protected final float temp;
+    protected final double maxWindSpeed,pressure;
 
-    public HallAtmosphereSystem(WorldServer world, AtmosphereWorldInfo worldInfo, IAtmosphereDataProvider dataProvider){
-        super(world,worldInfo, dataProvider);
+    public CloseAtmosphereSystem(@Nonnull WorldServer world,@Nonnull AtmosphereWorldInfo worldInfo,@Nonnull CloseAtmosphereSystemInfo systemInfo,@Nonnull IAtmosphereDataProvider dataProvider){
+        super(world,worldInfo,systemInfo,dataProvider);
+        temp = systemInfo.getFinalTemperature();
+        maxWindSpeed = systemInfo.getMaxWindSpeed();
+        pressure = systemInfo.getPressure();
     }
 
     @Override
@@ -57,8 +63,10 @@ public class HallAtmosphereSystem extends QiguaiAtmosphereSystem {
     @Override
     protected Atmosphere generateAtmosphere(@Nullable Chunk chunk, @Nonnull AtmosphereData data) {
         if(data.isEmpty() && chunk == null) return null;
-        HallAtmosphere atmosphere = new HallAtmosphere(HALL_TEMP);
+        CloseAtmosphere atmosphere = new CloseAtmosphere(temp);
         atmosphere.setLocation(data.pos.x,data.pos.z);
+        atmosphere.setMaxWindSpeed(maxWindSpeed);
+        atmosphere.setPressure(pressure);
         if(!data.isEmpty()){
             atmosphere.deserializeNBT(data.getSaveCompound());
         }

@@ -28,28 +28,86 @@
 package top.qiguaiaaaa.geocraft.geography.atmosphere.info;
 
 import com.google.gson.JsonObject;
-import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemInfo;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemType;
+import top.qiguaiaaaa.geocraft.util.BaseUtil;
+import top.qiguaiaaaa.geocraft.util.JsonUtil;
 
 import javax.annotation.Nonnull;
 
 /**
  * @author QiguaiAAAA
  */
-public class VanillaAtmosphereSystemInfo extends AtmosphereSystemInfo {
+public class VanillaAtmosphereSystemInfo extends QiguaiAtmosphereSystemInfo {
+    public static final String CLOUD_EXPONENT = "cloud_exponent",
+    CLOUD_EXPONENT_THUNDERING = "thundering",
+    CLOUD_EXPONENT_RAIN = "raining",
+    WATER_DRAIN_MULTIPLIER = "maxWaterDrainedMultiplier";
     public static VanillaAtmosphereSystemInfo create(){
-        JsonObject object = new JsonObject();
-        object.addProperty(FILED_ID, AtmosphereSystemType.VANILLA_ATMOSPHERE_SYSTEM.configName);
+        return new VanillaAtmosphereSystemInfo(new JsonObject());
+    }
+
+    public static VanillaAtmosphereSystemInfo create(@Nonnull JsonObject object){
         return new VanillaAtmosphereSystemInfo(object);
     }
 
     VanillaAtmosphereSystemInfo(@Nonnull JsonObject object) {
-        super(object);
+        super(object,AtmosphereSystemType.VANILLA_ATMOSPHERE_SYSTEM);
+    }
+
+    @Override
+    public VanillaAtmosphereSystemInfo waterFreeze(boolean enable) {
+        super.waterFreeze(enable);
+        return this;
+    }
+
+    @Override
+    public VanillaAtmosphereSystemInfo waterEvaporate(boolean enable) {
+        super.waterEvaporate(enable);
+        return this;
+    }
+
+    @Override
+    public VanillaAtmosphereSystemInfo setRainSmoothingConstant(int constant) {
+        super.setRainSmoothingConstant(constant);
+        return this;
+    }
+
+    @Override
+    public VanillaAtmosphereSystemInfo setVaporExchangeRate(double rate) {
+        super.setVaporExchangeRate(rate);
+        return this;
+    }
+
+    public double getThunderingCloudExponent(){
+        return JsonUtil.readDouble(JsonUtil.readObject(json,CLOUD_EXPONENT),CLOUD_EXPONENT_THUNDERING,60,0,100);
+    }
+
+    public double getRainingCloudExponent(){
+        return JsonUtil.readDouble(JsonUtil.readObject(json,CLOUD_EXPONENT),CLOUD_EXPONENT_RAIN,30,0,100);
+    }
+
+    public int getMaxWaterDrainedMultiplier(){
+        return JsonUtil.readInt(json,WATER_DRAIN_MULTIPLIER,50000,0,Integer.MAX_VALUE);
     }
 
     @Nonnull
     @Override
     public AtmosphereSystemType getType() {
         return AtmosphereSystemType.VANILLA_ATMOSPHERE_SYSTEM;
+    }
+
+    public VanillaAtmosphereSystemInfo setThunderingCloudExponent(double exponent){
+        JsonUtil.setDouble(JsonUtil.readObject(json,CLOUD_EXPONENT),CLOUD_EXPONENT_THUNDERING, BaseUtil.checkAndReturn(exponent,0,100));
+        return this;
+    }
+
+    public VanillaAtmosphereSystemInfo setRainingCloudExponent(double exponent){
+        JsonUtil.setDouble(JsonUtil.readObject(json,CLOUD_EXPONENT),CLOUD_EXPONENT_RAIN,BaseUtil.checkAndReturn(exponent,0,100));
+        return this;
+    }
+
+    public VanillaAtmosphereSystemInfo setMaxWaterDrainedMultiplier(int multiplier){
+        JsonUtil.setInt(json,WATER_DRAIN_MULTIPLIER,BaseUtil.checkAndReturn(multiplier,0,Integer.MAX_VALUE));
+        return this;
     }
 }

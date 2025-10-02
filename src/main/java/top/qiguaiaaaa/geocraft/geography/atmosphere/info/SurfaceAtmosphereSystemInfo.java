@@ -28,7 +28,6 @@
 package top.qiguaiaaaa.geocraft.geography.atmosphere.info;
 
 import com.google.gson.JsonObject;
-import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemInfo;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemType;
 
 import javax.annotation.Nonnull;
@@ -36,15 +35,41 @@ import javax.annotation.Nonnull;
 /**
  * @author QiguaiAAAA
  */
-public class SurfaceAtmosphereSystemInfo extends AtmosphereSystemInfo {
+public class SurfaceAtmosphereSystemInfo extends QiguaiAtmosphereSystemInfo {
     public static SurfaceAtmosphereSystemInfo create(){
-        JsonObject object = new JsonObject();
-        object.addProperty(FILED_ID, AtmosphereSystemType.SURFACE_ATMOSPHERE_SYSTEM.configName);
+        return new SurfaceAtmosphereSystemInfo(new JsonObject());
+    }
+
+    public static SurfaceAtmosphereSystemInfo create(@Nonnull JsonObject object){
         return new SurfaceAtmosphereSystemInfo(object);
     }
 
     SurfaceAtmosphereSystemInfo(@Nonnull JsonObject object) {
-        super(object);
+        super(object,AtmosphereSystemType.SURFACE_ATMOSPHERE_SYSTEM);
+    }
+
+    @Override
+    public SurfaceAtmosphereSystemInfo waterFreeze(boolean enable) {
+        super.waterFreeze(enable);
+        return this;
+    }
+
+    @Override
+    public SurfaceAtmosphereSystemInfo waterEvaporate(boolean enable) {
+        super.waterEvaporate(enable);
+        return this;
+    }
+
+    @Override
+    public SurfaceAtmosphereSystemInfo setRainSmoothingConstant(int constant) {
+        super.setRainSmoothingConstant(constant);
+        return this;
+    }
+
+    @Override
+    public SurfaceAtmosphereSystemInfo setVaporExchangeRate(double rate) {
+        super.setVaporExchangeRate(rate);
+        return this;
     }
 
     @Nonnull

@@ -83,6 +83,26 @@ public final class FluidPhysicsConfig {
                     "Allow Pressure System running as async, which can greatly improve performance. This option is enabled by default." +
                     "However,if async caused some strange problems such as GAME CRASH, you can try to disable it to make Pressure System run as sync.");
 
+    // ********************
+    // Thread Pool
+
+    public static final ConfigCategory CATEGORY_FLUID_PRESSURE_SYSTEM_THREAD_POOL = CATEGORY_FLUID_PRESSURE_SYSTEM.getChildCategory("thread_pool");
+
+    public static final ConfigBoolean PRESSURE_USING_THREAD_POOL = new ConfigBoolean(CATEGORY_FLUID_PRESSURE_SYSTEM_THREAD_POOL,
+            "useThreadPool",true,
+            "仅在"+RUN_PRESSURE_SYSTEM_AS_ASYNC.getPath()+"为"+true+"的情况下有效\n" +
+                    "使用线程池的方式同时运行多个压强任务，可进一步大幅提高性能。\n" +
+                    "Valid only when " + RUN_PRESSURE_SYSTEM_AS_ASYNC.getPath() + " is set to " + true + "\n" +
+                    "Runs multiple pressure tasks concurrently using a thread pool, which can further significantly improve performance.");
+
+    public static final ConfigInteger PRESSURE_THREAD_COUNT = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM_THREAD_POOL,
+            "numberOfThreadsInTheThreadPool",Runtime.getRuntime().availableProcessors(),
+            "线程池中的线程数量，一般取CPU的核心数。\n" +
+                    "The number of threads in the thread pool, typically set to the number of CPU cores.",1,Integer.MAX_VALUE,false);
+
+    // Ended
+    //**********************
+
     public static final ConfigInteger PRESSURE_TICK_DURATION = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
             "pressureTickDuration",40,
             "1压强刻的理想时长，单位为毫秒。仅在多线程模式下有效。\n" +
@@ -135,7 +155,7 @@ public final class FluidPhysicsConfig {
             0,Integer.MAX_VALUE,false);
 
     public static final ConfigInteger PAUSE_TIME_FOR_PRESSURE_SYSTEM = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
-            "maxPauseTimeForPressureSystem",40,
+            "maxPauseTimeForPressureSystem",200,
             "压强系统暂停运行的最长时间，单位为毫秒。将此值设置为0则允许压强系统一直等待下去，直到被其他线程唤醒。\n" +
                     "Max pause time for the pressure system (ms). A value of 0 means it will wait indefinitely until another thread resumes it.",
             0,Integer.MAX_VALUE,false);

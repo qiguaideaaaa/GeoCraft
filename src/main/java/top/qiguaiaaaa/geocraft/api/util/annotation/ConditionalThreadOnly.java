@@ -25,31 +25,16 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure;
+package top.qiguaiaaaa.geocraft.api.util.annotation;
 
-import net.minecraft.util.math.BlockPos;
-import top.qiguaiaaaa.geocraft.api.util.annotation.ThreadOnly;
-import top.qiguaiaaaa.geocraft.api.util.annotation.ThreadType;
-
-import javax.annotation.Nullable;
-import java.util.Iterator;
+import java.lang.annotation.*;
 
 /**
  * @author QiguaiAAAA
  */
-public interface IFluidPressureSearchTaskResult extends Iterator<BlockPos> {
-    int size();
-
-    default boolean isEmpty(){
-        return size() == 0;
-    }
-
-    @Override
-    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    boolean hasNext();
-
-    @Override
-    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    @Nullable
-    BlockPos next();
+@Documented
+@Target({ElementType.METHOD,ElementType.FIELD,ElementType.CONSTRUCTOR,ElementType.LOCAL_VARIABLE,ElementType.TYPE})
+@Retention(RetentionPolicy.SOURCE)
+public @interface ConditionalThreadOnly {
+    ThreadType[] value();
 }

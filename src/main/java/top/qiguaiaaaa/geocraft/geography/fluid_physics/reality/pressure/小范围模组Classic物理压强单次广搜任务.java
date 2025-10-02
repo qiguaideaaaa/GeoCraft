@@ -25,31 +25,42 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure;
+package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
-import top.qiguaiaaaa.geocraft.api.util.annotation.ThreadOnly;
-import top.qiguaiaaaa.geocraft.api.util.annotation.ThreadType;
+import net.minecraftforge.fluids.BlockFluidBase;
+import net.minecraftforge.fluids.Fluid;
 
-import javax.annotation.Nullable;
-import java.util.Iterator;
+import javax.annotation.Nonnull;
 
 /**
  * @author QiguaiAAAA
  */
-public interface IFluidPressureSearchTaskResult extends Iterator<BlockPos> {
-    int size();
+public class 小范围模组Classic物理压强单次广搜任务 extends 小范围物理压强单次广搜任务 implements IRealityModClassicPressureBFSTask{
+    protected final byte beginQuanta;
+    protected final byte quantaPerBlock;
+    protected final byte densityDir;
 
-    default boolean isEmpty(){
-        return size() == 0;
+    小范围模组Classic物理压强单次广搜任务(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos, int searchRange, int quantaPerBlock) {
+        super(fluid, beginState, beginPos, searchRange);
+        beginQuanta = (byte) (quantaPerBlock-beginState.getValue(BlockFluidBase.LEVEL));
+        this.quantaPerBlock = (byte) quantaPerBlock;
+        this.densityDir = (byte) (fluid.getDensity()>0?1:-1);
     }
 
     @Override
-    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    boolean hasNext();
+    public byte getDensityDir() {
+        return densityDir;
+    }
 
     @Override
-    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    @Nullable
-    BlockPos next();
+    public byte getBeginQuanta() {
+        return beginQuanta;
+    }
+
+    @Override
+    public byte getQuantaPerBlock() {
+        return quantaPerBlock;
+    }
 }

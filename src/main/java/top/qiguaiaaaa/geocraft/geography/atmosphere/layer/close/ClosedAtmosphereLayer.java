@@ -25,7 +25,7 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.geography.atmosphere.layer.hall;
+package top.qiguaiaaaa.geocraft.geography.atmosphere.layer.close;
 
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -49,15 +49,27 @@ import java.util.Random;
 public class ClosedAtmosphereLayer extends QiguaiAtmosphereLayer {
     protected static final Random random = new Random();
     protected TemperatureState temperature = GeoCraftProperties.FINAL_TEMPERATURE.getStateInstance();
+    protected double maxWindSpeed = 4
+            ,pressure = 2e5;
     public ClosedAtmosphereLayer(QiguaiAtmosphere atmosphere) {
         super(atmosphere);
         this.heatCapacity = 1e10;
         states.put(GeoCraftProperties.FINAL_TEMPERATURE,temperature);
     }
 
+    public void setMaxWindSpeed(double maxWindSpeed) {
+        if(maxWindSpeed<0) throw new IllegalArgumentException();
+        this.maxWindSpeed = maxWindSpeed;
+    }
+
+    public void setPressure(double pressure) {
+        if(pressure <0) throw new IllegalArgumentException();
+        this.pressure = pressure;
+    }
+
     @Override
     public Vec3d 计算水平风速分量(Atmosphere to, EnumFacing dir) {
-        return new Vec3d(dir.getDirectionVec()).scale(random.nextDouble()*4-2).add(super.计算水平风速分量(to,dir));
+        return new Vec3d(dir.getDirectionVec()).scale(random.nextDouble()*maxWindSpeed-maxWindSpeed/2).add(super.计算水平风速分量(to,dir));
     }
 
     @Override
@@ -70,7 +82,7 @@ public class ClosedAtmosphereLayer extends QiguaiAtmosphereLayer {
 
     @Override
     public double getPressure(@Nonnull BlockPos pos) {
-        return 2e5;
+        return pressure;
     }
 
     @Override

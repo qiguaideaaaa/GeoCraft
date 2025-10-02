@@ -28,15 +28,24 @@
 package top.qiguaiaaaa.geocraft.api.atmosphere.weather;
 
 public class Weather {
-    public static final Weather SUNNY = new Weather("Sunny", "");
-    public static final Weather FOG = new Weather("Fog","");
-    public static final Weather LIGHT_RAIN = new Weather("LightRain","");
+    public static final Weather SUNNY = new Weather("Sunny", "",false);
+    public static final Weather FOG = new Weather("Fog","",false);
+    public static final Weather LIGHT_RAIN = new Weather("LightRain","",true);
+    public static final Weather MIDDLE_RAIN = new Weather("MiddleRain","",true);
+    public static final Weather THUNDERING_RAIN = new Weather("ThunderingRain","",true);
 
     protected final String name, translationKey;
 
-    public Weather(String name, String translationKey) {
+    protected final boolean isRainy;
+
+    public Weather(String name, String translationKey,boolean isRainy) {
         this.name = name;
         this.translationKey = translationKey;
+        this.isRainy = isRainy;
+    }
+
+    public boolean isRainy() {
+        return isRainy;
     }
 
     @Override

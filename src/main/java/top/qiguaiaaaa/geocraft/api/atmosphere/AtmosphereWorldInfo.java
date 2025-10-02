@@ -27,26 +27,129 @@
 
 package top.qiguaiaaaa.geocraft.api.atmosphere;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
+import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
+
+import javax.annotation.Nonnull;
 
 public class AtmosphereWorldInfo {
     protected final WorldServer world;
     protected IAtmosphereSystem system;
 
-    public AtmosphereWorldInfo(WorldServer world) {
+    protected boolean waterFreeze = true;
+    protected boolean waterEvaporate = true;
+
+    /**
+     * 下雨概率的平滑值,用于{@link top.qiguaiaaaa.geocraft.util.WaterUtil#getRainPossibility(IAtmosphereAccessor)}
+     */
+    protected int rainSmoothingConstant = 4096;
+    /**
+     * 水汽交换率,用于{@link top.qiguaiaaaa.geocraft.util.WaterUtil#getWaterEvaporateAmount(IAtmosphereAccessor)}
+     */
+    protected double vaporExchangeRate = 1e-6;
+
+    public void waterFreeze(boolean waterFreeze) {
+        this.waterFreeze = waterFreeze;
+    }
+
+    public void waterEvaporate(boolean waterEvaporate){
+        this.waterEvaporate = waterEvaporate;
+    }
+
+    public void setRainSmoothingConstant(int rainSmoothingConstant) {
+        if(rainSmoothingConstant<1) throw new IllegalArgumentException();
+        this.rainSmoothingConstant = rainSmoothingConstant;
+    }
+
+    public void setVaporExchangeRate(double vaporExchangeRate) {
+        if(vaporExchangeRate<0) throw new IllegalArgumentException();
+        this.vaporExchangeRate = vaporExchangeRate;
+    }
+
+    public boolean canWaterFreeze() {
+        return waterFreeze;
+    }
+
+    public boolean canWaterEvaporate() {
+        return waterEvaporate;
+    }
+
+    public int getRainSmoothingConstant() {
+        return rainSmoothingConstant;
+    }
+
+    public double getVaporExchangeRate() {
+        return vaporExchangeRate;
+    }
+
+    /**
+     * 指定位置的水是否能够蒸发
+     * @param pos 位置
+     * @return 若能,则返回true,否则返回false
+     */
+    public boolean canWaterEvaporate(@Nonnull BlockPos pos){
+        return canWaterEvaporate();
+    }
+
+    /**
+     * 指定位置是否能够凝结水成冰
+     * @param pos 位置
+     * @param neighborWaterCheck 是否检查周边水方块
+     * @return 如果能，则返回true
+     */
+    public boolean canWaterFreeze(@Nonnull BlockPos pos, boolean neighborWaterCheck) {
+        if(!canWaterFreeze()) return false;
+        IAtmosphereAccessor accessor = system.getAccessor(pos,true);
+        if(accessor == null) return world.canBlockFreezeBody(pos,neighborWaterCheck);
+
+        if (accessor.getTemperature() < TemperatureProperty.ICE_POINT) {
+            if (pos.getY() < 0 || pos.getY() >= 256)
+                return false;
+            IBlockState state = world.getBlockState(pos);
+            Block block = state.getBlock();
+
+            if ((block == Blocks.WATER || block == Blocks.FLOWING_WATER) && state.getValue(BlockLiquid.LEVEL) == 0) {
+                if (!neighborWaterCheck) {
+                    return true;
+                }
+
+                boolean isWaterSurrounded = isWater(world, pos.west()) && isWater(world, pos.east()) && isWater(world, pos.north()) && isWater(world, pos.south());
+
+                return !isWaterSurrounded;
+            }
+
+        }
+        return false;
+    }
+
+    public AtmosphereWorldInfo(@Nonnull WorldServer world) {
         this.world = world;
     }
 
+    @Nonnull
     public WorldServer getWorld() {
         return world;
     }
 
+    @Nonnull
     public IAtmosphereSystem getSystem() {
         return system;
     }
 
-    public void setSystem(IAtmosphereSystem system) {
+    public void setSystem(@Nonnull IAtmosphereSystem system) {
         this.system = system;
+    }
+
+    private static boolean isWater(@Nonnull World world,@Nonnull BlockPos pos) {
+        return world.getBlockState(pos).getMaterial() == Material.WATER;
     }
 }

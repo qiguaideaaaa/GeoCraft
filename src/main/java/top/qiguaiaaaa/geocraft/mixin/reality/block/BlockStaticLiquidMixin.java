@@ -27,13 +27,16 @@
 
 package top.qiguaiaaaa.geocraft.mixin.reality.block;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockDynamicLiquid;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.BlockStaticLiquid;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.Fluid;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -49,6 +52,7 @@ import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure.RealityPressureTaskBuilder;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTaskResult;
+import top.qiguaiaaaa.geocraft.handler.ServerStatusMonitor;
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
 import top.qiguaiaaaa.geocraft.util.mixinapi.FluidSettable;
 import top.qiguaiaaaa.geocraft.util.mixinapi.IVanillaFlowChecker;
@@ -71,10 +75,16 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
     }
 
     @Override
+    @Unique
     public void randomTick(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random random) {
         curRandomTick = true;
         super.randomTick(worldIn, pos, state, random);
         curRandomTick = false;
+    }
+
+    @Inject(method = "neighborChanged",at =@At("HEAD"),cancellable = true)
+    private void beforeNeighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos,CallbackInfo ci){
+        if(ServerStatusMonitor.isServerCloselyLagging()) ci.cancel();
     }
 
     @Inject(method = "<init>",at = @At("RETURN"))
@@ -155,15 +165,16 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
     protected boolean tryMoveInto(World world,BlockPos toPos,BlockPos srcPos,IBlockState myState){
         if(!world.isBlockLoaded(toPos)) return false;
         IBlockState toState = world.getBlockState(toPos);
+        final int updateFlag = ServerStatusMonitor.getRecommendedBlockFlags();
         if(toState.getMaterial() == Material.AIR){
             int quanta = 8 -myState.getValue(LEVEL);
             int movQuanta = srcPos.getY()==toPos.getY()?quanta/2:quanta;
             if(movQuanta <= 0)return false;
             quanta -=movQuanta;
             if(quanta <= 0){
-                world.setBlockToAir(srcPos);
-            }else world.setBlockState(srcPos,this.getDefaultState().withProperty(LEVEL,8-quanta));
-            world.setBlockState(toPos,this.getDefaultState().withProperty(LEVEL,8-movQuanta));
+                world.setBlockState(srcPos, Blocks.AIR.getDefaultState(),updateFlag);
+            }else world.setBlockState(srcPos,this.getDefaultState().withProperty(LEVEL,8-quanta),updateFlag);
+            world.setBlockState(toPos,this.getDefaultState().withProperty(LEVEL,8-movQuanta),updateFlag);
             return quanta == 0;
         }else if(FluidUtil.getFluid(toState) == thisFluid){
             int toQuanta = 8-toState.getValue(LEVEL);
@@ -172,10 +183,10 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
             int movQuanta = srcPos.getY()==toPos.getY()?(myQuanta-toQuanta)/2:Math.min(8-toQuanta,myQuanta);
             myQuanta -=movQuanta;
             if(myQuanta <= 0){
-                world.setBlockToAir(srcPos);
-            }else world.setBlockState(srcPos,this.getDefaultState().withProperty(LEVEL,8-myQuanta));
+                world.setBlockState(srcPos, Blocks.AIR.getDefaultState(),updateFlag);
+            }else world.setBlockState(srcPos,this.getDefaultState().withProperty(LEVEL,8-myQuanta),updateFlag);
             toQuanta += movQuanta;
-            world.setBlockState(toPos,this.getDefaultState().withProperty(LEVEL,8-toQuanta));
+            world.setBlockState(toPos,this.getDefaultState().withProperty(LEVEL,8-toQuanta),updateFlag);
             return myQuanta==0;
         }
         return false;

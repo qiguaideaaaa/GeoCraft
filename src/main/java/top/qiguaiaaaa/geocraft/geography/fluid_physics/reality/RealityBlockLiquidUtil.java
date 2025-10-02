@@ -39,6 +39,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.IFluidBlock;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
+import top.qiguaiaaaa.geocraft.api.util.annotation.ThreadOnly;
+import top.qiguaiaaaa.geocraft.api.util.annotation.ThreadType;
 import top.qiguaiaaaa.geocraft.api.util.math.FlowChoice;
 import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.util.fluid.BlockLiquidUtil;
@@ -55,6 +57,7 @@ import static net.minecraft.block.BlockLiquid.LEVEL;
  * @author QiguaiAAAA
  */
 public final class RealityBlockLiquidUtil {
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     private static final BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
 
     /**
@@ -65,6 +68,7 @@ public final class RealityBlockLiquidUtil {
      * @param averageModeFlowDirections 平均流动模式下的选择列表
      * @param slopeModeFlowDirections Q>1 坡度流动模式下的选择集合
      */
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     public static void checkNeighborsToFindFlowChoices(World worldIn, BlockPos pos, BlockLiquid liquid, int liquidQuanta, List<FlowChoice> averageModeFlowDirections,@Nullable Set<EnumFacing> slopeModeFlowDirections){
         for(EnumFacing facing:EnumFacing.Plane.HORIZONTAL){
             IBlockState facingState = worldIn.getBlockState(mutablePos.setPos(pos.getX()+facing.getXOffset(),pos.getY(),pos.getZ()+facing.getZOffset()));

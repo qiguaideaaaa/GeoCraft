@@ -25,8 +25,14 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.util.mixinapi;
+package top.qiguaiaaaa.geocraft.api.util.annotation;
 
-public interface Ignorable {
-    void setIgnore(boolean isIgnored);
+/**
+ * @author QiguaiAAAA
+ */
+public enum ThreadType {
+    MINECRAFT_SERVER,
+    MINECRAFT_CLIENT,
+    FLUID_PRESSURE_MANAGER,
+    FLUID_PRESSURE_TASKS
 }

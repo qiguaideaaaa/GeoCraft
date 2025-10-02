@@ -37,9 +37,9 @@ import top.qiguaiaaaa.geocraft.util.math.Int10;
 import top.qiguaiaaaa.geocraft.util.math.vec.IVec3i;
 
 import javax.annotation.Nonnull;
-
 import java.util.Set;
 
+import static top.qiguaiaaaa.geocraft.geography.fluid_physics.ThreadLocalHelper.MUTABLE_BLOCK_POS_FOR_QUEUE;
 import static top.qiguaiaaaa.geocraft.util.math.vec.IVec3i.X_INT_OFFSET;
 import static top.qiguaiaaaa.geocraft.util.math.vec.IVec3i.Y_INT_OFFSET;
 import static top.qiguaiaaaa.geocraft.util.math.vec.RelativeBlockPosS.Mutable.MUTABLE;
@@ -50,10 +50,8 @@ import static top.qiguaiaaaa.geocraft.util.math.vec.RelativeBlockPosS.Mutable.MU
  */
 public abstract class FluidPressureSmallBFSBaseTask extends FluidPressureBFSBaseTask{
     public static final int MAX_RELATIVE_POS_OFFSET = (1<<(Integer.SIZE/3)-1)-1;
-    private static final BlockPos.MutableBlockPos mutablePosForQueue = new BlockPos.MutableBlockPos(); //注意,仅单线程使用
     protected final IntSet visited = new IntOpenHashSet();
     protected final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
-
 
     public FluidPressureSmallBFSBaseTask(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos) {
         super(fluid, beginState, beginPos);
@@ -71,7 +69,7 @@ public abstract class FluidPressureSmallBFSBaseTask extends FluidPressureBFSBase
      */
     @Override
     public boolean isVisited(@Nonnull BlockPos pos){
-        return visited.contains(MUTABLE.setPos(beginPos,pos).toInt());
+        return visited.contains(MUTABLE.get().setPos(beginPos,pos).toInt());
     }
 
     /**
@@ -80,7 +78,7 @@ public abstract class FluidPressureSmallBFSBaseTask extends FluidPressureBFSBase
      */
     @Override
     public void markVisited(@Nonnull BlockPos pos){
-        visited.add(MUTABLE.setPos(beginPos,pos).toInt());
+        visited.add(MUTABLE.get().setPos(beginPos,pos).toInt());
     }
 
     @Override
@@ -94,7 +92,7 @@ public abstract class FluidPressureSmallBFSBaseTask extends FluidPressureBFSBase
      */
     @Override
     public void queued(@Nonnull BlockPos pos){
-        queue.enqueue(MUTABLE.setPos(beginPos,pos).toInt());
+        queue.enqueue(MUTABLE.get().setPos(beginPos,pos).toInt());
     }
 
     @Nonnull
@@ -120,7 +118,7 @@ public abstract class FluidPressureSmallBFSBaseTask extends FluidPressureBFSBase
         final int x = Int10.toInt((posInt& IVec3i.X_INT_MASK)>> X_INT_OFFSET),
                 y = Int10.toInt((posInt&IVec3i.Y_INT_MASK)>> Y_INT_OFFSET),
                 z = Int10.toInt(posInt&IVec3i.Z_INT_MASK);
-        return mutablePosForQueue.setPos(beginPos.getX()+x,beginPos.getY()+y,beginPos.getZ()+z);
+        return MUTABLE_BLOCK_POS_FOR_QUEUE.get().setPos(beginPos.getX()+x,beginPos.getY()+y,beginPos.getZ()+z);
     }
 
     @Override

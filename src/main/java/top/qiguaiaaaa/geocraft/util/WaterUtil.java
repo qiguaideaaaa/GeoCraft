@@ -27,9 +27,6 @@
 
 package top.qiguaiaaaa.geocraft.util;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockLiquid;
-import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
@@ -42,33 +39,29 @@ import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 
 public final class WaterUtil {
-    public static boolean isWater(World world, BlockPos pos) {
-        return world.getBlockState(pos).getMaterial() == Material.WATER;
-    }
     /**
      * 获取水蒸发的概率
-     * @param atmosphere 大气
+     * @param accessor 大气访问器
      * @return 一个介于0~1的值，表示概率
      */
-    public static double getWaterEvaporatePossibility(IAtmosphereAccessor accessor,Atmosphere atmosphere, BlockPos pos) {
+    public static double getWaterEvaporatePossibility(IAtmosphereAccessor accessor) {
         final int 单层水质量 = FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
-        double temp = accessor.getTemperature();
+        double temp = accessor.getTemperature(true);
         if(temp>= TemperatureProperty.BOILED_POINT) return 1;
-        double 期望质量 = getWaterEvaporateAmount(atmosphere,pos);
+        double 期望质量 = getWaterEvaporateAmount(accessor);
         return  1.0 - Math.exp(-期望质量 / 单层水质量);
     }
 
     /**
      * 获取水蒸发量
-     * @param atmosphere 大气
-     * @param pos 蒸发位置
+     * @param accessor 大气访问器
      * @return 水蒸发量,单位kg
      */
-    public static double getWaterEvaporateAmount(Atmosphere atmosphere,BlockPos pos){
-        final double 交换系数 = 1.0e-6;
+    public static double getWaterEvaporateAmount(IAtmosphereAccessor accessor){
+        final double 交换系数 = accessor.getAtmosphereWorldInfo().getVaporExchangeRate();
         final int 时间步长 = 216;
-        double 水汽压 = atmosphere.getWaterPressure(pos);
-        double 饱和水汽压 = 计算饱和水汽压(atmosphere.getAtmosphereTemperature(pos));
+        double 水汽压 = accessor.getWaterPressure();
+        double 饱和水汽压 = 计算饱和水汽压(accessor.getTemperature(false));
         double 水汽压差 = Math.max(饱和水汽压 - 水汽压, 0);
         double 通量_kg每平米每秒 = 交换系数 * 水汽压差;
         return 通量_kg每平米每秒 * 时间步长;
@@ -76,17 +69,17 @@ public final class WaterUtil {
 
     /**
      * 获取降雨概率
-     * @param atmosphere 大气
-     * @param pos 降雨位置
+     * @param accessor 大气访问器
      * @return 一个介于0~1的值，表示概率
      */
-    public static double getRainPossibility(Atmosphere atmosphere, BlockPos pos) {
-        float temp = atmosphere.getAtmosphereTemperature(pos);
+    public static double getRainPossibility(IAtmosphereAccessor accessor) {
+        if(accessor.getAtmosphereHere() == null) return 0;
+        double temp = accessor.getTemperature(false);
         if(temp <= TemperatureProperty.UNAVAILABLE) return 0;
         if(temp>= TemperatureProperty.BOILED_POINT) return 0;
         if(temp<= TemperatureProperty.ICE_POINT-100) return 1;
-        double strong = atmosphere.getCloudExponent();
-        return strong/(strong+4096);
+        double strong = accessor.getAtmosphereHere().getCloudExponent();
+        return strong/(strong+accessor.getAtmosphereWorldInfo().getRainSmoothingConstant());
     }
 
     /**
@@ -139,37 +132,6 @@ public final class WaterUtil {
 
             return false;
         }
-    }
-
-    /**
-     * 指定位置是否能够凝结水成冰
-     * @param world 世界
-     * @param pos 位置
-     * @param neighborWaterCheck 是否检查周边水方块
-     * @return 如果能，则返回true
-     */
-    public static boolean canWaterFreeze(World world,BlockPos pos, boolean neighborWaterCheck) {
-        IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(world,pos,true);
-        if(accessor == null) return world.canBlockFreezeBody(pos,neighborWaterCheck);
-
-        if (accessor.getTemperature() < TemperatureProperty.ICE_POINT) {
-            if (pos.getY() < 0 || pos.getY() >= 256)
-                return false;
-            IBlockState state = world.getBlockState(pos);
-            Block block = state.getBlock();
-
-            if ((block == Blocks.WATER || block == Blocks.FLOWING_WATER) && state.getValue(BlockLiquid.LEVEL) == 0) {
-                if (!neighborWaterCheck) {
-                    return true;
-                }
-
-                boolean isWaterSurrounded = isWater(world, pos.west()) && isWater(world, pos.east()) && isWater(world, pos.north()) && isWater(world, pos.south());
-
-                return !isWaterSurrounded;
-            }
-
-        }
-        return false;
     }
 
     /**

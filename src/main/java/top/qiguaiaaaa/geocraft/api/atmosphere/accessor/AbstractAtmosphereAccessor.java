@@ -118,6 +118,7 @@ public abstract class AbstractAtmosphereAccessor implements IAtmosphereAccessor{
 
     @Override
     public double getTemperature(boolean notAir) {
+        if(this.notAir == notAir) return getTemperature();
         boolean old = this.notAir;
         setNotAir(notAir);
         double temp = getTemperature();

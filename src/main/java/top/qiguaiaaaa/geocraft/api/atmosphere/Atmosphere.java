@@ -38,6 +38,7 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.layer.AtmosphereLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.Layer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.layer.UnderlyingLayer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.tracker.IAtmosphereTracker;
+import top.qiguaiaaaa.geocraft.api.atmosphere.weather.Weather;
 import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 
 import javax.annotation.Nonnull;
@@ -138,7 +139,16 @@ public interface Atmosphere extends INBTSerializable<NBTTagCompound> {
      * @param pos 方块位置,为游戏位置
      * @return 风速向量
      */
+    @Nonnull
     Vec3d getWind(@Nonnull BlockPos pos);
+
+    /**
+     * 获取当前的天气
+     * @param pos 位置
+     * @return 天气
+     */
+    @Nonnull
+    Weather getWeather(@Nonnull BlockPos pos);
 
     /**
      * 获得某位置的大气水汽压

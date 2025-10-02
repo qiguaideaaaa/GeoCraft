@@ -39,6 +39,7 @@ import top.qiguaiaaaa.geocraft.util.math.vec.IVec3i;
 import javax.annotation.Nonnull;
 import java.util.Set;
 
+import static top.qiguaiaaaa.geocraft.geography.fluid_physics.ThreadLocalHelper.MUTABLE_BLOCK_POS_FOR_QUEUE;
 import static top.qiguaiaaaa.geocraft.util.math.vec.IVec3i.X_LONG_OFFSET;
 import static top.qiguaiaaaa.geocraft.util.math.vec.IVec3i.Y_LONG_OFFSET;
 import static top.qiguaiaaaa.geocraft.util.math.vec.RelativeBlockPosI.Mutable.MUTABLE;
@@ -51,7 +52,6 @@ public abstract class FluidPressureLargeBFSBaseTask extends FluidPressureBFSBase
     public static final int MAX_RELATIVE_POS_OFFSET = (1<<(Long.SIZE/3)-1)-1;
     protected final LongSet visited = new LongOpenHashSet();
     protected final LongArrayFIFOQueue queue = new LongArrayFIFOQueue();
-    private static final BlockPos.MutableBlockPos mutablePosForQueue = new BlockPos.MutableBlockPos(); //注意,仅单线程使用
 
     public FluidPressureLargeBFSBaseTask(@Nonnull Fluid fluid, @Nonnull IBlockState beginState, @Nonnull BlockPos beginPos) {
         super(fluid,beginState,beginPos);
@@ -69,7 +69,7 @@ public abstract class FluidPressureLargeBFSBaseTask extends FluidPressureBFSBase
      */
     @Override
     public boolean isVisited(@Nonnull BlockPos pos){
-        return visited.contains(MUTABLE.setPos(beginPos,pos).toLong());
+        return visited.contains(MUTABLE.get().setPos(beginPos,pos).toLong());
     }
 
     /**
@@ -78,7 +78,7 @@ public abstract class FluidPressureLargeBFSBaseTask extends FluidPressureBFSBase
      */
     @Override
     public void markVisited(@Nonnull BlockPos pos){
-        visited.add(MUTABLE.setPos(beginPos,pos).toLong());
+        visited.add(MUTABLE.get().setPos(beginPos,pos).toLong());
     }
 
     @Override
@@ -92,7 +92,7 @@ public abstract class FluidPressureLargeBFSBaseTask extends FluidPressureBFSBase
      */
     @Override
     public void queued(@Nonnull BlockPos pos){
-        queue.enqueue(MUTABLE.setPos(beginPos,pos).toLong());
+        queue.enqueue(MUTABLE.get().setPos(beginPos,pos).toLong());
     }
 
     @Nonnull
@@ -118,7 +118,7 @@ public abstract class FluidPressureLargeBFSBaseTask extends FluidPressureBFSBase
         final int x = Int21.toInt((posLong& IVec3i.X_LONG_MASK)>> X_LONG_OFFSET),
                 y = Int21.toInt((posLong&IVec3i.Y_LONG_MASK)>> Y_LONG_OFFSET),
                 z = Int21.toInt(posLong&IVec3i.Z_LONG_MASK);
-        return mutablePosForQueue.setPos(beginPos.getX()+x,beginPos.getY()+y,beginPos.getZ()+z);
+        return MUTABLE_BLOCK_POS_FOR_QUEUE.get().setPos(beginPos.getX()+x,beginPos.getY()+y,beginPos.getZ()+z);
     }
 
     @Override

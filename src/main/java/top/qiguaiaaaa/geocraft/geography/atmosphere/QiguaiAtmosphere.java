@@ -122,6 +122,7 @@ public abstract class QiguaiAtmosphere extends BaseAtmosphere {
     // Override
     //************
 
+    @Nonnull
     @Override
     public Vec3d getWind(@Nonnull BlockPos pos){
         AtmosphereLayer layer = getAtmosphereLayer(pos);

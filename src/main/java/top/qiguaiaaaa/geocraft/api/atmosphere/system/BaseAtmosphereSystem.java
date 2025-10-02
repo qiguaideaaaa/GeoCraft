@@ -142,5 +142,18 @@ public abstract class BaseAtmosphereSystem implements IAtmosphereSystem{
     }
 
     @Nullable
+    protected AtmosphereData getChunkLoadedAtmosphereData(@Nonnull Chunk chunk){
+        AtmosphereData data = dataProvider.getLoadedAtmosphereData(chunk.x,chunk.z);
+        if(data == null) return null;
+        Atmosphere atmosphere = data.getAtmosphere();
+        if(atmosphere ==null) return null;
+        if(data.getChunk() == null){
+            this.onChunkLoaded(chunk); //若大气处于无区块加载状态,先处理大气
+        }
+        if(!atmosphere.isLoaded()) return null;
+        return data;
+    }
+
+    @Nullable
     protected abstract Atmosphere generateAtmosphere(@Nullable Chunk chunk,@Nonnull AtmosphereData data);
 }

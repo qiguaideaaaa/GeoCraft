@@ -27,20 +27,36 @@
 
 package top.qiguaiaaaa.geocraft.geography.atmosphere.system;
 
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
+import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
+import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 import top.qiguaiaaaa.geocraft.geography.atmosphere.VanillaAtmosphere;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.info.VanillaAtmosphereSystemInfo;
+import top.qiguaiaaaa.geocraft.util.BaseUtil;
+import top.qiguaiaaaa.geocraft.util.WaterUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import static top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA;
+
 public class VanillaAtmosphereSystem extends QiguaiAtmosphereSystem{
-    public VanillaAtmosphereSystem(WorldServer server, AtmosphereWorldInfo info, IAtmosphereDataProvider provider) {
-        super(server, info, provider);
+    protected final int maxWaterDrainedMultiplier;
+    protected final double thunderingCloudExponent,rainingCloudExponent;
+    public VanillaAtmosphereSystem(WorldServer server, AtmosphereWorldInfo info, VanillaAtmosphereSystemInfo systemInfo, IAtmosphereDataProvider provider) {
+        super(server, info,systemInfo, provider);
+        thunderingCloudExponent = systemInfo.getThunderingCloudExponent();
+        rainingCloudExponent = systemInfo.getRainingCloudExponent();
+        maxWaterDrainedMultiplier = systemInfo.getMaxWaterDrainedMultiplier();
     }
 
     @Override
@@ -55,6 +71,9 @@ public class VanillaAtmosphereSystem extends QiguaiAtmosphereSystem{
         if(data.isEmpty() && chunk == null) return null;
         VanillaAtmosphere atmosphere = new VanillaAtmosphere();
         atmosphere.setLocation(data.pos.x,data.pos.z);
+        atmosphere.setRainCloud(rainingCloudExponent);
+        atmosphere.setThunderingCloud(thunderingCloudExponent);
+        atmosphere.setWaterDrainMaxMultiplier(maxWaterDrainedMultiplier);
         if(!data.isEmpty()){
             atmosphere.deserializeNBT(data.getSaveCompound());
         }

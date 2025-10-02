@@ -54,6 +54,7 @@ import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure.RealityP
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTaskResult;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.update.FluidUpdateBaseTask;
 import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
+import top.qiguaiaaaa.geocraft.handler.ServerStatusMonitor;
 import top.qiguaiaaaa.geocraft.util.fluid.BlockLiquidUtil;
 import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
 
@@ -82,6 +83,7 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
         state = curState;
         material = state.getMaterial();
         int liquidMeta = state.getValue(LEVEL);
+        final int updateFlag = ServerStatusMonitor.getRecommendedBlockFlags();
         if(liquidMeta >= 8){
             world.setBlockToAir(pos);
             return;
@@ -99,7 +101,7 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
             }else if(stateBelow.getMaterial() == Material.WATER){ // 流体融合的情况
                 liquidQuanta--;
                 liquidMeta = 8-liquidQuanta;
-                if (liquidQuanta<=0) world.setBlockToAir(pos); //先更新自身状态
+                if (liquidQuanta<=0) world.setBlockState(pos,Blocks.AIR.getDefaultState(),updateFlag); //先更新自身状态
                 else {
                     state = state.withProperty(LEVEL,liquidMeta);
                     world.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
@@ -141,7 +143,7 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
             }
 
             EnumFacing randomFacing = (EnumFacing) directions.toArray()[rand.nextInt(directions.size())];
-            world.setBlockToAir(pos);
+            world.setBlockState(pos,Blocks.AIR.getDefaultState(),updateFlag);
             BlockLiquidUtil.tryFlowInto(world, pos.offset(randomFacing), world.getBlockState(pos.offset(randomFacing)),block, 7);
             return;
         }
@@ -163,7 +165,7 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
                 }
             }
             liquidMeta = 8 - newLiquidQuanta;
-            if (newLiquidQuanta<=0) world.setBlockToAir(pos); //先更新自身状态
+            if (newLiquidQuanta<=0) world.setBlockState(pos,Blocks.AIR.getDefaultState(),updateFlag); //先更新自身状态
             else {
                 state = state.withProperty(LEVEL,liquidMeta);
                 world.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
@@ -194,7 +196,7 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
             int newLiquidMeta = 8 - newLiquidQuanta;
             //更新自己
             state = state.withProperty(LEVEL, newLiquidMeta);
-            world.setBlockState(pos, state, Constants.BlockFlags.DEFAULT);
+            world.setBlockState(pos, state, updateFlag);
             BlockUpdater.scheduleUpdate(world,pos, block, updateRate);
             world.notifyNeighborsOfStateChange(pos, block, false);
             //移动至新位置

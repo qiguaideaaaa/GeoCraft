@@ -27,14 +27,12 @@
 
 package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure;
 
-import net.minecraft.util.math.BlockPos;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTask;
 
 /**
  * @author QiguaiAAAA
  */
 public interface IRealityPressureSearchTask extends IFluidPressureSearchTask {
-    BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
     int getMaxSearchTimes();
     byte getBeginQuanta();
     byte getQuantaPerBlock();

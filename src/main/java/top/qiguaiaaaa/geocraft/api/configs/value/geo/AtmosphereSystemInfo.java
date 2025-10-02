@@ -29,6 +29,7 @@ package top.qiguaiaaaa.geocraft.api.configs.value.geo;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import top.qiguaiaaaa.geocraft.api.configs.value.json.ConfigurableJSONObject;
 import top.qiguaiaaaa.geocraft.api.util.exception.ConfigParseError;
 
@@ -52,8 +53,17 @@ public class AtmosphereSystemInfo extends ConfigurableJSONObject {
         init(toString());
     }
 
+    public AtmosphereSystemInfo(@Nonnull JsonObject object,@Nonnull AtmosphereSystemType type){
+        super(object);
+        if(type != AtmosphereSystemType.THIRD_PARTY_ATMOSPHERE_SYSTEM){
+            object.addProperty(FILED_ID,type.configName);
+        }
+        init(toString());
+    }
+
     protected void init(@Nonnull String jsonStr){
         JsonElement element = json.get(FILED_ID);
+        if(element == null) element = new JsonPrimitive("");
         if(!element.isJsonPrimitive()) throw new ConfigParseError("Invalid id in AtmosphereSystemInfo "+jsonStr);
         name = element.getAsString().trim();
         if(name.equals("")){

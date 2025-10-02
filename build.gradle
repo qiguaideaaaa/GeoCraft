@@ -2,16 +2,14 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 buildscript {
     repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
+        maven { url = 'https://maven.minecraftforge.net' }
         maven { url = 'https://repo.spongepowered.org/maven' }
         maven { url = 'https://maven.cleanroommc.com'}
-        maven { url = "https://oss.sonatype.org/content/repositories/releases/" }
         maven { url = "https://repo.typesafe.com/typesafe/releases/" }
         maven { url = "https://repo1.maven.org/maven2/" }
         maven { url = "https://jitpack.io" }
         maven { url = "https://libraries.minecraft.net" }
         maven { url = "https://plugins.gradle.org/m2/" }
-        jcenter()
         mavenCentral()
     }
     dependencies {
@@ -126,8 +124,6 @@ dependencies {
         transitive = false
     }
 
-//    compile files('libs/!mixinbooter-10.5.jar')
-
     implementation fg.deobf('com.github.jbredwards:fluidlogged-api:1.12.2-Latest-SNAPSHOT')
     implementation fg.deobf("curse.maven:IndustrialCraft-242638:3838713")
 
@@ -156,7 +152,7 @@ mixin {
 
 repositories {
     maven { url = "https://cursemaven.com" }
-    maven { url = "https://files.minecraftforge.net/maven" }
+    maven { url = "https://maven.minecraftforge.net" }
     maven { url = "https://repo.spongepowered.org/maven" }
     maven { url = "https://plugins.gradle.org/m2/" }
     maven { url = 'https://jitpack.io' }

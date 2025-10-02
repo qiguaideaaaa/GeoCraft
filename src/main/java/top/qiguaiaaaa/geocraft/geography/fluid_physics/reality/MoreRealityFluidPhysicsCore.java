@@ -58,9 +58,10 @@ public final class MoreRealityFluidPhysicsCore {
         if(accessor == null) return state;
         Atmosphere atmosphere = accessor.getAtmosphereHere();
         if(atmosphere == null) return state;
+        if(!accessor.getAtmosphereWorldInfo().canWaterEvaporate(pos)) return state;
         accessor.setSkyLight(light);
 
-        double possibility = getWaterEvaporatePossibility(world,pos,state,accessor,atmosphere);
+        double possibility = getWaterEvaporatePossibility(world,pos,state,accessor);
         int meta = state.getValue(LEVEL);
         if(!BaseUtil.getRandomResult(rand,possibility)){
             return state;
@@ -82,6 +83,7 @@ public final class MoreRealityFluidPhysicsCore {
         Atmosphere atmosphere = accessor.getAtmosphereHere();
         if(atmosphere == null) return state;
         accessor.setSkyLight(light);
+        if(!accessor.getSystem().getAtmosphereWorldInfo().canWaterFreeze()) return state;
 
         double possibility  = WaterUtil.getFreezePossibility(accessor);
         if(possibility <= 0) return state;
@@ -92,7 +94,7 @@ public final class MoreRealityFluidPhysicsCore {
             return state;
         }
         if(meta == 0){
-            if(!WaterUtil.canWaterFreeze(world,pos,true)) return state;
+            if(!accessor.getSystem().getAtmosphereWorldInfo().canWaterFreeze(pos,true)) return state;
             return Blocks.ICE.getDefaultState();
         }
         if(!WaterUtil.canPlaceSnow(world,pos)) return state;
@@ -101,8 +103,8 @@ public final class MoreRealityFluidPhysicsCore {
         return Blocks.SNOW_LAYER.getDefaultState().withProperty(BlockSnow.LAYERS,quanta);
     }
 
-    public static double getWaterEvaporatePossibility(World world, BlockPos pos, IBlockState state,IAtmosphereAccessor accessor,Atmosphere atmosphere){
-        double possibility = WaterUtil.getWaterEvaporatePossibility(accessor,atmosphere,pos);
+    public static double getWaterEvaporatePossibility(World world, BlockPos pos, IBlockState state,IAtmosphereAccessor accessor){
+        double possibility = WaterUtil.getWaterEvaporatePossibility(accessor);
         if(!world.isAreaLoaded(pos,1)) return possibility;
 
         int meta = state.getValue(LEVEL);

@@ -48,9 +48,10 @@ public class VanillaFluidPhysicsCore {
         if(accessor == null) return;
         Atmosphere atmosphere = accessor.getAtmosphereHere();
         if(atmosphere == null) return;
+        if(!accessor.getAtmosphereWorldInfo().canWaterEvaporate(pos)) return;
         accessor.setSkyLight(light);
 
-        int amount = (int) MathHelper.clamp(WaterUtil.getWaterEvaporateAmount(atmosphere,pos),0,1000);
+        int amount = (int) MathHelper.clamp(WaterUtil.getWaterEvaporateAmount(accessor),0,1000);
         if(amount == 0) return;
         if(!atmosphere.addSteam(amount,pos)) return;
         accessor.drawHeatFromUnderlying(AtmosphereUtil.Constants.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA*(double)amount/FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME);

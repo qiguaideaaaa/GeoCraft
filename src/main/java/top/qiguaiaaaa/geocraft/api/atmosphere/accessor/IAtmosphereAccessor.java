@@ -33,6 +33,7 @@ import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.WorldServer;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
+import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
 import top.qiguaiaaaa.geocraft.api.atmosphere.raypack.HeatPack;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
@@ -54,6 +55,8 @@ public interface IAtmosphereAccessor {
     default IAtmosphereDataProvider getDataProvider(){
         return getSystem().getDataProvider();
     }
+    @Nonnull
+    default AtmosphereWorldInfo getAtmosphereWorldInfo(){return getSystem().getAtmosphereWorldInfo();}
     @Nonnull
     IAtmosphereSystem getSystem();
 

@@ -32,7 +32,6 @@ import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.base.ConfigBoolean;
 import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemInfo;
-import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemType;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.BlockIntegerEntry;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.ConfigEntry;
 import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockProperty;
@@ -40,9 +39,10 @@ import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableBlockStat
 import top.qiguaiaaaa.geocraft.api.setting.GeoAtmosphereSetting;
 import top.qiguaiaaaa.geocraft.api.setting.GeoBlockSetting;
 import top.qiguaiaaaa.geocraft.api.configs.item.map.ConfigMap;
-import top.qiguaiaaaa.geocraft.geography.atmosphere.info.HallAtmosphereSystemInfo;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.info.CloseAtmosphereSystemInfo;
 import top.qiguaiaaaa.geocraft.geography.atmosphere.info.SurfaceAtmosphereSystemInfo;
 import top.qiguaiaaaa.geocraft.geography.atmosphere.info.VanillaAtmosphereSystemInfo;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.system.CloseAtmosphereSystem;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -61,23 +61,47 @@ public final class AtmosphereConfig {
     public static final ConfigMap<Integer, AtmosphereSystemInfo> ATMOSPHERE_SYSTEM_TYPES =
             new ConfigMap<Integer, AtmosphereSystemInfo>(CATEGORY_ATMOSPHERE,"customAtmosphereSystem",
                     "配置每个维度使用的大气系统。注意，切换大气系统后原大气系统的数据可能丢失，建议提前备份。\n" +
-                            "Configure the atmosphere system for each dimension. ATTENSION: Changing of atmosphere system may cause data loss on old atmosphere system, and a backup is recommended.\n" +
-                            "可选值 Available values:\n" +
-                            "surface - 主世界大气系统，类似现实的地球大气系统 An Earth-like atmosphere system.\n" +
-                            "vanilla - 原版大气系统，基于Minecraft原版的生物群系 An atmosphere system based on biomes.\n" +
-                            "hall - 地狱大气系统 Atmosphere system designed for Hall.\n" +
-                            "third_party - 第三方大气系统，更改为此值以使用第三方模组提供的大气系统. Third-party atmosphere system provided by other mods.\n" +
-                            "none - 无大气系统. No atmosphere system.",
+                            "Configure the atmosphere system for each dimension. ATTENTION: Changing of atmosphere system may cause data loss on old atmosphere system, and a backup is recommended.\n",
                     Integer::parseInt,AtmosphereSystemInfo::new,
-                    new ConfigEntry<>(0, SurfaceAtmosphereSystemInfo.create()),
-                    new ConfigEntry<>(-1, HallAtmosphereSystemInfo.create()),
-                    new ConfigEntry<>(1, VanillaAtmosphereSystemInfo.create())){
+                    new ConfigEntry<>(0, SurfaceAtmosphereSystemInfo.create()
+                            .waterEvaporate(true)
+                            .waterFreeze(true)
+                            .setRainSmoothingConstant(4096)
+                            .setVaporExchangeRate(1e-6)),
+                    new ConfigEntry<>(-1, CloseAtmosphereSystemInfo.create()
+                            .setFinalTemperature(CloseAtmosphereSystem.HELL_TEMP)
+                            .setPressure(2e5)
+                            .setMaxWindSpeed(4)
+                            .waterEvaporate(true)
+                            .waterFreeze(false)
+                            .setVaporExchangeRate(1e-5)
+                            .setRainSmoothingConstant(Integer.MAX_VALUE)),
+                    new ConfigEntry<>(1, VanillaAtmosphereSystemInfo.create()
+                            .setMaxWaterDrainedMultiplier(50000)
+                            .setRainingCloudExponent(30)
+                            .setThunderingCloudExponent(60)
+                            .waterEvaporate(false)
+                            .waterFreeze(false)
+                            .setVaporExchangeRate(0)
+                            .setRainSmoothingConstant(Integer.MAX_VALUE))){
                 @Override
                 public void load(@Nonnull Configuration config) {
                     super.load(config);
                     GeoAtmosphereSetting.setAtmosphereSystemInfoMap(value);
                 }
-            };
+            }.setKeyClass(Integer.class)
+                    .setValueClass(AtmosphereSystemInfo.class)
+                    .setKeyComment("维度ID Dimension ID")
+                    .setValueComment("大气系统信息，为一个JSON对象。Atmosphere system information, which is a JSON object.\n" +
+                            "id - 当前维度采用的大气系统ID。The atmosphere system ID used by the current dimension.\n" +
+                            "   可选值 Available values:\n" +
+                            "   surface - 主世界大气系统，类似现实的地球大气系统 An Earth-like atmosphere system.\n" +
+                            "   vanilla - 原版大气系统，基于Minecraft原版的生物群系 An atmosphere system based on biomes.\n" +
+                            "   close - 地狱大气系统 Atmosphere system designed for Hall.\n" +
+                            "   第三方大气系统ID - 更改此值为第三方大气系统ID以使用第三方模组提供的大气系统. Change this value to a third-party atmosphere system ID to use atmosphere systems provided by third-party mods.\n" +
+                            "   none - 无大气系统. No atmosphere system.\n" +
+                            "不同大气系统有不同的配置项，请参阅相关文档获取详细信息。\n" +
+                            "Different atmosphere systems have different configuration items. Please refer to the relevant documentation for detailed information.");
 
     public static final ConfigMap<ConfigurableBlockState,Integer> SPECIFIC_HEAT_CAPACITIES =
             new ConfigMap<ConfigurableBlockState,Integer>(CATEGORY_ATMOSPHERE,"specificHeatCapacities","方块每1立方分米的热容，默认为2000，单位为FE/(dm^3·K),可以用 比热容*密度/1000 计算(国际标准单位)",ConfigurableBlockState::getInstanceByString, Integer::parseInt,

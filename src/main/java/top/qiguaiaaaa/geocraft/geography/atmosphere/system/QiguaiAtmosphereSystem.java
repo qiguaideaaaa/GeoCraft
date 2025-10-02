@@ -27,33 +27,55 @@
 
 package top.qiguaiaaaa.geocraft.geography.atmosphere.system;
 
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.chunk.Chunk;
 import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.AverageAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.BaseAtmosphereSystem;
+import top.qiguaiaaaa.geocraft.api.event.EventFactory;
 import top.qiguaiaaaa.geocraft.api.setting.GeoAtmosphereSetting;
 import top.qiguaiaaaa.geocraft.geography.atmosphere.QiguaiAtmosphere;
+import top.qiguaiaaaa.geocraft.geography.atmosphere.info.QiguaiAtmosphereSystemInfo;
+import top.qiguaiaaaa.geocraft.util.BaseUtil;
+import top.qiguaiaaaa.geocraft.util.WaterUtil;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
+
+import static top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA;
 
 public abstract class QiguaiAtmosphereSystem extends BaseAtmosphereSystem {
     protected final WorldServer world;
-    public QiguaiAtmosphereSystem(WorldServer server, AtmosphereWorldInfo info, IAtmosphereDataProvider provider) {
+    public QiguaiAtmosphereSystem(WorldServer server, AtmosphereWorldInfo info, QiguaiAtmosphereSystemInfo systemInfo, IAtmosphereDataProvider provider) {
         super(info, provider);
         this.world = server;
         worldInfo.setSystem(this);
+        worldInfo.waterFreeze(systemInfo.canWaterFreeze());
+        worldInfo.waterEvaporate(systemInfo.canWaterEvaporate());
+        worldInfo.setRainSmoothingConstant(systemInfo.getRainSmoothingConstant());
+        worldInfo.setVaporExchangeRate(systemInfo.getVaporExchangeRate());
     }
 
     @Override
     public void updateTick() {
         if(stopped) return;
         updateAtmospheres();
+        Iterator<Chunk> persistentChunkIterator = world.getPersistentChunkIterable(world.getPlayerChunkMap().getChunkIterator());
+        while (persistentChunkIterator.hasNext()){
+            Chunk chunk = persistentChunkIterator.next();
+            weatherTick(chunk);
+        }
+
         dataProvider.tick();
     }
 
@@ -110,5 +132,46 @@ public abstract class QiguaiAtmosphereSystem extends BaseAtmosphereSystem {
             }
 
         }
+    }
+
+    /**
+     * 处理下雨等事件
+     */
+    protected void weatherTick(Chunk chunk){
+        AtmosphereData data = getChunkLoadedAtmosphereData(chunk);
+        if(data == null) return;
+        Atmosphere atmosphere = data.getAtmosphere();
+
+        int x = chunk.x * 16;
+        int z = chunk.z * 16;
+        int rand = world.rand.nextInt();
+        BlockPos randPos = world.getPrecipitationHeight(new BlockPos(x + (rand & 15), 0, z + (rand >> 8 & 15)));
+        BlockPos pos = randPos.down();
+
+        assert atmosphere != null;
+        boolean isRaining = atmosphere.getWeather(randPos).isRainy();
+
+        if (!world.isAreaLoaded(pos, 1)) return;
+
+        IAtmosphereAccessor freezeAccessor = getAccessor(data,pos,true);
+
+        double rainPossibility = isRaining? WaterUtil.getRainPossibility(freezeAccessor):0;
+        double freezePossibility = worldInfo.canWaterFreeze()?WaterUtil.getFreezePossibility(freezeAccessor):0;
+
+        if (worldInfo.canWaterFreeze() && BaseUtil.getRandomResult(world.rand,freezePossibility) && worldInfo.canWaterFreeze(pos,true)) {
+            world.setBlockState(pos, Blocks.ICE.getDefaultState());
+            freezeAccessor.putHeatToUnderlying(WATER_MELT_LATENT_HEAT_PER_QUANTA*8);
+        }
+
+        if(!BaseUtil.getRandomResult(world.rand,rainPossibility)){
+            return;
+        }
+
+        IBlockState newState = EventFactory.onAtmosphereRainAndSnow(chunk,atmosphere,randPos,rainPossibility);
+        if(newState != null){
+            world.setBlockState(randPos,newState);
+        }
+
+        world.getBlockState(pos).getBlock().fillWithRain(world, pos);
     }
 }

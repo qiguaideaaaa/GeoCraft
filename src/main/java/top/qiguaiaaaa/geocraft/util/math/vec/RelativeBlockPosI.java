@@ -86,7 +86,7 @@ public class RelativeBlockPosI extends BlockPosI{
     }
 
     public static class Mutable implements IVec3i{
-        public static final Mutable MUTABLE = new Mutable();
+        public static final ThreadLocal<Mutable> MUTABLE = ThreadLocal.withInitial(Mutable::new);
 
         protected int x,y,z;
 

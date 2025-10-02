@@ -60,7 +60,6 @@ public class RelativeBlockPosB extends Vec3b{
     }
 
     public static class Mutable extends RelativeBlockPosB{
-        public static final Mutable MUTABLE = new Mutable();
         public Mutable(){
             super((byte) 0, (byte) 0, (byte) 0);
         }

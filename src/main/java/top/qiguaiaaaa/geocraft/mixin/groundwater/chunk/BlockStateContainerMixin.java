@@ -35,8 +35,7 @@ import net.minecraft.world.chunk.IBlockStatePalette;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import top.qiguaiaaaa.geocraft.handler.network.NetworkFakeStateHandler;
-import top.qiguaiaaaa.geocraft.util.factor.SpecialBlockID;
-import top.qiguaiaaaa.geocraft.util.math.MixinUsageBitArray;
+import top.qiguaiaaaa.geocraft.util.math.ModifyBitArray;
 import top.qiguaiaaaa.geocraft.util.mixinapi.network.NetworkOverridable;
 
 @Mixin(BlockStateContainer.class)
@@ -54,14 +53,14 @@ public class BlockStateContainerMixin implements NetworkOverridable {
         if(palette instanceof BlockStatePaletteRegistry){
             palette.write(buf);
             long[] arr = this.storage.getBackingLongArray();
-            MixinUsageBitArray modifiedArray = new MixinUsageBitArray(bits,4096,arr.clone());
+            ModifyBitArray modifiedArray = new ModifyBitArray(bits,4096,arr.clone());
             for(int i=0;i<4096;i++){
-                int j = modifiedArray.getAt(i);
+                int j = modifiedArray.get(i);
                 int modified = NetworkFakeStateHandler.overwriteState(j);
                 if(j == modified) continue;
-                modifiedArray.setAt(i,modified);
+                modifiedArray.set(i,modified);
             }
-            buf.writeLongArray(modifiedArray.getBackingLongArray());
+            buf.writeLongArray(modifiedArray.getLongArray());
         }else{
             ((NetworkOverridable)palette).networkWrite(buf);
             buf.writeLongArray(this.storage.getBackingLongArray());

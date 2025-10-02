@@ -25,31 +25,18 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.geography.atmosphere.info;
+package top.qiguaiaaaa.geocraft.api.util.annotation;
 
-import com.google.gson.JsonObject;
-import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemInfo;
-import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemType;
-
-import javax.annotation.Nonnull;
+import java.lang.annotation.*;
 
 /**
  * @author QiguaiAAAA
  */
-public class HallAtmosphereSystemInfo extends AtmosphereSystemInfo {
-    public static HallAtmosphereSystemInfo create(){
-        JsonObject object = new JsonObject();
-        object.addProperty(FILED_ID, AtmosphereSystemType.HALL_ATMOSPHERE_SYSTEM.configName);
-        return new HallAtmosphereSystemInfo(object);
-    }
+@Documented
+@Target({ElementType.METHOD,ElementType.FIELD,ElementType.CONSTRUCTOR,ElementType.LOCAL_VARIABLE,ElementType.TYPE})
+@Retention(RetentionPolicy.SOURCE)
+public @interface ThreadOnly {
 
-    HallAtmosphereSystemInfo(@Nonnull JsonObject object) {
-        super(object);
-    }
+    ThreadType value();
 
-    @Nonnull
-    @Override
-    public AtmosphereSystemType getType() {
-        return AtmosphereSystemType.HALL_ATMOSPHERE_SYSTEM;
-    }
 }

@@ -77,6 +77,34 @@ public final class BaseUtil {
         return doubles;
     }
 
+    public static float checkAndReturn(float num,float min,float max) throws IllegalArgumentException{
+        if(num<min || num>max){
+            throw new IllegalArgumentException("Value {} must be in range ["+min+","+max+"]");
+        }
+        return num;
+    }
+
+    public static double checkAndReturn(double num,double min,double max) throws IllegalArgumentException{
+        if(num<min || num>max){
+            throw new IllegalArgumentException("Value {} must be in range ["+min+","+max+"]");
+        }
+        return num;
+    }
+
+    public static int checkAndReturn(int num,int min,int max) throws IllegalArgumentException{
+        if(num<min || num>max){
+            throw new IllegalArgumentException("Value {} must be in range ["+min+","+max+"]");
+        }
+        return num;
+    }
+
+    public static long checkAndReturn(long num,long min,long max) throws IllegalArgumentException{
+        if(num<min || num>max){
+            throw new IllegalArgumentException("Value {} must be in range ["+min+","+max+"]");
+        }
+        return num;
+    }
+
     public static int getRandomPressureSearchRange() {
         return FluidPhysicsConfig.WEIGHT_DISTRIBUTION_FOR_PRESSURE_SEARCH_RANGE.getRandomResult(random);
     }
