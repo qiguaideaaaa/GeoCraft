@@ -291,7 +291,9 @@ public class RealityBlockDynamicLiquidUpdateTask extends FluidUpdateBaseTask {
                 break;
             case SLOPE_MODE:return;
             default:
-                FluidPressureSearchManager.addTask(world,RealityPressureTaskBuilder.createVanillaTask(fluid,state,pos,2));
+                FluidPressureSearchManager.addTask(world,
+                        RealityPressureTaskBuilder.createVanillaTask(fluid,state,pos,
+                                FluidPhysicsConfig.PRESSURE_TASK_RANGE_DYNAMIC_FLUID_NO_AVERAGE.getValue()));
         }
     }
 

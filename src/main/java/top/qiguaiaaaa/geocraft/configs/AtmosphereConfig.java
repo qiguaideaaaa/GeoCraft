@@ -27,6 +27,7 @@
 
 package top.qiguaiaaaa.geocraft.configs;
 
+import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.Configuration;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.base.ConfigBoolean;
@@ -412,8 +413,10 @@ public final class AtmosphereConfig {
             };
     public static final ConfigBoolean ALLOW_CAULDRON_GET_INFINITE_WATER = new ConfigBoolean(CATEGORY_ATMOSPHERE,"allowCauldronGetInfiniteWater",
             false,"是否允许炼药锅接无限量的水，即在接水时不会消耗大气水");
+
+    @Config.RangeInt(min = 2)
     public static final ConfigInteger ATMOSPHERE_UNDERLYING_RECALCULATE_GAP = new ConfigInteger(CATEGORY_ATMOSPHERE,
-            "atmosphereUnderlyingRecalculateGap",400,"大气重新计算下垫面性质的间隔时间，单位为大气刻",2,Integer.MAX_VALUE,false){
+            "atmosphereUnderlyingRecalculateGap",400,"大气重新计算下垫面性质的间隔时间，单位为大气刻"){
         @Override
         public void load(@Nonnull Configuration config) {
             super.load(config);

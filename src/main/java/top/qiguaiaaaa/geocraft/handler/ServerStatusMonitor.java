@@ -28,28 +28,31 @@
 package top.qiguaiaaaa.geocraft.handler;
 
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.configs.GeneralConfig;
+import top.qiguaiaaaa.geocraft.util.math.MathUtil;
 
 import javax.annotation.Nonnull;
+
+import java.util.Random;
+
+import static top.qiguaiaaaa.geocraft.configs.GeneralConfig.*;
 
 /**
  * @author QiguaiAAAA
  */
 @Mod.EventBusSubscriber(modid = GeoCraft.MODID)
 public final class ServerStatusMonitor {
-    static final short recordTicks = 1<<5,longTermTicks = 1<<8;
-    static final long[] recentMSPerTick = new long[recordTicks],
-    longTermMSPerTick = new long[longTermTicks];
-    static short curTick = 0,curLongTick = 0;
-    static long tickBeginTime;
-    static double averageMSPerTick,longAverageMSPerTick;
-    static boolean lagging = false,alarming = false;
+    private static final Random random = new Random((int)0d+00+0721);
+    static final TickDurationStatic ticks32Static = new TickDurationStatic((byte) 5,PERFORMANCE_SAMPLING_TICK_PERCENTILE.get(0)),
+    tick256Static = new TickDurationStatic((byte) 8,PERFORMANCE_SAMPLING_TICK_PERCENTILE.get(1)),
+    tick1024Static = new TickDurationStatic((byte) 10,PERFORMANCE_SAMPLING_TICK_PERCENTILE.get(2));
+    static long tickBeginTime = System.currentTimeMillis();
+    static boolean lagging = false,alarming = false,enableLagging = true,enableAlarming = true;
 
     private ServerStatusMonitor(){}
 
@@ -61,6 +64,8 @@ public final class ServerStatusMonitor {
         tickBeginTime = System.currentTimeMillis();
         lagging = false;
         alarming = false;
+        enableLagging = ENABLE_PERFORMANCE_DELAY_DETECT.getValue();
+        enableAlarming = ENABLE_PERFORMANCE_WARNING.getValue();
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -68,30 +73,10 @@ public final class ServerStatusMonitor {
         if(event.phase == TickEvent.Phase.START){
             return;
         }
-        long duration = System.currentTimeMillis()-tickBeginTime;
-        recentMSPerTick[curTick++] = duration;
-        longTermMSPerTick[curLongTick++] = duration;
-        curTick &= (recordTicks-1);
-        curLongTick &= (longTermTicks-1);
-        long sum = 0;
-        for(long ms : recentMSPerTick){
-            sum += ms;
-        }
-        averageMSPerTick = sum/(double)recordTicks;
-        sum = 0;
-        for(long ms:longTermMSPerTick){
-            sum += ms;
-        }
-        longAverageMSPerTick = sum/(double)longTermTicks;
-
-        if(FMLCommonHandler.instance().getMinecraftServerInstance().getTickCounter() % 120 == 0){
-            GeoCraft.getLogger().info("long average {} ms, recent average {} ms",
-                    longAverageMSPerTick,averageMSPerTick);
-        }
-    }
-
-    public static double getAverageTimePerTick() {
-        return averageMSPerTick;
+        long duration = getCurrentTickTime();
+        ticks32Static.putTick(duration);
+        tick256Static.putTick(duration);
+        tick1024Static.putTick(duration);
     }
 
     public static long getCurrentTickTime(){
@@ -99,26 +84,97 @@ public final class ServerStatusMonitor {
     }
 
     public static boolean isServerLagging(){
-        return lagging || (lagging = longAverageMSPerTick > 40
-                || (averageMSPerTick >  GeneralConfig.AVERAGE_TICK_DELAY_THRESHOLD.getValue())
-                || (GeneralConfig.ENABLE_SINGLE_TICK_DELAY_DETECT.getValue()
-                && getCurrentTickTime() > GeneralConfig.SINGLE_TICK_DELAY_THRESHOLD.getValue()));
+        if(!enableLagging) return false;
+        if(lagging) return true;
+        if(getCurrentTickTime()<PROTECT_TIME.getValue()) return false;
+        if(tick1024Static.getPercentTickTime() > TICK_DELAY_THRESHOLD.get(3)){
+//            GeoCraft.getLogger().info("Because {} tick in 1024 reached {} ms, mark lagging. 1024: {} 256: {} 32: {} Cur: {}",
+//                    tick1024Static.percent,TICK_DELAY_THRESHOLD.get(3),tick1024Static,tick256Static,ticks32Static,getCurrentTickTime());
+            return lagging = true;
+        }
+        if(tick256Static.getPercentTickTime() > TICK_DELAY_THRESHOLD.get(2)){
+//            GeoCraft.getLogger().info("Because {} tick in 256 reached {} ms, mark lagging. 1024: {} 256: {} 32: {} Cur: {}",
+//                    tick256Static.percent,TICK_DELAY_THRESHOLD.get(2),tick1024Static,tick256Static,ticks32Static,getCurrentTickTime());
+            return lagging = true;
+        }
+        if(ticks32Static.getPercentTickTime() > TICK_DELAY_THRESHOLD.get(1)){
+//            GeoCraft.getLogger().info("Because {} tick in 32 reached {} ms, mark lagging. 1024: {} 256: {} 32: {} Cur: {}",
+//                    ticks32Static.percent,TICK_DELAY_THRESHOLD.get(1),tick1024Static,tick256Static,ticks32Static,getCurrentTickTime());
+            return lagging = true;
+        }
+        if(GeneralConfig.ENABLE_SINGLE_TICK_DELAY_DETECT.getValue() && getCurrentTickTime() > TICK_DELAY_THRESHOLD.get(0)){
+            return lagging = true;
+        }
+        return lagging;
     }
 
     public static boolean isServerCloselyLagging(){
-        return alarming || (alarming = longAverageMSPerTick > 60
-                || (averageMSPerTick >GeneralConfig.AVERAGE_TICK_DELAY_WARNING_THRESHOLD.getValue())
-                || (GeneralConfig.ENABLE_SINGLE_TICK_DELAY_DETECT.getValue()
-                        && getCurrentTickTime() > GeneralConfig.SINGLE_TICK_DELAY_WARNING_THRESHOLD.getValue()));
+        if(!enableAlarming) return false;
+        if(alarming) return true;
+        if(getCurrentTickTime()<PROTECT_TIME.getValue()) return false;
+        if(tick1024Static.getPercentTickTime() > TICK_DELAY_WARNING_THRESHOLDS.get(3)){
+//            GeoCraft.getLogger().info("Because {} tick in 1024 reached {} ms, alarming. 1024: {} 256: {} 32: {} Cur: {}",
+//                    tick1024Static.percent,TICK_DELAY_WARNING_THRESHOLDS.get(3),tick1024Static,tick256Static,ticks32Static,getCurrentTickTime());
+            return alarming = true;
+        }
+        if(tick256Static.getPercentTickTime() > TICK_DELAY_WARNING_THRESHOLDS.get(2)){
+//            GeoCraft.getLogger().info("Because {} tick in 256 reached {} ms, alarming. 1024: {} 256: {} 32: {} Cur: {}",
+//                    tick256Static.percent,TICK_DELAY_WARNING_THRESHOLDS.get(2),tick1024Static,tick256Static,ticks32Static,getCurrentTickTime());
+            return alarming = true;
+        }
+        if(ticks32Static.getPercentTickTime() > TICK_DELAY_WARNING_THRESHOLDS.get(1)){
+//            GeoCraft.getLogger().info("Because {} tick in 256 reached {} ms, alarming. 1024: {} 256: {} 32: {} Cur: {}",
+//                    ticks32Static.percent,TICK_DELAY_WARNING_THRESHOLDS.get(1),tick1024Static,tick256Static,ticks32Static,getCurrentTickTime());
+            return alarming = true;
+        }
+        if(GeneralConfig.ENABLE_SINGLE_TICK_DELAY_DETECT.getValue() && getCurrentTickTime() > GeneralConfig.TICK_DELAY_WARNING_THRESHOLDS.get(0)){
+            return alarming = true;
+        }
+        return alarming;
     }
 
     public static int getRecommendedBlockFlags(){
         if(ServerStatusMonitor.isServerLagging()){
-            return Constants.BlockFlags.SEND_TO_CLIENTS;
+            return Constants.BlockFlags.SEND_TO_CLIENTS | Constants.BlockFlags.NO_OBSERVERS;
         }
         if(ServerStatusMonitor.isServerCloselyLagging()){
-            return Constants.BlockFlags.SEND_TO_CLIENTS;
+            return Constants.BlockFlags.SEND_TO_CLIENTS | Constants.BlockFlags.NO_OBSERVERS;
         }
         return Constants.BlockFlags.DEFAULT;
+    }
+
+    private static class TickDurationStatic{
+        private final long[] tickDurations;
+        private final int period;
+        private final double percent;
+        private int cur = 0;
+        private double averageTickTime;
+        private long percentTickTime;
+
+        public TickDurationStatic(byte periodLevel,double percent){
+            this.period = 1<<periodLevel;
+            tickDurations = new long[period];
+            this.percent = percent;
+        }
+
+        public void putTick(long duration){
+            tickDurations[cur++] = duration;
+            cur &= (period-1);
+            averageTickTime = MathUtil.getAverage(tickDurations);
+            percentTickTime = MathUtil.getPercent(tickDurations,percent);
+        }
+
+        public double getAverageTickTime() {
+            return averageTickTime;
+        }
+
+        public long getPercentTickTime() {
+            return percentTickTime;
+        }
+
+        @Override
+        public String toString() {
+            return "[Tick Static "+period+" : average "+averageTickTime+" ms , percent "+percent+" "+percentTickTime+" ms]";
+        }
     }
 }

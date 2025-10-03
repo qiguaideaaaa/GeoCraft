@@ -174,7 +174,7 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
             if(quanta <= 0){
                 world.setBlockState(srcPos, Blocks.AIR.getDefaultState(),updateFlag);
             }else world.setBlockState(srcPos,this.getDefaultState().withProperty(LEVEL,8-quanta),updateFlag);
-            world.setBlockState(toPos,this.getDefaultState().withProperty(LEVEL,8-movQuanta),updateFlag);
+            world.setBlockState(toPos,getFlowingBlock(material).getDefaultState().withProperty(LEVEL,8-movQuanta),updateFlag);
             return quanta == 0;
         }else if(FluidUtil.getFluid(toState) == thisFluid){
             int toQuanta = 8-toState.getValue(LEVEL);
@@ -186,7 +186,7 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements IVanillaFlowC
                 world.setBlockState(srcPos, Blocks.AIR.getDefaultState(),updateFlag);
             }else world.setBlockState(srcPos,this.getDefaultState().withProperty(LEVEL,8-myQuanta),updateFlag);
             toQuanta += movQuanta;
-            world.setBlockState(toPos,this.getDefaultState().withProperty(LEVEL,8-toQuanta),updateFlag);
+            world.setBlockState(toPos,getFlowingBlock(material).getDefaultState().withProperty(LEVEL,8-toQuanta),updateFlag);
             return myQuanta==0;
         }
         return false;

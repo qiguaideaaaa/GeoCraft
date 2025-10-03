@@ -31,6 +31,9 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.Vec3d;
 import top.qiguaiaaaa.geocraft.api.util.math.Degree;
 
+import javax.annotation.Nonnull;
+import java.util.Arrays;
+
 public final class MathUtil {
     public static Degree 计算与水平面夹角(Vec3d vec){
         double len = vec.length();
@@ -48,5 +51,19 @@ public final class MathUtil {
         double b = new Vec3d(dir.getDirectionVec()).dotProduct(speed);
         if(b == 0) return 0;
         return speed.length()*(b>0?1:-1);
+    }
+
+    public static double getAverage(@Nonnull final long[] arr){
+        double sum = 0;
+        for(long val : arr) sum +=val;
+
+        return sum/arr.length;
+    }
+
+    public static long getPercent(@Nonnull final long[] arr,final double percent){
+        final long[] cp = arr.clone();
+        Arrays.sort(cp);
+        int loc = (int) Math.ceil(percent*cp.length);
+        return cp[loc-1];
     }
 }

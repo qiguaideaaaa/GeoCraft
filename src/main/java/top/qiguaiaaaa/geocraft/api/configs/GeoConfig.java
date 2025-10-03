@@ -25,37 +25,26 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.util.misc;
+package top.qiguaiaaaa.geocraft.api.configs;
 
-import com.google.common.base.Predicate;
-import net.minecraft.block.Block;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.NextTickListEntry;
-import net.minecraft.world.World;
-
-import javax.annotation.Nonnull;
-import java.util.Objects;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author QiguaiAAAA
  */
-public class ExtendedNextTickListEntry extends NextTickListEntry {
-    private static final Predicate<Entity> PLAYER_PREDICATE = Objects::nonNull;
-    protected double disSqToNearestPlayer = Double.POSITIVE_INFINITY;
-    public ExtendedNextTickListEntry(@Nonnull World world,@Nonnull BlockPos positionIn,@Nonnull Block blockIn, int delay,int priority) {
-        super(positionIn, blockIn);
-        this.setPriority(priority);
-        this.setScheduledTime(world.getTotalWorldTime()+delay);
-    }
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface GeoConfig {
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface SizeFixed{}
 
-    public double getDisSqToNearestPlayer() {
-        return disSqToNearestPlayer;
-    }
-
-    public void calcDisSqToNearestPlayer(@Nonnull World world) {
-        EntityPlayer player = world.getClosestPlayer(position.getX(),position.getY(),position.getZ(),-114514,PLAYER_PREDICATE);
-        disSqToNearestPlayer = player == null?Double.POSITIVE_INFINITY:player.getDistanceSq(position);
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface MaxSize{
+        int value() default -1;
     }
 }

@@ -50,6 +50,7 @@ import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.RealityBlockLiquidUtil;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.update.RealityBlockDynamicLiquidUpdateTask;
+import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
 import top.qiguaiaaaa.geocraft.util.mixinapi.FluidSettable;
 import top.qiguaiaaaa.geocraft.util.mixinapi.IVanillaFlowChecker;
 
@@ -72,6 +73,14 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements FluidSettabl
             return;
         }
         FluidUpdateManager.addTask(worldIn,new RealityBlockDynamicLiquidUpdateTask(thisFluid,pos,(BlockDynamicLiquid) (Block)this));
+    }
+
+    @Inject(method = "onBlockAdded",at = @At("HEAD"),cancellable = true)
+    public void onBlockAdded(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state,@Nonnull CallbackInfo ci) {
+        ci.cancel();
+        if (!this.checkForMixing(worldIn, pos, state)) {
+            BlockUpdater.scheduleUpdate(worldIn,pos, this, this.tickRate(worldIn));
+        }
     }
 
     @Override

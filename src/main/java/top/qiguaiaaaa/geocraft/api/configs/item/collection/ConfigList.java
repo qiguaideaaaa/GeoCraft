@@ -35,6 +35,7 @@ import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableList;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -78,6 +79,13 @@ public class ConfigList<ValueType> extends ConfigItem<ConfigurableList<ValueType
     public ConfigList<ValueType> setValidatedPattern(Pattern validatedPattern) {
         this.validatedPattern = validatedPattern;
         return this;
+    }
+
+    /**
+     * @see List#get(int)
+     */
+    public ValueType get(int index){
+        return value.get(index);
     }
 
     @Override

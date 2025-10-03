@@ -28,6 +28,7 @@
 package top.qiguaiaaaa.geocraft.geography.fluid_physics;
 
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.Mod;
@@ -40,10 +41,7 @@ import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.update.IFluidUpdateT
 import top.qiguaiaaaa.geocraft.handler.BlockUpdater;
 
 import javax.annotation.Nonnull;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.*;
 import java.util.function.Function;
 
 import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
@@ -55,6 +53,7 @@ import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
 public final class FluidUpdateManager {
     static final int MAX_UPDATE_NUM;
     static final Map<WorldServer, Pair<PriorityQueue<IFluidUpdateTask>,PriorityQueue<IFluidUpdateTask>>> updateTaskQueuesMap = new HashMap<>();
+    static final Map<WorldServer, Set<BlockPos>> updateTaskLock = new HashMap<>();
 
     static {
         MAX_UPDATE_NUM = FluidPhysicsConfig.FLUID_UPDATER_MAX_TASKS_PER_TICK.getValue();
@@ -64,15 +63,19 @@ public final class FluidUpdateManager {
         WorldServer validWorld = getValidWorld(world);
         if(validWorld == null) return;
         Pair<PriorityQueue<IFluidUpdateTask>,PriorityQueue<IFluidUpdateTask>> queuePair = getOrCreateQueues(validWorld);
+        Set<BlockPos> locks = getOrCreateSet(validWorld);
+        if(locks.contains(task.getPos())) return;
         if(task.getFluid().getDensity()>=0){
             queuePair.getLeft().add(task);
         }else{
             queuePair.getRight().add(task);
         }
+        locks.add(task.getPos());
     }
 
     public static void onServerStop(){
         updateTaskQueuesMap.clear();
+        updateTaskLock.clear();
     }
 
     public static void onWorldTick(@Nonnull WorldServer world){
@@ -82,10 +85,13 @@ public final class FluidUpdateManager {
     }
 
     static void updateTasks(@Nonnull WorldServer world,@Nonnull PriorityQueue<IFluidUpdateTask> queue){
+        final Set<BlockPos> locks = getOrCreateSet(world);
+        final long beginTime = System.nanoTime();
         for(int i=0;i<MAX_UPDATE_NUM;i++){
             if(queue.isEmpty()) break;
             IFluidUpdateTask task = queue.poll();
             if(task == null) continue;
+            locks.remove(task.getPos());
             if(!world.isBlockLoaded(task.getPos())) continue;
             IBlockState state = world.getBlockState(task.getPos());
             if(state.getBlock() != task.getBlock()) continue;
@@ -95,14 +101,23 @@ public final class FluidUpdateManager {
                 GeoCraft.getLogger().warn("When updating fluid {} at {} in world {},",task.getFluid().getUnlocalizedName(),task.getPos(),world.provider.getDimension());
                 GeoCraft.getLogger().warn("FluidUpdateManager caught an error:",e);
             }
+            if((i & 127) == 0){
+                if(System.nanoTime() - beginTime > 200000000L) break;
+            }
         }
-        if(FluidPhysicsConfig.FLUID_UPDATER_DROP_EXCESS_TASKS.getValue()){
+        if(FluidPhysicsConfig.FLUID_UPDATER_DROP_EXCESS_TASKS.getValue() && (world.getTotalWorldTime() & 31) == 0){
             queue.clear();
+            locks.clear();
         }
+
     }
 
     static Pair<PriorityQueue<IFluidUpdateTask>,PriorityQueue<IFluidUpdateTask>> getOrCreateQueues(@Nonnull WorldServer world){
         return updateTaskQueuesMap.computeIfAbsent(world,CREATE_QUEUES);
+    }
+
+    static Set<BlockPos> getOrCreateSet(@Nonnull WorldServer world){
+        return updateTaskLock.computeIfAbsent(world,CREATE_SET);
     }
 
     private static final Function<WorldServer,Pair<PriorityQueue<IFluidUpdateTask>,PriorityQueue<IFluidUpdateTask>>> CREATE_QUEUES =
@@ -110,4 +125,6 @@ public final class FluidUpdateManager {
                     new PriorityQueue<>(Comparator.comparingInt(value -> value.getPos().getY())) //小根堆，向下流的流体放这里
                     ,new PriorityQueue<>((v1,v2) -> v2.getPos().getY()-v1.getPos().getY()) //大根堆，向上流的流体放这里
             );
+
+    private static final Function<WorldServer,Set<BlockPos>> CREATE_SET = k -> new HashSet<>();
 }

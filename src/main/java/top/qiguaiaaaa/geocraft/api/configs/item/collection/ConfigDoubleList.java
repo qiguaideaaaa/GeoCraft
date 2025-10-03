@@ -28,64 +28,62 @@
 package top.qiguaiaaaa.geocraft.api.configs.item.collection;
 
 import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.config.Property;
-import org.apache.commons.lang3.ArrayUtils;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableList;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
 
-
-public class ConfigIntegerList extends ConfigList<Integer> {
-    protected int minValue = Integer.MIN_VALUE,
-            maxValue = Integer.MAX_VALUE;
-    public ConfigIntegerList(ConfigCategory category, String configKey, ConfigurableList<Integer> defaultValue) {
+/**
+ * @author QiguaiAAAA
+ */
+public class ConfigDoubleList extends ConfigList<Double>{
+    protected double minValue = Double.NEGATIVE_INFINITY,
+    maxValue = Double.POSITIVE_INFINITY;
+    public ConfigDoubleList(ConfigCategory category, String configKey, ConfigurableList<Double> defaultValue) {
         this(category, configKey, defaultValue,null);
     }
 
-    public ConfigIntegerList(ConfigCategory category, String configKey, ConfigurableList<Integer> defaultValue, String comment) {
-        this(category, configKey, defaultValue, comment,false);
+    public ConfigDoubleList(ConfigCategory category, String configKey, ConfigurableList<Double> defaultValue, String comment) {
+        this(category, configKey, defaultValue, comment, false);
     }
 
-    public ConfigIntegerList(ConfigCategory category, String configKey, ConfigurableList<Integer> defaultValue, String comment, boolean isFinal) {
-        super(category, configKey, defaultValue, comment,Integer::parseInt, isFinal);
+    public ConfigDoubleList(ConfigCategory category, String configKey, ConfigurableList<Double> defaultValue, String comment, boolean isFinal) {
+        this(category, configKey, defaultValue, comment,-1, isFinal);
     }
 
-    public ConfigIntegerList setMinValue(int minValue) {
+    public ConfigDoubleList(ConfigCategory category, String configKey, ConfigurableList<Double> defaultValue, String comment, int maxListSize, boolean isFinal) {
+        super(category, configKey, defaultValue, comment, maxListSize, Double::parseDouble, isFinal);
+    }
+
+    public ConfigDoubleList setMinValue(double minValue) {
         this.minValue = minValue;
         return this;
     }
 
-    public ConfigIntegerList setMaxValue(int maxValue) {
+    public ConfigDoubleList setMaxValue(double maxValue) {
         this.maxValue = maxValue;
         return this;
     }
 
-    public int getMinValue() {
+    public double getMinValue() {
         return minValue;
     }
 
-    public int getMaxValue() {
+    public double getMaxValue() {
         return maxValue;
-    }
-
-    @Override
-    public ConfigIntegerList setMaxListSize(int maxListSize) {
-        super.setMaxListSize(maxListSize);
-        return this;
     }
 
     @Override
     public void save() {
         if(property == null) return;
-        property.setValues(toIntList(value));
+        property.setValues(toDoubleList(value));
         property.setComment(getPolishedComment());
     }
 
     @Override
     public void load(@Nonnull Configuration config) {
-        property = config.get(category.getPath(),key,toIntList(defaultValue),comment,minValue,maxValue,isListSizeFixed,maxListSize);
+        property = config.get(category.getPath(),key,toDoubleList(defaultValue),comment,minValue,maxValue,isListSizeFixed,maxListSize);
         property.setComment(getPolishedComment());
         load(property);
     }
@@ -94,12 +92,12 @@ public class ConfigIntegerList extends ConfigList<Integer> {
         return (comment==null?"":comment)+" [range: " + minValue + " ~ " + maxValue + (maxListSize>=0?", maxSize: " + maxListSize:"") + "]";
     }
 
-    protected int[] toIntList(@Nonnull Collection<Integer> c){
-        int[] ints = new int[c.size()];
+    protected double[] toDoubleList(@Nonnull Collection<Double> c){
+        double[] doubles = new double[c.size()];
         int i=0;
-        for(Integer integer:c){
-            ints[i++]=integer;
+        for(Double d:c){
+            doubles[i++]=d;
         }
-        return ints;
+        return doubles;
     }
 }

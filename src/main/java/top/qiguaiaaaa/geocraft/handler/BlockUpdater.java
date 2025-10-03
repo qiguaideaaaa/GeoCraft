@@ -28,15 +28,18 @@
 package top.qiguaiaaaa.geocraft.handler;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockDynamicLiquid;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
-import org.apache.commons.lang3.tuple.Triple;
+import net.minecraftforge.fluids.IFluidBlock;
 import top.qiguaiaaaa.geocraft.configs.GeneralConfig;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure.小范围模组Classic物理压强单次广搜任务;
 import top.qiguaiaaaa.geocraft.util.misc.ExtendedNextTickListEntry;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
@@ -45,9 +48,14 @@ import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
  * @author QiguaiAAAA
  */
 public final class BlockUpdater {
-    private static final Function<WorldServer,LinkedList<ExtendedNextTickListEntry>> CREATE_SCHEDULE_LIST = k -> new LinkedList<>();
+    private static final Function<WorldServer,Set<ExtendedNextTickListEntry>> CREATE_SCHEDULE_LIST = k -> new LinkedHashSet<>();
+    private static final Function<WorldServer,Consumer<ExtendedNextTickListEntry>> CREATE_CALC_DIS_TO_CLOSEST_PLAYER =
+            k -> entry -> entry.calcDisSqToNearestPlayer(k);
+    private static final Comparator<ExtendedNextTickListEntry> COMPARE_BY_DIS_TO_PLAYER =
+            Comparator.comparingDouble(ExtendedNextTickListEntry::getDisSqToNearestPlayer);
+    private static final Map<WorldServer,Consumer<ExtendedNextTickListEntry>> CALC_DIS_TO_CLOSEST_PLAYER_MAP = new HashMap<>();
     static final int MAX_UPDATE_NUM;
-    static final Map<WorldServer, List<ExtendedNextTickListEntry>> WORLD_SCHEDULE_MAP = new HashMap<>();
+    static final Map<WorldServer, Set<ExtendedNextTickListEntry>> WORLD_SCHEDULE_MAP = new HashMap<>();
     static final List<ExtendedNextTickListEntry> READY_TO_UPDATES;
 
     static {
@@ -56,36 +64,49 @@ public final class BlockUpdater {
     }
 
     public static void scheduleUpdate(World world, BlockPos pos, Block block, int delay){
-        if(delay == 0){
-            READY_TO_UPDATES.add(new ExtendedNextTickListEntry(world,pos,block,delay,0));
-            return;
-        }
         WorldServer validWorld = getValidWorld(world);
         if(validWorld == null) return;
-        List<ExtendedNextTickListEntry> schedules = WORLD_SCHEDULE_MAP.computeIfAbsent(validWorld,CREATE_SCHEDULE_LIST);
-        schedules.add(new ExtendedNextTickListEntry(world,pos,block,delay,0));
+        Set<ExtendedNextTickListEntry> schedules = WORLD_SCHEDULE_MAP.computeIfAbsent(validWorld,CREATE_SCHEDULE_LIST);
+        ExtendedNextTickListEntry entry = new ExtendedNextTickListEntry(world,pos,block,delay,0);
+        schedules.add(entry);
     }
 
     public static void onWorldTick(WorldServer world){
-        final List<ExtendedNextTickListEntry> schedules = WORLD_SCHEDULE_MAP.get(world);
-        if(schedules == null) return;
-        int size = schedules.size();
+        final long beginTime = System.currentTimeMillis();
+        final Set<ExtendedNextTickListEntry> schedules = WORLD_SCHEDULE_MAP.get(world);
+        if(schedules == null){
+            return;
+        }
         boolean drop = false;
-        for(int i=0,j=0;i<size && j <size;i++){
-            ExtendedNextTickListEntry entry = schedules.get(j);
-            if(world.getTotalWorldTime()<entry.scheduledTime){
-                j++;
-                continue;
-            }
-            schedules.remove(j);
-            if(drop) continue;
+        Iterator<ExtendedNextTickListEntry> iterator = schedules.iterator();
+        while (iterator.hasNext()) {
+            ExtendedNextTickListEntry entry = iterator.next();
+            if(world.getTotalWorldTime()<entry.scheduledTime) continue;
+            iterator.remove();
+            if(drop) break;
             drop = READY_TO_UPDATES.size()>MAX_UPDATE_NUM;
             READY_TO_UPDATES.add(entry);
         }
+
+        if(GeneralConfig.SORT_UPDATE_TASKS_BY_DISTANCE_TO_PLAYERS.getValue()){
+            READY_TO_UPDATES.forEach(CALC_DIS_TO_CLOSEST_PLAYER_MAP.computeIfAbsent(world,CREATE_CALC_DIS_TO_CLOSEST_PLAYER));
+            READY_TO_UPDATES.sort(COMPARE_BY_DIS_TO_PLAYER);
+        }
+
+        final int maxTimeUsage = GeneralConfig.BLOCK_UPDATER_MAX_TIME_USAGE.getValue();
+        int i = 0;
+        boolean onlyDynamicFluid = false;
         for(ExtendedNextTickListEntry entry:READY_TO_UPDATES){
             IBlockState state = world.getBlockState(entry.position);
             if(state.getBlock() != entry.getBlock()) continue;
-            state.getBlock().updateTick(world,entry.position,state,world.rand);
+            boolean isDynamicFluid = entry.getBlock() instanceof BlockDynamicLiquid || entry.getBlock() instanceof IFluidBlock;
+            if(isDynamicFluid || !onlyDynamicFluid) state.getBlock().updateTick(world,entry.position,state,world.rand);
+            i++;
+            if(!onlyDynamicFluid && (i&127) == 0){
+                if(maxTimeUsage <0) continue;
+                if(System.currentTimeMillis()-beginTime>maxTimeUsage) onlyDynamicFluid = true;
+                if(!GeneralConfig.ALLOW_DYNAMIC_FLUID_UPDATE.getValue()) break;
+            }
         }
         READY_TO_UPDATES.clear();
     }
@@ -93,5 +114,6 @@ public final class BlockUpdater {
     public static void onServerStop(){
         WORLD_SCHEDULE_MAP.clear();
         READY_TO_UPDATES.clear();
+        CALC_DIS_TO_CLOSEST_PLAYER_MAP.clear();
     }
 }

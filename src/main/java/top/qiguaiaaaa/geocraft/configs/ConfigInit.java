@@ -30,18 +30,18 @@ package top.qiguaiaaaa.geocraft.configs;
 import net.minecraftforge.common.config.Config;
 import top.qiguaiaaaa.geocraft.MixinEarlyInit;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
+import top.qiguaiaaaa.geocraft.api.configs.GeoConfig;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.ConfigDoubleList;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.ConfigIntegerList;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.ConfigList;
 import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigDouble;
 import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
-import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigLong;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-import static top.qiguaiaaaa.geocraft.configs.AtmosphereConfig.*;
 import static top.qiguaiaaaa.geocraft.configs.ConfigurationLoader.registerConfigCategory;
-import static top.qiguaiaaaa.geocraft.configs.GeneralConfig.*;
-import static top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig.*;
 import static top.qiguaiaaaa.geocraft.configs.ConfigurationLoader.registerConfigItem;
 
 public final class ConfigInit {
@@ -65,19 +65,42 @@ public final class ConfigInit {
                 if(field.isAnnotationPresent(Config.Ignore.class)){
                     continue;
                 }
-                if(val instanceof ConfigInteger){
-                    if(field.isAnnotationPresent(Config.RangeInt.class)){
-                        Config.RangeInt range = field.getAnnotation(Config.RangeInt.class);
-                        ConfigInteger integer = (ConfigInteger) val;
-                        integer.setMinValue(range.min())
-                                .setMaxValue(range.max());
+                Config.RangeInt rangeInt = null;
+                Config.RangeDouble rangeDouble = null;
+                GeoConfig.MaxSize maxSize = null;
+                if(field.isAnnotationPresent(Config.RangeInt.class)){
+                    rangeInt = field.getAnnotation(Config.RangeInt.class);
+                }
+                if (field.isAnnotationPresent(Config.RangeDouble.class)) {
+                    rangeDouble = field.getAnnotation(Config.RangeDouble.class);
+                }
+                if(field.isAnnotationPresent(GeoConfig.MaxSize.class)){
+                    maxSize = field.getAnnotation(GeoConfig.MaxSize.class);
+                }
+
+                if(rangeInt != null && val instanceof ConfigInteger){
+                    ConfigInteger integer = (ConfigInteger) val;
+                    integer.setMinValue(rangeInt.min())
+                            .setMaxValue(rangeInt.max());
+                }else if(rangeInt!= null && val instanceof ConfigIntegerList){
+                    ConfigIntegerList list = (ConfigIntegerList) val;
+                    list.setMinValue(rangeInt.min())
+                            .setMaxValue(rangeInt.max());
+                }else if(rangeDouble != null && val instanceof ConfigDouble) {
+                    ConfigDouble d = (ConfigDouble) val;
+                    d.setMinValue((rangeDouble.min() == Double.MIN_VALUE)?Double.NEGATIVE_INFINITY:rangeDouble.min())
+                            .setMaxValue((rangeDouble.max() == Double.MAX_VALUE)?Double.POSITIVE_INFINITY:rangeDouble.max());
+                }else if(rangeDouble != null && val instanceof ConfigDoubleList){
+                    ((ConfigDoubleList)val).setMinValue((rangeDouble.min() == Double.MIN_VALUE)?Double.NEGATIVE_INFINITY:rangeDouble.min())
+                            .setMaxValue((rangeDouble.max() == Double.MAX_VALUE)?Double.POSITIVE_INFINITY:rangeDouble.max());
+                }
+
+                if(val instanceof ConfigList<?>){
+                    if(field.isAnnotationPresent(GeoConfig.SizeFixed.class)){
+                        ((ConfigList<?>) val).setListSizeFixed(true);
                     }
-                }else if(val instanceof ConfigDouble) {
-                    if (field.isAnnotationPresent(Config.RangeDouble.class)) {
-                        Config.RangeDouble range = field.getAnnotation(Config.RangeDouble.class);
-                        ConfigDouble d = (ConfigDouble) val;
-                        d.setMinValue(range.min())
-                                .setMaxValue(range.max());
+                    if(maxSize !=null){
+                        ((ConfigList<?>) val).setMaxListSize(maxSize.value());
                     }
                 }
 

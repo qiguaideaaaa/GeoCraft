@@ -276,7 +276,7 @@ public final class FluidPressureSearchManager implements Runnable{
             for(int i=0;i<MAX_UPDATE_BLOCKS;i++){
                 Pair<BlockPos, Block> task = posesToLoad.poll();
                 if(task == null) break;
-                BlockUpdater.scheduleUpdate(world,task.getLeft(),task.getRight(),world.rand.nextInt(5));
+                BlockUpdater.scheduleUpdate(world,task.getLeft(),task.getRight(),world.rand.nextInt(20));
             }
             posesToLoad.clear();
         }

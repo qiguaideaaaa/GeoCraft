@@ -30,11 +30,13 @@ package top.qiguaiaaaa.geocraft.handler;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidUpdateManager;
+import top.qiguaiaaaa.geocraft.util.MiscUtil;
 
 import javax.annotation.Nonnull;
 
@@ -46,20 +48,19 @@ public final class TickHandler {
 
     private TickHandler(){}
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOW)
     public static void onServerTickStart(@Nonnull TickEvent.ServerTickEvent event){
         if(event.phase == TickEvent.Phase.END) return;
         FluidPressureSearchManager.onServerTick(event);
     }
 
-    @SubscribeEvent
-    public static void onServerTickEnd(@Nonnull TickEvent.ServerTickEvent event){
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onWorldTickEnd(@Nonnull TickEvent.WorldTickEvent event){
         if(event.phase == TickEvent.Phase.START) return;
-        WorldServer[] worlds = FMLCommonHandler.instance().getMinecraftServerInstance().worlds;
-        for(@Nonnull WorldServer world:worlds){
-            FluidPressureSearchManager.onWorldTick(world);
-            BlockUpdater.onWorldTick(world);
-            FluidUpdateManager.onWorldTick(world);
-        }
+        WorldServer world = MiscUtil.getValidWorld(event.world);
+        if(world == null) return;
+        FluidPressureSearchManager.onWorldTick(world);
+        BlockUpdater.onWorldTick(world);
+        FluidUpdateManager.onWorldTick(world);
     }
 }
