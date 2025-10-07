@@ -29,6 +29,8 @@ package top.qiguaiaaaa.geocraft.world.gen;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.properties.IProperty;
+import net.minecraft.block.state.BlockStateBase;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
@@ -38,19 +40,30 @@ import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.IChunkGenerator;
+import net.minecraftforge.common.property.ExtendedBlockState;
+import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fml.common.IWorldGenerator;
 import top.qiguaiaaaa.geocraft.api.block.BlockProperties;
-import top.qiguaiaaaa.geocraft.api.event.EventFactory;
-import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
-import top.qiguaiaaaa.geocraft.block.IBlockDirt;
 import top.qiguaiaaaa.geocraft.api.block.IPermeableBlock;
+import top.qiguaiaaaa.geocraft.api.event.EventFactory;
+import top.qiguaiaaaa.geocraft.api.setting.GeoSoilSetting;
+import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
+import top.qiguaiaaaa.geocraft.block.IBlockSoil;
+import top.qiguaiaaaa.geocraft.util.math.vec.BlockPosI;
 
+import javax.annotation.Nullable;
 import java.util.Random;
 
+import static top.qiguaiaaaa.geocraft.configs.SoilConfig.*;
+
 public class GeoCraftPostPopulatingGenerator implements IWorldGenerator {
+
+    private boolean enableProtection;
+
+    private boolean needProtection = false;
 
     @Override
     public void generate(Random random, int chunkX, int chunkZ, World world, IChunkGenerator chunkGenerator, IChunkProvider chunkProvider) {
@@ -61,12 +74,18 @@ public class GeoCraftPostPopulatingGenerator implements IWorldGenerator {
     }
 
     protected void populateHumidity(Random random,int chunkX,int chunkZ, World world,IChunkGenerator chunkGenerator,IChunkProvider chunkProvider){
-        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        if(!ENABLE_GENERATION.getValue()) return;
+        if(GENERATION_DIMENSION_BLACK_LIST.contains(world.provider.getDimension())){
+            return;
+        }
+        enableProtection = ENABLE_PRE_PROTECTION_OF_WATER_FALLING.getValue();
+        BlockPosI.Mutable pos = new BlockPosI.Mutable();
         int beginX = chunkX<<4;
         int beginZ = chunkZ<<4;
         for(int x=0;x<16;x++){
             for(int z=0;z<16;z++){
-                Biome biome = world.getBiome(pos.setPos(beginX+x,0,beginZ+z));
+                Biome biome = world.getBiome(pos.setPos(beginX+x,1,beginZ+z));
+                if(GeoSoilSetting.isBiomeInGenerationBlacklist(biome)) continue;
                 boolean waterFlag = false;
                 for (int y=world.getHeight(beginX+x,beginZ+z);y>=0;y--){
                     pos.setPos(beginX+x,y,beginZ+z);
@@ -80,6 +99,12 @@ public class GeoCraftPostPopulatingGenerator implements IWorldGenerator {
                         continue;
                     }
                     state = addHumidity(world,biome,pos,state,waterFlag);
+                    if(needProtection){
+                        world.setBlockState(pos,GeoSoilSetting.getBiomeWaterProtectionBlock(biome),Constants.BlockFlags.NO_RERENDER | Constants.BlockFlags.NO_OBSERVERS);
+                        waterFlag = false;
+                        needProtection = false;
+                        continue;
+                    }
                     if(state == null){ //不透水
                         waterFlag = false;
                         continue;
@@ -90,21 +115,28 @@ public class GeoCraftPostPopulatingGenerator implements IWorldGenerator {
         }
     }
 
+    @Nullable
     protected IBlockState addHumidity(World world,Biome biome,BlockPos pos,IBlockState state,boolean waterFlag){
         if(waterFlag && state.getMaterial() == Material.AIR){
+            if(enableProtection){
+                needProtection = true;
+                return null;
+            }
             return Blocks.WATER.getDefaultState();
         }
         Block block = state.getBlock();
-        if(block instanceof IBlockDirt){
-            if(waterFlag) return state.withProperty(BlockProperties.HUMIDITY,4);
+        if(block instanceof IBlockSoil){
+            IBlockSoil soil = (IBlockSoil) block;
+            if(waterFlag) return soil.getQuantaState(state,FluidRegistry.WATER,4);
             if(!biome.canRain()) return null;
-            return state.withProperty(BlockProperties.HUMIDITY,(int)MathHelper.clamp(4*biome.getRainfall()+1,0,((IBlockDirt)block).getMaxStableHumidity(state)));
+            return soil.getQuantaState(state,FluidRegistry.WATER,
+                    (int)MathHelper.clamp(4*biome.getRainfall()+1,0,soil.getMaxStableHumidity(state)));
         }
         if(block instanceof IPermeableBlock){ //之前已经处理过本身为流体的可能性，这里一定不会是流体
             IPermeableBlock permeable = (IPermeableBlock) block;
-            if(permeable.getFluid(world,pos,state) != FluidRegistry.WATER) return null; //不能透水
-            if(waterFlag) return permeable.getQuantaState(state,16/permeable.getHeightPerQuanta());
-            return permeable.getQuantaState(state, ((int)MathHelper.clamp(16*biome.getRainfall(),0,16))/permeable.getHeightPerQuanta());
+            int maxQuanta = permeable.getMaxQuanta(state,FluidRegistry.WATER);
+            if(waterFlag) return permeable.getQuantaState(state,FluidRegistry.WATER,maxQuanta);
+            return null;
         }
         return null;
     }

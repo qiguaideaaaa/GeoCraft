@@ -34,8 +34,10 @@ import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.ConfigurableLinkedHashMap;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.ConfigEntry;
+import top.qiguaiaaaa.geocraft.api.util.exception.ConfigParseError;
 
 import javax.annotation.Nonnull;
+import java.util.Iterator;
 import java.util.function.Function;
 
 public class ConfigMap<K,V> extends ConfigItem<ConfigurableLinkedHashMap<K,V>> {
@@ -47,6 +49,8 @@ public class ConfigMap<K,V> extends ConfigItem<ConfigurableLinkedHashMap<K,V>> {
     protected Class<V> valClass;
 
     protected String keyComment,valueComment;
+
+    protected boolean keyFixed = false;
 
     @SafeVarargs
     public ConfigMap(ConfigCategory category, String configKey, Function<String,K> parserK, Function<String,V> parserV, ConfigEntry<K,V>... entries) {
@@ -89,6 +93,15 @@ public class ConfigMap<K,V> extends ConfigItem<ConfigurableLinkedHashMap<K,V>> {
         return this;
     }
 
+    public ConfigMap<K,V> setKeyFixed(boolean keyFixed) {
+        this.keyFixed = keyFixed;
+        return this;
+    }
+
+    public boolean isKeyFixed() {
+        return keyFixed;
+    }
+
     @Override
     public void save() {
         if(property == null) return;
@@ -100,6 +113,10 @@ public class ConfigMap<K,V> extends ConfigItem<ConfigurableLinkedHashMap<K,V>> {
     public void load(@Nonnull Configuration config) {
         property = config.get(category.getPath(),key,defaultValue.toStringList(),getPolishedComment());
         load(property);
+        if(keyFixed){
+            defaultValue.forEach(value::putIfAbsent);
+            value.keySet().retainAll(defaultValue.keySet());
+        }
     }
 
     @Override

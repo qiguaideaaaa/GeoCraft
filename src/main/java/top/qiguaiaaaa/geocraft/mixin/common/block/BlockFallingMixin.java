@@ -25,43 +25,31 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.handler.network;
+package top.qiguaiaaaa.geocraft.mixin.common.block;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
-import top.qiguaiaaaa.geocraft.util.factor.SpecialBlockID;
+import net.minecraft.block.BlockFalling;
+import net.minecraft.block.material.Material;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import javax.annotation.Nonnull;
-
-import static top.qiguaiaaaa.geocraft.api.block.BlockProperties.HUMIDITY;
-
-public class NetworkFakeStateHandler {
-    public static IBlockState overwriteState(@Nonnull IBlockState state){
-        Block block = state.getBlock();
-        if(block == Blocks.DIRT){
-            return state.withProperty(HUMIDITY,0);
-        }if(block == Blocks.GRASS){
-            return state.withProperty(HUMIDITY,0);
-        }
-        if(block == Blocks.SAND){
-            return state.withProperty(HUMIDITY,0);
-        }
-        return state;
+/**
+ * @author QiguaiAAAA
+ */
+@Mixin(BlockFalling.class)
+public class BlockFallingMixin extends Block {
+    public BlockFallingMixin(Material materialIn) {
+        super(materialIn);
     }
 
-    public static int overwriteState(int state){
-        int id = state>>4;
-        int meta = state &0b1111;
-        if(id == SpecialBlockID.BLOCK_DIRT_ID){
-            return (id<<4)|(meta%3);
+    @Inject(method = "checkFallable",at =@At("HEAD"),cancellable = true)
+    private void checkFallable(World worldIn, BlockPos pos, CallbackInfo ci){
+        if(BlockFalling.fallInstantly) {
+            ci.cancel();
         }
-        if(id == SpecialBlockID.BLOCK_GRASS_ID){
-            return id<<4;
-        }
-        if(id == SpecialBlockID.BLOCK_SAND_ID){
-            return (id<<4)|(meta%2);
-        }
-        return state;
     }
 }

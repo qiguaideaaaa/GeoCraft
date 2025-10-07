@@ -38,7 +38,7 @@ import javax.annotation.Nullable;
  * @author QiguaiAAAA
  */
 public class ConfigurableFluid {
-    protected String name;
+    protected final String name;
 
     /**
      * 从流体名称中创建一个流体表示

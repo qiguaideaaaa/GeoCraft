@@ -33,10 +33,13 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import top.qiguaiaaaa.geocraft.GeoCraft;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.DefaultAtmosphereDataProvider;
+import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
+import top.qiguaiaaaa.geocraft.api.atmosphere.storage.IAtmosphereDataLoader;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.StorageAtmosphereDataLoader;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.AtmosphereSystemType;
 import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereSystemEvent;
+import top.qiguaiaaaa.geocraft.configs.AtmosphereConfig;
 import top.qiguaiaaaa.geocraft.configs.ConfigurationLoader;
 import top.qiguaiaaaa.geocraft.geography.atmosphere.info.CloseAtmosphereSystemInfo;
 import top.qiguaiaaaa.geocraft.geography.atmosphere.info.SurfaceAtmosphereSystemInfo;
@@ -47,7 +50,7 @@ import top.qiguaiaaaa.geocraft.geography.atmosphere.system.VanillaAtmosphereSyst
 
 import java.io.File;
 
-public class AtmosphereEventHandler {
+public final class AtmosphereEventHandler {
     @SubscribeEvent
     public static void createAtmosphereSystem(AtmosphereSystemEvent.Create event){
         WorldServer server= event.getWorld();
@@ -62,16 +65,20 @@ public class AtmosphereEventHandler {
         String saveFolder = provider.getSaveFolder();
         if(saveFolder == null) saveFolder = "DIM"+provider.getDimension();
 
+        IAtmosphereDataProvider dataProvider = null;
 
         if(type == AtmosphereSystemType.SURFACE_ATMOSPHERE_SYSTEM){
             StorageAtmosphereDataLoader loader = new StorageAtmosphereDataLoader(new File(server.getSaveHandler().getWorldDirectory(),saveFolder));
-            system = new SurfaceAtmosphereSystem(server,info, SurfaceAtmosphereSystemInfo.create(event.getSystemInfo().getDetails()),new DefaultAtmosphereDataProvider(server,loader));
+            system = new SurfaceAtmosphereSystem(server,info, SurfaceAtmosphereSystemInfo.create(event.getSystemInfo().getDetails()),dataProvider = new DefaultAtmosphereDataProvider(server,loader));
         }else if(type == AtmosphereSystemType.CLOSE_ATMOSPHERE_SYSTEM){
             StorageAtmosphereDataLoader loader = new StorageAtmosphereDataLoader(new File(server.getSaveHandler().getWorldDirectory(),saveFolder));
-            system = new CloseAtmosphereSystem(server,info, CloseAtmosphereSystemInfo.create(event.getSystemInfo().getDetails()),new DefaultAtmosphereDataProvider(server,loader));
+            system = new CloseAtmosphereSystem(server,info, CloseAtmosphereSystemInfo.create(event.getSystemInfo().getDetails()),dataProvider = new DefaultAtmosphereDataProvider(server,loader));
         }else if(type == AtmosphereSystemType.VANILLA_ATMOSPHERE_SYSTEM){
             StorageAtmosphereDataLoader loader = new StorageAtmosphereDataLoader(new File(server.getSaveHandler().getWorldDirectory(),saveFolder));
-            system = new VanillaAtmosphereSystem(server,info, VanillaAtmosphereSystemInfo.create(event.getSystemInfo().getDetails()),new DefaultAtmosphereDataProvider(server,loader));
+            system = new VanillaAtmosphereSystem(server,info, VanillaAtmosphereSystemInfo.create(event.getSystemInfo().getDetails()),dataProvider = new DefaultAtmosphereDataProvider(server,loader));
+        }
+        if(dataProvider != null){
+            dataProvider.setMaxLoadDistance(AtmosphereConfig.ATMOSPHERE_MAX_LOAD_DISTANCE.getValue());
         }
 
         ConfigurationLoader.save();

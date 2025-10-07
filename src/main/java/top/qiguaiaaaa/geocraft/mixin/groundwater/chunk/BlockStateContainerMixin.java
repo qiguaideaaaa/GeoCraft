@@ -34,7 +34,7 @@ import net.minecraft.world.chunk.BlockStatePaletteRegistry;
 import net.minecraft.world.chunk.IBlockStatePalette;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import top.qiguaiaaaa.geocraft.handler.network.NetworkFakeStateHandler;
+import top.qiguaiaaaa.geocraft.handler.network.NetworkFakeStateManager;
 import top.qiguaiaaaa.geocraft.util.math.ModifyBitArray;
 import top.qiguaiaaaa.geocraft.util.mixinapi.network.NetworkOverridable;
 
@@ -56,7 +56,7 @@ public class BlockStateContainerMixin implements NetworkOverridable {
             ModifyBitArray modifiedArray = new ModifyBitArray(bits,4096,arr.clone());
             for(int i=0;i<4096;i++){
                 int j = modifiedArray.get(i);
-                int modified = NetworkFakeStateHandler.overwriteState(j);
+                int modified = NetworkFakeStateManager.overwriteState(j);
                 if(j == modified) continue;
                 modifiedArray.set(i,modified);
             }

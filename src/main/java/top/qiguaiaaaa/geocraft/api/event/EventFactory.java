@@ -33,11 +33,14 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.EventBus;
@@ -45,8 +48,9 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.IAtmosphereSystem;
 import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereGenerateEvent;
 import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereSystemEvent;
-import top.qiguaiaaaa.geocraft.api.event.block.StaticLiquidUpdateEvent;
 import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereUpdateEvent;
+import top.qiguaiaaaa.geocraft.api.event.block.StaticLiquidUpdateEvent;
+import top.qiguaiaaaa.geocraft.api.event.player.ExtendedUseHoeEvent;
 import top.qiguaiaaaa.geocraft.api.event.player.FillGlassBottleEvent;
 import top.qiguaiaaaa.geocraft.api.event.player.FillGlassBottleEvent.FillGlassBottleOnAreaEffectCloudEvent;
 import top.qiguaiaaaa.geocraft.api.event.player.FillGlassBottleEvent.FillGlassBottleOnFluidEvent;
@@ -97,6 +101,16 @@ public final class EventFactory {
         EVENT_BUS.post(event);
         if(event.isCanceled()) return null;
         return event.getSystem();
+    }
+
+    public static int onHoeUse(ItemStack stack, EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing,float x,float y,float z) {
+        ExtendedUseHoeEvent event = new ExtendedUseHoeEvent(player, stack, worldIn, pos,hand,facing,x,y,z);
+        if (MinecraftForge.EVENT_BUS.post(event)) return -1;
+        if (event.getResult() == Result.ALLOW) {
+            stack.damageItem(1, player);
+            return 1;
+        }
+        return 0;
     }
 
     private static ActionResult<ItemStack> processOnGlassBottleUseEvent(ItemStack itemStack,EntityPlayer player,FillGlassBottleEvent event){

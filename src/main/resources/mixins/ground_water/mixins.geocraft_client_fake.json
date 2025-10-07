@@ -2,15 +2,15 @@
   "package": "top.qiguaiaaaa.geocraft.mixin.groundwater",
   "required": true,
   "compatibilityLevel": "JAVA_8",
-  "setSourceFile": true,
   "refmap": "mixins.geocraft.refmap.json",
-  "mixins": [
+  "mixins": [],
+  "client": [],
+  "server": [
     "chunk.BlockStateContainerMixin",
     "chunk.BlockStatePaletteHashMapMixin",
     "chunk.BlockStatePaletteLinearMixin",
     "network.SPacketBlockChangeMixin",
     "network.SPacketChunkDataMixin",
     "network.SPacketMultiBlockChangeMixin"
-  ],
-  "client": []
+  ]
 }

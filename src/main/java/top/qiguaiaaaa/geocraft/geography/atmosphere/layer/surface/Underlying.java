@@ -203,7 +203,9 @@ public class Underlying extends UnderlyingLayer {
             updateNeighborAltitudeInfo(neighbors);
         }
 
-        double 地面长波辐射 = AtmosphereUtil.Constants.每秒损失能量常数 * Math.pow(temperature.get(), 4)* GeoAtmosphereSetting.getSimulationGap();
+        double 地面长波辐射 =
+                Math.min(AtmosphereUtil.Constants.每秒损失能量常数 * Math.pow(temperature.get(), 4)* GeoAtmosphereSetting.getSimulationGap(),
+                        heatCapacity*temperature.get()/2);
         temperature.addHeat(-地面长波辐射,heatCapacity);
         if(upperLayer == null) return;
         upperLayer.sendHeat(new HeatPack(HeatPack.HeatType.LONG_WAVE,地面长波辐射), EnumFacing.UP);

@@ -2,12 +2,16 @@
   "package": "top.qiguaiaaaa.geocraft.mixin",
   "required": true,
   "compatibilityLevel": "JAVA_8",
-  "setSourceFile": true,
   "refmap": "mixins.geocraft.refmap.json",
   "mixins": [
-    "common.BlockFluidBaseAccessor",
-    "common.item.ItemGlassBottleMixin"
+    "common.block.BlockFluidBaseAccessor",
+    "common.block.BlockSnowMixin",
+    "common.item.ItemGlassBottleMixin",
+    "common.item.ItemHoeMixin",
+    "common.entity.EntityFallingBlockMixin",
+    "common.entity.EntityFallingBlockAccessor"
   ],
   "client": [
+    "common.client.BlockModelShapesMixin"
   ]
 }

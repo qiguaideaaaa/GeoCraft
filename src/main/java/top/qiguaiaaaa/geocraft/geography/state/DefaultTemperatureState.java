@@ -51,7 +51,7 @@ public class DefaultTemperatureState extends TemperatureState {
 
     @Override
     public boolean isInitialised() {
-        return temperature > 0 && !Float.isInfinite(temperature);
+        return temperature > 0 && !Float.isInfinite(temperature) && temperature < 10000;
     }
 
     @Nonnull

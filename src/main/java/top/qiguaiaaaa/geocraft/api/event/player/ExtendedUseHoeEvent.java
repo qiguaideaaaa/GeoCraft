@@ -25,13 +25,52 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.api;
+package top.qiguaiaaaa.geocraft.api.event.player;
 
-import net.minecraftforge.fluids.Fluid;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.minecraftforge.event.entity.player.UseHoeEvent;
+
+import javax.annotation.Nonnull;
 
 /**
- * 天圆地方(GeoCraft)的所有流体索引
+ * @author QiguaiAAAA
  */
-public final class GeoCraftFluids {
-    public static Fluid CARBON_DIOXIDE;
+public class ExtendedUseHoeEvent extends UseHoeEvent {
+    private final EnumHand hand;
+    private final EnumFacing facing;
+    private final float hitX,hitY,hitZ;
+
+    public ExtendedUseHoeEvent(EntityPlayer player, @Nonnull ItemStack current, World world, BlockPos pos,EnumHand hand,EnumFacing facing,float hitX,float hitY,float hitZ) {
+        super(player, current, world, pos);
+        this.facing = facing;
+        this.hand = hand;
+        this.hitX = hitX;
+        this.hitY = hitY;
+        this.hitZ = hitZ;
+    }
+
+    public EnumFacing getFacing() {
+        return facing;
+    }
+
+    public EnumHand getHand() {
+        return hand;
+    }
+
+    public float getHitX() {
+        return hitX;
+    }
+
+    public float getHitY() {
+        return hitY;
+    }
+
+    public float getHitZ() {
+        return hitZ;
+    }
 }

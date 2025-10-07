@@ -34,10 +34,15 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.*;
+import top.qiguaiaaaa.geocraft.api.block.IPermeableBlock;
 import top.qiguaiaaaa.geocraft.api.util.exception.UnsupportedFluidException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static net.minecraft.block.BlockLiquid.LEVEL;
 
@@ -46,6 +51,9 @@ import static net.minecraft.block.BlockLiquid.LEVEL;
  */
 public final class FluidUtil {
     public static final int ONE_IN_EIGHT_OF_BUCKET_VOLUME = Fluid.BUCKET_VOLUME/8;
+
+    private static final ThreadLocal<Set<Fluid>> PERMEABLE_FLUID_SET = ThreadLocal.withInitial(HashSet::new);
+    private static final ThreadLocal<Set<Fluid>> UNMODIFIABLE_FLUID_SET = ThreadLocal.withInitial(()->Collections.unmodifiableSet(PERMEABLE_FLUID_SET.get()));
 
     /**
      * 对应方块是否是一个液体
@@ -103,6 +111,16 @@ public final class FluidUtil {
         return !FluidUtil.isFullFluid(world,pos,state);
     }
 
+    public static boolean isFluidPlaceablePermeable(@Nonnull World world,@Nonnull BlockPos pos,@Nonnull Fluid fluid,boolean allowAir){
+        IBlockState state = world.getBlockState(pos);
+        Block block = state.getBlock();
+        if(block instanceof IPermeableBlock){
+            Set<Fluid> acceptFluids = ((IPermeableBlock)block).getFluid(state);
+            return acceptFluids.isEmpty() || acceptFluids.contains(fluid);
+        }
+        return allowAir && isFluidPlaceable(world, pos, fluid);
+    }
+
     /**
      * 获取指定方块状态的液体
      * @param state 方块状态
@@ -123,6 +141,34 @@ public final class FluidUtil {
         }
         return null;
     }
+
+    @Nullable
+    public static Fluid getFluid(@Nonnull Material material){
+        if(material == Material.WATER) return FluidRegistry.WATER;
+        else if(material == Material.LAVA) return FluidRegistry.LAVA;
+        return null;
+    }
+
+    @Nullable
+    public static Set<Fluid> getFluidPermeable(@Nonnull IBlockState state, boolean allowAir) {
+        Block block = state.getBlock();
+
+        if(block instanceof IPermeableBlock){
+            return ((IPermeableBlock)block).getFluid(state);
+        }
+
+        if(allowAir){
+            Fluid fluid = getFluid(state);
+            if(fluid == null) return null;
+            Set<Fluid> fluids = PERMEABLE_FLUID_SET.get();
+            fluids.clear();
+            fluids.add(fluid);
+            return UNMODIFIABLE_FLUID_SET.get();
+        }
+        return null;
+    }
+
+
     /**
      * 获取指定方块的液体
      * @param block 方块
@@ -165,6 +211,13 @@ public final class FluidUtil {
         int stateValue = state.getValue(BlockLiquid.LEVEL);
         if(stateValue>=8) return 1;
         else return 8-stateValue;
+    }
+
+    public static int getFluidQuantaPermeable(@Nonnull World worldIn,@Nonnull BlockPos pos,@Nonnull IBlockState state,@Nonnull Fluid fluid,boolean allowAir){
+        if(state.getBlock() instanceof IPermeableBlock){
+            return ((IPermeableBlock)state.getBlock()).getQuanta(state,fluid);
+        }
+        return allowAir?getFluidQuanta(worldIn, pos, state):0;
     }
 
     /**

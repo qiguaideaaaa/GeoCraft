@@ -25,65 +25,66 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.api.configs.item.collection;
+package top.qiguaiaaaa.geocraft.api.configs.item.collection.list;
 
 import net.minecraftforge.common.config.Configuration;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
-import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableList;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.IConfigIntCollection;
+import top.qiguaiaaaa.geocraft.api.configs.value.collection.IConfigurableList;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
 
-/**
- * @author QiguaiAAAA
- */
-public class ConfigDoubleList extends ConfigList<Double>{
-    protected double minValue = Double.NEGATIVE_INFINITY,
-    maxValue = Double.POSITIVE_INFINITY;
-    public ConfigDoubleList(ConfigCategory category, String configKey, ConfigurableList<Double> defaultValue) {
+
+public class ConfigIntegerList extends ConfigList<Integer> implements IConfigIntCollection {
+    protected int minValue = Integer.MIN_VALUE,
+            maxValue = Integer.MAX_VALUE;
+    public ConfigIntegerList(ConfigCategory category, String configKey, IConfigurableList<Integer> defaultValue) {
         this(category, configKey, defaultValue,null);
     }
 
-    public ConfigDoubleList(ConfigCategory category, String configKey, ConfigurableList<Double> defaultValue, String comment) {
-        this(category, configKey, defaultValue, comment, false);
+    public ConfigIntegerList(ConfigCategory category, String configKey, IConfigurableList<Integer> defaultValue, String comment) {
+        this(category, configKey, defaultValue, comment,false);
     }
 
-    public ConfigDoubleList(ConfigCategory category, String configKey, ConfigurableList<Double> defaultValue, String comment, boolean isFinal) {
-        this(category, configKey, defaultValue, comment,-1, isFinal);
+    public ConfigIntegerList(ConfigCategory category, String configKey, IConfigurableList<Integer> defaultValue, String comment, boolean isFinal) {
+        super(category, configKey, defaultValue, comment,Integer::parseInt, isFinal);
     }
-
-    public ConfigDoubleList(ConfigCategory category, String configKey, ConfigurableList<Double> defaultValue, String comment, int maxListSize, boolean isFinal) {
-        super(category, configKey, defaultValue, comment, maxListSize, Double::parseDouble, isFinal);
-    }
-
-    public ConfigDoubleList setMinValue(double minValue) {
+    @Override
+    public ConfigIntegerList setMinValue(int minValue) {
         this.minValue = minValue;
         return this;
     }
-
-    public ConfigDoubleList setMaxValue(double maxValue) {
+    @Override
+    public ConfigIntegerList setMaxValue(int maxValue) {
         this.maxValue = maxValue;
         return this;
     }
-
-    public double getMinValue() {
+    @Override
+    public int getMinValue() {
         return minValue;
     }
-
-    public double getMaxValue() {
+    @Override
+    public int getMaxValue() {
         return maxValue;
+    }
+
+    @Override
+    public ConfigIntegerList setMaxListSize(int maxListSize) {
+        super.setMaxListSize(maxListSize);
+        return this;
     }
 
     @Override
     public void save() {
         if(property == null) return;
-        property.setValues(toDoubleList(value));
+        property.setValues(toIntList(value));
         property.setComment(getPolishedComment());
     }
 
     @Override
     public void load(@Nonnull Configuration config) {
-        property = config.get(category.getPath(),key,toDoubleList(defaultValue),comment,minValue,maxValue,isListSizeFixed,maxListSize);
+        property = config.get(category.getPath(),key,toIntList(defaultValue),comment,minValue,maxValue,isListSizeFixed,maxListSize);
         property.setComment(getPolishedComment());
         load(property);
     }
@@ -92,12 +93,12 @@ public class ConfigDoubleList extends ConfigList<Double>{
         return (comment==null?"":comment)+" [range: " + minValue + " ~ " + maxValue + (maxListSize>=0?", maxSize: " + maxListSize:"") + "]";
     }
 
-    protected double[] toDoubleList(@Nonnull Collection<Double> c){
-        double[] doubles = new double[c.size()];
+    protected int[] toIntList(@Nonnull Collection<Integer> c){
+        int[] ints = new int[c.size()];
         int i=0;
-        for(Double d:c){
-            doubles[i++]=d;
+        for(Integer integer:c){
+            ints[i++]=integer;
         }
-        return doubles;
+        return ints;
     }
 }

@@ -25,10 +25,14 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.util.factor;
+package top.qiguaiaaaa.geocraft.api.configs.value.collection;
 
-public final class SpecialBlockID {
-    public static final int BLOCK_DIRT_ID = 3;
-    public static final int BLOCK_GRASS_ID = 2;
-    public static final int BLOCK_SAND_ID = 12;
+import top.qiguaiaaaa.geocraft.api.configs.value.collection.IConfigurableCollection;
+
+import java.util.Set;
+
+/**
+ * @author QiguaiAAAA
+ */
+public interface IConfigurableSet<V> extends IConfigurableCollection<V>, Set<V> {
 }

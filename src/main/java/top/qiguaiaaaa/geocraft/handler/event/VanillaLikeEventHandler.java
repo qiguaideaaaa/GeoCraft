@@ -76,7 +76,7 @@ public final class VanillaLikeEventHandler{
     }
 
     public static void onPostInit(FMLPostInitializationEvent event){
-        for(ConfigurableFluid fluid:fluidsNotToSimulateInVanillaLike.getValue()){
+        for(ConfigurableFluid fluid:fluidsNotToSimulateInVanillaLike){
             if(fluid == null) continue;
             GeoFluidSetting.setFluidToBePhysical(fluid.toString(),false);
         }

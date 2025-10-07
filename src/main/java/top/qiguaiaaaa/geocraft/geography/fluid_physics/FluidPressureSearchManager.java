@@ -67,7 +67,7 @@ import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
  */
 public final class FluidPressureSearchManager implements Runnable{
     public static final String THREAD_NAME = "FluidPressureSystem", CONFIG_CATEGORY_NAME = "pressure_system";
-    private static final int MAX_UPDATE_TASKS, MAX_UPDATE_BLOCKS;
+    private static int MAX_UPDATE_TASKS, MAX_UPDATE_BLOCKS;
     private static final FluidPressureSearchManager INSTANCE = new FluidPressureSearchManager();
     private static final Object NOTIFY_OBJECT = new Object(),STATUS_LOCK = new Object();
     private static final Function<WorldServer,ConcurrentLinkedQueue<Pair<BlockPos, Block>>> CREATE_QUEUE = k -> new ConcurrentLinkedQueue<>();
@@ -89,12 +89,16 @@ public final class FluidPressureSearchManager implements Runnable{
     static Thread thread;
 
     static {
-        MAX_UPDATE_TASKS = FluidPhysicsConfig.PRESSURE_MAX_TASKS_PER_TICK.getValue();
-        MAX_UPDATE_BLOCKS = FluidPhysicsConfig.PRESSURE_MAX_UPDATES_PER_TICK.getValue();
+        readConfig();
     }
 
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     FluidPressureSearchManager(){}
+
+    private static void readConfig(){
+        MAX_UPDATE_TASKS = FluidPhysicsConfig.PRESSURE_MAX_TASKS_PER_TICK.getValue();
+        MAX_UPDATE_BLOCKS = FluidPhysicsConfig.PRESSURE_MAX_UPDATES_PER_TICK.getValue();
+    }
 
     /**
      * 要求压强系统以异步方式开始运行
@@ -103,6 +107,7 @@ public final class FluidPressureSearchManager implements Runnable{
     public static void asyncRun(){
         thread = new Thread(INSTANCE,THREAD_NAME);
         thread.start();
+        readConfig();
         GeoCraft.getLogger().info("{} started in async",THREAD_NAME);
     }
 
@@ -118,6 +123,7 @@ public final class FluidPressureSearchManager implements Runnable{
             thread.interrupt();
             thread = null;
         }
+        readConfig();
         status = Status.RUNNING;
     }
 
@@ -272,11 +278,12 @@ public final class FluidPressureSearchManager implements Runnable{
     public static void onWorldTick(@Nonnull WorldServer world){
         if(status == Status.STOP) return;
         Queue<Pair<BlockPos,Block>> posesToLoad = queueToLoadPos.get(world);
+        final int dispersion = FluidPhysicsConfig.PRESSURE_SCHEDULE_UPDATES_DISPERSION.getValue();
         if(posesToLoad != null){
             for(int i=0;i<MAX_UPDATE_BLOCKS;i++){
                 Pair<BlockPos, Block> task = posesToLoad.poll();
                 if(task == null) break;
-                BlockUpdater.scheduleUpdate(world,task.getLeft(),task.getRight(),world.rand.nextInt(20));
+                BlockUpdater.scheduleUpdate(world,task.getLeft(),task.getRight(),world.rand.nextInt(dispersion));
             }
             posesToLoad.clear();
         }
@@ -334,13 +341,13 @@ public final class FluidPressureSearchManager implements Runnable{
             int duration = FluidPhysicsConfig.PRESSURE_TICK_DURATION.getValue();
             if(usedTime<duration){
                 try {
+                    checkInterruptStatus();
                     synchronized (STATUS_LOCK){
-                        checkInterruptStatus();
                         status = Status.SLEEPING;
                     }
                     Thread.sleep(duration-usedTime);
+                    checkInterruptStatus();
                     synchronized (STATUS_LOCK){
-                        checkInterruptStatus();
                         status = Status.RUNNING;
                     }
                 } catch (InterruptedException ignored) {

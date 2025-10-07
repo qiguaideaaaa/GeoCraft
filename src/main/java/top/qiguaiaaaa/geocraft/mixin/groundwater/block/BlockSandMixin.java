@@ -37,11 +37,14 @@ import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import top.qiguaiaaaa.geocraft.block.IBlockDirt;
+import top.qiguaiaaaa.geocraft.block.IBlockSoil;
+import top.qiguaiaaaa.geocraft.configs.SoilConfig;
+import top.qiguaiaaaa.geocraft.geography.soil.BlockSoilType;
 
 import javax.annotation.Nonnull;
 import java.util.Random;
@@ -49,8 +52,11 @@ import java.util.Random;
 import static top.qiguaiaaaa.geocraft.api.block.BlockProperties.HUMIDITY;
 
 @Mixin(value = BlockSand.class)
-public class BlockSandMixin extends BlockFalling implements IBlockDirt {
+public class BlockSandMixin extends BlockFalling implements IBlockSoil {
     @Shadow @Final public static PropertyEnum<BlockSand.EnumType> VARIANT;
+
+    @Unique
+    private static final int STABLE_HUMIDITY = SoilConfig.STABLE_HUMIDITY.getValue().get(BlockSoilType.SAND);
 
     @Inject(method = "<init>",at = @At(value = "RETURN"))
     private void injectDefaultState(CallbackInfo ci) {
@@ -85,8 +91,25 @@ public class BlockSandMixin extends BlockFalling implements IBlockDirt {
         dropWaterWhenBroken(worldIn, pos, state);
     }
 
+    @Nonnull
     @Override
-    public int getMaxStableHumidity(IBlockState state) {
-        return 1;
+    public BlockSoilType getType(@Nonnull IBlockState state) {
+        return BlockSoilType.SAND;
+    }
+
+    @Override
+    public int getMaxStableHumidity(@Nonnull IBlockState state) {
+        return STABLE_HUMIDITY;
+    }
+
+    @Override
+    public double getFlowInPossibility(@Nonnull IBlockState state) {
+        return 0.7;
+    }
+
+    @Override
+    public void updateTick(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random rand) {
+        if(state.getValue(HUMIDITY) == getMaxStableHumidity(state)) return;
+        super.updateTick(worldIn, pos, state, rand);
     }
 }

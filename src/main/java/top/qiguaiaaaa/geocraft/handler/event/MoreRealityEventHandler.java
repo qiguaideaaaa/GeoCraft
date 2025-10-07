@@ -32,6 +32,9 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityFallingBlock;
+import net.minecraft.entity.monster.EntityEnderman;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
@@ -47,6 +50,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.entity.player.FillBucketEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fluids.*;
@@ -56,22 +60,26 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.block.BlockProperties;
+import top.qiguaiaaaa.geocraft.api.block.IPermeableBlock;
 import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableFluid;
 import top.qiguaiaaaa.geocraft.api.event.atmosphere.AtmosphereUpdateEvent;
 import top.qiguaiaaaa.geocraft.api.event.block.StaticLiquidUpdateEvent;
 import top.qiguaiaaaa.geocraft.api.event.player.FillGlassBottleEvent.FillGlassBottleOnFluidEvent;
 import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
-import top.qiguaiaaaa.geocraft.block.IBlockDirt;
+import top.qiguaiaaaa.geocraft.block.IBlockSoil;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.MoreRealityFluidPhysicsCore;
 import top.qiguaiaaaa.geocraft.handler.ServerStatusMonitor;
+import top.qiguaiaaaa.geocraft.mixin.common.entity.EntityFallingBlockAccessor;
+import top.qiguaiaaaa.geocraft.util.WaterUtil;
 import top.qiguaiaaaa.geocraft.util.fluid.FluidMixinUtil;
 import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
-import top.qiguaiaaaa.geocraft.util.WaterUtil;
 import top.qiguaiaaaa.geocraft.util.wrappers.InfiniteFluidBucketWrapper;
 import top.qiguaiaaaa.geocraft.util.wrappers.PhysicsBlockLiquidWrapper;
 import top.qiguaiaaaa.geocraft.util.wrappers.PhysicsFluidBlockWrapper;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Objects;
 
 import static net.minecraft.block.BlockLiquid.LEVEL;
@@ -101,8 +109,9 @@ public final class MoreRealityEventHandler {
 
             FluidStack stack = FluidOperationUtil.tryDrainFluid(worldIn,pos, Fluid.BUCKET_VOLUME,bucketFindFluidMaxDistance.getValue(),false);
             if(stack == null) return;
-            if(allowBucketToDrainFluidWhenAmountIsSmallerThan1000mB.getValue() && stack.amount>0){
+            if((allowBucketToDrainFluidWhenAmountIsSmallerThan1000mB.getValue() || playerIn.capabilities.isCreativeMode) && stack.amount>0){
                 FluidOperationUtil.tryDrainFluid(worldIn,pos,Fluid.BUCKET_VOLUME,bucketFindFluidMaxDistance.getValue(),true);
+                playerIn.playSound(SoundEvents.ITEM_BUCKET_FILL, 1.0F, 1.0F);
                 return;
             }else{
                 if(stack.amount < Fluid.BUCKET_VOLUME) return;
@@ -163,46 +172,124 @@ public final class MoreRealityEventHandler {
     }
 
     @SubscribeEvent
-    public void onPlayerPlacedBlock(BlockEvent.EntityPlaceEvent event){
-        IBlockState currentState = event.getBlockSnapshot().getReplacedBlock();
-        Fluid fluid = FluidUtil.getFluid(currentState);
-        if(fluid == null) return;
-        Block block = currentState.getBlock();
+    public void onPlayerPlacedBlock(BlockEvent.PlaceEvent event){
+        if(!onBlockReplaced(event.getWorld(), event.getPos(),event.getBlockSnapshot().getReplacedBlock(),event.getBlockSnapshot().getCurrentBlock(),PlaceSource.PLAYER,event.getEntity())){
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void onEntityPlacedBlock(BlockEvent.EntityPlaceEvent event){
+        if(event instanceof BlockEvent.PlaceEvent) return;
+        PlaceSource source = PlaceSource.OTHERS;
+        Entity entity = event.getEntity();
+        if(entity instanceof EntityFallingBlock) source = PlaceSource.FALLING_BLOCK;
+        else if(entity instanceof EntityEnderman) source = PlaceSource.ENDER_MAN;
+        if(!onBlockReplaced(event.getWorld(),event.getPos(),event.getBlockSnapshot().getCurrentBlock(),event.getBlockSnapshot().getReplacedBlock(),source,entity)){
+            event.setCanceled(true);
+        }
+    }
+
+    public static boolean onBlockReplaced(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState currentState, @Nonnull IBlockState replacedState, @Nonnull PlaceSource source, @Nullable Entity sourceEntity){
+        final Fluid fluid = FluidUtil.getFluid(currentState);
+        if(fluid == null) return true;
+        final Block block = currentState.getBlock();
         if(block instanceof BlockLiquid){
-            PhysicsBlockLiquidWrapper wrapper = new PhysicsBlockLiquidWrapper((BlockLiquid) block,event.getWorld(),event.getPos());
+            PhysicsBlockLiquidWrapper wrapper = new PhysicsBlockLiquidWrapper((BlockLiquid) block,world,pos);
             wrapper.setIgnoreCurrentPos(true);
-            int quanta = FluidUtil.getFluidQuanta(event.getWorld(), event.getPos(),currentState);
-            if(FluidUtil.getFluid(block) == FluidRegistry.WATER){
-                IBlockState placeState = event.getBlockSnapshot().getCurrentBlock();
-                Block placeBlock = placeState.getBlock();
-                if(placeBlock instanceof IBlockDirt){
-                    int humidity = Math.min(quanta,4);
-                    event.getWorld().setBlockState(event.getPos(),placeState.withProperty(BlockProperties.HUMIDITY,humidity));
-                    quanta -= humidity;
+            int quanta = FluidUtil.getFluidQuanta(world, pos,currentState);
+            int curQuanta = 0,canFillQuanta = 0;
+            Block placeBlock = replacedState.getBlock();
+            IPermeableBlock permeable = null;
+
+            permeable:{
+                switch (source){
+                    case OTHERS:
+                    case ENDER_MAN:
+                    default: break permeable;
+                    case PLAYER:
+                    case FALLING_BLOCK:
                 }
-                if(quanta <= 0) return;
+                if(placeBlock instanceof IPermeableBlock){
+                    permeable = (IPermeableBlock) placeBlock;
+                    curQuanta = permeable.getQuanta(replacedState,fluid);
+                    canFillQuanta = permeable.addQuanta(world,pos,replacedState,fluid,quanta,false);
+                    if(canFillQuanta <=0) {
+                        canFillQuanta = 0;
+                        break permeable;
+                    }
+                    if(quanta>canFillQuanta) break permeable; //在最后的时候再处理
+                    IBlockState quantaState = null;
+                    if(source == PlaceSource.FALLING_BLOCK){
+                        if(!(sourceEntity instanceof EntityFallingBlock)){
+                            canFillQuanta = 0;
+                            break permeable;
+                        }
+                        quantaState = permeable.getQuantaState(replacedState,fluid,curQuanta+canFillQuanta);
+                        if(quantaState == null){
+                            canFillQuanta = 0;
+                            break permeable;
+                        }
+                    }
+
+                    switch (source) {
+                        case PLAYER:
+                            permeable.addQuanta(world,pos,replacedState,fluid,quanta,true);
+                            break;
+                        case FALLING_BLOCK:
+                            ((EntityFallingBlockAccessor)sourceEntity).setFallTile(quantaState);
+                            break;
+                        default: {
+                            canFillQuanta = 0;
+                            break permeable;
+                        }
+                    }
+                    return true;
+                }
             }
+
+            quanta -= canFillQuanta;
+
             int amount = quanta*FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
             wrapper.setExpectedQuanta(quanta);
             FluidStack stack = new FluidStack(fluid,amount);
             int available = wrapper.fill(stack,false);
             if(available < amount){
-                event.setCanceled(true);
-                return;
+                return false;
             }
             wrapper.fill(stack,true);
+            if(canFillQuanta>0){
+                switch (source) {
+                    case PLAYER:
+                        permeable.addQuanta(world,pos,replacedState,fluid,canFillQuanta,true);
+                        break;
+                    case FALLING_BLOCK:
+                        if(sourceEntity == null) break;
+                        IBlockState quantaState = permeable.getQuantaState(replacedState,fluid,curQuanta+canFillQuanta);
+                        if(quantaState == null) break;
+                        ((EntityFallingBlockAccessor)sourceEntity).setFallTile(quantaState);
+                        break;
+                }
+            }
         }else if(block instanceof BlockFluidBase){
-            PhysicsFluidBlockWrapper wrapper = new PhysicsFluidBlockWrapper((IFluidBlock) block,event.getWorld(),event.getPos());
+            PhysicsFluidBlockWrapper wrapper = new PhysicsFluidBlockWrapper((IFluidBlock) block,world,pos);
             wrapper.setIgnoreCurrentPos(true);
             int amount = FluidMixinUtil.getAmountForBlockFluidBase(currentState);
             FluidStack stack = new FluidStack(fluid,amount);
             int available = wrapper.fill(stack,false);
             if(available < amount){
-                event.setCanceled(true);
-                return;
+                return false;
             }
             wrapper.fill(stack,true);
         }
+        return true;
+    }
+
+    public enum PlaceSource{
+        PLAYER,
+        FALLING_BLOCK,
+        ENDER_MAN,
+        OTHERS
     }
 
     @SubscribeEvent
@@ -248,8 +335,8 @@ public final class MoreRealityEventHandler {
         IBlockState state = event.getState();
         World worldIn = event.getWorld();
         if(!event.isRandomTick()){
-            if(ServerStatusMonitor.isServerLagging()) return;
-            if(worldIn.rand.nextInt(50) >1) return; //因为压强计算频繁更新，需要降低概率
+            if(ServerStatusMonitor.isServerCloselyLagging()) return;
+            if(worldIn.rand.nextInt(200) >0) return; //因为压强计算频繁更新，需要降低概率
         }
         BlockPos pos = event.getPos();
         int oldMeta = state.getValue(LEVEL);
@@ -285,11 +372,11 @@ public final class MoreRealityEventHandler {
         }
     }
     public static void onPostInit(FMLPostInitializationEvent event){
-        for(ConfigurableFluid fluid:fluidsNotToSimulate.getValue()){
+        for(ConfigurableFluid fluid:fluidsNotToSimulate){
             if(fluid == null) continue;
             GeoFluidSetting.setFluidToBePhysical(fluid.toString(),false);
         }
-        for(ConfigurableFluid fluid:fluidsWhoseBucketsBehavesAsVanillaBuckets.getValue()){
+        for(ConfigurableFluid fluid:fluidsWhoseBucketsBehavesAsVanillaBuckets){
             if(fluid == null) continue;
             GeoFluidSetting.setFluidToUseVanillaBucketMode(fluid.toString(),true);
         }

@@ -2,7 +2,6 @@
   "package": "top.qiguaiaaaa.geocraft.mixin.reality.mod.ic2",
   "required": true,
   "compatibilityLevel": "JAVA_8",
-  "setSourceFile": true,
   "refmap": "mixins.geocraft.refmap.json",
   "mixins": [
     "LiquidUtilMixin",

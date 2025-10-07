@@ -25,19 +25,22 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.util.fluid;
+package top.qiguaiaaaa.geocraft.geography.fluid_physics.vanilla;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockDoor;
-import net.minecraft.block.BlockDynamicLiquid;
-import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.IFluidBlock;
+import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
+
+import javax.annotation.Nonnull;
 
 import static net.minecraft.block.BlockLiquid.LEVEL;
 
@@ -45,7 +48,17 @@ import static net.minecraft.block.BlockLiquid.LEVEL;
  * 参考{@link BlockDynamicLiquid}和{@link BlockLiquid}实现
  * @author QiguaiAAAA
  */
-public final class BlockLiquidUtil {
+public class BlockLiquidUpdater {
+    protected final BlockDynamicLiquid liquid;
+    protected final Material material;
+    protected final Fluid fluid;
+
+    public BlockLiquidUpdater(@Nonnull BlockDynamicLiquid liquid,@Nonnull Material material,@Nonnull Fluid fluid) {
+        this.liquid = liquid;
+        this.material = material;
+        this.fluid = fluid;
+    }
+
     /**
      * 对应方块状态是否阻挡{@link BlockLiquid}的流动
      * @param state 需要检测的方块状态
@@ -61,12 +74,24 @@ public final class BlockLiquidUtil {
         return true;
     }
 
-    public static int getDepth(IBlockState state,BlockLiquid liquid){
-        if(state.getBlock() instanceof IFluidBlock) return -1;
-        return state.getMaterial() == liquid.getDefaultState().getMaterial() ? state.getValue(LEVEL) : -1;
+    public BlockDynamicLiquid getBlock() {
+        return liquid;
     }
 
-    public static void placeStaticBlock(World world, BlockPos pos,IBlockState curState,BlockLiquid liquid){
+    public Fluid getFluid() {
+        return fluid;
+    }
+
+    public Material getMaterial() {
+        return material;
+    }
+
+    public int getDepth(IBlockState state){
+        if(state.getBlock() instanceof IFluidBlock) return -1;
+        return state.getMaterial() == material ? state.getValue(LEVEL) : -1;
+    }
+
+    public void placeStaticBlock(World world, BlockPos pos,IBlockState curState){
         world.setBlockState(pos,
                 BlockLiquid.getStaticBlock(liquid.getDefaultState().getMaterial())
                         .getDefaultState().withProperty(LEVEL, curState.getValue(LEVEL)), Constants.BlockFlags.SEND_TO_CLIENTS);
@@ -75,12 +100,11 @@ public final class BlockLiquidUtil {
     /**
      * 指定液体是否可以流进指定方块位置
      * @param state 该方块位置的方块状态
-     * @param liquid 液体
      * @return 若能,则返回true,否则返回false
      */
-    public static boolean canFlowInto(IBlockState state, BlockLiquid liquid){
+    public boolean canFlowInto(IBlockState state){
         Material material = state.getMaterial();
-        return material != liquid.getDefaultState().getMaterial() && material != Material.LAVA && !isBlocked(state);
+        return material != this.material && material != Material.LAVA && !isBlocked(state);
     }
 
     /**
@@ -88,13 +112,12 @@ public final class BlockLiquidUtil {
      * @param world 所在世界
      * @param pos 流进的指定位置
      * @param state 流进位置的方块状态
-     * @param liquid 液体
      * @param level 期望流进的液体等级
      */
-    public static void tryFlowInto(World world,BlockPos pos,IBlockState state,BlockLiquid liquid,int level){
-        if (!canFlowInto(state,liquid)) return;
+    public void tryFlowInto(@Nonnull World world,@Nonnull BlockPos pos,@Nonnull IBlockState state,int level){
+        if (!canFlowInto(state)) return;
         if (state.getMaterial() != Material.AIR) {
-            if (liquid.getDefaultState().getMaterial() == Material.LAVA) {
+            if (material == Material.LAVA) {
                 FluidOperationUtil.triggerFluidMixEffects(world, pos);
             } else {
                 if (state.getBlock() != Blocks.SNOW_LAYER)
@@ -104,5 +127,4 @@ public final class BlockLiquidUtil {
 
         world.setBlockState(pos, liquid.getDefaultState().withProperty(LEVEL, level), Constants.BlockFlags.DEFAULT);
     }
-
 }

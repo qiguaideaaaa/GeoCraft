@@ -38,7 +38,7 @@ import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.geocraft.util.fluid.FluidOperationUtil;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
-import top.qiguaiaaaa.geocraft.mixin.common.BlockFluidBaseAccessor;
+import top.qiguaiaaaa.geocraft.mixin.common.block.BlockFluidBaseAccessor;
 
 import java.util.EnumSet;
 import java.util.Set;

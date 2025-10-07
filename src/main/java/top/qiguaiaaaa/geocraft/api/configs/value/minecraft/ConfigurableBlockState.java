@@ -230,6 +230,35 @@ public class ConfigurableBlockState {
         }
     }
 
+    @Nullable
+    public static ConfigurableBlockState getFixedInstanceByString(@Nonnull String content){
+        final ConfigurableBlockState instance = getInstanceByString(content);
+        if(instance == null) return null;
+        for(ConfigurableBlockProperty property:instance.properties.values()){
+            if(property == null) continue;
+            if(property.value.equals("*")) throw new ConfigParseError(content+" can't refer to a specific block state!");
+        }
+        if(instance.meta == -1) throw new ConfigParseError(content+" can't refer to a specific block state!");
+        return instance;
+    }
+
+    @Nullable
+    public Block getBlock(){
+        return Block.REGISTRY.getObject(new ResourceLocation(location));
+    }
+
+    @Nullable
+    public IBlockState getState(){
+        Block block = getBlock();
+        if(block == null) return null;
+        if(meta == -1) return block.getDefaultState();
+        if(meta >=0) return block.getStateFromMeta(meta);
+        for(IBlockState state :block.getBlockState().getValidStates()){
+            if(this.match(state)) return state;
+        }
+        return null;
+    }
+
     /**
      * 将该实例序列化为字符串
      * @return 序列化后的字符串

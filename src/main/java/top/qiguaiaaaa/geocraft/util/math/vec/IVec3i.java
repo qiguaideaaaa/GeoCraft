@@ -53,7 +53,7 @@ public interface IVec3i {
     int getZ();
 
     @Nonnull
-    IVec3i toImmutable();
+    IVec3i asImmutable();
 
     default int toInt() {
         return toInt10(getX())<< X_INT_OFFSET | toInt10(getY())<< Y_INT_OFFSET | toInt10(getZ());

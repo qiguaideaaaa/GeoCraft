@@ -34,9 +34,11 @@ import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import net.minecraftforge.fml.relauncher.Side;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import top.qiguaiaaaa.geocraft.configs.GeneralConfig;
-import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.FluidPhysicsMode;
+import top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig;
+import top.qiguaiaaaa.geocraft.configs.GeneralConfig;
+import top.qiguaiaaaa.geocraft.configs.SoilConfig;
+import zone.rong.mixinbooter.Context;
 import zone.rong.mixinbooter.IEarlyMixinLoader;
 
 import javax.annotation.Nullable;
@@ -66,18 +68,27 @@ public class MixinEarlyInit implements IFMLLoadingPlugin, IEarlyMixinLoader {
             case MORE_REALITY:
             default:{
                 mixinList.add("mixins.geocraft_reality.json");
+                if(FluidPhysicsConfig.ENABLE_INVALID_LIQUID_STATE_REPORT.getValue()){
+                    mixinList.add("mixins/fluid_physics/reality/mixins.geocraft_reality_debug.json");
+                }
                 break;
             }
         }
-        if(!GeneralConfig.ALLOW_CLIENT_TO_READ_HUMIDITY_DATA.getValue()){
+        if(!isClient && GeneralConfig.COMPATIBLE_FOR_VANILLA_CLIENT.getValue()){
             mixinList.add("mixins/ground_water/mixins.geocraft_client_fake.json");
         }
+
+        if(GeneralConfig.PREVENT_FALLING_BLOCK_FROM_FALLING_WHILE_GENERATION.getValue()){
+            mixinList.add("mixins/common/mixins.geocraft_falling_block.json");
+        }
+
         if(FluidPhysicsConfig.PAUSE_PRESSURE_SYSTEM_WHILE_CHUNK_SAVING.getValue()){
             mixinList.add("mixins/pressure/async/mixins.geocraft_pressure_async.json");
         }
         mixinList.add("mixins/ground_water/mixins.geocraft_ground_water.json");
         mixinList.add("mixins.geocraft_atmosphere.json");
         LOGGER.info("天圆地方(GeoCraft)'s Fluid Physics is using {} mode",mode);
+        FluidPhysicsMode.setCurrentMode(mode);
 
         return mixinList;
     }

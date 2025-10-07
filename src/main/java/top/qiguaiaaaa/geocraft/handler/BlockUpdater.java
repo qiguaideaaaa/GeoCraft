@@ -35,13 +35,14 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fluids.IFluidBlock;
 import top.qiguaiaaaa.geocraft.configs.GeneralConfig;
-import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure.小范围模组Classic物理压强单次广搜任务;
 import top.qiguaiaaaa.geocraft.util.misc.ExtendedNextTickListEntry;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static top.qiguaiaaaa.geocraft.configs.GeneralConfig.*;
 import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
 
 /**
@@ -59,11 +60,15 @@ public final class BlockUpdater {
     static final List<ExtendedNextTickListEntry> READY_TO_UPDATES;
 
     static {
-        MAX_UPDATE_NUM = GeneralConfig.BLOCK_UPDATER_MAX_UPDATES_BLOCK.getValue();
+        MAX_UPDATE_NUM = BLOCK_UPDATER_MAX_UPDATES_BLOCK.getValue();
         READY_TO_UPDATES = new ArrayList<>(MAX_UPDATE_NUM/4);
     }
 
-    public static void scheduleUpdate(World world, BlockPos pos, Block block, int delay){
+    public static void scheduleUpdate(@Nonnull World world,@Nonnull BlockPos pos,@Nonnull Block block, int delay){
+        if(!ENABLE_BLOCK_UPDATER.getValue()){
+            world.scheduleUpdate(pos,block,delay);
+            return;
+        }
         WorldServer validWorld = getValidWorld(world);
         if(validWorld == null) return;
         Set<ExtendedNextTickListEntry> schedules = WORLD_SCHEDULE_MAP.computeIfAbsent(validWorld,CREATE_SCHEDULE_LIST);
@@ -71,20 +76,23 @@ public final class BlockUpdater {
         schedules.add(entry);
     }
 
-    public static void onWorldTick(WorldServer world){
+    public static void onWorldTick(@Nonnull WorldServer world){
+        if(!ENABLE_BLOCK_UPDATER.getValue()) return;
         final long beginTime = System.currentTimeMillis();
         final Set<ExtendedNextTickListEntry> schedules = WORLD_SCHEDULE_MAP.get(world);
         if(schedules == null){
             return;
         }
+        final boolean dropAll = world.getTotalWorldTime()% BLOCK_UPDATER_CLEAN_PERIOD.getValue() == 0;
         boolean drop = false;
         Iterator<ExtendedNextTickListEntry> iterator = schedules.iterator();
         while (iterator.hasNext()) {
             ExtendedNextTickListEntry entry = iterator.next();
             if(world.getTotalWorldTime()<entry.scheduledTime) continue;
             iterator.remove();
-            if(drop) break;
+            if(drop) continue;
             drop = READY_TO_UPDATES.size()>MAX_UPDATE_NUM;
+            if(drop && !dropAll) break;
             READY_TO_UPDATES.add(entry);
         }
 
@@ -105,7 +113,7 @@ public final class BlockUpdater {
             if(!onlyDynamicFluid && (i&127) == 0){
                 if(maxTimeUsage <0) continue;
                 if(System.currentTimeMillis()-beginTime>maxTimeUsage) onlyDynamicFluid = true;
-                if(!GeneralConfig.ALLOW_DYNAMIC_FLUID_UPDATE.getValue()) break;
+                if(!ALLOW_DYNAMIC_FLUID_UPDATE.getValue()) break;
             }
         }
         READY_TO_UPDATES.clear();

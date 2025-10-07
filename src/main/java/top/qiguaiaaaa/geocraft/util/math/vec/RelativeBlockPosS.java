@@ -98,7 +98,7 @@ public class RelativeBlockPosS extends Vec3s{
 
         @Nonnull
         @Override
-        public RelativeBlockPosS toImmutable(){
+        public RelativeBlockPosS asImmutable(){
             return new RelativeBlockPosS(this);
         }
     }

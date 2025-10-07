@@ -29,6 +29,7 @@ package top.qiguaiaaaa.geocraft.api.configs.item.number;
 
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
+import org.apache.commons.lang3.Validate;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 
@@ -102,7 +103,7 @@ public class ConfigLong extends ConfigItem<Long> {
      */
     @Override
     public void load(@Nonnull Configuration config) {
-        property = config.get(category.getPath(),key,defaultValue,comment,minValue,maxValue);
+        property = config.get(category.getPath(),key,defaultValue.toString(),comment);
         property.setComment(getPolishedComment());
         load(property);
     }
@@ -110,7 +111,7 @@ public class ConfigLong extends ConfigItem<Long> {
     @Override
     public void save() {
         if(property == null) return;
-        property.setValue(value);
+        property.setValue(value.toString());
         property.setComment(getPolishedComment());
     }
 
@@ -121,6 +122,7 @@ public class ConfigLong extends ConfigItem<Long> {
     @Override
     protected void load(@Nonnull Property property) {
         this.value = property.getLong(defaultValue);
+        Validate.inclusiveBetween(minValue,maxValue,(long) value);
     }
 
     @Nonnull

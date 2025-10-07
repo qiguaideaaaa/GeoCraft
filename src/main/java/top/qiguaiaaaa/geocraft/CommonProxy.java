@@ -27,6 +27,7 @@
 
 package top.qiguaiaaaa.geocraft;
 
+import com.google.common.graph.Network;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -36,6 +37,9 @@ import top.qiguaiaaaa.geocraft.handler.FluidHandler;
 import top.qiguaiaaaa.geocraft.handler.RegistryHandler;
 import top.qiguaiaaaa.geocraft.handler.event.MoreRealityEventHandler;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.FluidPhysicsMode;
+import top.qiguaiaaaa.geocraft.handler.event.SoilEventHandler;
+import top.qiguaiaaaa.geocraft.handler.event.VanillaLikeEventHandler;
+import top.qiguaiaaaa.geocraft.handler.network.NetworkFakeStateManager;
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
 import top.qiguaiaaaa.geocraft.util.MixinUtil;
 
@@ -70,8 +74,10 @@ public class CommonProxy {
         if(FLUID_PHYSICS_MODE.getValue() == FluidPhysicsMode.MORE_REALITY){
             MoreRealityEventHandler.onPostInit(event);
         }else if(FLUID_PHYSICS_MODE.getValue() == FluidPhysicsMode.VANILLA_LIKE){
-
+            VanillaLikeEventHandler.onPostInit(event);
         }
+        SoilEventHandler.onPostInit(event);
+        NetworkFakeStateManager.registerDefaultConfig();
     }
 
     private static void initConfig(){

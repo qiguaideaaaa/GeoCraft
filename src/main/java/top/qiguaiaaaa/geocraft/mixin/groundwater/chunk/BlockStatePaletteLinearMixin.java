@@ -34,7 +34,7 @@ import net.minecraft.world.chunk.BlockStatePaletteLinear;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import top.qiguaiaaaa.geocraft.handler.network.NetworkFakeStateHandler;
+import top.qiguaiaaaa.geocraft.handler.network.NetworkFakeStateManager;
 import top.qiguaiaaaa.geocraft.util.mixinapi.network.NetworkOverridable;
 
 @Mixin(BlockStatePaletteLinear.class)
@@ -51,7 +51,7 @@ public class BlockStatePaletteLinearMixin implements NetworkOverridable {
 
         for (int i = 0; i < this.arraySize; ++i) {
             IBlockState thisState = this.states[i];
-            IBlockState fakeState = NetworkFakeStateHandler.overwriteState(thisState);
+            IBlockState fakeState = NetworkFakeStateManager.overwriteState(thisState);
             buf.writeVarInt(Block.BLOCK_STATE_IDS.get(fakeState));
         }
     }

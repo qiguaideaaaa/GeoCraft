@@ -108,6 +108,7 @@ public class SurfaceAtmosphere extends QiguaiAtmosphere {
             }
             Atmosphere neighborAtmosphere = system.getAtmosphere(facingPos.x,facingPos.z);
             if(neighborAtmosphere == null) continue;
+            if(!neighborAtmosphere.isLoaded()) continue;
             Triple<Atmosphere,Chunk,EnumFacing> triple = new ImmutableTriple<>(neighborAtmosphere,neighborChunk,facing);
             neighbors.put(facing,triple);
         }

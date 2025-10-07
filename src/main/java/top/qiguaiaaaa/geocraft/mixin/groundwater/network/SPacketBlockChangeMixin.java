@@ -37,7 +37,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import top.qiguaiaaaa.geocraft.handler.network.NetworkFakeStateHandler;
+import top.qiguaiaaaa.geocraft.handler.network.NetworkFakeStateManager;
 
 @Mixin(value = SPacketBlockChange.class)
 public class SPacketBlockChangeMixin {
@@ -50,6 +50,6 @@ public class SPacketBlockChangeMixin {
     public void writePacketData(PacketBuffer buf, CallbackInfo ci) {
         ci.cancel();
         buf.writeBlockPos(this.blockPosition);
-        buf.writeVarInt(Block.BLOCK_STATE_IDS.get(NetworkFakeStateHandler.overwriteState(blockState)));
+        buf.writeVarInt(Block.BLOCK_STATE_IDS.get(NetworkFakeStateManager.overwriteState(blockState)));
     }
 }

@@ -59,6 +59,12 @@ public final class AtmosphereConfig {
             GeoAtmosphereSetting.setEnableDetailedLogging(value);
         }
     };
+
+    @Config.RangeInt(min = 1,max = Integer.MAX_VALUE)
+    public static final ConfigInteger ATMOSPHERE_MAX_LOAD_DISTANCE = new ConfigInteger(CATEGORY_ATMOSPHERE,"maxLoadDistance",100,
+            "大气加载的最大距离，单位为区块。\n" +
+                    "The max loaded distance for Atmosphere, measured in chunks.");
+
     public static final ConfigMap<Integer, AtmosphereSystemInfo> ATMOSPHERE_SYSTEM_TYPES =
             new ConfigMap<Integer, AtmosphereSystemInfo>(CATEGORY_ATMOSPHERE,"customAtmosphereSystem",
                     "配置每个维度使用的大气系统。注意，切换大气系统后原大气系统的数据可能丢失，建议提前备份。\n" +
@@ -79,8 +85,8 @@ public final class AtmosphereConfig {
                             .setRainSmoothingConstant(Integer.MAX_VALUE)),
                     new ConfigEntry<>(1, VanillaAtmosphereSystemInfo.create()
                             .setMaxWaterDrainedMultiplier(50000)
-                            .setRainingCloudExponent(30)
-                            .setThunderingCloudExponent(60)
+                            .setRainingCloudExponent(20)
+                            .setThunderingCloudExponent(40)
                             .waterEvaporate(false)
                             .waterFreeze(false)
                             .setVaporExchangeRate(0)

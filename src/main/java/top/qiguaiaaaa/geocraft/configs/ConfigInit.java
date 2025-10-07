@@ -32,12 +32,17 @@ import top.qiguaiaaaa.geocraft.MixinEarlyInit;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.GeoConfig;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
-import top.qiguaiaaaa.geocraft.api.configs.item.collection.ConfigDoubleList;
-import top.qiguaiaaaa.geocraft.api.configs.item.collection.ConfigIntegerList;
-import top.qiguaiaaaa.geocraft.api.configs.item.collection.ConfigList;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.IConfigIntCollection;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.list.ConfigDoubleList;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.list.ConfigIntegerList;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.list.ConfigList;
 import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigDouble;
 import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
+import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigLong;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
@@ -51,6 +56,7 @@ public final class ConfigInit {
         initConfigClass(GeneralConfig.class);
         initConfigClass(FluidPhysicsConfig.class);
         initConfigClass(AtmosphereConfig.class);
+        initConfigClass(SoilConfig.class);
         hasLoaded = true;
     }
 
@@ -61,62 +67,72 @@ public final class ConfigInit {
             if(!Modifier.isStatic(modifiers)) continue;
             if(!Modifier.isPublic(modifiers)) continue;
             try {
-                Object val = field.get(null);
-                if(field.isAnnotationPresent(Config.Ignore.class)){
-                    continue;
-                }
-                Config.RangeInt rangeInt = null;
-                Config.RangeDouble rangeDouble = null;
-                GeoConfig.MaxSize maxSize = null;
-                if(field.isAnnotationPresent(Config.RangeInt.class)){
-                    rangeInt = field.getAnnotation(Config.RangeInt.class);
-                }
-                if (field.isAnnotationPresent(Config.RangeDouble.class)) {
-                    rangeDouble = field.getAnnotation(Config.RangeDouble.class);
-                }
-                if(field.isAnnotationPresent(GeoConfig.MaxSize.class)){
-                    maxSize = field.getAnnotation(GeoConfig.MaxSize.class);
-                }
-
-                if(rangeInt != null && val instanceof ConfigInteger){
-                    ConfigInteger integer = (ConfigInteger) val;
-                    integer.setMinValue(rangeInt.min())
-                            .setMaxValue(rangeInt.max());
-                }else if(rangeInt!= null && val instanceof ConfigIntegerList){
-                    ConfigIntegerList list = (ConfigIntegerList) val;
-                    list.setMinValue(rangeInt.min())
-                            .setMaxValue(rangeInt.max());
-                }else if(rangeDouble != null && val instanceof ConfigDouble) {
-                    ConfigDouble d = (ConfigDouble) val;
-                    d.setMinValue((rangeDouble.min() == Double.MIN_VALUE)?Double.NEGATIVE_INFINITY:rangeDouble.min())
-                            .setMaxValue((rangeDouble.max() == Double.MAX_VALUE)?Double.POSITIVE_INFINITY:rangeDouble.max());
-                }else if(rangeDouble != null && val instanceof ConfigDoubleList){
-                    ((ConfigDoubleList)val).setMinValue((rangeDouble.min() == Double.MIN_VALUE)?Double.NEGATIVE_INFINITY:rangeDouble.min())
-                            .setMaxValue((rangeDouble.max() == Double.MAX_VALUE)?Double.POSITIVE_INFINITY:rangeDouble.max());
-                }
-
-                if(val instanceof ConfigList<?>){
-                    if(field.isAnnotationPresent(GeoConfig.SizeFixed.class)){
-                        ((ConfigList<?>) val).setListSizeFixed(true);
-                    }
-                    if(maxSize !=null){
-                        ((ConfigList<?>) val).setMaxListSize(maxSize.value());
-                    }
-                }
-
-                if(val instanceof ConfigCategory){
-                    if(field.isAnnotationPresent(Config.Comment.class)){
-                        Config.Comment comment = field.getAnnotation(Config.Comment.class);
-                        ConfigCategory category = (ConfigCategory) val;
-                        category.setComment(String.join("\n",comment.value()));
-                    }
-                    registerConfigCategory((ConfigCategory) val);
-                }else if(val instanceof ConfigItem<?>){
-                    registerConfigItem((ConfigItem<?>) val);
-                }
+                initField(field);
             } catch (IllegalAccessException e) {
                 MixinEarlyInit.LOGGER.error("Couldn't get field {} in config class {}",field,configClass);
             }
         }
+    }
+
+    private static void initField(@Nonnull Field field) throws IllegalAccessException {
+        Object val = field.get(null);
+        if(val == null) return;
+        if(field.isAnnotationPresent(Config.Ignore.class)){
+            return;
+        }
+        final Config.RangeInt rangeInt = getFieldAnnotation(field,Config.RangeInt.class);
+        final Config.RangeDouble rangeDouble = getFieldAnnotation(field,Config.RangeDouble.class);
+        final GeoConfig.RangeLong rangeLong = getFieldAnnotation(field,GeoConfig.RangeLong.class);
+        final GeoConfig.MaxSize maxSize = getFieldAnnotation(field,GeoConfig.MaxSize.class);
+
+        if(rangeInt != null){
+            if(val instanceof ConfigInteger){
+                ConfigInteger integer = (ConfigInteger) val;
+                integer.setMinValue(rangeInt.min())
+                        .setMaxValue(rangeInt.max());
+            }else if(val instanceof IConfigIntCollection){
+                IConfigIntCollection list = (IConfigIntCollection) val;
+                list.setMinValue(rangeInt.min())
+                        .setMaxValue(rangeInt.max());
+            }
+        }else if(rangeDouble != null && val instanceof ConfigDouble) {
+            ConfigDouble d = (ConfigDouble) val;
+            d.setMinValue((rangeDouble.min() == Double.MIN_VALUE)?Double.NEGATIVE_INFINITY:rangeDouble.min())
+                    .setMaxValue((rangeDouble.max() == Double.MAX_VALUE)?Double.POSITIVE_INFINITY:rangeDouble.max());
+        }else if(rangeDouble != null && val instanceof ConfigDoubleList){
+            ((ConfigDoubleList)val).setMinValue((rangeDouble.min() == Double.MIN_VALUE)?Double.NEGATIVE_INFINITY:rangeDouble.min())
+                    .setMaxValue((rangeDouble.max() == Double.MAX_VALUE)?Double.POSITIVE_INFINITY:rangeDouble.max());
+        }else if(rangeLong != null && val instanceof ConfigLong){
+            ((ConfigLong)val).setMaxValue(rangeLong.max())
+                    .setMinValue(rangeLong.min());
+        }
+
+        if(val instanceof ConfigList<?>){
+            if(field.isAnnotationPresent(GeoConfig.SizeFixed.class)){
+                ((ConfigList<?>) val).setListSizeFixed(true);
+            }
+            if(maxSize !=null){
+                ((ConfigList<?>) val).setMaxListSize(maxSize.value());
+            }
+        }
+
+        if(val instanceof ConfigCategory){
+            if(field.isAnnotationPresent(Config.Comment.class)){
+                Config.Comment comment = field.getAnnotation(Config.Comment.class);
+                ConfigCategory category = (ConfigCategory) val;
+                category.setComment(String.join("\n",comment.value()));
+            }
+            registerConfigCategory((ConfigCategory) val);
+        }else if(val instanceof ConfigItem<?>){
+            registerConfigItem((ConfigItem<?>) val);
+        }
+    }
+
+    @Nullable
+    private static <T extends Annotation> T getFieldAnnotation(@Nonnull Field field, @Nonnull Class<T> annotation){
+        if(field.isAnnotationPresent(annotation)){
+            return field.getAnnotation(annotation);
+        }
+        return null;
     }
 }

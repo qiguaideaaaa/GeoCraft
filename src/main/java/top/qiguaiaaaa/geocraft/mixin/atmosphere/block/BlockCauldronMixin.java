@@ -31,6 +31,7 @@ import net.minecraft.block.BlockCauldron;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -62,7 +63,7 @@ public class BlockCauldronMixin {
         IBlockState iblockstate = worldIn.getBlockState(pos);
         if (iblockstate.getValue(BlockCauldron.LEVEL) < 3) {
             atmosphere.drainWater(333,pos,false);
-            worldIn.setBlockState(pos, iblockstate.cycleProperty(BlockCauldron.LEVEL), 2);
+            worldIn.setBlockState(pos, iblockstate.cycleProperty(BlockCauldron.LEVEL), Constants.BlockFlags.SEND_TO_CLIENTS);
         }
     }
 }

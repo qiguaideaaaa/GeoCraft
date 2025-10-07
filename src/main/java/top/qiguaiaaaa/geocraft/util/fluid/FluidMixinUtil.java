@@ -33,7 +33,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraftforge.fluids.BlockFluidBase;
 import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
-import top.qiguaiaaaa.geocraft.mixin.common.BlockFluidBaseAccessor;
+import top.qiguaiaaaa.geocraft.mixin.common.block.BlockFluidBaseAccessor;
 
 public final class FluidMixinUtil {
     /**

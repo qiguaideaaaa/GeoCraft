@@ -51,7 +51,7 @@ import static top.qiguaiaaaa.geocraft.util.MiscUtil.getValidWorld;
  * @author QiguaiAAAA
  */
 public final class FluidUpdateManager {
-    static final int MAX_UPDATE_NUM;
+    private static int MAX_UPDATE_NUM;
     static final Map<WorldServer, Pair<PriorityQueue<IFluidUpdateTask>,PriorityQueue<IFluidUpdateTask>>> updateTaskQueuesMap = new HashMap<>();
     static final Map<WorldServer, Set<BlockPos>> updateTaskLock = new HashMap<>();
 
@@ -76,6 +76,7 @@ public final class FluidUpdateManager {
     public static void onServerStop(){
         updateTaskQueuesMap.clear();
         updateTaskLock.clear();
+        MAX_UPDATE_NUM = FluidPhysicsConfig.FLUID_UPDATER_MAX_TASKS_PER_TICK.getValue();
     }
 
     public static void onWorldTick(@Nonnull WorldServer world){
@@ -86,7 +87,8 @@ public final class FluidUpdateManager {
 
     static void updateTasks(@Nonnull WorldServer world,@Nonnull PriorityQueue<IFluidUpdateTask> queue){
         final Set<BlockPos> locks = getOrCreateSet(world);
-        final long beginTime = System.nanoTime();
+        final long beginTime = System.nanoTime(),maxTime = FluidPhysicsConfig.FLUID_UPDATER_MAX_TIME_USAGE.getValue();
+        final int cleanPeriod = FluidPhysicsConfig.FLUID_UPDATER_CLEAN_PERIOD.getValue()-1;
         for(int i=0;i<MAX_UPDATE_NUM;i++){
             if(queue.isEmpty()) break;
             IFluidUpdateTask task = queue.poll();
@@ -102,10 +104,10 @@ public final class FluidUpdateManager {
                 GeoCraft.getLogger().warn("FluidUpdateManager caught an error:",e);
             }
             if((i & 127) == 0){
-                if(System.nanoTime() - beginTime > 200000000L) break;
+                if(System.nanoTime() - beginTime > maxTime) break;
             }
         }
-        if(FluidPhysicsConfig.FLUID_UPDATER_DROP_EXCESS_TASKS.getValue() && (world.getTotalWorldTime() & 31) == 0){
+        if(FluidPhysicsConfig.FLUID_UPDATER_DROP_EXCESS_TASKS.getValue() && (world.getTotalWorldTime() & cleanPeriod) == 0){
             queue.clear();
             locks.clear();
         }

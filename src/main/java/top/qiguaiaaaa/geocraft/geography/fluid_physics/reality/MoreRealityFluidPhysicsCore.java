@@ -52,6 +52,7 @@ import static net.minecraft.block.BlockLiquid.LEVEL;
 public final class MoreRealityFluidPhysicsCore {
     @Nullable
     public static IBlockState evaporateWater(World world, BlockPos pos, IBlockState state, Random rand){
+        if(!world.isAirBlock(pos.up())) return state;
         int light = world.getLightFor(EnumSkyBlock.SKY,pos);
         if(light <= 0) return state;
         IAtmosphereAccessor accessor = AtmosphereSystemManager.getAtmosphereAccessor(world,pos,true);
@@ -61,12 +62,13 @@ public final class MoreRealityFluidPhysicsCore {
         if(!accessor.getAtmosphereWorldInfo().canWaterEvaporate(pos)) return state;
         accessor.setSkyLight(light);
 
-        double possibility = getWaterEvaporatePossibility(world,pos,state,accessor);
         int meta = state.getValue(LEVEL);
+        if(meta >=8) return null;
+        double possibility = getWaterEvaporatePossibility(world,pos,state,accessor);
+
         if(!BaseUtil.getRandomResult(rand,possibility)){
             return state;
         }
-        if(meta >=8) return null;
         if(!atmosphere.addSteam(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,pos)) return state;
         accessor.drawHeatFromUnderlying(AtmosphereUtil.Constants.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA);
         if(meta == 7) return null;
@@ -110,23 +112,20 @@ public final class MoreRealityFluidPhysicsCore {
         int meta = state.getValue(LEVEL);
         if(meta <5) return possibility;
 
-        byte neighborsWater = 0;
+        byte neighborsAir = 0;
         for(EnumFacing facing:EnumFacing.HORIZONTALS){
             BlockPos facingPos = pos.offset(facing);
-            IBlockState facingState = world.getBlockState(facingPos);
-            if(FluidUtil.getFluid(facingState) == FluidRegistry.WATER){
-                neighborsWater++;
-            }
+            if(world.isAirBlock(facingPos)) neighborsAir++;
         }
-        if(neighborsWater == 4) return possibility;
+        if(neighborsAir <= 1) return possibility;
 
         if(pos.getY() <= 0) return possibility;
         IBlockState downState= world.getBlockState(pos.down());
         if(FluidUtil.getFluid(downState) == FluidRegistry.WATER) return possibility;
 
-        if(meta == 7) possibility = Math.min(possibility*8,1);
-        else if(meta == 6) possibility = Math.min(possibility*4,1);
-        else if(meta == 5) possibility = Math.min(possibility*2,1);
+        if(neighborsAir == 4) possibility = Math.min(possibility*8,1);
+        else if(neighborsAir == 3) possibility = Math.min(possibility*4,1);
+        else if(neighborsAir == 2) possibility = Math.min(possibility*2,1);
 
         return possibility;
     }

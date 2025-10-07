@@ -45,6 +45,7 @@ import top.qiguaiaaaa.geocraft.configs.GeneralConfig;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.FluidPhysicsMode;
 import top.qiguaiaaaa.geocraft.api.util.exception.UnsupportedFluidException;
 
+import javax.annotation.Nonnull;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -185,7 +186,7 @@ public final class FluidOperationUtil {
      * @return 如果方块为空气(根据Material)或为流体或方块不会掉落物品，则返回false，否则则返回true
      * <br/>其中，当方块温度高于等于{@link GeneralConfig}的leastTemperatureForFluidToCompletelyDestroyBlock配置项时，将不会掉落物品
      */
-    public static boolean triggerDestroyBlockEffectByFluid(World worldIn, BlockPos pos, IBlockState state, Fluid destroyer){
+    public static boolean triggerDestroyBlockEffectByFluid(@Nonnull World worldIn,@Nonnull BlockPos pos,@Nonnull IBlockState state, Fluid destroyer){
         if(state.getMaterial() == Material.AIR) return false;
         if(isFluid(state)) return false;
         boolean canDropItem = (destroyer == null || destroyer.getTemperature(worldIn, pos) < FluidPhysicsConfig.leastTemperatureForFluidToCompletelyDestroyBlock.getValue());

@@ -114,7 +114,7 @@ public abstract class UnderlyingLayer extends BaseLayer{
      */
     @Override
     public boolean isInitialise() {
-        return heatCapacity > 0 && getTemperature().isInitialised();
+        return heatCapacity > 0 && super.isInitialise();
     }
 
     /**

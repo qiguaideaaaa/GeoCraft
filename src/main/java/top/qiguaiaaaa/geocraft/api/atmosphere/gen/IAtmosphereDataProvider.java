@@ -41,6 +41,9 @@ import java.util.Collection;
  * 用于向{@link IAtmosphereSystem}提供对应区块的{@link AtmosphereData}
  */
 public interface IAtmosphereDataProvider {
+
+    void setMaxLoadDistance(int distance);
+
     /**
      * 获取指定区块已加载的大气数据，该方法不应创建新的大气数据或从磁盘读取未加载的数据
      * @param x 区块X坐标

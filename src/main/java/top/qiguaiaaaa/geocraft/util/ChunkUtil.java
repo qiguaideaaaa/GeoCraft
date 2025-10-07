@@ -36,6 +36,7 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
+import top.qiguaiaaaa.geocraft.util.math.vec.BlockPosI;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -59,18 +60,20 @@ public final class ChunkUtil {
         if (!world.provider.hasSkyLight() && type == EnumSkyBlock.SKY) {
             return 0;
         }
+
+        BlockPosI.Mutable mutable = new BlockPosI.Mutable(pos);
         if (pos.getY() < 0) {
-            pos = new BlockPos(pos.getX(), 0, pos.getZ());
+            mutable.setPos(pos.getX(), 0, pos.getZ());
         }
 
-        if (!world.isValid(pos)) {
+        if (!world.isValid(mutable)) {
             return type.defaultLightValue;
-        } else if (!world.isBlockLoaded(pos)) {
+        } else if (!world.isBlockLoaded(mutable)) {
             return type.defaultLightValue;
         }
         int light = 0;
         for(EnumFacing facing:EnumFacing.values()){
-            light = Math.max(light,world.getLightFor(EnumSkyBlock.SKY,pos.offset(facing)));
+            light = Math.max(light,world.getLightFor(EnumSkyBlock.SKY,mutable.offsetM(facing)));
         }
         return light;
     }

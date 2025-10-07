@@ -2,12 +2,14 @@
   "package": "top.qiguaiaaaa.geocraft.mixin.groundwater",
   "required": true,
   "compatibilityLevel": "JAVA_8",
-  "setSourceFile": true,
   "refmap": "mixins.geocraft.refmap.json",
   "mixins": [
     "block.BlockDirtMixin",
     "block.BlockGrassMixin",
-    "block.BlockSandMixin"
+    "block.BlockGrassPathMixin",
+    "block.BlockSandMixin",
+    "block.BlockGravelMixin",
+    "block.BlockFarmlandMixin"
   ],
   "client": [
     "block.BlockModelShapesMixin"

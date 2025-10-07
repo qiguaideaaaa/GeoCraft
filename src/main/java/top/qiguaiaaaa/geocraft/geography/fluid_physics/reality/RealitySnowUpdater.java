@@ -25,23 +25,31 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.mixin.common;
+package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality;
 
+import net.minecraft.block.BlockSnow;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
-import net.minecraftforge.fluids.BlockFluidBase;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Accessor;
-import org.spongepowered.asm.mixin.gen.Invoker;
+import net.minecraft.world.World;
+import top.qiguaiaaaa.geocraft.api.GeoFluids;
+import top.qiguaiaaaa.geocraft.api.block.IPermeableBlock;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.vanilla.BlockLiquidUpdater;
 
-@Mixin(value = BlockFluidBase.class,remap = false)
-public interface BlockFluidBaseAccessor {
-    @Accessor(value = "quantaPerBlock",remap = false)
-    int getQuantaPerBlock();
+/**
+ * @author QiguaiAAAA
+ */
+public final class RealitySnowUpdater {
 
-    @Accessor(value = "tickRate",remap = false)
-    int getTickRate();
-
-    @Invoker(value = "hasVerticalFlow",remap = false)
-    boolean hasVerticalFlowR(IBlockAccess world, BlockPos pos);
+    public static boolean isBlocked(World world, BlockPos downPos, IBlockState downState,IBlockState fromState){
+        if(BlockLiquidUpdater.isBlocked(downState)) return true;
+        if(downState.getBlock() == Blocks.SNOW_LAYER){
+            return downState.getValue(BlockSnow.LAYERS) == 8;
+        }else if(downState.getBlock() instanceof IPermeableBlock){
+            IPermeableBlock block = (IPermeableBlock) downState.getBlock();
+            return !block.canFill(world,downPos,downState, GeoFluids.SNOW, EnumFacing.UP,fromState);
+        }
+        return false;
+    }
 }

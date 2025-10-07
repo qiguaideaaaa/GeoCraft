@@ -39,6 +39,17 @@ public enum FluidPhysicsMode {
     VANILLA_LIKE,
     MORE_REALITY;
 
+    private static FluidPhysicsMode CURRENT_MODE = MORE_REALITY;
+
+    public static void setCurrentMode(@Nonnull FluidPhysicsMode currentMode) {
+        CURRENT_MODE = currentMode;
+    }
+
+    @Nonnull
+    public static FluidPhysicsMode getCurrentMode() {
+        return CURRENT_MODE;
+    }
+
     private boolean isStringMatched(@Nullable String s){
         return toString().equalsIgnoreCase(s);
     }

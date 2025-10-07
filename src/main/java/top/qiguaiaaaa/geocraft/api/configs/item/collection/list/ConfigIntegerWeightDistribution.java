@@ -25,11 +25,12 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.api.configs.item.collection;
+package top.qiguaiaaaa.geocraft.api.configs.item.collection.list;
 
 import net.minecraftforge.common.config.Configuration;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableList;
+import top.qiguaiaaaa.geocraft.api.configs.value.collection.IConfigurableList;
 
 import javax.annotation.Nonnull;
 import java.util.Random;
@@ -60,7 +61,7 @@ public class ConfigIntegerWeightDistribution extends ConfigIntegerList {
     }
 
     @Override
-    public void setValue(@Nonnull ConfigurableList<Integer> newValue) {
+    public void setValue(@Nonnull IConfigurableList<Integer> newValue) {
         super.setValue(newValue);
         reloadWeights();
     }

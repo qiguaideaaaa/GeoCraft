@@ -47,4 +47,11 @@ public @interface GeoConfig {
     @interface MaxSize{
         int value() default -1;
     }
+
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface RangeLong{
+        long min() default Long.MIN_VALUE;
+        long max() default Long.MAX_VALUE;
+    }
 }

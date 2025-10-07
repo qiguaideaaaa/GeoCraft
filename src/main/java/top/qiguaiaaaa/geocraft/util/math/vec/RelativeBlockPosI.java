@@ -177,9 +177,9 @@ public class RelativeBlockPosI extends BlockPosI{
         }
 
         public Mutable setPos(double x,double y,double z){
-            x = (int) x;
-            y = (int) y;
-            z = (int) z;
+            this.x = (int) x;
+            this.y = (int) y;
+            this.z = (int) z;
             return this;
         }
 
@@ -232,7 +232,7 @@ public class RelativeBlockPosI extends BlockPosI{
 
         @Nonnull
         @Override
-        public IVec3i toImmutable() {
+        public IVec3i asImmutable() {
             return new RelativeBlockPosI(this);
         }
     }

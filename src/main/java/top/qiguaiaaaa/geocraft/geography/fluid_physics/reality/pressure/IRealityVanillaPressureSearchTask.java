@@ -32,8 +32,11 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
+import top.qiguaiaaaa.geocraft.api.block.IPermeableBlock;
 import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
-import top.qiguaiaaaa.geocraft.util.fluid.BlockLiquidUtil;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.RealityBlockLiquidUpdater;
+import top.qiguaiaaaa.geocraft.geography.fluid_physics.vanilla.BlockLiquidUpdater;
+import top.qiguaiaaaa.geocraft.util.fluid.FluidSearchUtil;
 
 import javax.annotation.Nonnull;
 
@@ -47,7 +50,7 @@ public interface IRealityVanillaPressureSearchTask extends IRealityPressureSearc
         IBlockState state = world.getBlockState(pos);
         if(state.getMaterial() == Material.AIR && (dir[1] != 0 || getBeginQuanta()>1 || pos.getY() < getBeginPos().getY())) return true;
         if(FluidUtil.getFluid(state) == getFluid()) return true;
-        return !BlockLiquidUtil.isBlocked(state);
+        return false;
     }
 
     default boolean checkIfValid(@Nonnull WorldServer world,@Nonnull IBlockState state, @Nonnull BlockPos pos){

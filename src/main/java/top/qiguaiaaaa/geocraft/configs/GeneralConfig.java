@@ -31,8 +31,8 @@ import net.minecraftforge.common.config.Config;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.GeoConfig;
 import top.qiguaiaaaa.geocraft.api.configs.item.base.ConfigBoolean;
-import top.qiguaiaaaa.geocraft.api.configs.item.collection.ConfigDoubleList;
-import top.qiguaiaaaa.geocraft.api.configs.item.collection.ConfigIntegerList;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.list.ConfigDoubleList;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.list.ConfigIntegerList;
 import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
 import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableList;
 
@@ -40,14 +40,24 @@ import static top.qiguaiaaaa.geocraft.api.configs.ConfigCategory.GENERAL;
 
 @SuppressWarnings("unused")
 public final class GeneralConfig {
-    public static final ConfigBoolean ALLOW_CLIENT_TO_READ_HUMIDITY_DATA = new ConfigBoolean(GENERAL,
-            "allowClientToReadHumidityData",false,
-            "是否允许客户端读取土壤的湿度数据。默认为禁止。在禁止状态下，模组将会对服务器和客户端的网络通信进行修改，以去除土壤的湿度信息。其原理和反矿透原理类似。\n" +
-                    "如果您遇到兼容性问题，想要禁止mod对网络通信进行修改，或想要允许客户端读取土壤的湿度数据，可以更改此选项为true。这样子，mod将不再修改网络通信，您可以使用其他更专业的mod以阻止客户端阅读土壤湿度数据。\n" +
-                    "请注意,允许客户端阅读湿度数据后,若客户端没有安装此模组,对于土壤相关方块(比如灰化土)的显示可能出现异常.您可以通过其他具有修改网络通信功能的模组来避免此问题,或禁止未安装该模组的客户端连接,或放着不管.\n" +
-                    "Whether to allow the client to read soil humidity data. Default is disabled. When disabled, the mod will modify network communication between the server and client to remove soil humidity information. The principle is similar to anti-X-ray mechanisms.\n" +
-                    "If you encounter compatibility issues and wish to disable the mod's network modifications or allow clients to read soil humidity data, you can change this option to true. In this case, the mod will no longer modify network communication, and you can use other more specialized mods to prevent clients from reading soil humidity data.\n" +
-                    "Please note that after enabling client access to humidity data, if the client does not have this mod installed, the display of soil-related blocks (such as podzol) may appear abnormal. You can address this by using other mods with network modification capabilities, prohibiting connections from clients without this mod, or leaving it as is.",true);
+
+    @Config.RequiresMcRestart
+    public static final ConfigBoolean PREVENT_FALLING_BLOCK_FROM_FALLING_WHILE_GENERATION = new ConfigBoolean(GENERAL,
+            "preventBlockFromFallingDuringGeneration",true,
+            "在区块生成的时候阻止方块下落，这可能可以防止一部分的因流体大量下落造成的卡顿。\n" +
+                    "Prevent blocks from falling during chunk generation, which may help reduce lag caused by massive fluid updates.", true);
+
+    @Config.RequiresMcRestart
+    public static final ConfigBoolean COMPATIBLE_FOR_VANILLA_CLIENT = new ConfigBoolean(GENERAL,
+            "compatibilityForVanillaClient",true,
+            "是否允许客户端读取模组拓展的数据。默认为禁止。在禁止状态下，模组将会对服务器和客户端的网络通信进行修改，以去除无法被原版客户端正确识别的数据，例如泥土的湿度信息。其原理和反矿透原理类似。\n" +
+                    "如果您遇到兼容性问题，想要禁止mod对网络通信进行修改，可以更改此选项为true。这样子，mod将不再修改网络通信，您可以使用其他更专业的mod以阻止客户端获取这些拓展信息，以提供对原版客户端的兼容性。\n" +
+                    "请注意,允许客户端阅读拓展数据后,若客户端没有安装此模组,对于土壤相关方块(比如灰化土)或雪的显示可能出现异常.您可以通过其他具有修改网络通信功能的模组来避免此问题,或禁止未安装该模组的客户端连接,或放着不管（。\n" +
+                    "该配置在客户端无效。\n" +
+                    "Whether to allow the client to read mod-extended data. Default is disabled. When disabled, the mod will modify network communication between the server and client to remove data that cannot be correctly interpreted by vanilla clients, such as soil moisture information. The principle is similar to anti-X-ray mechanisms.\n" +
+                    "If you encounter compatibility issues and wish to disable the mod's network modifications, you can change this option to true. In this case, the mod will no longer modify network communication, and you can use other more specialized mods to prevent clients from accessing this extended data, thereby providing compatibility with vanilla clients.\n" +
+                    "Please note that after enabling client access to extended data, if the client does not have this mod installed, the display of soil-related blocks (such as podzol) or snow may appear abnormal. You can address this by using other mods with network modification capabilities, prohibiting connections from clients without this mod, or simply leaving it as is.\n" +
+                    "This configuration item does noting to Client Side.",true);
 
     //*********************
     // Block Updater
@@ -55,16 +65,25 @@ public final class GeneralConfig {
 
     public static final ConfigCategory CATEGORY_BLOCK_UPDATER = GENERAL.getChildCategory("block_updater");
 
+    public static final ConfigBoolean ENABLE_BLOCK_UPDATER = new ConfigBoolean(CATEGORY_BLOCK_UPDATER,
+            "enableBlockUpdater",true,"开启BlockUpdater以在1游戏刻内提供额外的方块更新额度和更精细的更新管理\n" +
+            "Enable BlockUpdater to provide additional block update quotas and more refined update management within a single game tick.");
+
     @Config.RangeInt(min = 1)
     public static final ConfigInteger BLOCK_UPDATER_MAX_UPDATES_BLOCK = new ConfigInteger(CATEGORY_BLOCK_UPDATER,
             "maxUpdateBlocksPerTick",65536*4,
             "天圆地方内置的附加方块更新器在一游戏刻内最多更新的方块数量，多余的更新任务会被忽略。\n" +
                     "The max number of blocks to update by Block Updater inside GeoCraft. The excess part will be ignored.",true);
 
+    @Config.RangeInt(min = 1)
+    public static final ConfigInteger BLOCK_UPDATER_CLEAN_PERIOD = new ConfigInteger(CATEGORY_BLOCK_UPDATER,
+            "cleaningPeriod",200,"BlockUpdater清理并丢弃过期的更新任务的时间间隔，单位为游戏刻，以防止在极端卡顿下的任务堆积造成的内存泄漏。\n" +
+            "The time interval for BlockUpdater to clean up and discard expired update tasks, measured in game ticks, which prevents memory leaks caused by task accumulation during severe server lag.");
+
     @Config.RangeInt(min = -1)
     public static final ConfigInteger BLOCK_UPDATER_MAX_TIME_USAGE = new ConfigInteger(CATEGORY_BLOCK_UPDATER,
-            "maxTimeUsage",400,
-            "BlockUpdater在1游戏刻内的最大耗时，当用时超过该阈值时，将会丢弃不符合的更新任务。设为-1以禁用时间限制。\n" +
+            "maxTimeUsage",200,
+            "BlockUpdater在1游戏刻内的最大耗时，当用时超过该阈值时，将会丢弃缓存队列中不符合的更新任务。设为-1以禁用时间限制。\n" +
                     "The maximum processing time allowed for BlockUpdater within a single game tick. When the processing time exceeds this threshold, non-compliant update tasks will be discarded. Set it to -1 to disable this function.");
 
     public static final ConfigBoolean ALLOW_DYNAMIC_FLUID_UPDATE = new ConfigBoolean(CATEGORY_BLOCK_UPDATER,
@@ -72,6 +91,7 @@ public final class GeneralConfig {
             "当BlockUpdater达到更新的时间限制时，仅允许动态流体方块更新。因为这些流体方块的更新方法的作用一般是向流体更新器提交更新任务，不会有太大开销。\n" +
                     "When the BlockUpdater reaches its time limit for updates, only dynamic fluid block updates are permitted. This is because the primary function of these fluid block update methods is typically to submit update tasks to the FluidUpdateManager.");
 
+    @Config.Ignore
     public static final ConfigBoolean SORT_UPDATE_TASKS_BY_DISTANCE_TO_PLAYERS = new ConfigBoolean(CATEGORY_BLOCK_UPDATER,
             "sortTasksByDistanceToPlayers",false,
             "按距离最近玩家距离从进到远更新方块。\n" +

@@ -137,6 +137,7 @@ public class GroundAtmosphereLayer extends SurfaceAtmosphereLayer {
     public void onLoad(@Nonnull Chunk chunk) {
         if(!temperature.isInitialised()){
             temperature.set(DefaultTemperatureState.calculateBaseTemperature(chunk,atmosphere.getUnderlying()));
+            initUnderlyingTemp();
         }
         super.onLoad(chunk);
     }
@@ -147,6 +148,9 @@ public class GroundAtmosphereLayer extends SurfaceAtmosphereLayer {
         if(!temperature.isInitialised()){
             return;
         }
+        initUnderlyingTemp();
+    }
+    protected void initUnderlyingTemp(){
         if(lowerLayer != null){ // 设置下垫面温度
             TemperatureState lowTemp = lowerLayer.getTemperature();
             if(!lowTemp.isInitialised()) lowerLayer.getTemperature().set(temperature);

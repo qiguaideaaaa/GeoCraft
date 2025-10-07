@@ -59,12 +59,10 @@ public final class WaterUtil {
      */
     public static double getWaterEvaporateAmount(IAtmosphereAccessor accessor){
         final double 交换系数 = accessor.getAtmosphereWorldInfo().getVaporExchangeRate();
-        final int 时间步长 = 216;
         double 水汽压 = accessor.getWaterPressure();
         double 饱和水汽压 = 计算饱和水汽压(accessor.getTemperature(false));
         double 水汽压差 = Math.max(饱和水汽压 - 水汽压, 0);
-        double 通量_kg每平米每秒 = 交换系数 * 水汽压差;
-        return 通量_kg每平米每秒 * 时间步长;
+        return 交换系数 * 水汽压差;
     }
 
     /**

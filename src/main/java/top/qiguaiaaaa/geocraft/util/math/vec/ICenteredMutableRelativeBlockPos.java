@@ -32,7 +32,7 @@ import net.minecraft.util.math.Vec3i;
 /**
  * @author QiguaiAAAA
  */
-public interface ICenteredMutableRelativeBlockPos extends IVec3i{
+public interface ICenteredMutableRelativeBlockPos extends IVec3i {
     /**
      * 设置中心点坐标
      * @param x 中心点X坐标

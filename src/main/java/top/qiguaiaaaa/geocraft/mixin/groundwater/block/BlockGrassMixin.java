@@ -34,14 +34,19 @@ import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import top.qiguaiaaaa.geocraft.block.IBlockDirt;
+import top.qiguaiaaaa.geocraft.api.block.IBlockFalling;
+import top.qiguaiaaaa.geocraft.block.IBlockSoil;
+import top.qiguaiaaaa.geocraft.configs.SoilConfig;
+import top.qiguaiaaaa.geocraft.geography.soil.BlockSoilType;
 
 import javax.annotation.Nonnull;
 import java.util.Random;
@@ -50,7 +55,11 @@ import static net.minecraft.block.BlockGrass.SNOWY;
 import static top.qiguaiaaaa.geocraft.api.block.BlockProperties.HUMIDITY;
 
 @Mixin(value = BlockGrass.class)
-public class BlockGrassMixin extends Block implements IBlockDirt{
+public class BlockGrassMixin extends Block implements IBlockSoil, IBlockFalling {
+    @Unique
+    private static final int STABLE_HUMIDITY  = SoilConfig.STABLE_HUMIDITY.getValue().get(BlockSoilType.GRASS);
+    @Unique
+    private final ThreadLocal<Boolean> isRandomTick = ThreadLocal.withInitial(()-> Boolean.FALSE);
     public BlockGrassMixin(Material materialIn) {
         super(materialIn);
     }
@@ -84,13 +93,42 @@ public class BlockGrassMixin extends Block implements IBlockDirt{
 
     @Override
     public void randomTick(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random random) {
+        isRandomTick.set(Boolean.TRUE);
         super.randomTick(worldIn, pos, state, random);
         this.onRandomTick(worldIn, pos, state, random);
+        isRandomTick.set(Boolean.FALSE);
     }
 
     @Override
     public void onPlayerDestroy(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state) {
         dropWaterWhenBroken(worldIn, pos, state);
+    }
+
+    @Override
+    public void neighborChanged(IBlockState state, @Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull Block blockIn, @Nonnull BlockPos fromPos) {
+        if(state.getValue(HUMIDITY) <= getMaxStableHumidity(state)) return;
+        worldIn.scheduleUpdate(pos, this, this.tickRate(worldIn));
+    }
+
+    @Override
+    public int tickRate(@Nonnull World worldIn) {
+        return 2;
+    }
+
+    @Override
+    public void onBlockAdded(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state) {
+        if(state.getValue(HUMIDITY) <= getMaxStableHumidity(state)) return;
+        worldIn.scheduleUpdate(pos, this, this.tickRate(worldIn));
+    }
+
+    @Inject(method = "updateTick",at =@At("HEAD"),cancellable = true)
+    public void updateTick_CheckFalling(World world,BlockPos pos,IBlockState state,Random rand,CallbackInfo ci){
+        if(isRandomTick.get()) return;
+        ci.cancel();
+        if(state.getValue(HUMIDITY) <= getMaxStableHumidity(state)) return;
+        if(!world.isRemote){
+            checkAndFall(world, pos);
+        }
     }
 
     @Redirect(method = "updateTick",at =
@@ -111,8 +149,19 @@ public class BlockGrassMixin extends Block implements IBlockDirt{
         return instance.setBlockState(pos, Blocks.GRASS.getDefaultState().withProperty(HUMIDITY,curState.getValue(HUMIDITY)));
     }
 
+    @Nonnull
     @Override
-    public int getMaxStableHumidity(IBlockState state) {
-        return 3;
+    public BlockSoilType getType(@Nonnull IBlockState state) {
+        return BlockSoilType.GRASS;
+    }
+
+    @Override
+    public int getMaxStableHumidity(@Nonnull IBlockState state) {
+        return STABLE_HUMIDITY;
+    }
+
+    @Override
+    public double getFlowInPossibility(@Nonnull IBlockState state) {
+        return 0.2;
     }
 }

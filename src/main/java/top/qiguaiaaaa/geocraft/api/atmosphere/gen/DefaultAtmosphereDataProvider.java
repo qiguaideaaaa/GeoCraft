@@ -27,14 +27,17 @@
 
 package top.qiguaiaaaa.geocraft.api.atmosphere.gen;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.MinecraftException;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.gen.ChunkProviderServer;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
@@ -46,6 +49,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -53,11 +57,15 @@ import java.util.Set;
  * 该提供器管理大气数据的加载、保存和卸载操作
  */
 public class DefaultAtmosphereDataProvider implements IAtmosphereDataProvider {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger("AtmosphereDataProvider");
     protected final Set<Long> droppedAtmospheres = Sets.newHashSet();
     public final WorldServer world;
     public final IAtmosphereDataLoader atmosphereLoader;
-    public final Long2ObjectMap<AtmosphereData> loadedAtmosphere = new Long2ObjectOpenHashMap<>(65536);
+    protected final Long2ObjectMap<AtmosphereData> loadedAtmosphere = new Long2ObjectOpenHashMap<>(65536);
+
+    protected List<EntityPlayerMP> playerList;
+
+    protected int maxLoadDis;
 
     /**
      * 创建一个大气数据提供器实例
@@ -67,6 +75,11 @@ public class DefaultAtmosphereDataProvider implements IAtmosphereDataProvider {
     public DefaultAtmosphereDataProvider(@Nonnull WorldServer world,@Nonnull IAtmosphereDataLoader loader) {
         this.world = world;
         this.atmosphereLoader = loader;
+    }
+
+    @Override
+    public void setMaxLoadDistance(int distance) {
+        this.maxLoadDis = distance;
     }
 
     /**
@@ -155,6 +168,16 @@ public class DefaultAtmosphereDataProvider implements IAtmosphereDataProvider {
                 this.loadedAtmosphere.remove(id);
                 data.markUnloaded();
                 i++;
+            }
+        }
+
+        if(world.getTotalWorldTime()%8000 == 0){
+            final int loadRangeMax = maxLoadDis<<4;
+            playerList = getPlayers();
+            for(AtmosphereData data:this.loadedAtmosphere.values()){
+                if(getClosestPlayerDistance(data)>loadRangeMax){
+                    queueUnloadAtmosphereData(data);
+                }
             }
         }
 
@@ -274,5 +297,30 @@ public class DefaultAtmosphereDataProvider implements IAtmosphereDataProvider {
         } catch (MinecraftException e) {
             LOGGER.error("Couldn't save atmosphere; already in use by another instance of Minecraft?", e);
         }
+    }
+
+    protected List<EntityPlayerMP> getPlayers(){
+        final List<EntityPlayerMP> list = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayers();
+        final List<EntityPlayerMP> players = Lists.newArrayList();
+        list.forEach(player-> {
+            if(player.getServerWorld() == world) players.add(player);
+        });
+        return players;
+    }
+
+    protected double getClosestPlayerDistance(@Nonnull AtmosphereData data) {
+        double dis = Double.MAX_VALUE;
+        int x = 8|(data.pos.x<<4);
+        int z = 8|(data.pos.z<<4);
+
+        for (EntityPlayerMP player : this.playerList) {
+            double d = Math.abs(player.posX-x)+Math.abs(player.posZ-z);
+
+            if (d < dis) {
+                dis = d;
+            }
+        }
+
+        return dis;
     }
 }

@@ -27,35 +27,76 @@
 
 package top.qiguaiaaaa.geocraft.api.util.math;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
+import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.geocraft.api.block.IPermeableBlock;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public final class FlowChoice {
-    private int quanta;
     public final EnumFacing direction;
     public final int heightPerQuanta;
     public final IPermeableBlock block;
+    private int quantaOfThisFluid;
+    private int quantaOfAll;
+    private int baseHeight = 0;
+    private int maxQuanta = 8;
+
+    /**
+     * 创建一个基本的流动选择,适用十纯单流体的情况
+     * @param rawQuanta 该选择最初的流体量
+     * @param direction 该选择的方向
+     */
+    @Deprecated
     public FlowChoice(int rawQuanta,EnumFacing direction){
-        this(rawQuanta,direction,1,null);
+        this(rawQuanta,direction,1);
     }
-    public FlowChoice(int rawQuanta, EnumFacing direction, int heightPerQuanta, IPermeableBlock block){
-        this.quanta = rawQuanta;
+
+    /**
+     * 创建一个考虑不同方块类型的流动选择
+     * @param direction 该选择的方向
+     * @param block 该选择的透水方块
+     */
+    public FlowChoice(@Nullable EnumFacing direction, @Nonnull IPermeableBlock block, @Nonnull IBlockState state, Fluid fluid){
+        this.quantaOfThisFluid = block.getQuanta(state,fluid);
+        this.quantaOfAll = block.getQuanta(state,null);
+        this.maxQuanta = block.getMaxQuanta(state,fluid);
         this.direction = direction;
-        this.heightPerQuanta = heightPerQuanta;
+        this.heightPerQuanta = block.getHeightPerQuanta(state);
+        this.baseHeight = block.getEmptyHeight(state,fluid);
         this.block = block;
     }
 
-    public void setQuanta(int quanta) {
-        this.quanta = quanta;
+    /**
+     * 创建一个自定义每量高度的流动选择,一般用于空气
+     * @param rawQuanta 该选择最初的流体量
+     * @param direction 该选择的方向
+     * @param heightPerQuanta 该选择的每量高度
+     */
+    public FlowChoice(int rawQuanta, @Nullable EnumFacing direction, int heightPerQuanta){
+        this.quantaOfThisFluid = rawQuanta;
+        this.quantaOfAll = rawQuanta;
+        this.direction = direction;
+        this.heightPerQuanta = heightPerQuanta;
+        this.block = null;
     }
 
-    public int getQuanta() {
-        return quanta;
+    public boolean isFull(){
+        return quantaOfThisFluid >= maxQuanta;
     }
+
+    public int getQuantaOfThisFluid() {
+        return quantaOfThisFluid;
+    }
+
     public int getHeight(){
-        return quanta*heightPerQuanta;
+        return baseHeight + quantaOfThisFluid *heightPerQuanta;
     }
+
     public void addQuanta(int i){
-        quanta +=i;
+        quantaOfThisFluid +=i;
+        quantaOfAll += i;
     }
 }

@@ -27,19 +27,29 @@
 
 package top.qiguaiaaaa.geocraft.configs;
 
+import net.minecraft.block.BlockLiquid;
 import net.minecraftforge.common.config.Config;
+import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.fluids.Fluid;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.GeoConfig;
 import top.qiguaiaaaa.geocraft.api.configs.item.base.ConfigBoolean;
 import top.qiguaiaaaa.geocraft.api.configs.item.base.ConfigCustom;
 import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigDouble;
 import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigInteger;
+import top.qiguaiaaaa.geocraft.api.configs.item.number.ConfigLong;
 import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableList;
 import top.qiguaiaaaa.geocraft.api.configs.value.geo.FluidPhysicsMode;
 import top.qiguaiaaaa.geocraft.api.configs.value.minecraft.ConfigurableFluid;
-import top.qiguaiaaaa.geocraft.api.configs.item.collection.ConfigIntegerWeightDistribution;
-import top.qiguaiaaaa.geocraft.api.configs.item.collection.ConfigList;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.list.ConfigIntegerWeightDistribution;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.list.ConfigList;
+import top.qiguaiaaaa.geocraft.api.setting.GeoFluidSetting;
+import top.qiguaiaaaa.geocraft.api.util.exception.ConfigParseError;
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.FluidPressureSearchManager;
+import top.qiguaiaaaa.geocraft.util.math.Int10;
+import top.qiguaiaaaa.geocraft.util.math.Int21;
+
+import javax.annotation.Nonnull;
 
 /**
  * 关于流体物理的配置项目
@@ -53,6 +63,8 @@ public final class FluidPhysicsConfig {
     public static final ConfigInteger leastTemperatureForFluidToCompletelyDestroyBlock =
             new ConfigInteger(CATEGORY_FLUID_PHYSICS,"leastTemperatureForFluidToCompletelyDestroyBlock",1237,
                     "在流体流动过程中，完全摧毁可摧毁方块（即不会留下掉落物）的最低流体温度，单位为开尔文（K）。");
+
+    @Config.RequiresMcRestart
     public static final ConfigCustom<FluidPhysicsMode> FLUID_PHYSICS_MODE =
             new ConfigCustom<>(CATEGORY_FLUID_PHYSICS,"fluidPhysicsMode", FluidPhysicsMode.MORE_REALITY,
                     "设置流体物理模式 Set Fluid Physics Mode.\n" +
@@ -65,14 +77,39 @@ public final class FluidPhysicsConfig {
     public static final ConfigCategory CATEGORY_FLUID_UPDATER = CATEGORY_FLUID_PHYSICS.getChildCategory("fluid_updater");
 
     @Config.RangeInt(min = 1)
+    @Config.RequiresWorldRestart
     public static final ConfigInteger FLUID_UPDATER_MAX_TASKS_PER_TICK = new ConfigInteger(CATEGORY_FLUID_UPDATER,
             "maxTasksPerTick",65536*4,
             "1游戏刻内更新的流体方块数量上限\n" +
                     "The max num of fluid blocks to update within a Game Tick.");
 
+    @GeoConfig.RangeLong(min = 0)
+    public static final ConfigLong FLUID_UPDATER_MAX_TIME_USAGE = new ConfigLong(CATEGORY_FLUID_UPDATER,
+            "maxTimeUsage",200L*1000L*1000L,
+            "流体更新器(FluidUpdateManager)在一游戏刻内的最大运行时长，单位为纳秒。\n" +
+                    "The maximum runtime of the FluidUpdateManager within a single game tick, measured in nanoseconds.");
+
     public static final ConfigBoolean FLUID_UPDATER_DROP_EXCESS_TASKS = new ConfigBoolean(CATEGORY_FLUID_UPDATER,
             "dropExcessTasks",true,
             "是否在完成任务更新后，丢弃超额的流体更新任务");
+
+    @Config.RangeInt(min = 1)
+    public static final ConfigInteger FLUID_UPDATER_CLEAN_PERIOD = new ConfigInteger(CATEGORY_FLUID_UPDATER,
+            "cleanPeriod",32,
+            "流体更新器(FluidUpdateManager)清理超额更新任务的时间间隔，必须是2的幂数。\n" +
+                    "The cleanup interval for excess update tasks in the Fluid Update Manager must be a power of two."){
+        @Override
+        public void load(@Nonnull Configuration config) {
+            super.load(config);
+            if((this.value&(this.value-1))!=0) throw new ConfigParseError(value + " is not a power of two!");
+        }
+
+        @Override
+        public void setValue(@Nonnull Integer newValue) {
+            if((newValue&(newValue-1)) != 0) return;
+            super.setValue(newValue);
+        }
+    };
 
     //********************************
     // Fluid Pressure System Config
@@ -80,6 +117,7 @@ public final class FluidPhysicsConfig {
 
     public static final ConfigCategory CATEGORY_FLUID_PRESSURE_SYSTEM = CATEGORY_FLUID_PHYSICS.getChildCategory(FluidPressureSearchManager.CONFIG_CATEGORY_NAME);
 
+    @Config.RequiresWorldRestart
     public static final ConfigBoolean RUN_PRESSURE_SYSTEM_AS_ASYNC = new ConfigBoolean(CATEGORY_FLUID_PRESSURE_SYSTEM,
             "async",true,
             "压强系统以多线程模式执行，这可以有效提高性能，但可能导致潜在的多线程并发异常。默认启用，若异步执行的压强系统导致了诸如游戏崩溃的异常，请尝试将此选项改为false以使压强系统同步运行。\n" +
@@ -91,6 +129,7 @@ public final class FluidPhysicsConfig {
 
     public static final ConfigCategory CATEGORY_FLUID_PRESSURE_SYSTEM_THREAD_POOL = CATEGORY_FLUID_PRESSURE_SYSTEM.getChildCategory("thread_pool");
 
+    @Config.RequiresWorldRestart
     public static final ConfigBoolean PRESSURE_USING_THREAD_POOL = new ConfigBoolean(CATEGORY_FLUID_PRESSURE_SYSTEM_THREAD_POOL,
             "useThreadPool",true,
             "仅在"+RUN_PRESSURE_SYSTEM_AS_ASYNC.getPath()+"为"+true+"的情况下有效\n" +
@@ -99,12 +138,13 @@ public final class FluidPhysicsConfig {
                     "Runs multiple pressure tasks concurrently using a thread pool, which can further significantly improve performance.");
 
     @Config.RangeInt(min = 1)
+    @Config.RequiresWorldRestart
     public static final ConfigInteger PRESSURE_THREAD_COUNT = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM_THREAD_POOL,
-            "numberOfThreadsInTheThreadPool",3,
+            "numberOfThreadsInTheThreadPool",Runtime.getRuntime().availableProcessors(),
         "线程池中的线程数量，一般取CPU的核心数。\n" +
-                "但实际取2~4条就行，因为过多的话压强系统是运行得快了，但是运行得太快会导致Minecraft服务器线程追不上，也就是大量流体更新导致卡顿。\n" +
+                "但是请注意，若压强系统运行得太快会可能导致Minecraft服务器线程追不上，也就是大量流体很快收到更新而导致卡顿。\n" +
                     "The number of threads in the thread pool is generally set to the number of CPU cores. \n" +
-                "However, in practice, 2~4 threads are sufficient, as having too many threads may cause the fluid pressure system to run faster but result in the Minecraft server thread being unable to keep up, leading to lag due to excessive fluid updates.");
+                "However, please note that if the pressure system runs too fast, it may cause the Minecraft server thread to be unable to keep up, resulting in lag due to a large number of fluids being updated too quickly.");
 
     // Ended
     //**********************
@@ -117,17 +157,25 @@ public final class FluidPhysicsConfig {
     );
 
     @Config.RangeInt(min = 1)
+    @Config.RequiresWorldRestart
     public static final ConfigInteger PRESSURE_MAX_TASKS_PER_TICK = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
             "maxTasksPerPressureSystemTick",65536*2,
             "压强系统在一压强刻内最大处理的压强任务数量，若将此值设置过低可能导致任务堆积，过高可能导致在大量流体更新时的卡顿问题。\n" +
                     "Max number of tasks to be dealt within a Pressure Tick. Set it much lower may cause tasks to be accumulate or may cause lagging when " +
-                    "there are many fluid blocks updating.",true);
+                    "there are many fluid blocks updating.");
 
     @Config.RangeInt(min = 1)
+    @Config.RequiresWorldRestart
     public static final ConfigInteger PRESSURE_MAX_UPDATES_PER_TICK = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
             "maxUpdatesPerGameTick",65536*4,
             "压强系统在一游戏刻内通知已完成压强任务的方块的最大数量，若总需要通知的方块数量超过该值，则多余的方块会被放弃更新。\n" +
-                    "Max number of blocks to be notified within a Game Tick. If the total number of blocks to notify excesses this value, the left part whill be ignored.", true);
+                    "Max number of blocks to be notified within a Game Tick. If the total number of blocks to notify excesses this value, the left part whill be ignored.");
+
+    @Config.RangeInt(min = 1)
+    public static final ConfigInteger PRESSURE_SCHEDULE_UPDATES_DISPERSION = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
+            "scheduleUpdatesDispersion",20,
+            "压强系统在通知已完成压强任务的方块时，设置的更新任务延迟的散度。越大意味着理想状况下方块更新任务会被均摊到更长时间，这可以一定程度上避免因大量压强任务完成过快导致大量流体更新的问题。\n" +
+                    "The dispersion of update task delays set by the pressure system when notifying blocks that have completed pressure tasks. A higher value means that, under ideal conditions, block update tasks will be spread out over a longer period, which can help mitigate the issue of excessive fluid updates caused by a large number of pressure tasks completing too quickly.");
 
     @Config.RangeInt(min = 2)
     public static final ConfigInteger PRESSURE_DROP_EXCESS_TASKS_PERIOD = new ConfigInteger(CATEGORY_FLUID_PRESSURE_SYSTEM,
@@ -151,6 +199,7 @@ public final class FluidPhysicsConfig {
                     "The threshold for Pressure System to clean excess tasks."
     );
 
+    @Config.RequiresMcRestart
     public static final ConfigBoolean PAUSE_PRESSURE_SYSTEM_WHILE_CHUNK_SAVING = new ConfigBoolean(CATEGORY_FLUID_PRESSURE_SYSTEM,
             "pausePressureSystemWhileChunkSaving",true,
             "当压强系统异步加载的时候，在区块保存时停止压强系统运行，以防止可能的多线程竞争导致的崩溃问题。\n" +
@@ -189,6 +238,11 @@ public final class FluidPhysicsConfig {
             new ConfigBoolean(CATEGORY_FLUID_PHYSICS_VANILLA_LIKE,"disableInfiniteFluidForAllModFluid",true,
                     "是否禁止所有模组中具有无限液体源功能的液体产生液体源的能力。注意因为未经测试，关闭此选项可能会产生一些BUG。\n" +
                             "Set it to false to enable infinite fluid function of supported fluids in mods. PS: Disabling it may cause some problem.");
+    /**
+     * @see GeoFluidSetting#setFluidToBePhysical(String, boolean)
+     * @see GeoFluidSetting#isFluidToBePhysical(Fluid) 
+     * @see GeoFluidSetting#isFluidToBePhysical(BlockLiquid) 
+     */
     public static final ConfigList<ConfigurableFluid> fluidsNotToSimulateInVanillaLike =
             new ConfigList<>(CATEGORY_FLUID_PHYSICS_VANILLA_LIKE,"fluidBlackList",
                     new ConfigurableList<>(),
@@ -257,16 +311,16 @@ public final class FluidPhysicsConfig {
     @Config.RangeInt(min = 0)
     @GeoConfig.MaxSize(17)
     public static final ConfigIntegerWeightDistribution WEIGHT_DISTRIBUTION_FOR_PRESSURE_SEARCH_RANGE = new ConfigIntegerWeightDistribution(CATEGORY_SIMULATION_MORE_REALITY_PRESSURE,
-            "pressureSearchRangeWeights",new ConfigurableList<>(0,0,0,10,80,5,4,1),
+            "pressureSearchRangeWeights",new ConfigurableList<>(0,0,0,10,10,75,4,1),
             "压强搜寻的范围等级概率分布。第一个表示范围等级为-1的权重，第二个表示为范围等级为0的权重，以此类推。\n" +
-                    "例如，[0,0,0,80,10,5,4,1]表示下面的概率分布\n" +
+                    "例如，[0,0,0,10,10,75,4,1]表示下面的概率分布\n" +
                     "范围等级 -> 概率\n" +
                     "-1 -> 0%\n" +
                     "0 -> 0%\n" +
                     "1 -> 0%\n" +
-                    "2 -> 80%\n" +
+                    "2 -> 10%\n" +
                     "3 -> 10%\n" +
-                    "4 -> 5%\n" +
+                    "4 -> 75%\n" +
                     "5 -> 4%\n" +
                     "6 -> 1%\n" +
                     "压强搜寻具体范围，即广度优先搜索的迭代最大次数，等于2^(范围等级+5)。例如，范围等级为2表示迭代最大次数为128。本列表支持的最小范围等级为-1，表示迭代最大次数为16。")
@@ -274,19 +328,21 @@ public final class FluidPhysicsConfig {
 
     @Config.RangeInt(min = -5)
     public static final ConfigInteger PRESSURE_TASK_RANGE_DYNAMIC_FLUID_NO_AVERAGE = new ConfigInteger(CATEGORY_SIMULATION_MORE_REALITY_PRESSURE,
-            "pressureSearchRangeWhenNotAverageModeForVanillaDynamicLiquids",3,
+            "pressureSearchRangeWhenNotAverageModeForVanillaDynamicLiquids",4,
             "原版流体在非平均流动模式流动过程中，发布压强任务的范围等级。\n" +
                     "The range level at which vanilla fluids issue pressure tasks during non-average flow mode movement.");
 
-    @Config.RangeInt(min = 1,max = 511)
+    @Config.RangeInt(min = 1,max = Int10.CONTENT_MASK)
+    @Config.RequiresMcRestart
     public static final ConfigInteger REALITY_MAX_SEARCH_TIMES_PER_SEARCH_FOR_SMALL_RANGE_TASK = new ConfigInteger(CATEGORY_SIMULATION_MORE_REALITY_PRESSURE,
-            "maxSearchTimesPerSearchForSmallRangeTask",256,
+            "maxSearchTimesPerSearchForSmallRangeTask",511,
             "小范围流体压强任务在单次更新中，最大的迭代次数。若任务的搜索范围小于该值，则该任务会被转换为单次搜寻任务，从而大幅度减少内存开销。但值越大也意味着对CPU性能要求更高。\n" +
                     "Max iterated times in a single search for Small Range Pressure Search Task.If the search range of task is smaller than or equal to this, " +
                     "the Task will be transformed to single search task to reduce memory usage. However, higher value means more cpu load needed.",
             true);
 
-    @Config.RangeInt(min = 1,max = 1048575)
+    @Config.RangeInt(min = 1,max = Int21.CONTENT_MASK)
+    @Config.RequiresMcRestart
     public static final ConfigInteger REALITY_MAX_SEARCH_TIMES_PER_SEARCH_FOR_LARGE_RANGE_TASK = new ConfigInteger(CATEGORY_SIMULATION_MORE_REALITY_PRESSURE,
             "maxSearchTimesPerSearchForLargeRangeTask",512,
             "大范围流体压强任务在单次更新中，最大的迭代次数。值越大意味着对CPU性能要求更高。\n" +
@@ -346,21 +402,38 @@ public final class FluidPhysicsConfig {
     public static final ConfigInteger bottleFindFluidMaxDistance =
             new ConfigInteger(CATEGORY_SIMULATION_MORE_REALITY,"bottleFindFluidMaxDistance",3,
                     "空瓶装流体（一般是水）时寻找流体的最大范围（即从起点到范围边界的曼哈顿距离）");
+    /**
+     * @see GeoFluidSetting#isFluidToUseVanillaBucketMode(Fluid) 
+     * @see GeoFluidSetting#setFluidToUseVanillaBucketMode(String, boolean) 
+     */
     public static final ConfigList<ConfigurableFluid> fluidsWhoseBucketsBehavesAsVanillaBuckets =
             new ConfigList<>(CATEGORY_SIMULATION_MORE_REALITY,"fluidsWhoseBucketsBehavesAsVanillaBuckets",
                     new ConfigurableList<>(),
                     "流体对应的桶其行为表现不受本模组影响的流体。", ConfigurableFluid::new);
+
+    /**
+     * @see GeoFluidSetting#isFluidToBePhysical(Fluid) 
+     * @see GeoFluidSetting#isFluidToBePhysical(BlockLiquid) 
+     * @see GeoFluidSetting#setFluidToBePhysical(String, boolean) 
+     */
     public static final ConfigList<ConfigurableFluid> fluidsNotToSimulate =
             new ConfigList<>(CATEGORY_SIMULATION_MORE_REALITY,"fluidBlackList",
                     new ConfigurableList<>(),
                     "不受此模式影响的流体。在下方填入的流体也相当于在"+fluidsWhoseBucketsBehavesAsVanillaBuckets.getPath()+"内填入对应流体，即流体对应的桶行为同样也会变为原版的情况。",
                     ConfigurableFluid::new);
 
+    @Config.RequiresMcRestart
+    public static final ConfigBoolean ENABLE_INVALID_LIQUID_STATE_REPORT = new ConfigBoolean(CATEGORY_SIMULATION_MORE_REALITY,
+            "enableInvalidLiquidStateReport",false,"当在世界中设置不应该出现的原版液体状态时，打印WARN日志。这有助于在出现bug时调试。\n" +
+            "Print WARN-level logs when vanilla liquid states that should not appear in the world are detected. This aids in debugging when issues occur.",true);
+
     @Config.Comment("设置第三方模组联动参数")
     public static final ConfigCategory CATEGORY_SIMULATION_MORE_REALITY_MOD_SUPPORT = CATEGORY_SIMULATION_MORE_REALITY.getChildCategory("mod_support");
     // ** IC2 Config
     @Config.Comment("设置关于[IC2]工业时代II的参数")
     public static final ConfigCategory CATEGORY_SIMULATION_MORE_REALITY_MOD_SUPPORT_IC2 = CATEGORY_SIMULATION_MORE_REALITY_MOD_SUPPORT.getChildCategory("ic2");
+
+    @Config.RequiresMcRestart
     public static final ConfigBoolean enableSupportForIC2 =
             new ConfigBoolean(CATEGORY_SIMULATION_MORE_REALITY_MOD_SUPPORT_IC2,"IC2Support",true,
                     "如果你已经安装了工业时代2，那么这将控制模组是否启用IC2的相关支持，例如泵的专门优化。\n" +
@@ -373,6 +446,8 @@ public final class FluidPhysicsConfig {
     @Config.Comment("设置关于[IE]沉浸工程的参数")
     public static final ConfigCategory CATEGORY_SIMULATION_MORE_REALITY_MOD_SUPPORT_IE =
             CATEGORY_SIMULATION_MORE_REALITY_MOD_SUPPORT.getChildCategory("immersiveengineering");
+
+    @Config.RequiresMcRestart
     public static final ConfigBoolean enableSupportForIE =
             new ConfigBoolean(CATEGORY_SIMULATION_MORE_REALITY_MOD_SUPPORT_IE,"ImmersiveEngineeringSupport",true,
                     "如果你已经安装了沉浸工程，那么这将控制模组是否启用沉浸工程的相关支持，例如具有物理性质的混凝土液体。\n" +

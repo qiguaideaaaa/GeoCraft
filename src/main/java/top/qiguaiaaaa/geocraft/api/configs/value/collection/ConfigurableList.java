@@ -31,13 +31,12 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * 一个用于列表配置项的配置类型
  * @param <V> 列表存储的对象类型，存储的对象应当覆写{@link Object#toString()}
  */
-public class ConfigurableList<V> extends ArrayList<V> {
+public class ConfigurableList<V> extends ArrayList<V> implements IConfigurableList<V> {
     /**
      * @see ArrayList#ArrayList()
      */
@@ -51,6 +50,11 @@ public class ConfigurableList<V> extends ArrayList<V> {
 
     public ConfigurableList(@Nonnull Collection<? extends V> c){
         super(c);
+    }
+
+    @SafeVarargs
+    public ConfigurableList(@Nonnull V... elements){
+        super(Arrays.asList(elements));
     }
 
     @Override
@@ -76,23 +80,5 @@ public class ConfigurableList<V> extends ArrayList<V> {
     @Override
     public boolean addAll(int index,@Nonnull Collection<? extends V> c) {
         return super.addAll(index, c);
-    }
-
-    @SafeVarargs
-    public ConfigurableList(@Nonnull V... elements){
-        super(Arrays.asList(elements));
-    }
-
-    /**
-     * 将列表序列化为String列表
-     * @return 一个String列表，表示该列表的内容
-     */
-    @Nonnull
-    public String[] toStringList() {
-        final List<String> stringList = new ArrayList<>();
-        for(V v:this){
-            stringList.add(v.toString());
-        }
-        return stringList.toArray(new String[0]);
     }
 }

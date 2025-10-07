@@ -28,6 +28,8 @@
 package top.qiguaiaaaa.geocraft.geography.fluid_physics.reality.pressure;
 
 import top.qiguaiaaaa.geocraft.geography.fluid_physics.task.pressure.IFluidPressureSearchTask;
+import top.qiguaiaaaa.geocraft.util.math.Int10;
+import top.qiguaiaaaa.geocraft.util.math.Int21;
 
 /**
  * @author QiguaiAAAA
@@ -39,6 +41,8 @@ public interface IRealityPressureSearchTask extends IFluidPressureSearchTask {
     boolean hasFoundEnoughResults();
 
     static int getMaxSearchTimesFromRange(int searchRange){
+        if(searchRange == 4) return Int10.CONTENT_MASK;
+        if(searchRange == 15) return Int21.CONTENT_MASK;
         return (1<<(searchRange+5));
     }
 }

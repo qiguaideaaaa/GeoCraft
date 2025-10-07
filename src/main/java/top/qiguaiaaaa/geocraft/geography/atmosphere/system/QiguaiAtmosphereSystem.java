@@ -29,10 +29,14 @@ package top.qiguaiaaaa.geocraft.geography.atmosphere.system;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 import top.qiguaiaaaa.geocraft.GeoCraft;
+import top.qiguaiaaaa.geocraft.api.GeoFluids;
 import top.qiguaiaaaa.geocraft.api.atmosphere.Atmosphere;
 import top.qiguaiaaaa.geocraft.api.atmosphere.AtmosphereWorldInfo;
 import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.AverageAtmosphereAccessor;
@@ -40,8 +44,11 @@ import top.qiguaiaaaa.geocraft.api.atmosphere.accessor.IAtmosphereAccessor;
 import top.qiguaiaaaa.geocraft.api.atmosphere.gen.IAtmosphereDataProvider;
 import top.qiguaiaaaa.geocraft.api.atmosphere.storage.AtmosphereData;
 import top.qiguaiaaaa.geocraft.api.atmosphere.system.BaseAtmosphereSystem;
+import top.qiguaiaaaa.geocraft.api.block.IPermeableBlock;
 import top.qiguaiaaaa.geocraft.api.event.EventFactory;
+import top.qiguaiaaaa.geocraft.api.property.TemperatureProperty;
 import top.qiguaiaaaa.geocraft.api.setting.GeoAtmosphereSetting;
+import top.qiguaiaaaa.geocraft.api.util.FluidUtil;
 import top.qiguaiaaaa.geocraft.geography.atmosphere.QiguaiAtmosphere;
 import top.qiguaiaaaa.geocraft.geography.atmosphere.info.QiguaiAtmosphereSystemInfo;
 import top.qiguaiaaaa.geocraft.util.BaseUtil;
@@ -49,7 +56,6 @@ import top.qiguaiaaaa.geocraft.util.WaterUtil;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Iterator;
 
 import static top.qiguaiaaaa.geocraft.api.util.AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA;
@@ -142,36 +148,62 @@ public abstract class QiguaiAtmosphereSystem extends BaseAtmosphereSystem {
         if(data == null) return;
         Atmosphere atmosphere = data.getAtmosphere();
 
-        int x = chunk.x * 16;
-        int z = chunk.z * 16;
+        int x = chunk.x<<4;
+        int z = chunk.z<<4;
         int rand = world.rand.nextInt();
         BlockPos randPos = world.getPrecipitationHeight(new BlockPos(x + (rand & 15), 0, z + (rand >> 8 & 15)));
+
+        if (!world.isAreaLoaded(randPos, 1)) return;
+
         BlockPos pos = randPos.down();
 
+        IAtmosphereAccessor accessor = getAccessor(data,pos,true);
+
+        IBlockState state = world.getBlockState(pos);
+
         assert atmosphere != null;
-        boolean isRaining = atmosphere.getWeather(randPos).isRainy();
+        boolean isRaining = atmosphere.getWeather(pos).isRainy();
+        double rainPossibility = isRaining? WaterUtil.getRainPossibility(accessor):0;
+        boolean doRain = BaseUtil.getRandomResult(world.rand,rainPossibility);
 
-        if (!world.isAreaLoaded(pos, 1)) return;
+        if(doRain && state.getBlock() instanceof IPermeableBlock){
+            int filled = 0;
+            IPermeableBlock block = (IPermeableBlock) state.getBlock();
+            Fluid fluidToFill = FluidRegistry.WATER;
+            if(accessor.getTemperature(false)<= TemperatureProperty.ICE_POINT) fluidToFill = GeoFluids.SNOW;
+            if(block.canFill(world,pos,state, fluidToFill, EnumFacing.UP,null)){
+                int drained = atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,pos,true);
+                if(drained>=FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME){
+                    atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,pos,false);
+                    filled = block.addQuanta(world,pos,state,fluidToFill,1,true);
+                }
+            }
+            if(filled>0){
+                if(fluidToFill == GeoFluids.SNOW){
+                    accessor.putHeatToAtmosphere(WATER_MELT_LATENT_HEAT_PER_QUANTA);
+                }
+                return;
+            }
+        }
 
-        IAtmosphereAccessor freezeAccessor = getAccessor(data,pos,true);
+        isRaining = atmosphere.getWeather(randPos).isRainy();
 
-        double rainPossibility = isRaining? WaterUtil.getRainPossibility(freezeAccessor):0;
-        double freezePossibility = worldInfo.canWaterFreeze()?WaterUtil.getFreezePossibility(freezeAccessor):0;
+        double freezePossibility = worldInfo.canWaterFreeze()?WaterUtil.getFreezePossibility(accessor):0;
 
         if (worldInfo.canWaterFreeze() && BaseUtil.getRandomResult(world.rand,freezePossibility) && worldInfo.canWaterFreeze(pos,true)) {
             world.setBlockState(pos, Blocks.ICE.getDefaultState());
-            freezeAccessor.putHeatToUnderlying(WATER_MELT_LATENT_HEAT_PER_QUANTA*8);
-        }
-
-        if(!BaseUtil.getRandomResult(world.rand,rainPossibility)){
+            accessor.putHeatToUnderlying(WATER_MELT_LATENT_HEAT_PER_QUANTA*8);
             return;
         }
+
+        if(!isRaining || !doRain) return;
 
         IBlockState newState = EventFactory.onAtmosphereRainAndSnow(chunk,atmosphere,randPos,rainPossibility);
         if(newState != null){
             world.setBlockState(randPos,newState);
+            return;
         }
 
-        world.getBlockState(pos).getBlock().fillWithRain(world, pos);
+        state.getBlock().fillWithRain(world, pos);
     }
 }

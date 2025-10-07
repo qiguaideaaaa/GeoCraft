@@ -57,7 +57,7 @@ public class AtmosphereUpdateEvent extends AtmosphereEvent {
     }
 
     /**
-     * 当大气可能在指定地方下雨或雪的时候调用
+     * 当大气可能在指定地方下雨或雪的时候调用<br/>
      * @author QiguaiAAAA
      */
     @HasResult

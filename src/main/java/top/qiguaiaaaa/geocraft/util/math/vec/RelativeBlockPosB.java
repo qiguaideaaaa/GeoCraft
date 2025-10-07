@@ -114,7 +114,7 @@ public class RelativeBlockPosB extends Vec3b{
 
         @Nonnull
         @Override
-        public RelativeBlockPosB toImmutable(){
+        public RelativeBlockPosB asImmutable(){
             return new RelativeBlockPosB(this);
         }
     }

@@ -27,15 +27,24 @@
 
 package top.qiguaiaaaa.geocraft.handler;
 
+import com.google.common.collect.Sets;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
-import top.qiguaiaaaa.geocraft.api.GeoCraftFluids;
+import top.qiguaiaaaa.geocraft.api.GeoFluids;
 import top.qiguaiaaaa.geocraft.fluid.FluidCarbonDioxide;
+import top.qiguaiaaaa.geocraft.fluid.FluidSnow;
+
+import java.util.Collections;
 
 public final class FluidHandler {
     public static void initRegisteredFluids(){
-        if(GeoCraftFluids.CARBON_DIOXIDE == null){
-            GeoCraftFluids.CARBON_DIOXIDE = getValidFluid(FluidCarbonDioxide.fluidName,new FluidCarbonDioxide());
+        if(GeoFluids.CARBON_DIOXIDE == null){
+            GeoFluids.CARBON_DIOXIDE = getValidFluid(FluidCarbonDioxide.fluidName,new FluidCarbonDioxide());
+        }
+        if(GeoFluids.SNOW == null){
+            GeoFluids.SNOW = getValidFluid(FluidSnow.fluidName,new FluidSnow());
+            GeoFluids.FluidSets.SNOW_SET = Collections.unmodifiableSet(Sets.newHashSet(GeoFluids.SNOW));
+            GeoFluids.FluidSets.SNOW_LAYER_SET = Collections.unmodifiableSet(Sets.newHashSet(GeoFluids.SNOW,FluidRegistry.WATER));
         }
     }
     public static Fluid getValidFluid(String fluidName,Fluid defaultFluid){

@@ -132,8 +132,8 @@ public class HighAtmosphereLayer extends SurfaceAtmosphereLayer {
             if(lowerLayer == null || !lowerLayer.isInitialise()){
                 temperature.set(240);
             }else{
-                temperature.set((float) (lowerLayer.getTemperature().get()-
-                        Altitude.to物理高度(lowerLayer.getDepth())* AtmosphereUtil.Constants.对流层温度直减率));
+                temperature.set(Math.max((float) (lowerLayer.getTemperature().get()-
+                        Altitude.to物理高度(lowerLayer.getDepth())* AtmosphereUtil.Constants.对流层温度直减率),80));
             }
         }
         super.onLoadWithoutChunk();

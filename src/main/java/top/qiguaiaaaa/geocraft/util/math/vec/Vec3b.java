@@ -103,7 +103,7 @@ public class Vec3b implements IVec3i{
 
     @Nonnull
     @Override
-    public IVec3i toImmutable() {
+    public IVec3i asImmutable() {
         return this;
     }
 }

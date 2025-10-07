@@ -25,53 +25,55 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package top.qiguaiaaaa.geocraft.api.configs.item.collection;
+package top.qiguaiaaaa.geocraft.api.configs.item.collection.set;
 
 import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.config.Property;
-import org.apache.commons.lang3.ArrayUtils;
 import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
-import top.qiguaiaaaa.geocraft.api.configs.value.collection.ConfigurableList;
+import top.qiguaiaaaa.geocraft.api.configs.item.collection.IConfigIntCollection;
+import top.qiguaiaaaa.geocraft.api.configs.value.collection.IConfigurableSet;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
 
-
-public class ConfigIntegerList extends ConfigList<Integer> {
+/**
+ * @author QiguaiAAAA
+ */
+public class ConfigIntegerSet extends ConfigSet<Integer> implements IConfigIntCollection {
     protected int minValue = Integer.MIN_VALUE,
             maxValue = Integer.MAX_VALUE;
-    public ConfigIntegerList(ConfigCategory category, String configKey, ConfigurableList<Integer> defaultValue) {
+    public ConfigIntegerSet(ConfigCategory category, String configKey, IConfigurableSet<Integer> defaultValue) {
         this(category, configKey, defaultValue,null);
     }
 
-    public ConfigIntegerList(ConfigCategory category, String configKey, ConfigurableList<Integer> defaultValue, String comment) {
+    public ConfigIntegerSet(ConfigCategory category, String configKey, IConfigurableSet<Integer> defaultValue, String comment) {
         this(category, configKey, defaultValue, comment,false);
     }
 
-    public ConfigIntegerList(ConfigCategory category, String configKey, ConfigurableList<Integer> defaultValue, String comment, boolean isFinal) {
+    public ConfigIntegerSet(ConfigCategory category, String configKey, IConfigurableSet<Integer> defaultValue, String comment, boolean isFinal) {
         super(category, configKey, defaultValue, comment,Integer::parseInt, isFinal);
     }
 
-    public ConfigIntegerList setMinValue(int minValue) {
+    @Override
+    public ConfigIntegerSet setMinValue(int minValue) {
         this.minValue = minValue;
         return this;
     }
-
-    public ConfigIntegerList setMaxValue(int maxValue) {
+    @Override
+    public ConfigIntegerSet setMaxValue(int maxValue) {
         this.maxValue = maxValue;
         return this;
     }
-
+    @Override
     public int getMinValue() {
         return minValue;
     }
-
+    @Override
     public int getMaxValue() {
         return maxValue;
     }
 
     @Override
-    public ConfigIntegerList setMaxListSize(int maxListSize) {
+    public ConfigIntegerSet setMaxListSize(int maxListSize) {
         super.setMaxListSize(maxListSize);
         return this;
     }

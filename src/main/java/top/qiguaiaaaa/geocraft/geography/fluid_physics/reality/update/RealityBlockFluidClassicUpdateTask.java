@@ -114,13 +114,13 @@ public class RealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask impl
             }
         }
         if(!averageModeFlowDirections.isEmpty()){ //平均流动模式
-            averageModeFlowDirections.sort(Comparator.comparingInt(FlowChoice::getQuanta));
+            averageModeFlowDirections.sort(Comparator.comparingInt(FlowChoice::getQuantaOfThisFluid));
             averageModeFlowDirections.add(new FlowChoice(quantaPerBlock,null));
             int newQuanta = quanta;
-            while(averageModeFlowDirections.get(0).getQuanta()<newQuanta-1){ //向四周分配流量
+            while(averageModeFlowDirections.get(0).getQuantaOfThisFluid()<newQuanta-1){ //向四周分配流量
                 newQuanta--;
                 averageModeFlowDirections.get(0).addQuanta(1);
-                if(averageModeFlowDirections.get(0).getQuanta() > averageModeFlowDirections.get(1).getQuanta()){
+                if(averageModeFlowDirections.get(0).getQuantaOfThisFluid() > averageModeFlowDirections.get(1).getQuantaOfThisFluid()){
                     Collections.swap(averageModeFlowDirections,0,1);
                 }
             }
@@ -134,10 +134,10 @@ public class RealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask impl
                 world.notifyNeighborsOfStateChange(pos,block, false);
             }
             for(FlowChoice choice:averageModeFlowDirections){ //向四周流动
-                if(choice.getQuanta() == 0) continue;
+                if(choice.getQuantaOfThisFluid() == 0) continue;
                 if(choice.direction == null) continue;
                 BlockPos facingPos = pos.offset(choice.direction);
-                flowIntoBlockDirectly(world,facingPos,state,quantaPerBlock-choice.getQuanta());
+                flowIntoBlockDirectly(world,facingPos,state,quantaPerBlock-choice.getQuantaOfThisFluid());
             }
         }else{
             if(!managePressureTask(world,rand)) updateUp(world,rand);

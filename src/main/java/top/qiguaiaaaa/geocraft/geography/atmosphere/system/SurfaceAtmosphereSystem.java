@@ -89,7 +89,7 @@ public class SurfaceAtmosphereSystem extends QiguaiAtmosphereSystem {
         AtmosphereLayer layer = atmosphere.getBottomAtmosphereLayer();
         if(layer == null) return;
         Biome mainBiome = ChunkUtil.getMainBiome(chunk);
-        layer.addSteam(null,(int) (mainBiome.getRainfall()*4000));
+        layer.addSteam(null,(int) (mainBiome.getRainfall()*400));
         layer.addWater(null,(int) (mainBiome.getRainfall()*1000));
     }
 }

@@ -66,4 +66,8 @@ public final class MathUtil {
         int loc = (int) Math.ceil(percent*cp.length);
         return cp[loc-1];
     }
+
+    public static double centerPos(int pos){
+        return pos+0.5d;
+    }
 }
