@@ -225,6 +225,7 @@ public final class FluidPhysicsConfig {
             .setComment("设置流体物理模式为"+FluidPhysicsMode.VANILLA_LIKE+"时的参数\n" +
                     "Parameters when fluid physics mode is set to " + FluidPhysicsMode.VANILLA_LIKE);
 
+    @Config.Ignore
     public static final ConfigBoolean PRESSURE_SYSTEM_FOR_VANILLA_LIKE =
             new ConfigBoolean(CATEGORY_FLUID_PHYSICS_VANILLA_LIKE,"enablePressureSystem",true,
                     "是否启用压强系统。\n" +

@@ -48,8 +48,9 @@ public final class SoilConfig {
     public static final ConfigCategory CATEGORY_SOIL = new ConfigCategory("soil");
 
     @Config.RequiresMcRestart
+    @Config.Ignore
     public static final ConfigBoolean ALLOW_CLIENT_TO_READ_HUMIDITY_DATA = new ConfigBoolean(CATEGORY_SOIL,
-            "allowClientToReadHumidityData",true,
+            "allowClientToReadHumidityData",false,
             "是否允许客户端读取土壤的湿度数据。默认为允许。在禁止状态下，模组将会对服务器和客户端的网络通信进行修改，以去除土壤的湿度信息。其原理和反矿透原理类似。\n" +
                     "如果您想要允许客户端读取土壤的湿度数据，可以更改此选项为true。这样子，mod将不再修改网络通信，您可以使用其他更专业的mod以阻止客户端阅读土壤湿度数据。\n" +
                     "请注意,部分信息在关闭此项后仍然无法被客户端读取，除非你关闭"+GeneralConfig.COMPATIBLE_FOR_VANILLA_CLIENT.getPath()+"。若关闭前面这个选项，则模组自身无法阻止客户端阅读土壤的湿度数据，即使本配置项为禁用状态。\n" +

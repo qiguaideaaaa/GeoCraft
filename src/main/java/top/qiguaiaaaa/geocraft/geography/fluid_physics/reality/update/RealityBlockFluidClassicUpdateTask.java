@@ -52,6 +52,8 @@ import javax.annotation.Nonnull;
 import java.util.*;
 
 import static net.minecraftforge.fluids.BlockFluidBase.LEVEL;
+import static top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig.slopeModeForModsWhenOnFluidsAndQuantaAbove1;
+import static top.qiguaiaaaa.geocraft.configs.FluidPhysicsConfig.slopeModeForModsWhenOnFluidsAndQuantaIs1;
 
 /**
  * @author QiguaiAAAA
@@ -89,7 +91,7 @@ public class RealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask impl
         }
         //坡度流动模式
         if(quanta == 1){
-            if(isSameLiquid(stateBelow)){
+            if(!slopeModeForModsWhenOnFluidsAndQuantaIs1.getValue() && isSameLiquid(stateBelow)){
                 if(!managePressureTask(world,rand)) updateUp(world,rand);
                 return;
             }
@@ -105,6 +107,7 @@ public class RealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask impl
         }
         //可流动方向检查
         final ArrayList<FlowChoice> averageModeFlowDirections = new ArrayList<>();//平均流动模式可用方向
+        Set<EnumFacing> slopeModeFlowDirections = slopeModeForModsWhenOnFluidsAndQuantaAbove1.getValue()?EnumSet.noneOf(EnumFacing.class):null;//非Q=1坡度模式可用方向
         for(EnumFacing facing:EnumFacing.Plane.HORIZONTAL){
             IBlockState facingState = world.getBlockState(pos.offset(facing));
             if(!this.canDisplaceEvenIsFluid(world,pos.offset(facing))) continue;
@@ -112,6 +115,7 @@ public class RealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask impl
             if(facingQuanta<quanta-1){
                 averageModeFlowDirections.add(new FlowChoice(facingQuanta,facing));
             }
+            if(slopeModeFlowDirections!=null && facingQuanta<quanta) slopeModeFlowDirections.add(facing);
         }
         if(!averageModeFlowDirections.isEmpty()){ //平均流动模式
             averageModeFlowDirections.sort(Comparator.comparingInt(FlowChoice::getQuantaOfThisFluid));
@@ -139,7 +143,22 @@ public class RealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask impl
                 BlockPos facingPos = pos.offset(choice.direction);
                 flowIntoBlockDirectly(world,facingPos,state,quantaPerBlock-choice.getQuantaOfThisFluid());
             }
-        }else{
+        }else if(slopeModeFlowDirections != null && !slopeModeFlowDirections.isEmpty()) { //非Q=1坡度模式
+            slopeModeFlowDirections = getPossibleFlowDirections(world, pos, slopeModeFlowDirections, densityDir, quantaPerBlock, quanta);
+            if (slopeModeFlowDirections.isEmpty()) {
+                return;
+            }
+            EnumFacing randomFacing = (EnumFacing) slopeModeFlowDirections.toArray()[rand.nextInt(slopeModeFlowDirections.size())];
+            int newLiquidQuanta = quanta - 1;
+            int newLiquidMeta = quantaPerBlock - newLiquidQuanta;
+            //更新自己
+            state = state.withProperty(LEVEL, newLiquidMeta);
+            world.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
+            BlockUpdater.scheduleUpdate(world, pos, block, this.tickRate);
+            world.notifyNeighborsOfStateChange(pos, block, false);
+            //移动至新位置
+            world.setBlockState(pos.offset(randomFacing), state.withProperty(LEVEL, meta), Constants.BlockFlags.SEND_TO_CLIENTS);
+        }else {
             if(!managePressureTask(world,rand)) updateUp(world,rand);
         }
     }
@@ -172,9 +191,10 @@ public class RealityBlockFluidClassicUpdateTask extends FluidUpdateBaseTask impl
 
     protected void updateUp(World world,Random random){
         if(random.nextInt(3)<2) return;
-        IBlockState up =world.getBlockState(pos.down(densityDir));
+        BlockPos upPos = pos.down(densityDir);
+        IBlockState up =world.getBlockState(upPos);
         if(up.getBlock() == block){
-            BlockUpdater.scheduleUpdate(world,pos.down(densityDir),block,block.tickRate(world));
+            BlockUpdater.scheduleUpdate(world,upPos,block,block.tickRate(world));
         }
     }
 

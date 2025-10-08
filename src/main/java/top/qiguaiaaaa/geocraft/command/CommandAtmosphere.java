@@ -101,10 +101,10 @@ public class CommandAtmosphere extends ExtendedCommand {
         return 2;
     }
 
-    @Override
-    public List<String> getAliases() {
-        return ALIASES;
-    }
+//    @Override
+//    public List<String> getAliases() {
+//        return ALIASES;
+//    }
 
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException  {
