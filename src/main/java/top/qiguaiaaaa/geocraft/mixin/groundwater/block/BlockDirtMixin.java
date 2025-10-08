@@ -40,11 +40,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import top.qiguaiaaaa.geocraft.api.block.IBlockFalling;
+import top.qiguaiaaaa.geocraft.block.IBlockFalling;
 import top.qiguaiaaaa.geocraft.block.IBlockSoil;
 import top.qiguaiaaaa.geocraft.configs.SoilConfig;
 import top.qiguaiaaaa.geocraft.geography.soil.BlockSoilType;
-import top.qiguaiaaaa.geocraft.util.BaseUtil;
 
 import javax.annotation.Nonnull;
 import java.util.Random;

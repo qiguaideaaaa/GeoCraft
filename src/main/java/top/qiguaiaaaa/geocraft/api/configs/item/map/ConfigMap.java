@@ -34,10 +34,8 @@ import top.qiguaiaaaa.geocraft.api.configs.ConfigCategory;
 import top.qiguaiaaaa.geocraft.api.configs.item.ConfigItem;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.ConfigurableLinkedHashMap;
 import top.qiguaiaaaa.geocraft.api.configs.value.map.entry.ConfigEntry;
-import top.qiguaiaaaa.geocraft.api.util.exception.ConfigParseError;
 
 import javax.annotation.Nonnull;
-import java.util.Iterator;
 import java.util.function.Function;
 
 public class ConfigMap<K,V> extends ConfigItem<ConfigurableLinkedHashMap<K,V>> {
