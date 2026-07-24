@@ -111,7 +111,7 @@ public final class TestSNBTBuiltinOperations extends 镍测试 {
                 (int)least
         };
         final NBTTagIntArray actual = (NBTTagIntArray) call("uuid",new NBTTagString(raw));
-        镍测试.LOGGER.info("uuid({}) -> {}",raw,actual);
+        镍测试.镍日志.info("uuid({}) -> {}",raw,actual);
         Assertions.assertArrayEquals(expected,actual.getIntArray());
     }
 

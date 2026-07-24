@@ -25,42 +25,30 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.geocraft.api.world.tick;
+package moe.qingu.geocraft.world.scheduler;
 
-import net.minecraft.block.Block;
-import net.minecraft.util.math.BlockPos;
-
-import javax.annotation.Nonnull;
+import moe.qingu.geocraft.api.world.tick.TickPriority;
 
 /**
  * @author QGMoe
  */
-@SuppressWarnings("unused")
-public record RecordScheduledTick(
-        @Nonnull Block block,
-        @Nonnull BlockPos pos,
-        long triggeredTick,
-        @Nonnull TickPriority priority
-) implements IScheduledTick {
+public enum 计划刻等级 {
+    危急0,
+    紧急1,
+    急2,
+    特高3,
+    很高4,
+    高5,
+    较高6,
+    中上7,
+    中下8,
+    较低9,
+    低10,
+    很低11,
+    特低12,
+    慢13,
+    缓慢14,
+    松弛15;
 
-    @Override
-    @SuppressWarnings("EqualsDoesntCheckParameterClass")
-    public boolean equals(final @Nonnull Object obj) {
-        return IScheduledTick.equals(this,obj);
-    }
-
-    @Override
-    public int hashCode() {
-        return pos.hashCode();
-    }
-
-    @Nonnull
-    @Override
-    public String toString() {
-        return IScheduledTick.toString(this);
-    }
-
-    public static @Nonnull ScheduledTickFactory.Constructor getFactory(){
-        return RecordScheduledTick::new;
-    }
+    public final TickPriority as = TickPriority.of(this.ordinal());
 }

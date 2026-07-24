@@ -32,7 +32,6 @@ import moe.qingu.nickel.command.exception.NickelScanEOFSignal;
 import moe.qingu.nickel.reader.InputReader;
 import net.minecraft.command.CommandException;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -107,7 +106,7 @@ public final class TestInputReaderEscape {
     public void readEscapeHexTest(final @Nonnull String body,final int expected) throws Exception {
         final @Nonnull InputReader reader = new InputReader(body);
         final int cp = reader.readEscape();
-        镍测试.LOGGER.info("readEscapeHexTest body=[{}] cp={}",body,cp);
+        镍测试.镍日志.info("readEscapeHexTest body=[{}] cp={}",body,cp);
         Assertions.assertEquals(expected,cp);
         Assertions.assertFalse(reader.canRead());//恰好消费完
     }

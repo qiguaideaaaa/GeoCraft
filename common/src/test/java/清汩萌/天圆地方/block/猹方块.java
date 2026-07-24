@@ -25,42 +25,34 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.geocraft.api.world.tick;
+package 清汩萌.天圆地方.block;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.MapColor;
+import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 
 import javax.annotation.Nonnull;
+import java.util.Random;
+
+import static 清汩萌.天圆地方.assets.MockBlocks.Bases.〇;
 
 /**
  * @author QGMoe
  */
-@SuppressWarnings("unused")
-public record RecordScheduledTick(
-        @Nonnull Block block,
-        @Nonnull BlockPos pos,
-        long triggeredTick,
-        @Nonnull TickPriority priority
-) implements IScheduledTick {
-
-    @Override
-    @SuppressWarnings("EqualsDoesntCheckParameterClass")
-    public boolean equals(final @Nonnull Object obj) {
-        return IScheduledTick.equals(this,obj);
+public final class 猹方块 extends Block {
+    public 猹方块() {
+        super(Material.ROCK, MapColor.STONE);
     }
 
     @Override
-    public int hashCode() {
-        return pos.hashCode();
-    }
-
-    @Nonnull
-    @Override
-    public String toString() {
-        return IScheduledTick.toString(this);
-    }
-
-    public static @Nonnull ScheduledTickFactory.Constructor getFactory(){
-        return RecordScheduledTick::new;
+    public void updateTick(final @Nonnull World worldIn,
+                           final @Nonnull BlockPos pos,
+                           final @Nonnull IBlockState state,
+                           final @Nonnull Random rand) {
+        worldIn.setBlockState(pos, 〇, Constants.BlockFlags.NO_OBSERVERS | Constants.BlockFlags.NO_RERENDER);
     }
 }

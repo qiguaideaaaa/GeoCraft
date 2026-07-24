@@ -59,7 +59,7 @@ public final class TestNBTPathScanConsistency extends 镍测试 {
     public void consistencyTest(final @Nonnull ConsistencyCase c){
         final String readerVerdict = runReader(c.input);
         final String scannerVerdict = runScanner(c.input);
-        镍测试.LOGGER.info("一致性用例[{}] 输入=<{}> 读者={} 扫描={}{}",
+        镍测试.镍日志.info("一致性用例[{}] 输入=<{}> 读者={} 扫描={}{}",
                 c.name,c.input,readerVerdict,scannerVerdict,
                 readerVerdict.equals(scannerVerdict)?"":"（结论不一致"+(c.note==null?"":"："+c.note)+"）");
         Assertions.assertEquals(c.reader,readerVerdict,"用例 "+c.name+" 读者结论");

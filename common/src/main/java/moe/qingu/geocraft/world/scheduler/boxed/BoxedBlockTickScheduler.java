@@ -77,7 +77,7 @@ public final class BoxedBlockTickScheduler extends ChunkyBlockTickScheduler<Boxe
         final int chunkZ = pos.getZ()>>4;
         final @Nullable BoxedBlockTickDatum datum = getDatum(chunkX,chunkZ);
         if(datum == null) return false;
-        final IScheduledTick tick = IScheduledTick.of(block,pos,this.world.getTotalWorldTime()+delay,priority);
+        final IScheduledTick tick = IScheduledTick.of(block,pos.toImmutable(),this.world.getTotalWorldTime()+delay,priority);
         if(datum.isScheduled(tick)) return false;
         datum.schedule(tick);
         schedules.add(ChunkPos.asLong(chunkX,chunkZ));
@@ -140,8 +140,9 @@ public final class BoxedBlockTickScheduler extends ChunkyBlockTickScheduler<Boxe
             final Chunk chunk = datum.getChunk();
             final ExtendedBlockStorage[] ebs= chunk.getBlockStorageArray();
             try {
-                int n = 0;
+                int n;
                 do {
+                    n = 0;
                     while (!datum.queue.isEmpty() && n < tempArr.length && datum.queue.peek().triggeredTick() <= totalWorldTime) datum.set.remove(tempArr[n++] = datum.queue.poll());
                     cot += n;
                     count += n;

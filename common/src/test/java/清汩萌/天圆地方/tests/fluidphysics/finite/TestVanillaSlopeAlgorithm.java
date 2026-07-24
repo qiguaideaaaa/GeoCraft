@@ -38,6 +38,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import moe.qingu.geocraft.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
+import 清汩萌.天圆地方.util.ClassGraphUtils;
 import 清汩萌.天圆地方.util.网格工具;
 import 清汩萌.天圆地方.world.sandbox.MockSimpleSandbox;
 import 清汩萌.天圆地方.world.sandbox.SandboxTestCase;
@@ -46,10 +47,7 @@ import 清汩萌.造.工具.StringUtil;
 import 清汩萌.造.格文件;
 
 import javax.annotation.Nonnull;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -103,13 +101,9 @@ public final class TestVanillaSlopeAlgorithm extends FiniteModeTest {
         final ArrayList<SlopeAlgorithmTestData> cases = new ArrayList<>();
         SandboxTestCase.findInputs("data/fluidphysics/finite/VanillaSlopeFlow/",(scan,in) -> {
             final @Nonnull 格文件 $输入 = 格文件.解析(in.getURI());
-            final ArrayList<String> expected = new ArrayList<>();
-            try (final BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(SandboxTestCase.getCommonAnswerByInput(scan, in).open(), StandardCharsets.UTF_8))){
-                String line;
-                while ((line = reader.readLine()) != null) expected.add(StringUtil.strip(line));
-            }
-            cases.add(new SlopeAlgorithmTestData($输入,expected.toArray(new String[0])));
+            cases.add(new SlopeAlgorithmTestData($输入, ClassGraphUtils.getLinesWithoutYAMLComments(SandboxTestCase.getCommonAnswerByInput(scan, in))
+                    .map(StringUtil::strip)
+                    .toArray(String[]::new)));
         });
         return cases.stream();
     }

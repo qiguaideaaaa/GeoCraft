@@ -46,6 +46,7 @@ import net.minecraftforge.common.util.Constants;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.ref.SoftReference;
 import java.util.PriorityQueue;
 import java.util.Set;
 
@@ -135,6 +136,7 @@ public final class BoxedBlockTickDatum extends ChunkyBlockTickDatum {
                 }//其他类型的忽略
             }
         }
+        this.save = new SoftReference<>(nbt);
     }
 
     public static void deserializeNBTV1(final @Nonnull PriorityQueue<IScheduledTick> queue,final @Nonnull NBTTagCompound nbt){

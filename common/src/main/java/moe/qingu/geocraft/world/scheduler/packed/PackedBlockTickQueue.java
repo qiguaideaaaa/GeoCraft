@@ -33,7 +33,10 @@ import net.minecraft.block.Block;
 import net.minecraft.util.math.BlockPos;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.LongConsumer;
+import java.util.stream.Stream;
 
 /**
  * @author QGMoe
@@ -61,6 +64,12 @@ public abstract class PackedBlockTickQueue {
     public abstract void forEach(final @Nonnull LongConsumer consumer);
 
     public abstract void updateBaseTime(final long newBaseTime);
+
+    public final @Nonnull Stream<IScheduledTick> stream(){
+        final List<IScheduledTick> ticks = new ArrayList<>();
+        this.forEach(t -> ticks.add(this.toScheduledTick(t)));
+        return ticks.stream();
+    }
 
     public final @Nonnull IScheduledTick toScheduledTick(final long t){
         final long x = (t >>> 12) & 0xFL;

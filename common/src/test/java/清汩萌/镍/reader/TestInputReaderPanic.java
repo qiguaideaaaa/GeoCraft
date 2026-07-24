@@ -106,7 +106,7 @@ public final class TestInputReaderPanic {
         );
         Assertions.assertTrue(e instanceof CommandException);
         Assertions.assertEquals("nickel.command.exception.base.message",e.getMessage());
-        镍测试.LOGGER.info("panicNoBranchRuntimeExceptionTest passed: {}",e.getClass().getName());
+        镍测试.镍日志.info("panicNoBranchRuntimeExceptionTest passed: {}",e.getClass().getName());
     }
 
     /**

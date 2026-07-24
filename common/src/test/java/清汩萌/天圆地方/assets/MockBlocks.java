@@ -41,6 +41,7 @@ import moe.qingu.geocraft.geography.fluidphysics.finite.flow.FiniteFlowings;
 import moe.qingu.geocraft.handler.RegistryHandler;
 import 清汩萌.天圆地方.block.MockBlockFluidHostCommon;
 import 清汩萌.天圆地方.block.MockBlockLiquid;
+import 清汩萌.天圆地方.block.猹方块;
 import 清汩萌.天圆地方.天圆地方测试;
 import 清汩萌.造.映射.映射;
 import 清汩萌.造.映射.映射器;
@@ -67,6 +68,7 @@ public final class MockBlocks {
     private static final BlockStaticLiquid STATIC_WATER = WATERS.getRight();
     private static final BlockDynamicLiquid DYNAMIC_LAVA = LAVAS.getKey();
     private static final BlockStaticLiquid STATIC_LAVA = LAVAS.getRight();
+    private static final 猹方块 $猹 = new 猹方块();
 
     public static final class LayeredFluidHosts{
         public static MockBlockFluidHostCommon FLUID_HOST_COMMON = new MockBlockFluidHostCommon();
@@ -286,22 +288,40 @@ public final class MockBlocks {
         }
     }
 
+    public static final class SchedulerTest{
+        public static final 空间构造器 SCHEDULER_TEST_BUILDER;
+        public static final 映射器 SCHEDULER_TEST_MAPPING;
+
+        public static IBlockState 猹 = $猹.getDefaultState();
+
+        static {
+            SCHEDULER_TEST_MAPPING = new 映射器(new ResourceLocation(天圆地方测试.MODID,"scheduler")).导入映射数据(SchedulerTest.class);
+            SCHEDULER_TEST_BUILDER = new 空间构造器()
+                    .添加映射(SCHEDULER_TEST_MAPPING)
+                    .添加映射(Bases.BASIC_MAPPING);
+        }
+    }
+
     static {
         RegistryHandler.registerVanillaBlockOverride(STATIC_WATER.setHardness(100.0F).setLightOpacity(3));
         RegistryHandler.registerVanillaBlockOverride(STATIC_LAVA.setHardness(100.0F).setLightLevel(1.0F).setLightOpacity(3));
         RegistryHandler.registerVanillaBlockOverride(DYNAMIC_WATER.setHardness(100.0F).setLightOpacity(3));
         RegistryHandler.registerVanillaBlockOverride(DYNAMIC_LAVA.setHardness(100.0F).setLightLevel(1.0F).setLightOpacity(3));
         Block.registerBlocks();
+        Block.REGISTRY.register(256,new ResourceLocation(天圆地方测试.MODID,"猹"),$猹);
         BUILDER = new 空间构造器()
                 .添加映射(Bases.BASIC_MAPPING)
                 .添加映射(Soils.SOIL_MAPPING)
                 .添加映射(Liquids.LIQUIDS_MAPPING)
-                .添加映射(GeoSnows.GEO_SNOWS_MAPPING);
+                .添加映射(GeoSnows.GEO_SNOWS_MAPPING)
+                .添加映射(SchedulerTest.SCHEDULER_TEST_MAPPING);
         映射局.登记(Bases.BASIC_MAPPING);
         映射局.登记(Soils.SOIL_MAPPING);
         映射局.登记(Liquids.LIQUIDS_MAPPING);
         映射局.登记(GeoSnows.GEO_SNOWS_MAPPING);
+        映射局.登记(SchedulerTest.SCHEDULER_TEST_MAPPING);
         空间构造局.登记(new ResourceLocation(天圆地方测试.MODID,"all"),BUILDER);
         空间构造局.登记(new ResourceLocation("liquids"),Liquids.LIQUIDS_BUILDER);
+        空间构造局.登记(new ResourceLocation(天圆地方测试.MODID,"scheduler"),SchedulerTest.SCHEDULER_TEST_BUILDER);
     }
 }

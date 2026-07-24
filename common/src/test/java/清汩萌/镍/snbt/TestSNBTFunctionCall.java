@@ -93,11 +93,11 @@ public final class TestSNBTFunctionCall extends 镍测试 {
                     NickelRuntimeException.class,
                     () -> parseSNBT(c.input)
             );
-            镍测试.LOGGER.info("用例 [{}] 输入={} 按预期抛出：{}",c.name,c.input,e.getInformation());
+            镍测试.镍日志.info("用例 [{}] 输入={} 按预期抛出：{}",c.name,c.input,e.getInformation());
         }else {
             final NBTTagCompound expected = parseSNBT(c.expected);
             final NBTTagCompound actual = parseSNBT(c.input);
-            镍测试.LOGGER.info("用例 [{}] 输入={} 期望={} 实际={}",c.name,c.input,expected,actual);
+            镍测试.镍日志.info("用例 [{}] 输入={} 期望={} 实际={}",c.name,c.input,expected,actual);
             Assertions.assertEquals(expected,actual,"用例："+c.name);
         }
     }

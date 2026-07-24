@@ -86,7 +86,7 @@ public final class TestNBTMatcherScalar {
             for(int j=0;j<nbts.length;j++)
                 Assertions.assertEquals(i==j,matchers[i].match(nbts[j]),
                         "matcher "+matchers[i]+" vs nbt "+nbts[j]);
-        镍测试.LOGGER.info("typeStrictnessMatrixTest passed, {} combinations checked",matchers.length*nbts.length);
+        镍测试.镍日志.info("typeStrictnessMatrixTest passed, {} combinations checked",matchers.length*nbts.length);
     }
 
     /**
@@ -224,7 +224,7 @@ public final class TestNBTMatcherScalar {
         //无需引号的字符串保持原样，含特殊字符的字符串被引号包裹
         Assertions.assertEquals("abc",new NBTStringMatcher("abc").toString());
         Assertions.assertEquals("\"a b\"",new NBTStringMatcher("a b").toString());
-        镍测试.LOGGER.info("scalarToStringTest passed");
+        镍测试.镍日志.info("scalarToStringTest passed");
     }
 
     /**

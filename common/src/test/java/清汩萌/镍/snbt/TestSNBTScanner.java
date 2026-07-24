@@ -58,7 +58,7 @@ public final class TestSNBTScanner {
     @ParameterizedTest
     @MethodSource("pullDataForScan")
     public void scanTest(final @Nonnull SNBTTestSupport.SNBTCase data){
-        镍测试.LOGGER.info("SNBT scan case [{}] input={} outcome={}",data,data.input,data.outcome);
+        镍测试.镍日志.info("SNBT scan case [{}] input={} outcome={}",data,data.input,data.outcome);
         Assertions.assertNotNull(data.outcome,"case ["+data+"] without outcome");
         switch (data.outcome){
             case "ok":{
@@ -115,7 +115,7 @@ public final class TestSNBTScanner {
         builder.append("{v:1}");
         for(int i=1;i<depth;i++) builder.append('}');
         final String input = builder.toString();
-        镍测试.LOGGER.info("deepNestingScanTest depth={} inputLength={}",depth,input.length());
+        镍测试.镍日志.info("deepNestingScanTest depth={} inputLength={}",depth,input.length());
         Assertions.assertDoesNotThrow(() -> SNBTScanner.scanNBTFromInput(SNBTTestSupport.newInput(input)));
     }
 

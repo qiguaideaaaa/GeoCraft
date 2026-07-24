@@ -27,11 +27,15 @@
 
 package 清汩萌.天圆地方;
 
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.Resource;
+import io.github.classgraph.ScanResult;
 import net.minecraft.init.Bootstrap;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
+import net.minecraft.util.text.translation.LanguageMap;
 import net.minecraftforge.registries.GameData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,9 +49,12 @@ import 清汩萌.天圆地方.assets.FluidPhysicsMocks;
 import 清汩萌.天圆地方.assets.MockBlocks;
 import 清汩萌.天圆地方.assets.MockFluids;
 import 清汩萌.天圆地方.util.NullableArg;
+import 清汩萌.镍.镍测试;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -59,7 +66,7 @@ import java.util.Objects;
  * @author QiguaiAAAA
  */
 @ExtendWith(天圆地方测试.SetupGeoTestExtension.class)
-public class 天圆地方测试 {
+public class 天圆地方测试 extends 镍测试 {
     public static final String MODID = "天圆地方";
     private static byte stage = Stage.NO_INIT;
     public static final Logger LOGGER = LogManager.getLogger("GeoTest");
@@ -103,7 +110,7 @@ public class 天圆地方测试 {
         LOGGER.info("Test Environment Initialised on JUnit Environment");
     }
 
-    public static void init() {
+    public static void init() throws IOException {
         stage = Stage.INIT;
         LOGGER.info("Initialisation begin");
 
@@ -141,6 +148,18 @@ public class 天圆地方测试 {
 
         LOGGER.info("Initialising GeoCraft");
         FluidPhysicsMocks.initFluidPhysicsMode();
+
+        LOGGER.info("Initialising I18n");
+        try (final ScanResult scan = new ClassGraph().acceptPaths("assets").scan()) {
+            for (final Resource r : scan.getResourcesWithExtension("lang")) {
+                if (r.getPath().endsWith("zh_cn.lang")) {
+                    try (final InputStream stream = r.open()) {
+                        LanguageMap.inject(stream);
+                        LOGGER.info("Lang File {} Loaded", r.getPath());
+                    }
+                }
+            }
+        }
 
         stage = Stage.INITED;
         LOGGER.info("Test Environment Initialised On LaunchClassLoader");

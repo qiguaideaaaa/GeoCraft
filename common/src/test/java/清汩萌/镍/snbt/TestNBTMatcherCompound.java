@@ -29,7 +29,6 @@ package 清汩萌.镍.snbt;
 
 import moe.qingu.nickel.nbt.matcher.NBTByteMatcher;
 import moe.qingu.nickel.nbt.matcher.NBTCompoundMatcher;
-import moe.qingu.nickel.nbt.matcher.NBTIntMatcher;
 import moe.qingu.nickel.nbt.matcher.NBTStringMatcher;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagInt;
@@ -130,6 +129,6 @@ public final class TestNBTMatcherCompound {
         final @Nonnull NBTCompoundMatcher quoted = new NBTCompoundMatcher();
         quoted.expectByte("a b",(byte)1);
         Assertions.assertEquals("{\"a b\":1b}",quoted.toString());
-        镍测试.LOGGER.info("compound matcher toString: {} / {}",a,quoted);
+        镍测试.镍日志.info("compound matcher toString: {} / {}",a,quoted);
     }
 }

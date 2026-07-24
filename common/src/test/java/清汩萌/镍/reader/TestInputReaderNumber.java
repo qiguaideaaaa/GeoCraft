@@ -78,7 +78,7 @@ public final class TestInputReaderNumber {
     public void readIntValidTest(final @Nonnull String input,final int expected) throws Exception {
         final @Nonnull InputReader reader = new InputReader(input);
         final int value = reader.readInt();
-        镍测试.LOGGER.info("readIntValidTest input=[{}] value={}",input,value);
+        镍测试.镍日志.info("readIntValidTest input=[{}] value={}",input,value);
         Assertions.assertEquals(expected,value);
     }
 

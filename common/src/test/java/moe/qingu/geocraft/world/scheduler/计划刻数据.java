@@ -25,42 +25,25 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.geocraft.api.world.tick;
+package moe.qingu.geocraft.world.scheduler;
 
-import net.minecraft.block.Block;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.ResourceLocation;
+import 清汩萌.天圆地方.天圆地方测试;
+import 清汩萌.造.空间.空间构造器;
+import 清汩萌.造.管理.空间构造局;
 
-import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author QGMoe
  */
-@SuppressWarnings("unused")
-public record RecordScheduledTick(
-        @Nonnull Block block,
-        @Nonnull BlockPos pos,
-        long triggeredTick,
-        @Nonnull TickPriority priority
-) implements IScheduledTick {
+public final class 计划刻数据 {
+    public String upon = 天圆地方测试.MODID+":scheduler";
+    public List<可测试的计划刻> ticks = Collections.emptyList();
 
-    @Override
-    @SuppressWarnings("EqualsDoesntCheckParameterClass")
-    public boolean equals(final @Nonnull Object obj) {
-        return IScheduledTick.equals(this,obj);
-    }
-
-    @Override
-    public int hashCode() {
-        return pos.hashCode();
-    }
-
-    @Nonnull
-    @Override
-    public String toString() {
-        return IScheduledTick.toString(this);
-    }
-
-    public static @Nonnull ScheduledTickFactory.Constructor getFactory(){
-        return RecordScheduledTick::new;
+    public void 初始化(){
+        final 空间构造器 $空间构造器 = 空间构造局.需要(new ResourceLocation(upon));
+        for(final 可测试的计划刻 $刻:ticks) $刻.初始化($空间构造器);
     }
 }

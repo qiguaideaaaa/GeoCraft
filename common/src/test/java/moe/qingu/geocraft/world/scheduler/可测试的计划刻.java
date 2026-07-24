@@ -25,36 +25,42 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.geocraft.api.world.tick;
+package moe.qingu.geocraft.world.scheduler;
 
+import moe.qingu.geocraft.api.world.tick.IScheduledTick;
+import moe.qingu.geocraft.api.world.tick.TickPriority;
 import net.minecraft.block.Block;
 import net.minecraft.util.math.BlockPos;
+import 清汩萌.造.空间.空间构造器;
+import 清汩萌.造.词块.词块;
 
 import javax.annotation.Nonnull;
 
 /**
  * @author QGMoe
  */
-public class BasicScheduledTick implements IScheduledTick {
-    public final Block block;
-    public final BlockPos position;
-    public final long triggeredTick;
-    public final TickPriority priority;
+public final class 可测试的计划刻 implements IScheduledTick {
+    public int x;
+    public int y;
+    public int z;
+    public String 块;
+    public long 时;
+    public 计划刻等级 级 = 计划刻等级.中上7;
 
-    public BasicScheduledTick(final @Nonnull Block block,
-                              final @Nonnull BlockPos position,
-                              final long triggeredTick,
-                              final @Nonnull TickPriority priority) {
-        this.block = block;
-        this.position = position;
-        this.triggeredTick = triggeredTick;
-        this.priority = priority;
+    private BlockPos pos;
+    private Block block;
+    private 词块 $方块;
+
+    public void 初始化(final @Nonnull 空间构造器 $空间构造器){
+        this.pos = new BlockPos(x,y,z);
+        block = $空间构造器.进行映射(词块.of(块)).getBlock();
+        this.$方块 = $空间构造器.进行映射(block.getDefaultState());
     }
 
     @Nonnull
     @Override
     public BlockPos pos() {
-        return position;
+        return pos;
     }
 
     @Nonnull
@@ -65,28 +71,26 @@ public class BasicScheduledTick implements IScheduledTick {
 
     @Override
     public long triggeredTick() {
-        return triggeredTick;
+        return 时;
     }
 
     @Nonnull
     @Override
     public TickPriority priority() {
-        return priority;
-    }
-
-    @Override
-    public int hashCode() {
-        return position.hashCode();
-    }
-
-    @Override
-    @SuppressWarnings("EqualsDoesntCheckParameterClass")
-    public boolean equals(final @Nonnull Object obj) {
-        return IScheduledTick.equals(this,obj);
+        return 级.as;
     }
 
     @Override
     public String toString() {
-        return IScheduledTick.toString(this);
+        return "#" + $方块 + '[' +
+                "x:" + x + ',' +
+                "y:" + y + ',' +
+                "z:" + z + ',' +
+                "p:" + 级 + ',' +
+                "t:" + 时 + ']';
+    }
+
+    public static boolean 严格相等(final @Nonnull IScheduledTick a,final @Nonnull IScheduledTick b){
+        return a.block() == b.block() && a.pos().equals(b.pos()) && a.triggeredTick() == b.triggeredTick() && a.priority() == b.priority();
     }
 }

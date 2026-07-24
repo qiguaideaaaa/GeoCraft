@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "计划刻数据",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "upon": {
+      "type": "string"
+    },
+    "ticks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["x","y","z","块","时"],
+        "properties": {
+          "x": {
+            "type": "integer"
+          },
+          "y": {
+            "type": "integer"
+          },
+          "z": {
+            "type": "integer"
+          },
+          "块": {
+            "type": "string"
+          },
+          "时": {
+            "type": "integer"
+          },
+          "级": {
+            "type": "string",
+            "enum": [
+              "危急0",
+              "紧急1",
+              "急2",
+              "特高3",
+              "很高4",
+              "高5",
+              "较高6",
+              "中上7",
+              "中下8",
+              "较低9",
+              "低10",
+              "很低11",
+              "特低12",
+              "慢13",
+              "缓慢14",
+              "松弛15"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

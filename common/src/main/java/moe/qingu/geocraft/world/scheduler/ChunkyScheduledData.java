@@ -56,6 +56,7 @@ public final class ChunkyScheduledData<T> {
                 .filter(p -> p.getServerWorld() == world)
                 .toArray(EntityPlayerMP[]::new);
         if(players.length == 0) return;
+        if(tempDist == null || size > tempDist.length) tempDist = new double[size];
         for(int i =0;i<size;i++){
             final long pos = temp[i];
             final int x = (int) (pos & 0xFFFF_FFFFL);

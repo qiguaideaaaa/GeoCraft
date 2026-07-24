@@ -44,8 +44,8 @@ import javax.annotation.Nonnull;
  */
 @ExtendWith(镍测试.SetupNickelTestExtension.class)
 public class 镍测试 {
-    public static final String MODID = "镍";
-    public static final Logger LOGGER = LogManager.getLogger("NickelTest");
+    public static final String 镍ID = "镍";
+    public static final Logger 镍日志 = LogManager.getLogger("NickelTest");
 
     /**
      * Claude Generated

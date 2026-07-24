@@ -62,6 +62,17 @@ public interface IScheduledTick extends Comparable<IScheduledTick> {
         else return 0;
     }
 
+    @Nonnull
+    static String toString(final @Nonnull IScheduledTick t){
+        final BlockPos pos = t.pos();
+        return "#" + Block.REGISTRY.getNameForObject(t.block()) +
+                "[x:" + pos.getX() + ',' +
+                "y:" + pos.getY() + ',' +
+                "z:" + pos.getZ() + ',' +
+                "p:" + t.priority() + ',' +
+                "t:" + t.triggeredTick() + ']';
+    }
+
     static boolean equals(final @Nonnull IScheduledTick a,final @Nonnull Object obj){
         if(obj instanceof IScheduledTick){
             final IScheduledTick b = (IScheduledTick) obj;

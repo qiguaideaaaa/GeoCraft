@@ -260,7 +260,7 @@ public final class TestNBTPathResolve extends 镍测试 {
         cur.setInteger("value",114514);
         pathStr.append(".value");
         final List<NBTBase> res = NBTPathTestSupport.parse(pathStr.toString()).resolve(deepRoot);
-        镍测试.LOGGER.info("深嵌套路径=<{}> 命中数={}",pathStr,res.size());
+        镍测试.镍日志.info("深嵌套路径=<{}> 命中数={}",pathStr,res.size());
         Assertions.assertEquals(1,res.size());
         Assertions.assertEquals(new NBTTagInt(114514),res.get(0));
         Assertions.assertTrue(NBTPathTestSupport.parse(pathStr+".more").resolve(deepRoot).isEmpty());

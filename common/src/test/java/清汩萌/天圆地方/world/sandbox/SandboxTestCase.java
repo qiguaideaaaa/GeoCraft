@@ -31,6 +31,7 @@ import io.github.classgraph.ClassGraph;
 import io.github.classgraph.Resource;
 import io.github.classgraph.ScanResult;
 import org.junit.jupiter.api.Assertions;
+import 清汩萌.天圆地方.util.ClassGraphUtils;
 import 清汩萌.天圆地方.util.IOBiConsumer;
 import 清汩萌.造.格文件;
 import 清汩萌.造.空间.词块网格;
@@ -49,10 +50,6 @@ import java.util.stream.Stream;
  * @author QiguaiAAAA
  */
 public class SandboxTestCase {
-    public static final String INPUT_FILE_EXT = ".in.格";
-    public static final String ANSWER_FILE_EXT = ".ans.格";
-    public static final String COMMON_ANSWER_FILE_EXT = "ans";
-
     public final String name;
     public final @Nonnull 格文件 $格文件;
     public final @Nonnull 词块网格 $网格;
@@ -66,31 +63,18 @@ public class SandboxTestCase {
         process(this);
     }
 
-    public static <T> Stream<T> findInputs(final @Nonnull String dataDir,
-                                                                   final @Nonnull Function<格文件,T> supplier){
+    public static <T> Stream<T> findInputs(final @Nonnull String dataDir, final @Nonnull Function<格文件,T> supplier){
         try (final @Nonnull ScanResult scan = new ClassGraph().acceptPaths(dataDir).scan()){
             final ArrayList<T> cases = new ArrayList<>();
-            findInputs(scan,(ignored,in)-> cases.add(supplier.apply(格文件.解析(in.getURI()))));
+            ClassGraphUtils.findInputs(格文件.扩展名,scan,(ignored,in)-> cases.add(supplier.apply(格文件.解析(in.getURI()))));
             return cases.stream();
         }
     }
 
     public static void findInputs(final @Nonnull String dataDir, final @Nonnull IOBiConsumer<ScanResult, Resource> forEachInput){
         try (final @Nonnull ScanResult scan = new ClassGraph().acceptPaths(dataDir).scan()){
-            findInputs(scan,forEachInput);
+            ClassGraphUtils.findInputs(格文件.扩展名,scan,forEachInput);
         }
-    }
-
-    public static void findInputs(final @Nonnull ScanResult scan, final @Nonnull IOBiConsumer<ScanResult, Resource> forEachInput){
-        scan.getResourcesWithExtension(格文件.扩展名)
-                .filter(r -> r.getPath().endsWith(INPUT_FILE_EXT))
-                .forEach(in -> {
-                    try {
-                        forEachInput.accept(scan,in);
-                    } catch (final @Nonnull Exception e) {
-                        Assertions.fail("error occurred when processing "+in.getPath(),e);
-                    }
-                });
     }
 
     @SuppressWarnings("unchecked")
@@ -118,14 +102,12 @@ public class SandboxTestCase {
 
     @Nonnull
     public static Resource getAnswerByInput(final @Nonnull ScanResult scan,final @Nonnull Resource in){
-        final String outPath = in.getPath().replaceAll("\\.in\\.格$", ".ans.格");
-        return scan.getResourcesWithPath(outPath).get(0);
+        return ClassGraphUtils.getAnswerByInput(格文件.扩展名,scan,in);
     }
 
     @Nonnull
     public static Resource getCommonAnswerByInput(final @Nonnull ScanResult scan,final @Nonnull Resource in){
-        final String outPath = in.getPath().replaceAll("\\.in\\.格$", "."+COMMON_ANSWER_FILE_EXT);
-        return scan.getResourcesWithPath(outPath).get(0);
+        return ClassGraphUtils.getAnswerByInput(格文件.扩展名,"",scan,in);
     }
 
     @Override
