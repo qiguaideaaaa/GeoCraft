@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=../../data.schema.json
+# Claude Generated
+
+ticks:
+  - x: 5
+    y: 60
+    z: 5
+    块: 石
+    时: 18446744071562071968   # 环上 4000 + Integer.MIN_VALUE 的位置
+  - x: 6
+    y: 61
+    z: 6
+    块: 圆
+    时: 4003

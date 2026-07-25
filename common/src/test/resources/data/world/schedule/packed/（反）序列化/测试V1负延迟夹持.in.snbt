@@ -1,0 +1,10 @@
+# Claude Generated
+# 旧存档中已过期的条目 time 为负：打包实现夹持为立即到期（触发刻=存盘时间）
+{
+  "version": 1,
+  "totalWorldTime": 300L,
+  "block_updating_entries": [
+    {"id": blockOf("石"), "pos": [I;1,20,1], "time": -7},
+    {"id": blockOf("圆"), "pos": [I;2,21,2], "time": 4}
+  ]
+}

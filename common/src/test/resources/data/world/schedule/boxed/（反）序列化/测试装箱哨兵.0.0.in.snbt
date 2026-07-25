@@ -1,0 +1,11 @@
+# Claude Generated
+# t 为 Integer.MIN_VALUE 是序列化侧的严重过期哨兵：读档还原成远早于 baseTime 的触发刻，读档后立即视为到期
+{
+  "version": 2,
+  "type": 0b,
+  "baseTime": 4000uL,
+  "entries": [
+    {"i": blockOf("石"), "p": packPosAndPri(7b, [I;5,60,5]), "t": -2147483648},
+    {"i": blockOf("圆"), "p": packPosAndPri(7b, [I;6,61,6]), "t": 3}
+  ]
+}

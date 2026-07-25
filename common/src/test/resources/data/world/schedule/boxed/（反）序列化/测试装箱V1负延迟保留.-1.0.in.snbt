@@ -1,0 +1,10 @@
+# Claude Generated
+# 同一份输入交给装箱实现：V1 的负 time 如实还原为过期触发刻（对照打包实现的夹持）
+{
+  "version": 1,
+  "totalWorldTime": 300L,
+  "block_updating_entries": [
+    {"id": blockOf("石"), "pos": [I;-15,20,1], "time": -7},
+    {"id": blockOf("圆"), "pos": [I;-14,21,2], "time": 4}
+  ]
+}

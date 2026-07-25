@@ -1,0 +1,11 @@
+# Claude Generated
+# t = 2147483647 是 int 上限，也是合法未来窗口内最后一个值：装箱读取按 baseTime + t 如实还原，不夹持
+{
+  "version": 2,
+  "type": 0b,
+  "baseTime": 4000uL,
+  "entries": [
+    {"i": blockOf("石"), "p": packPosAndPri(7b, [I;5,70,5]), "t": 2147483647},
+    {"i": blockOf("圆"), "p": packPosAndPri(6b, [I;6,71,6]), "t": 100}
+  ]
+}

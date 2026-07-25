@@ -1,0 +1,12 @@
+# Claude Generated
+# 打包实现读装箱格式的夹持条件是环差大于 2147483647 才触发：
+# t 恰好等于 2147483647（窗口内最后一个值）时保留，不被夹持为 0
+{
+  "version": 2,
+  "type": 0b,
+  "baseTime": 500uL,
+  "entries": [
+    {"i": blockOf("石"), "p": packPosAndPri(7b, [I;7,50,8]), "t": 2147483647},
+    {"i": blockOf("基"), "p": packPosAndPri(6b, [I;8,51,8]), "t": 60}
+  ]
+}

@@ -1,0 +1,10 @@
+# Claude Generated
+{
+    type:1b,
+    version:2,
+    baseTime:18446744073709551606uL,
+    queue:[L;
+        tick(25u, 7b, [I;1,5,1], "石"),
+        tick(3u, 6b, [I;2,6,2], "圆")
+    ]
+}

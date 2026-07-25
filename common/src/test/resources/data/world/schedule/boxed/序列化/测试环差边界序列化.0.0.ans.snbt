@@ -1,0 +1,13 @@
+# Claude Generated
+# 后三条的 t 数值相同（-2147483648），但来源不同：一条是恰好装进 int 的真实环差，两条是压缩哨兵
+{
+    type:0b,
+    version:2,
+    baseTime:5000uL,
+    entries:[
+        {p:packPosAndPri(7b,[I;1,30,1]), t:2147483647, i:blockOf("石")},
+        {p:packPosAndPri(6b,[I;2,31,2]), t:-2147483648, i:blockOf("圆")},
+        {p:packPosAndPri(7b,[I;3,32,3]), t:-2147483648, i:blockOf("基")},
+        {p:packPosAndPri(0b,[I;4,33,4]), t:-2147483648, i:blockOf("曜")}
+    ]
+}
