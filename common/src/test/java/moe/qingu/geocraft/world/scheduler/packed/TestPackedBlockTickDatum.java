@@ -30,6 +30,7 @@ package moe.qingu.geocraft.world.scheduler.packed;
 import io.github.classgraph.Resource;
 import io.github.classgraph.ScanResult;
 import moe.qingu.geocraft.api.world.tick.IScheduledTick;
+import moe.qingu.geocraft.world.scheduler.TestBlockTickDatum;
 import moe.qingu.geocraft.world.scheduler.计划刻数据;
 import moe.qingu.nickel.nbt.SNBTReader;
 import moe.qingu.nickel.reader.InputReader;
@@ -42,7 +43,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import 清汩萌.天圆地方.util.ClassGraphUtils;
 import 清汩萌.天圆地方.util.IOBiConsumer;
-import 清汩萌.天圆地方.天圆地方测试;
 import 清汩萌.造.造;
 
 import javax.annotation.Nonnull;
@@ -54,7 +54,7 @@ import java.util.stream.Stream;
 /**
  * @author QGMoe
  */
-public final class TestPackedBlockTickDatum extends 天圆地方测试 {
+public final class TestPackedBlockTickDatum extends TestBlockTickDatum {
 
     @ParameterizedTest
     @MethodSource("为测试打包反序列化准备数据")

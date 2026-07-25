@@ -30,6 +30,7 @@ package moe.qingu.geocraft.world.scheduler.boxed;
 import io.github.classgraph.Resource;
 import io.github.classgraph.ScanResult;
 import moe.qingu.geocraft.util.math.MathUtil;
+import moe.qingu.geocraft.world.scheduler.TestBlockTickDatum;
 import moe.qingu.geocraft.world.scheduler.计划刻数据;
 import moe.qingu.nickel.nbt.SNBTReader;
 import moe.qingu.nickel.reader.InputReader;
@@ -45,7 +46,6 @@ import 清汩萌.天圆地方.util.ClassGraphUtils;
 import 清汩萌.天圆地方.util.IOBiConsumer;
 import 清汩萌.天圆地方.world.MockSimpleWorld;
 import 清汩萌.天圆地方.world.storage.MockWorldInfo;
-import 清汩萌.天圆地方.天圆地方测试;
 import 清汩萌.造.造;
 
 import javax.annotation.Nonnull;
@@ -57,7 +57,7 @@ import java.util.stream.Stream;
 /**
  * @author QGMoe
  */
-public final class TestBoxedBlockTickDatum extends 天圆地方测试 {
+public final class TestBoxedBlockTickDatum extends TestBlockTickDatum {
 
     @ParameterizedTest
     @MethodSource("为测试装箱反序列化准备数据")

@@ -4,9 +4,9 @@
     baseTime:1000uL,
     entries:[
         {
-            p:7769595838465uL,
+            p:packPosAndPri(7b,[I;1,1,1]),
             t:1,
-            i:0
+            i:blockOf("〇")
         }
     ]
 }

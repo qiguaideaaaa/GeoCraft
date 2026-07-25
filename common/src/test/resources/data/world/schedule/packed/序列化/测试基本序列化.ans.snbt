@@ -2,5 +2,5 @@
     type:1b,
     version:2,
     baseTime:1000uL,
-    queue:[L;6175133696uL]
+    queue:[L;tick(1u,7b,[I;1,1,1],"〇")]
 }

@@ -29,8 +29,14 @@ package moe.qingu.geocraft.world.scheduler;
 
 import moe.qingu.geocraft.api.world.tick.IScheduledTick;
 import moe.qingu.geocraft.api.world.tick.TickPriority;
+import moe.qingu.nickel.nbt.operation.SNBTFunction;
+import moe.qingu.nickel.nbt.operation.SNBTOperations;
 import net.minecraft.block.Block;
+import net.minecraft.nbt.*;
 import net.minecraft.util.math.BlockPos;
+import org.apache.commons.lang3.Validate;
+import org.junit.jupiter.api.Assertions;
+import 清汩萌.天圆地方.assets.MockBlocks;
 import 清汩萌.造.空间.空间构造器;
 import 清汩萌.造.词块.词块;
 
@@ -40,6 +46,7 @@ import javax.annotation.Nonnull;
  * @author QGMoe
  */
 public final class 可测试的计划刻 implements IScheduledTick {
+    private static boolean loaded;
     public int x;
     public int y;
     public int z;
@@ -50,6 +57,12 @@ public final class 可测试的计划刻 implements IScheduledTick {
     private BlockPos pos;
     private Block block;
     private 词块 $方块;
+
+    public static void 加载SNBT辅助函数(){
+        if(loaded) return;
+        SNBTOperations.loadFuncs(可测试的计划刻.class);
+        loaded = true;
+    }
 
     public void 初始化(final @Nonnull 空间构造器 $空间构造器){
         this.pos = new BlockPos(x,y,z);
@@ -92,5 +105,52 @@ public final class 可测试的计划刻 implements IScheduledTick {
 
     public static boolean 严格相等(final @Nonnull IScheduledTick a,final @Nonnull IScheduledTick b){
         return a.block() == b.block() && a.pos().equals(b.pos()) && a.triggeredTick() == b.triggeredTick() && a.priority() == b.priority();
+    }
+
+    @Nonnull
+    @SNBTFunction(name = "blockOf")
+    @SuppressWarnings("unused")
+    public static NBTTagInt 标签化方块(final @Nonnull NBTTagString block){
+        return new NBTTagInt(Block.REGISTRY.getIDForObject(MockBlocks.BUILDER.进行映射(词块.of(block.getString())).getBlock()));
+    }
+
+    @Nonnull
+    @SNBTFunction(name = "tick")
+    @SuppressWarnings("unused")
+    public static NBTTagLong 标签化计划刻(final @Nonnull NBTTagInt delay,
+                                          final @Nonnull NBTTagByte priority,
+                                          final @Nonnull NBTTagIntArray posArr,
+                                          final @Nonnull NBTTagString block){
+        long res = 0L;
+        Assertions.assertTrue(priority.getInt()>=0,priority.getInt()+" is too small");
+        Assertions.assertTrue(priority.getInt()<16,priority.getInt()+"is too large");
+        res |= Integer.toUnsignedLong(delay.getInt()) << 32;
+        res |= Byte.toUnsignedLong(priority.getByte()) << 28;
+        final int[] pos = posArr.getIntArray();
+        Validate.inclusiveBetween(0,15,pos[0]);
+        Validate.inclusiveBetween(0,255,pos[1]);
+        Validate.inclusiveBetween(0,15,pos[2]);
+        res |= Integer.toUnsignedLong(pos[1])<<20;
+        res |= Integer.toUnsignedLong(pos[2])<<16;
+        res |= Integer.toUnsignedLong(pos[0])<<12;
+        res |= Integer.toUnsignedLong(Block.REGISTRY.getIDForObject(MockBlocks.BUILDER.进行映射(词块.of(block.getString())).getBlock()));
+        return new NBTTagLong(res);
+    }
+
+    @Nonnull
+    @SNBTFunction(name = "packPosAndPri")
+    @SuppressWarnings("unused")
+    public static NBTTagLong 打包的坐标和优先级(final NBTTagByte priority,final @Nonnull NBTTagIntArray posArr){
+        long res = 0L;
+        Assertions.assertTrue(priority.getInt()>=0,priority.getInt()+" is too small");
+        Assertions.assertTrue(priority.getInt()<16,priority.getInt()+"is too large");
+        res |= Byte.toUnsignedLong(priority.getByte()) << 40;
+        final int[] pos = posArr.getIntArray();
+        Validate.inclusiveBetween(0,15,pos[0]);
+        Validate.inclusiveBetween(0,15,pos[2]);
+        res |= Integer.toUnsignedLong(pos[0])<<36;
+        res |= Integer.toUnsignedLong(pos[2])<<32;
+        res |= Integer.toUnsignedLong(pos[1]);
+        return new NBTTagLong(res);
     }
 }

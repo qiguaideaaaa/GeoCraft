@@ -2,12 +2,12 @@
   "version": 1,
   "totalWorldTime": 1000L,
   "block_updating_entries": [
-    {"id": 0, "pos": [I;1,1,1], "time": 1},
-    {"id": 1, "pos": [I;3,64,7], "time": 20}, #石头
-    {"id": 4, "pos": [I;0,255,0], "time": 100}, #圆石
-    {"id": 7, "pos": [I;15,0,15], "time": 0}, #基岩
-    {"id": 1, "pos": [I;19,100,23], "time": 50},
-    {"id": 0, "pos": [I;5,256,5], "time": 10}, #应丢弃
-    {"id": 0, "pos": [I;5,-1,5], "time": 10} #应丢弃
+    {"id": blockOf("〇"), "pos": [I;1,1,1], "time": 1},
+    {"id": blockOf("石"), "pos": [I;3,64,7], "time": 20},
+    {"id": blockOf("圆"), "pos": [I;0,255,0], "time": 100},
+    {"id": blockOf("基"), "pos": [I;15,0,15], "time": 0},
+    {"id": blockOf("石"), "pos": [I;19,100,23], "time": 50},
+    {"id": blockOf("〇"), "pos": [I;5,256,5], "time": 10}, #应丢弃
+    {"id": blockOf("〇"), "pos": [I;5,-1,5], "time": 10} #应丢弃
   ]
 }

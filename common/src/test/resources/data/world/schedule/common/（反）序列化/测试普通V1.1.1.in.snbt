@@ -2,6 +2,6 @@
   "version": 1,
   "totalWorldTime": 1000L,
   "block_updating_entries": [
-    {"id": 0, "pos": [I;11,4,5], "time": 100},
+    {"id": blockOf("〇"), "pos": [I;11,4,5], "time": 100},
   ]
 }
