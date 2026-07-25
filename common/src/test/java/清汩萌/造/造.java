@@ -29,12 +29,14 @@ package 清汩萌.造;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import 清汩萌.造.Yaml.造YAML构建器;
 
 /**
  * @author QiguaiAAAA
  */
 public final class 造 {
     public static final Logger LOGGER = LogManager.getLogger("造");
-    public static final Yaml YAML = new Yaml();
+    public static final Yaml YAML = new Yaml(new 造YAML构建器(new LoaderOptions()));
 }
