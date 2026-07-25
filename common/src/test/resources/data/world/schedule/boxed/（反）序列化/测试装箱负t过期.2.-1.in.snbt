@@ -1,0 +1,12 @@
+# Claude Generated
+# 装箱格式的 t 可为负：t 装得进 int 的过期条目如实还原过期时长（打包实现不保留过期时长）
+{
+  "version": 2,
+  "type": 0b,
+  "baseTime": 5000uL,
+  "entries": [
+    {"i": blockOf("圆"), "p": packPosAndPri(7b, [I;1,50,3]), "t": -10},
+    {"i": blockOf("石"), "p": packPosAndPri(6b, [I;2,51,4]), "t": -1},
+    {"i": blockOf("基"), "p": packPosAndPri(7b, [I;3,52,5]), "t": 0}
+  ]
+}
