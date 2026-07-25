@@ -178,7 +178,7 @@ public final class BoxedBlockTickDatum extends ChunkyBlockTickDatum {
             final int z = (int)((t >>> 16) & 0xFL);
             final int blockID = (int)(t & 0_7777L);
             final int priority = (int)((t >>> 28)&0xFL);
-            final int delay = (int)(t>>>32);
+            final long delay = t>>>32;
             final long time = raw.baseTime + delay;
             queue.add(IScheduledTick.of(Block.getBlockById(blockID),
                     new BlockPos((chunk.x<<4)+x,y,(chunk.z<<4)+z),
