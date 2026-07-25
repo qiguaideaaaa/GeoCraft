@@ -143,7 +143,10 @@ public final class BoxedBlockTickScheduler extends ChunkyBlockTickScheduler<Boxe
                 int n;
                 do {
                     n = 0;
-                    while (!datum.queue.isEmpty() && n < tempArr.length && datum.queue.peek().triggeredTick() <= totalWorldTime) datum.set.remove(tempArr[n++] = datum.queue.poll());
+                    while (!datum.queue.isEmpty() &&
+                            n < tempArr.length &&
+                            Long.compareUnsigned(datum.queue.peek().triggeredTick() - totalWorldTime, 2147483647L) > 0 //环上到期,因为延迟不可能超过Integer.MAX_VALUE,因此超出则代表时间过了
+                    ) datum.set.remove(tempArr[n++] = datum.queue.poll());
                     cot += n;
                     count += n;
                     int j = n;

@@ -65,7 +65,7 @@ public final class PackedBlockTickDatum extends ChunkyBlockTickDatum {
             if(queue == null){
                 queue = new HeapPackedBlockTickQueue();
                 queue.baseTime = worldTotalTime;
-            }else if(worldTotalTime - queue.baseTime > 2147483647L) queue.updateBaseTime(worldTotalTime);
+            }else if(Long.compareUnsigned(worldTotalTime - queue.baseTime, 2147483647L) > 0) queue.updateBaseTime(worldTotalTime);
             queue.queue(cx,cy,cz,blockID,worldTotalTime+delay-queue.baseTime,priority.ordinal());
         }finally {
             lock.unlock();
@@ -119,7 +119,7 @@ public final class PackedBlockTickDatum extends ChunkyBlockTickDatum {
                 case TYPE_BOXED:{
                     this.queue = deserializeNBTV2Boxed(nbt);
                     return;
-                } case TYPE_PACKED: this.queue = deserializeNBTV2(nbt);
+                } case TYPE_PACKED: this.queue = deserializeNBTV2Packed(nbt);
                 //其他类型的忽略
             }
         }
@@ -145,12 +145,14 @@ public final class PackedBlockTickDatum extends ChunkyBlockTickDatum {
             if(pos.getY() <0 || pos.getY() > 255) continue;
             final int blockID = Block.REGISTRY.getIDForObject(tick.block());
             if(blockID < 0 || blockID > 0_7777) continue;
-            this.queue.queue(pos.getX()&0xF,pos.getY(),pos.getZ() & 0xF,blockID,tick.triggeredTick()-this.queue.baseTime,tick.priority().ordinal());
+            final long diff = tick.triggeredTick()-this.queue.baseTime;
+            final long delay = Long.compareUnsigned(diff,2147483647L) >0?0L:diff; //baseTime是存盘时的世界时间,因此不能超过 Integer.MAX_VALUE,超过表示过期了
+            this.queue.queue(pos.getX()&0xF,pos.getY(),pos.getZ() & 0xF,blockID,delay,tick.priority().ordinal());
         }
     }
 
     @Nullable
-    public static PackedBlockTickQueue deserializeNBTV2(final @Nonnull NBTTagCompound nbt){
+    public static PackedBlockTickQueue deserializeNBTV2Packed(final @Nonnull NBTTagCompound nbt){
         if(nbt.hasKey("queue")){
             final NBTBase tag = nbt.getTag("queue");
             try {
@@ -171,7 +173,7 @@ public final class PackedBlockTickDatum extends ChunkyBlockTickDatum {
     @Nullable
     public static PackedBlockTickQueue deserializeNBTV2Boxed(final @Nonnull NBTTagCompound nbt){
         final PriorityQueue<IScheduledTick> ticks = new PriorityQueue<>();
-        BoxedBlockTickDatum.deserializeNBTV2(0,0,ticks,nbt);
+        BoxedBlockTickDatum.deserializeNBTV2Boxed(0,0,ticks,nbt);
         if(ticks.isEmpty()) return null;
         final @Nonnull PackedBlockTickQueue queue = new HeapPackedBlockTickQueue();
         queue.baseTime = nbt.getLong(KEY_BASE_TIME);
@@ -180,7 +182,9 @@ public final class PackedBlockTickDatum extends ChunkyBlockTickDatum {
             if(pos.getY()>255 || pos.getY() < 0) continue;
             final int blockID = Block.REGISTRY.getIDForObject(tick.block());
             if(blockID > 0_7777 || blockID < 0) continue;
-            queue.queue(pos.getX(),pos.getY(),pos.getZ(),blockID,tick.triggeredTick()-queue.baseTime,tick.priority().ordinal());
+            final long diff = tick.triggeredTick()-queue.baseTime;
+            final long delay = Long.compareUnsigned(diff,2147483647L) > 0?0L:diff; //baseTime是存盘时的世界时间,因此不能超过 Integer.MAX_VALUE,超过表示过期了
+            queue.queue(pos.getX(),pos.getY(),pos.getZ(),blockID,delay,tick.priority().ordinal());
         }
         return queue;
     }

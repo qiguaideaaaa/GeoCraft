@@ -30,16 +30,16 @@
     - "https://www.mcmod.cn/item/904958.html"
     - 类: moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler
 
-- 中文: "更新计划"
-  英文: "Next Tick Entry"
+- 中文: null
+  英文: "Scheduled Tick"
   别称:
-    - []
-    - ["NTE"]
-  定义: "方块更新器中记录一次延时方块更新的条目。"
+    - ["更新计划"]
+    - ["Next Tick Entry","NTE"]
+  定义: "方块计划刻调度器中记录一次延时方块更新的条目。"
   出处:
     - "https://www.mcmod.cn/item/904958.html"
     - 类: net.minecraft.world.NextTickListEntry
-    - 类: moe.qingu.geocraft.util.misc.ExtendedNextTickListEntry
+    - 类: moe.qingu.geocraft.api.world.tick.IScheduledTick
 
 - 中文: "反射率"
   英文: null

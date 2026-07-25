@@ -51,7 +51,7 @@ public interface IScheduledTick extends Comparable<IScheduledTick> {
 
     @Override
     default int compareTo(final @Nonnull IScheduledTick o){
-        if (this.triggeredTick() != o.triggeredTick()) return Long.compare(this.triggeredTick(),o.triggeredTick());
+        if (this.triggeredTick() != o.triggeredTick()) return this.triggeredTick() - o.triggeredTick()<0?-1:1; //环上从o -> this 的时间距离,正数向前表示this更晚,负数向后表示this更早
         else if (this.priority() != o.priority()) return Integer.compare(this.priority().ordinal(),o.priority().ordinal());
         final BlockPos a = this.pos();
         final BlockPos b = o.pos();

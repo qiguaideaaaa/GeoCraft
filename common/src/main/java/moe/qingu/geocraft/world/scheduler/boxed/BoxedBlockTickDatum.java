@@ -108,7 +108,8 @@ public final class BoxedBlockTickDatum extends ChunkyBlockTickDatum {
             final @Nonnull NBTTagCompound c = new NBTTagCompound();
             c.setInteger("i",Block.REGISTRY.getIDForObject(tick.block()));
             c.setLong("p",pack(tick.pos(),tick.priority()));
-            c.setInteger("t",(int)(tick.triggeredTick()-totalTime));
+            final long diff = tick.triggeredTick() - totalTime;
+            c.setInteger("t",(int) diff == diff ?(int) diff:Integer.MIN_VALUE);//超出int上限或下限都相当于是严重过期,压缩成Integer.MIN_VALUE
             updateLists.appendTag(c);
         }
         compound.setTag("entries",updateLists);
@@ -127,11 +128,11 @@ public final class BoxedBlockTickDatum extends ChunkyBlockTickDatum {
             final byte type = nbt.getByte(KEY_TYPE);
             switch (type){
                 case TYPE_BOXED:{
-                    deserializeNBTV2(this.chunk.x,this.chunk.z,this.queue,nbt);
+                    deserializeNBTV2Boxed(this.chunk.x,this.chunk.z,this.queue,nbt);
                     this.set.addAll(this.queue);
                     return;
                 } case TYPE_PACKED:{
-                    deserializeNBTV2Boxed(this.chunk,this.queue, PackedBlockTickDatum.deserializeNBTV2(nbt));
+                    deserializeNBTV2Packed(this.chunk,this.queue, PackedBlockTickDatum.deserializeNBTV2Packed(nbt));
                     this.set.addAll(this.queue);
                 }//其他类型的忽略
             }
@@ -152,7 +153,7 @@ public final class BoxedBlockTickDatum extends ChunkyBlockTickDatum {
         }
     }
 
-    public static void deserializeNBTV2(final int chunkX,final int chunkZ,final @Nonnull PriorityQueue<IScheduledTick> queue,final @Nonnull NBTTagCompound nbt){
+    public static void deserializeNBTV2Boxed(final int chunkX, final int chunkZ, final @Nonnull PriorityQueue<IScheduledTick> queue, final @Nonnull NBTTagCompound nbt){
         final long time = nbt.getLong(KEY_BASE_TIME);
         final NBTTagList updateLists = nbt.getTagList("entries", Constants.NBT.TAG_COMPOUND);
         for(@Nonnull NBTBase base:updateLists){
@@ -170,7 +171,7 @@ public final class BoxedBlockTickDatum extends ChunkyBlockTickDatum {
     }
 
     @SuppressWarnings("OctalInteger")
-    public static void deserializeNBTV2Boxed(final @Nonnull Chunk chunk, final @Nonnull PriorityQueue<IScheduledTick> queue, final @Nullable PackedBlockTickQueue raw){
+    public static void deserializeNBTV2Packed(final @Nonnull Chunk chunk, final @Nonnull PriorityQueue<IScheduledTick> queue, final @Nullable PackedBlockTickQueue raw){
         if(raw == null) return;
         raw.forEach(t ->{
             final int x = (int)((t >>> 12) & 0xFL);

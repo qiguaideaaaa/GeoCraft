@@ -94,8 +94,8 @@ public final class HeapPackedBlockTickQueue extends PackedBlockTickQueue {
 
     @Override
     public int forNext(final long worldTotalTime, @Nonnull final PackedBlockTickConsumer consumer, final @Nonnull long[] temp) {
-        if(worldTotalTime<baseTime) return 0;
-        final long maxDelay = Math.min(worldTotalTime - baseTime, 0xFFFF_FFFFL);
+        final long elapsed = worldTotalTime - baseTime; //环上流逝的时间(无符号)
+        final long maxDelay = Long.compareUnsigned(elapsed,0xFFFF_FFFFL)>0?0xFFFF_FFFFL:elapsed;
         final long maxValue = (maxDelay<<32) | 0xFFFF_FFFFL;
         int count = 0;
         while (size > 0 && count < temp.length && Long.compareUnsigned(heap[0],maxValue)<=0) temp[count++] = dequeue();
@@ -124,9 +124,11 @@ public final class HeapPackedBlockTickQueue extends PackedBlockTickQueue {
         for(int i=0;i<size;i++){
             final long task = heap[i];
             final long time = baseTime + (task>>>32);
-            final long delay = newBaseTime>time?newBaseTime-time:0L;
+            final long diff = time - newBaseTime;
+            final long delay = Long.compareUnsigned(diff,2147483647L)<=0 ?diff:0L;
             heap[i] = (task & 0xFFFF_FFFFL) | (delay<<32);
         }
         LongHeaps.makeHeap(heap,size,COMPARE_UNSIGNED_LOW_FIRST);
+        this.baseTime = newBaseTime;
     }
 }
