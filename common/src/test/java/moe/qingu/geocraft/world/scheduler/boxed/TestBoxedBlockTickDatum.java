@@ -101,8 +101,7 @@ public final class TestBoxedBlockTickDatum extends TestBlockTickDatum {
         datum.markDirty();
         final NBTTagCompound compound = datum.serializeNBT();
         final NBTTagCompound expected = SNBTReader.readSingleNBTFromInput(new InputReader(ans));
-        final NBTMatcher<?> matcher = NBTMatcher.toMatcher(expected);
-        matcher.setStrict(true);
+        final NBTMatcher<?> matcher = NBTMatcher.toMatcher(expected,true);
         Assertions.assertTrue(matcher.match(compound),()-> "\nexpected:"+expected+"\nactual:"+compound+"\n");
     }
 

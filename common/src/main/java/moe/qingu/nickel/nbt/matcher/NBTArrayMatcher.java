@@ -28,6 +28,7 @@
 package moe.qingu.nickel.nbt.matcher;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongCollection;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import moe.qingu.nickel.nbt.NBTUtils;
@@ -43,7 +44,7 @@ import javax.annotation.Nonnull;
  */
 public final class NBTArrayMatcher extends NBTMatcher<NBTBase> {
     private final Class<? extends NBTBase> arrayType;
-    private final LongOpenHashSet expectations = new LongOpenHashSet();
+    private LongCollection expectations = new LongOpenHashSet();
 
     public NBTArrayMatcher(final @Nonnull Class<? extends NBTBase> arrayType) {
         if(arrayType != NBTTagByteArray.class && arrayType != NBTTagIntArray.class && arrayType != NBTTagLongArray.class) throw new IllegalArgumentException();
@@ -52,6 +53,14 @@ public final class NBTArrayMatcher extends NBTMatcher<NBTBase> {
 
     public void expect(final long num){
         expectations.add(num);
+    }
+
+    @Override
+    public void setStrict(final boolean strict) {
+        final boolean before = this.strict;
+        super.setStrict(strict);
+        if(!before && strict) expectations = new LongArrayList(expectations);
+        else if(before && !strict) expectations = new LongOpenHashSet(expectations);
     }
 
     @Override

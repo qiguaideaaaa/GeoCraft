@@ -135,7 +135,7 @@ public final class TestNBTMatcherConvert {
         Assertions.assertEquals(NBTDoubleMatcher.class,NBTMatcher.toMatcher(new NBTTagDouble(1d)).getClass());
         Assertions.assertEquals(NBTStringMatcher.class,NBTMatcher.toMatcher(new NBTTagString("1")).getClass());
         Assertions.assertEquals(NBTCompoundMatcher.class,NBTMatcher.toMatcher((NBTBase)new NBTTagCompound()).getClass());
-        Assertions.assertEquals(NBTListMatcher.class,NBTMatcher.toMatcher((NBTBase)new NBTTagList()).getClass());
+        Assertions.assertEquals(NBTListMatcher.class,NBTMatcher.toMatcher(new NBTTagList()).getClass());
         Assertions.assertEquals(NBTArrayMatcher.class,NBTMatcher.toMatcher(new NBTTagByteArray(new byte[]{1})).getClass());
         Assertions.assertEquals(NBTArrayMatcher.class,NBTMatcher.toMatcher(new NBTTagIntArray(new int[]{1})).getClass());
         Assertions.assertEquals(NBTArrayMatcher.class,NBTMatcher.toMatcher(new NBTTagLongArray(new long[]{1L})).getClass());
@@ -185,7 +185,7 @@ public final class TestNBTMatcherConvert {
         dupList.appendTag(new NBTTagInt(1));
         dupList.appendTag(new NBTTagInt(1));
         dupList.appendTag(new NBTTagInt(2));
-        final @Nonnull NBTListMatcher listMatcher = NBTMatcher.toMatcher(dupList);
+        final @Nonnull NBTListMatcher listMatcher = NBTMatcher.toMatcher(dupList,false);
         Assertions.assertEquals(2,listMatcher.toNBT().tagCount()); //[1,1,2] 去重后只剩 2 个元素
         Assertions.assertTrue(listMatcher.match(dupList)); //但仍匹配原件
 
@@ -215,7 +215,7 @@ public final class TestNBTMatcherConvert {
         Assertions.assertTrue(matcher.match(root));
 
         //目标多出键仍匹配（子集语义贯穿各层）
-        final @Nonnull NBTTagCompound richerLeaf = (NBTTagCompound) leaf.copy();
+        final @Nonnull NBTTagCompound richerLeaf = leaf.copy();
         richerLeaf.setBoolean("static",true);
         final @Nonnull NBTTagList richerMiddle = new NBTTagList();
         richerMiddle.appendTag(richerLeaf);
@@ -226,7 +226,7 @@ public final class TestNBTMatcherConvert {
         Assertions.assertTrue(matcher.match(richerRoot));
 
         //深层值被改动则失败
-        final @Nonnull NBTTagCompound brokenLeaf = (NBTTagCompound) leaf.copy();
+        final @Nonnull NBTTagCompound brokenLeaf = leaf.copy();
         brokenLeaf.setInteger("level",7);
         final @Nonnull NBTTagList brokenMiddle = new NBTTagList();
         brokenMiddle.appendTag(brokenLeaf);

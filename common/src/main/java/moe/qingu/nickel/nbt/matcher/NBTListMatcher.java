@@ -39,7 +39,7 @@ import java.util.*;
  */
 public final class NBTListMatcher extends NBTMatcher<NBTTagList> {
 
-    private final Set<NBTMatcher<?>> matchers = new HashSet<>();
+    private Collection<NBTMatcher<?>> matchers = new HashSet<>();
 
     public void expect(final @Nonnull NBTMatcher<?> matcher){
         matcher.setStrict(strict);
@@ -54,8 +54,11 @@ public final class NBTListMatcher extends NBTMatcher<NBTTagList> {
 
     @Override
     public void setStrict(final boolean strict) {
+        final boolean before = this.strict;
         super.setStrict(strict);
         for(final NBTMatcher<?> matcher:matchers) matcher.setStrict(strict);
+        if(!before && strict) matchers = new ArrayList<>(matchers);
+        else if(before && !strict) matchers = new HashSet<>(matchers);
     }
 
     @Nonnull

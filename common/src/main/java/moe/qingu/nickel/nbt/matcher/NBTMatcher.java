@@ -66,21 +66,28 @@ public abstract class NBTMatcher<T extends NBTBase> {
 
     @Nonnull
     public static NBTCompoundMatcher toMatcher(final @Nonnull NBTTagCompound compound){
+        return toMatcher(compound,false);
+    }
+
+    @Nonnull
+    public static NBTCompoundMatcher toMatcher(final @Nonnull NBTTagCompound compound,final boolean strict){
         final NBTCompoundMatcher matcher = new NBTCompoundMatcher();
-        for(final String k:compound.getKeySet()) matcher.expect(k,toMatcher(compound.getTag(k)));
+        matcher.setStrict(strict);
+        for(final String k:compound.getKeySet()) matcher.expect(k,toMatcher(compound.getTag(k),strict));
         return matcher;
     }
 
     @Nonnull
-    public static NBTListMatcher toMatcher(final @Nonnull NBTTagList list){
+    public static NBTListMatcher toMatcher(final @Nonnull NBTTagList list,final boolean strict){
         final NBTListMatcher matcher = new NBTListMatcher();
-        for(final NBTBase nbt:list) matcher.expect(toMatcher(nbt));
+        matcher.setStrict(strict);
+        for(final NBTBase nbt:list) matcher.expect(toMatcher(nbt,strict));
         return matcher;
     }
 
     @Nonnull
     public static NBTMatcher<?> toMatcher(final @Nonnull NBTBase nbt){
-        if(nbt instanceof NBTTagCompound) return toMatcher((NBTTagCompound) nbt);
+        if(nbt instanceof NBTTagCompound) return toMatcher((NBTTagCompound) nbt,false);
         else if(nbt instanceof NBTTagByteArray){
             final NBTTagByteArray arr = (NBTTagByteArray) nbt;
             final NBTArrayMatcher matcher = new NBTArrayMatcher(arr.getClass());
@@ -96,7 +103,7 @@ public abstract class NBTMatcher<T extends NBTBase> {
             final NBTArrayMatcher matcher = new NBTArrayMatcher(arr.getClass());
             NBTUtils.streamOf(arr).forEach(matcher::expect);
             return matcher;
-        }else if(nbt instanceof NBTTagList) return toMatcher((NBTTagList) nbt);
+        }else if(nbt instanceof NBTTagList) return toMatcher((NBTTagList) nbt,false);
         else if(nbt instanceof NBTTagByte) return new NBTByteMatcher(((NBTTagByte) nbt).getByte());
         else if(nbt instanceof NBTTagShort) return new NBTShortMatcher(((NBTTagShort) nbt).getShort());
         else if(nbt instanceof NBTTagInt) return new NBTIntMatcher(((NBTTagInt) nbt).getInt());
@@ -105,5 +112,30 @@ public abstract class NBTMatcher<T extends NBTBase> {
         else if(nbt instanceof NBTTagFloat) return new NBTFloatMatcher(((NBTTagFloat)nbt).getFloat());
         else if(nbt instanceof NBTTagDouble) return new NBTDoubleMatcher(((NBTTagDouble)nbt).getDouble());
         else throw new IllegalArgumentException();
+    }
+
+    @Nonnull
+    public static NBTMatcher<?> toMatcher(final @Nonnull NBTBase nbt,final boolean strict){
+        if(nbt instanceof NBTTagCompound) return toMatcher((NBTTagCompound) nbt,strict);
+        else if(nbt instanceof NBTTagByteArray){
+            final NBTTagByteArray arr = (NBTTagByteArray) nbt;
+            final NBTArrayMatcher matcher = new NBTArrayMatcher(arr.getClass());
+            matcher.setStrict(strict);
+            for(final byte b:arr.getByteArray()) matcher.expect(b);
+            return matcher;
+        }else if(nbt instanceof NBTTagIntArray){
+            final NBTTagIntArray arr = (NBTTagIntArray) nbt;
+            final NBTArrayMatcher matcher = new NBTArrayMatcher(arr.getClass());
+            matcher.setStrict(strict);
+            for(final int b:arr.getIntArray()) matcher.expect(b);
+            return matcher;
+        }else if(nbt instanceof NBTTagLongArray){
+            final NBTTagLongArray arr = (NBTTagLongArray) nbt;
+            final NBTArrayMatcher matcher = new NBTArrayMatcher(arr.getClass());
+            matcher.setStrict(strict);
+            NBTUtils.streamOf(arr).forEach(matcher::expect);
+            return matcher;
+        }else if(nbt instanceof NBTTagList) return toMatcher((NBTTagList) nbt,strict);
+        else return toMatcher(nbt);
     }
 }
