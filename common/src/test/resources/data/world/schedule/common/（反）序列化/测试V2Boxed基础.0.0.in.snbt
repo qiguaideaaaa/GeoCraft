@@ -1,0 +1,13 @@
+# Claude Generated
+# V2 装箱基础形态：i/p/t 三字段解包；打包实现读取此样例时走跨格式迁移路径
+{
+  "version": 2,
+  "type": 0b,
+  "baseTime": 3000uL,
+  "entries": [
+    {"i": blockOf("石"), "p": packPosAndPri(7b, [I;5,70,9]), "t": 10},
+    {"i": blockOf("圆"), "p": packPosAndPri(6b, [I;0,255,15]), "t": 0},
+    {"i": blockOf("基"), "p": packPosAndPri(7b, [I;15,0,0]), "t": 1},
+    {"i": blockOf("曜"), "p": packPosAndPri(4b, [I;2,200,3]), "t": 40}
+  ]
+}

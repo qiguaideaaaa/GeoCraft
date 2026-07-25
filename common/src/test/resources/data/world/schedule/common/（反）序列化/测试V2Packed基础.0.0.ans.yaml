@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=../../data.schema.json
+# Claude Generated
+
+ticks:
+  - x: 3
+    y: 64
+    z: 7
+    块: 石
+    时: 2020
+  - x: 0
+    y: 80
+    z: 15
+    块: 圆
+    时: 2001
+    级: 较高6
+  - x: 15
+    y: 0
+    z: 15
+    块: 基
+    时: 2000
+  - x: 8
+    y: 128
+    z: 8
+    块: 曜
+    时: 2100
+    级: 高5
+  - x: 1
+    y: 1
+    z: 1
+    块: 〇
+    时: 2005

@@ -1,0 +1,8 @@
+# Claude Generated
+# 空 long 数组：反序列化应得到空数据而非报错
+{
+  "version": 2,
+  "type": 1b,
+  "baseTime": 50uL,
+  "queue": [L;]
+}

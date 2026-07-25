@@ -1,0 +1,12 @@
+# Claude Generated
+{
+    type:1b,
+    version:2,
+    baseTime:7000uL,
+    queue:[L;
+        tick(50u, 7b, [I;3,10,4], "石"),
+        tick(3u, 6b, [I;15,200,0], "圆"),
+        tick(120u, 5b, [I;8,64,8], "曜"),
+        tick(3u, 7b, [I;0,0,15], "基")
+    ]
+}

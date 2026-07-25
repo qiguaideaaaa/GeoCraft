@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=../../data.schema.json
+# Claude Generated
+# 多条目序列化；区块 (2,1)，绝对坐标 x 32..47、z 16..31
+
+time: 6000
+ticks:
+  - x: 33
+    y: 12
+    z: 17
+    块: 石
+    时: 6004
+  - x: 47
+    y: 200
+    z: 31
+    块: 圆
+    时: 6010
+    级: 较高6
+  - x: 40
+    y: 0
+    z: 24
+    块: 曜
+    时: 6100
+    级: 高5

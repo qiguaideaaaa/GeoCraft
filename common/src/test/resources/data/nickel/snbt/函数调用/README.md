@@ -2,7 +2,7 @@
 
 ## 测试描述
 
-本数据集验证 SNBT 函数（用 `@SNBTFunction` 注册的 `SNBTOperation`）在 SNBT 表达式中的端到端调用路径：从字符串经 `SNBTReader` 解析、`SNBTOperations.resolve` 重载决议，到函数求值产出 NBT 标签。
+本数据集验证 SNBT 函数（用 `@SNBTFunction` 注册的 `SNBTOperation`）在 SNBT 表达式中的完整调用路径：从字符串经 `SNBTReader` 解析、`SNBTOperations.resolve` 重载决议，到函数求值产出 NBT 标签。
 
 覆盖的内容：
 
@@ -54,7 +54,7 @@ cases:
 
 `uuid` 的函数体对非法 UUID 字符串抛出 `NickelRuntimeException`，`SNBTReader.invokeFunction` 捕获后以 OPT_FAILED 语义 panic。
 
-### 其他锁定的预期行为
+### 其他现状行为
 
 - `bool` 的取整语义随实参类型而异：`NBTTagDouble.getLong()` 走 `Math.floor`（`-0.9d` → `-1` → `1b`），`NBTTagFloat.getLong()` 走强转截断（`-0.9f` → `0` → `0b`）。
 - `concat(LIST,LIST)` 的混型拼接期望产出异构列表（非复合值以空键包裹成复合标签），该语义待实现，数据集暂不含混型用例，见 `TestSNBTBuiltinOperations.concatListMixedTypeTest`（@Disabled）。

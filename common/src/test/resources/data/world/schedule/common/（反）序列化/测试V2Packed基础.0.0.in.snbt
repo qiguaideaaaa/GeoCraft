@@ -1,0 +1,14 @@
+# Claude Generated
+# V2 打包基础形态：多种方块混合、多个优先级、delay 换算
+{
+  "version": 2,
+  "type": 1b,
+  "baseTime": 2000uL,
+  "queue": [L;
+    tick(20u, 7b, [I;3,64,7], "石"),
+    tick(1u, 6b, [I;0,80,15], "圆"),
+    tick(0u, 7b, [I;15,0,15], "基"),
+    tick(100u, 5b, [I;8,128,8], "曜"),
+    tick(5u, 7b, [I;1,1,1], "〇")
+  ]
+}

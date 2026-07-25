@@ -1,0 +1,11 @@
+# Claude Generated
+{
+    type:0b,
+    version:2,
+    baseTime:250uL,
+    entries:[
+        {p:packPosAndPri(7b,[I;0,64,0]), t:1, i:blockOf("石")},
+        {p:packPosAndPri(7b,[I;15,7,15]), t:10, i:blockOf("圆")},
+        {p:packPosAndPri(4b,[I;7,128,7]), t:50, i:blockOf("基")}
+    ]
+}

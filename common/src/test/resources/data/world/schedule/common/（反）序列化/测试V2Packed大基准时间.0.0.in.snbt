@@ -1,0 +1,12 @@
+# Claude Generated
+# 长期运行世界的大 baseTime；数字使用下划线分隔提升可读性
+{
+  "version": 2,
+  "type": 1b,
+  "baseTime": 1_0000_0000_0000uL,
+  "queue": [L;
+    tick(8_6400u, 7b, [I;7,60,2], "石"),
+    tick(1200u, 6b, [I;7,61,2], "圆"),
+    tick(0u, 7b, [I;0,200,0], "基")
+  ]
+}

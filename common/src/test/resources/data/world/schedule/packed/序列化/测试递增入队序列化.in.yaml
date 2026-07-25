@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=../../data.schema.json
+# Claude Generated
+# 按触发刻递增入队的多条目序列化
+
+time: 5000
+ticks:
+  - x: 2
+    y: 5
+    z: 3
+    块: 石
+    时: 5001
+  - x: 0
+    y: 64
+    z: 15
+    块: 圆
+    时: 5002
+    级: 较高6
+  - x: 9
+    y: 255
+    z: 1
+    块: 曜
+    时: 5010
+    级: 高5

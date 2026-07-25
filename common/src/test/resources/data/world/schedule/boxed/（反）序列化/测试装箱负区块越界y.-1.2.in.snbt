@@ -1,0 +1,12 @@
+# Claude Generated
+# 负数区块 (-1,2) 与越界 y 组合：x 基址 -16、z 基址 32，y 越界与负数均保留
+{
+  "version": 2,
+  "type": 0b,
+  "baseTime": 30uL,
+  "entries": [
+    {"i": blockOf("石"), "p": packPosAndPri(7b, [I;4,256,9]), "t": 2},
+    {"i": blockOf("圆"), "p": packPosAndPri(6b, [I;0,-1,15]), "t": 0},
+    {"i": blockOf("曜"), "p": packPosAndPri(7b, [I;15,300,0]), "t": 11}
+  ]
+}

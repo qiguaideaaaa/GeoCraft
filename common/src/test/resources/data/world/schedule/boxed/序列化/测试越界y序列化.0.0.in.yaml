@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=../../data.schema.json
+# Claude Generated
+# 装箱对 y 无限制：越界与负数 y 序列化无损（负数经 32 位位模式存储）
+
+time: 40
+ticks:
+  - x: 5
+    y: 256
+    z: 5
+    块: 石
+    时: 41
+  - x: 6
+    y: -1
+    z: 6
+    块: 圆
+    时: 45
+  - x: 3
+    y: 300
+    z: 12
+    块: 基
+    时: 52

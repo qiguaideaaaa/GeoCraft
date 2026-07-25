@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=../../data.schema.json
+# Claude Generated
+# 乱序入队：答案经严格匹配器按多重集合比较；区块 (3,4)，绝对坐标 x 48..63、z 64..79
+
+time: 900
+ticks:
+  - x: 50
+    y: 30
+    z: 70
+    块: 石
+    时: 960
+  - x: 63
+    y: 5
+    z: 79
+    块: 圆
+    时: 905
+    级: 很高4
+  - x: 48
+    y: 255
+    z: 64
+    块: 基
+    时: 1100

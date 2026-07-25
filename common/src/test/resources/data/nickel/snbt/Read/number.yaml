@@ -136,12 +136,12 @@
   expected: {type: compound, value: {a: {type: int, value: 31}}}
 
 # ---- 数字分隔符 ----
-- name: 千位分隔
-  input: '{a:1_000}'
-  expected: {type: compound, value: {a: {type: int, value: 1000}}}
+- name: 万位分隔
+  input: '{a:1_0000}'
+  expected: {type: compound, value: {a: {type: int, value: 10000}}}
 
 - name: 长整数分隔
-  input: '{a:1_000_000l}'
+  input: '{a:100_0000l}'
   expected: {type: compound, value: {a: {type: long, value: 1000000}}}
 
 - name: 连续下划线 # 预期行为：两侧是数字即可，中间可连续

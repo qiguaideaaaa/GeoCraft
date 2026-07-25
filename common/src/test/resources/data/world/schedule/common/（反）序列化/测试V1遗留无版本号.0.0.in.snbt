@@ -1,0 +1,11 @@
+# Claude Generated
+# 无 version 键的遗留数据（getInteger 缺省为 0，应走 V1 路径）
+{
+  "totalWorldTime": 500L,
+  "block_updating_entries": [
+    {"id": blockOf("石"), "pos": [I;2,10,13], "time": 1},
+    {"id": blockOf("圆"), "pos": [I;0,0,0], "time": 0},
+    {"id": blockOf("基"), "pos": [I;9,255,6], "time": 200},
+    {"id": blockOf("曜"), "pos": [I;8,64,8], "time": 33}
+  ]
+}
