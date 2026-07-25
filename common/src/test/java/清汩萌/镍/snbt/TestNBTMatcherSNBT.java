@@ -112,8 +112,8 @@ public final class TestNBTMatcherSNBT extends 镍测试 {
     public void snbtEndToEndMatchTest(final @Nonnull SNBT匹配用例 c) throws CommandException {
         final @Nonnull NBTTagCompound matcherNBT = SNBTReader.readNBTFromInput(newInput(c.matcherSNBT));
         final @Nonnull NBTTagCompound target = SNBTReader.readNBTFromInput(newInput(c.targetSNBT));
-        final @Nonnull NBTCompoundMatcher matcher = NBTMatcher.toMatcher(matcherNBT);
-        镍测试.镍日志.info("SNBT匹配用例[{}] matcher={} target={} expected={}",c.name,matcher,c.targetSNBT,c.expected);
+        final @Nonnull NBTCompoundMatcher matcher = NBTMatcher.toMatcher(matcherNBT,c.strict); //构造期设置，严格模式下重复期望才能保全
+        镍测试.镍日志.info("SNBT匹配用例[{}] matcher={} target={} expected={} strict={}",c.name,matcher,c.targetSNBT,c.expected,c.strict);
         Assertions.assertEquals(c.expected,matcher.match(target),"用例："+c.name);
     }
 
@@ -126,8 +126,8 @@ public final class TestNBTMatcherSNBT extends 镍测试 {
     public void snbtDoubleConvertStableTest(final @Nonnull SNBT匹配用例 c) throws CommandException {
         final @Nonnull NBTTagCompound matcherNBT = SNBTReader.readNBTFromInput(newInput(c.matcherSNBT));
         final @Nonnull NBTTagCompound target = SNBTReader.readNBTFromInput(newInput(c.targetSNBT));
-        final @Nonnull NBTCompoundMatcher matcher = NBTMatcher.toMatcher(matcherNBT);
-        final @Nonnull NBTCompoundMatcher reconverted = NBTMatcher.toMatcher(matcher.toNBT());
+        final @Nonnull NBTCompoundMatcher matcher = NBTMatcher.toMatcher(matcherNBT,c.strict);
+        final @Nonnull NBTCompoundMatcher reconverted = NBTMatcher.toMatcher(matcher.toNBT(),c.strict); //toNBT 不携带 strict，往返侧同样在构造期设置
         Assertions.assertEquals(matcher.match(target),reconverted.match(target),"用例："+c.name);
         Assertions.assertEquals(matcher,reconverted,"用例："+c.name+"（往返后 matcher 应相等）");
     }
@@ -153,12 +153,14 @@ public final class TestNBTMatcherSNBT extends 镍测试 {
         public final @Nonnull String matcherSNBT;
         public final @Nonnull String targetSNBT;
         public final boolean expected;
+        public final boolean strict;
 
         public SNBT匹配用例(final @Nonnull String group,final @Nonnull Map<String,Object> raw){
             this.name = group+"-"+raw.get("name");
             this.matcherSNBT = String.valueOf(raw.get("matcher"));
             this.targetSNBT = String.valueOf(raw.get("target"));
             this.expected = (Boolean) raw.get("expected");
+            this.strict = Boolean.TRUE.equals(raw.get("strict")); //可选字段，缺省 false
         }
 
         @Override

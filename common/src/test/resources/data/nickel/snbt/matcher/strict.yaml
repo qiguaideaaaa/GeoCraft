@@ -1,0 +1,107 @@
+# Claude Generated
+ver: 1
+group: 严格
+cases:
+  - name: 列表乱序-顺序仍然无关
+    matcher: '{l:[1,2,3]}'
+    target: '{l:[3,1,2]}'
+    expected: true
+    strict: true
+  - name: 列表子集-严格下不再算匹配
+    matcher: '{l:[1,2]}'
+    target: '{l:[3,2,1]}'
+    expected: false
+    strict: true
+  - name: 列表重复-数量精确匹配
+    matcher: '{l:[1,1]}'
+    target: '{l:[1,1]}'
+    expected: true
+    strict: true
+  - name: 列表重复-目标少一份失败
+    matcher: '{l:[1,1]}'
+    target: '{l:[1]}'
+    expected: false
+    strict: true
+  - name: 列表重复-目标多一份直接失败
+    matcher: '{l:[1]}'
+    target: '{l:[1,1]}'
+    expected: false
+    strict: true
+  - name: 列表逐个配对-配过的元素不能再用
+    matcher: '{l:[1,1,2]}'
+    target: '{l:[1,2,2]}'
+    expected: false
+    strict: true
+  - name: 列表重复-乱序多重集合相等
+    matcher: '{l:[1,1,2]}'
+    target: '{l:[2,1,1]}'
+    expected: true
+    strict: true
+  - name: 空列表-仍只匹配空列表
+    matcher: '{l:[]}'
+    target: '{l:[]}'
+    expected: true
+    strict: true
+  - name: 空列表-对非空仍失败
+    matcher: '{l:[]}'
+    target: '{l:[1]}'
+    expected: false
+    strict: true
+  - name: 数组乱序-含重复的多重集合相等
+    matcher: '{a:[I;1,2,2]}'
+    target: '{a:[I;2,1,2]}'
+    expected: true
+    strict: true
+  - name: 数组-数量不符失败
+    matcher: '{a:[I;1,2,3]}'
+    target: '{a:[I;1,2]}'
+    expected: false
+    strict: true
+  - name: 数组-子集不再算匹配
+    matcher: '{a:[B;1,2]}'
+    target: '{a:[B;2,1,1]}'
+    expected: false
+    strict: true
+  - name: 长整型数组-含重复乱序等量
+    matcher: '{a:[L;5L,7L,5L]}'
+    target: '{a:[L;7L,5L,5L]}'
+    expected: true
+    strict: true
+  - name: 复合-严格下键集合精确多键失败
+    matcher: '{c:{x:1}}'
+    target: '{c:{x:1,y:2}}'
+    expected: false
+    strict: true
+  - name: 复合-键集合精确相等通过
+    matcher: '{c:{x:1,y:2}}'
+    target: '{c:{y:2,x:1}}'
+    expected: true
+    strict: true
+  - name: 嵌套-内层重复期望数量同样严格
+    matcher: '{l:[{v:[1,1]}]}'
+    target: '{l:[{v:[1]}]}'
+    expected: false
+    strict: true
+  - name: 嵌套传播-内层列表数量同样严格
+    matcher: '{l:[{v:[1,2]}]}'
+    target: '{l:[{v:[1,2,3]}]}'
+    expected: false
+    strict: true
+  - name: 嵌套传播-复合列表乱序等量命中
+    matcher: '{l:[{v:1},{v:2}]}'
+    target: '{l:[{v:2},{v:1}]}'
+    expected: true
+    strict: true
+  - name: 嵌套-复合键集合严格沿嵌套传递
+    matcher: '{l:[{v:1}]}'
+    target: '{l:[{v:1,w:9}]}'
+    expected: false
+    strict: true
+  - name: 对照-同输入非严格下匹配成功
+    matcher: '{l:[1,1]}'
+    target: '{l:[1]}'
+    expected: true
+  - name: 对照-同输入非严格下子集匹配成功
+    matcher: '{a:[B;1,2]}'
+    target: '{a:[B;2,1,1]}'
+    expected: true
