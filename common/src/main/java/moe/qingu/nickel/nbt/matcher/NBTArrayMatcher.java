@@ -27,6 +27,7 @@
 
 package moe.qingu.nickel.nbt.matcher;
 
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import moe.qingu.nickel.nbt.NBTUtils;
@@ -111,6 +112,7 @@ public final class NBTArrayMatcher extends NBTMatcher<NBTBase> {
 
     @Override
     protected boolean _match(@Nonnull final NBTBase nbt) {
+        if(strict) return _matchStrict(nbt);
         final LongOpenHashSet nbts = new LongOpenHashSet();
         if(nbt instanceof NBTTagByteArray){
             for(final byte b: ((NBTTagByteArray)nbt).getByteArray()) nbts.add(b);
@@ -124,5 +126,32 @@ public final class NBTArrayMatcher extends NBTMatcher<NBTBase> {
         final LongIterator iterator = expectations.iterator();
         while (iterator.hasNext()) if(!nbts.contains(iterator.nextLong())) return false;
         return true;
+    }
+
+    private boolean _matchStrict(@Nonnull final NBTBase nbt){
+        final LongArrayList candidates = new LongArrayList();
+        if(nbt instanceof NBTTagByteArray){
+            for(final byte b: ((NBTTagByteArray)nbt).getByteArray()) candidates.add(b);
+        }else if(nbt instanceof NBTTagIntArray){
+            for(final int i: ((NBTTagIntArray)nbt).getIntArray()) candidates.add(i);
+        }else {
+            NBTUtils.streamOf((NBTTagLongArray) nbt)
+                    .forEach(candidates::add);
+        }
+        if(candidates.size() != expectations.size()) return false;
+        final LongArrayList expects = new LongArrayList(expectations);
+        while (!expects.isEmpty() && !candidates.isEmpty()){
+            final LongIterator iterator = candidates.iterator();
+            final long expect = expects.removeLong(expects.size()-1);
+            match:{
+                while (iterator.hasNext())
+                    if(expect == iterator.nextLong()) {
+                        iterator.remove();
+                        break match;
+                    }
+                return false;
+            }
+        }
+        return expects.isEmpty() && candidates.isEmpty();
     }
 }

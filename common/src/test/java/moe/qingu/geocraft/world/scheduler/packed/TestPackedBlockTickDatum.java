@@ -33,6 +33,7 @@ import moe.qingu.geocraft.api.world.tick.IScheduledTick;
 import moe.qingu.geocraft.world.scheduler.TestBlockTickDatum;
 import moe.qingu.geocraft.world.scheduler.计划刻数据;
 import moe.qingu.nickel.nbt.SNBTReader;
+import moe.qingu.nickel.nbt.matcher.NBTMatcher;
 import moe.qingu.nickel.reader.InputReader;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandException;
@@ -90,7 +91,9 @@ public final class TestPackedBlockTickDatum extends TestBlockTickDatum {
         datum.markDirty();
         final NBTTagCompound compound = datum.serializeNBT();
         final NBTTagCompound expected = SNBTReader.readSingleNBTFromInput(new InputReader(ans));
-        Assertions.assertEquals(expected,compound);
+        final NBTMatcher<?> matcher = NBTMatcher.toMatcher(expected);
+        matcher.setStrict(true);
+        Assertions.assertTrue(matcher.match(compound),()-> "\nexpected:"+expected+"\nactual:"+compound+"\n");
     }
 
     public static final class 打包反序列化与序列化测试项 {

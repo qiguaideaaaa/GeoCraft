@@ -27,12 +27,12 @@
 
 package moe.qingu.nickel.nbt.matcher;
 
+import com.google.common.collect.Lists;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagList;
 
 import javax.annotation.Nonnull;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author QGMoe
@@ -42,6 +42,7 @@ public final class NBTListMatcher extends NBTMatcher<NBTTagList> {
     private final Set<NBTMatcher<?>> matchers = new HashSet<>();
 
     public void expect(final @Nonnull NBTMatcher<?> matcher){
+        matcher.setStrict(strict);
         matchers.add(matcher);
     }
 
@@ -49,6 +50,12 @@ public final class NBTListMatcher extends NBTMatcher<NBTTagList> {
     @Override
     public Class<NBTTagList> getMatchType() {
         return NBTTagList.class;
+    }
+
+    @Override
+    public void setStrict(final boolean strict) {
+        super.setStrict(strict);
+        for(final NBTMatcher<?> matcher:matchers) matcher.setStrict(strict);
     }
 
     @Nonnull
@@ -63,12 +70,32 @@ public final class NBTListMatcher extends NBTMatcher<NBTTagList> {
     public boolean _match(final @Nonnull NBTTagList list) {
         if(matchers.isEmpty()) return list.isEmpty();
         if(list.tagCount() < matchers.size()) return false;
+        if(strict) return _matchStrict(list);
         for(final NBTMatcher<?> matcher:matchers)
             match:{
                 for(final NBTBase nbt: list) if(matcher.match(nbt)) break match;
                 return false;
             }
         return true;
+    }
+
+    private boolean _matchStrict(final @Nonnull NBTTagList list) {
+        if(list.tagCount() != matchers.size()) return false;
+        final List<NBTMatcher<?>> expects = new ArrayList<>(matchers);
+        final List<NBTBase> candidates = Lists.newArrayList(list);
+        while (!expects.isEmpty() && !candidates.isEmpty()){
+            final Iterator<NBTBase> iterator = candidates.iterator();
+            final NBTMatcher<?> expect = expects.remove(expects.size()-1);
+            match:{
+                while (iterator.hasNext())
+                    if(expect.match(iterator.next())) {
+                        iterator.remove();
+                        break match;
+                    }
+                return false;
+            }
+        }
+        return expects.isEmpty() && candidates.isEmpty();
     }
 
     @Override
@@ -79,7 +106,7 @@ public final class NBTListMatcher extends NBTMatcher<NBTTagList> {
     @Override
     public boolean equals(final Object obj) {
         if(obj instanceof NBTListMatcher){
-            return this.matchers.equals(((NBTListMatcher) obj).matchers);
+            return this.strict == ((NBTListMatcher) obj).strict && this.matchers.equals(((NBTListMatcher) obj).matchers);
         }else return false;
     }
 

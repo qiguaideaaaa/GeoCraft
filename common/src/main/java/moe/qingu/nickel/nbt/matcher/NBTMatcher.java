@@ -36,6 +36,11 @@ import javax.annotation.Nonnull;
  * @author QGMoe
  */
 public abstract class NBTMatcher<T extends NBTBase> {
+    protected boolean strict = false;
+
+    public void setStrict(final boolean strict) {
+        this.strict = strict;
+    }
 
     @Override
     public abstract int hashCode();

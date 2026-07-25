@@ -59,37 +59,44 @@ public final class NBTCompoundMatcher extends NBTMatcher<NBTTagCompound> {
     }
 
     public void expect(final @Nonnull String key,final @Nonnull NBTMatcher<?> matcher){
+        matcher.setStrict(strict);
         map.put(key,matcher);
     }
 
     public void expectByte(final @Nonnull String key, final byte val){
-        map.put(key,new NBTByteMatcher(val));
+        expect(key,new NBTByteMatcher(val));
     }
 
     public void expectShort(final @Nonnull String key, final short val){
-        map.put(key,new NBTShortMatcher(val));
+        expect(key,new NBTShortMatcher(val));
     }
 
     public void expectInt(final @Nonnull String key, final int val){
-        map.put(key,new NBTIntMatcher(val));
+        expect(key,new NBTIntMatcher(val));
     }
 
     public void expectLong(final @Nonnull String key, final long val){
-        map.put(key,new NBTLongMatcher(val));
+        expect(key,new NBTLongMatcher(val));
     }
 
     public void expectFloat(final @Nonnull String key, final float val){
-        map.put(key,new NBTFloatMatcher(val));
+        expect(key,new NBTFloatMatcher(val));
     }
 
     public void expectDouble(final @Nonnull String key, final double val){
-        map.put(key,new NBTDoubleMatcher(val));
+        expect(key,new NBTDoubleMatcher(val));
     }
 
     @Nonnull
     @Override
     public Class<NBTTagCompound> getMatchType() {
         return NBTTagCompound.class;
+    }
+
+    @Override
+    public void setStrict(final boolean strict) {
+        super.setStrict(strict);
+        for(final NBTMatcher<?> matcher:map.values()) matcher.setStrict(strict);
     }
 
     @Nonnull
@@ -102,6 +109,7 @@ public final class NBTCompoundMatcher extends NBTMatcher<NBTTagCompound> {
 
     @Override
     protected boolean _match(final @Nonnull NBTTagCompound compound) {
+        if(strict && !compound.getKeySet().equals(map.keySet())) return false;
         for(final Map.Entry<String,NBTMatcher<?>> entry:map.entrySet()){
             if(!compound.hasKey(entry.getKey())) return false;
             final NBTBase v = compound.getTag(entry.getKey());
