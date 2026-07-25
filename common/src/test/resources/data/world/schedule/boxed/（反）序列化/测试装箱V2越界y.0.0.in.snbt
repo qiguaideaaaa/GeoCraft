@@ -1,0 +1,13 @@
+# Claude Generated
+# V2 装箱格式的 p 字段以完整 32 位存 y：越界与负数 y 写出再读回都不失真（负数按 32 位位模式还原）
+{
+  "version": 2,
+  "type": 0b,
+  "baseTime": 1200uL,
+  "entries": [
+    {"i": blockOf("石"), "p": packPosAndPri(7b, [I;5,256,5]), "t": 10},
+    {"i": blockOf("圆"), "p": packPosAndPri(6b, [I;5,-1,5]), "t": 0},
+    {"i": blockOf("基"), "p": packPosAndPri(7b, [I;3,300,12]), "t": 25},
+    {"i": blockOf("曜"), "p": packPosAndPri(7b, [I;8,64,8]), "t": 3}
+  ]
+}

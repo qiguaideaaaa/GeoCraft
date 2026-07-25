@@ -1,0 +1,12 @@
+# Claude Generated
+# 装箱实现读取 V1：绝对坐标原样保留（对照打包实现的 &0xF 掩码），负数区块 (-1,-1)
+{
+  "version": 1,
+  "totalWorldTime": 800L,
+  "block_updating_entries": [
+    {"id": blockOf("石"), "pos": [I;-3,10,-13], "time": 5},
+    {"id": blockOf("圆"), "pos": [I;-16,80,-1], "time": 10},
+    {"id": blockOf("基"), "pos": [I;-1,0,-16], "time": 1},
+    {"id": blockOf("曜"), "pos": [I;-8,255,-8], "time": 40}
+  ]
+}

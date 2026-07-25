@@ -1,0 +1,12 @@
+# Claude Generated
+# V1 存储的是绝对坐标（含负数区块），打包实现读取时按 &0xF 取区块内坐标
+{
+  "version": 1,
+  "totalWorldTime": 100000L,
+  "block_updating_entries": [
+    {"id": blockOf("石"), "pos": [I;34,10,-3], "time": 5}, #34&15=2, -3&15=13
+    {"id": blockOf("圆"), "pos": [I;-16,80,-1], "time": 10}, #-16&15=0, -1&15=15
+    {"id": blockOf("基"), "pos": [I;-256,0,255], "time": 1}, #-256&15=0, 255&15=15
+    {"id": blockOf("石"), "pos": [I;16,128,16], "time": 40} #16&15=0
+  ]
+}

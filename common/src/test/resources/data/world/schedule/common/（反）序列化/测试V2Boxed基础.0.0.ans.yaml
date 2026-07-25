@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=../../data.schema.json
+# Claude Generated
+
+ticks:
+  - x: 5
+    y: 70
+    z: 9
+    块: 石
+    时: 3010
+  - x: 0
+    y: 255
+    z: 15
+    块: 圆
+    时: 3000
+    级: 较高6
+  - x: 15
+    y: 0
+    z: 0
+    块: 基
+    时: 3001
+  - x: 2
+    y: 200
+    z: 3
+    块: 曜
+    时: 3040
+    级: 很高4

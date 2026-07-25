@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=../../data.schema.json
+# Claude Generated
+# 空数据序列化：应产出空 entries 列表而非缺键或报错
+
+time: 77
+ticks: []

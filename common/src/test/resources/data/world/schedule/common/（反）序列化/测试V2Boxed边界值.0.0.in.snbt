@@ -1,0 +1,12 @@
+# Claude Generated
+# 装箱格式边界：全零 p 值、坐标与级的上界、大 t 值（int 上限内）
+{
+  "version": 2,
+  "type": 0b,
+  "baseTime": 1uL,
+  "entries": [
+    {"i": blockOf("石"), "p": packPosAndPri(0b, [I;0,0,0]), "t": 0},
+    {"i": blockOf("圆"), "p": packPosAndPri(15b, [I;15,255,15]), "t": 100},
+    {"i": blockOf("基"), "p": packPosAndPri(7b, [I;8,128,8]), "t": 2000000000}
+  ]
+}

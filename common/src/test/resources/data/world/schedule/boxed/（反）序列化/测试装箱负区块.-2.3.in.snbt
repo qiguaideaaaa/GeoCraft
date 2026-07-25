@@ -1,0 +1,12 @@
+# Claude Generated
+# 负数区块 (-2,3)：绝对 x = -32+区块内x，z = 48+区块内z
+{
+  "version": 2,
+  "type": 0b,
+  "baseTime": 60uL,
+  "entries": [
+    {"i": blockOf("石"), "p": packPosAndPri(7b, [I;0,64,0]), "t": 4},
+    {"i": blockOf("圆"), "p": packPosAndPri(5b, [I;15,7,15]), "t": 0},
+    {"i": blockOf("曜"), "p": packPosAndPri(7b, [I;3,255,12]), "t": 19}
+  ]
+}
