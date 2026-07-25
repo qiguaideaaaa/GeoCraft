@@ -7,6 +7,9 @@
     "upon": {
       "type": "string"
     },
+    "time": {
+      "type": "integer"
+    },
     "ticks": {
       "type": "array",
       "items": {

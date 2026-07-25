@@ -85,6 +85,13 @@ public final class ClassGraphUtils {
     }
 
     @Nonnull
+    public static Resource getAppendixByInput(final @Nonnull String inputFileExt,final @Nonnull String appendixFileExt,final @Nonnull ScanResult scan,final @Nonnull Resource in){
+        final String appendixSuf = appendixFileExt.isEmpty()?"":"."+appendixFileExt;
+        final String outPath = in.getPath().replaceAll("\\.in\\."+inputFileExt+"$", appendixSuf);
+        return scan.getResourcesWithPath(outPath).get(0);
+    }
+
+    @Nonnull
     public static Stream<String> getLinesWithoutYAMLComments(final @Nonnull Resource resource) throws IOException {
         final ArrayList<String> lines = new ArrayList<>();
         try (final BufferedReader reader = new BufferedReader(new InputStreamReader(resource.open(), StandardCharsets.UTF_8))){

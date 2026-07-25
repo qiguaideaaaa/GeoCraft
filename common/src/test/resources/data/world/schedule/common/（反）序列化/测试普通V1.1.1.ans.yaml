@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../data.schema.json
+
+ticks:
+  - x: 11
+    y: 4
+    z: 5
+    块: 〇
+    时: 1100

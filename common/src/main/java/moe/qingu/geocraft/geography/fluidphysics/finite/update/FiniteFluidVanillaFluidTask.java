@@ -93,7 +93,7 @@ public final class FiniteFluidVanillaFluidTask implements IFluidTask {
     public void onUpdate(@Nonnull final World world, @Nonnull IBlockState state,@Nonnull final BlockPos pos, @Nonnull final Random rand) {
         int updateRate = MiscUtil.modifyTickRateByGravity(world,this.flowing.dynamic.tickRate(world));
         if (!world.isAreaLoaded(pos,1)){
-            BlockTickScheduler.schedule(world,pos,state.getBlock(),updateRate);
+            BlockTickScheduler.schedule(world,pos,state.getBlock(),updateRate<=0?20:updateRate);
             return;
         }
         int liquidMeta = state.getValue(LEVEL);

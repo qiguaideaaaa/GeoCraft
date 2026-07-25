@@ -27,12 +27,16 @@
 
 package moe.qingu.geocraft.world.scheduler;
 
+import moe.qingu.geocraft.api.world.tick.IScheduledTick;
 import net.minecraft.util.ResourceLocation;
+import org.junit.jupiter.api.Assertions;
 import 清汩萌.天圆地方.天圆地方测试;
 import 清汩萌.造.空间.空间构造器;
 import 清汩萌.造.管理.空间构造局;
 
+import javax.annotation.Nonnull;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -40,10 +44,28 @@ import java.util.List;
  */
 public final class 计划刻数据 {
     public String upon = 天圆地方测试.MODID+":scheduler";
+    public long time = 0L;
     public List<可测试的计划刻> ticks = Collections.emptyList();
 
     public void 初始化(){
         final 空间构造器 $空间构造器 = 空间构造局.需要(new ResourceLocation(upon));
         for(final 可测试的计划刻 $刻:ticks) $刻.初始化($空间构造器);
+    }
+
+    public void 假设相等(final @Nonnull List<? extends IScheduledTick> $实际){
+        outer:
+        while (!$实际.isEmpty()){
+            final IScheduledTick tick = $实际.remove($实际.size()-1);
+            final Iterator<可测试的计划刻> iterator = ticks.iterator();
+            while (iterator.hasNext()){
+                final 可测试的计划刻 $计划刻 = iterator.next();
+                if(可测试的计划刻.严格相等($计划刻,tick)){
+                    iterator.remove();
+                    continue outer;
+                }
+            }
+            Assertions.fail("出现不存在于答案的计划刻："+tick);
+        }
+        if(!ticks.isEmpty()) Assertions.fail("出现不存在于输出的计划刻："+ticks);
     }
 }
