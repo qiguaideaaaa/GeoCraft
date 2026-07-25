@@ -6,7 +6,7 @@
 
 ### `解析用例.yaml`（122 条）
 
-验证路径读者（`NBTPathReader.readPathFromInput`）的正确性，供 `TestNBTPathParse` 使用。覆盖以下语法：
+验证路径读取器（`NBTPathReader.readPathFromInput`）的正确性，供 `TestNBTPathParse` 使用。覆盖以下语法：
 
 - 简单键，以及 `.` 分隔的嵌套键；
 - 列表索引：含负索引、`+` 号、`-0` / `+0`、`int` 上下界与溢出；
@@ -21,12 +21,12 @@
 
 ### `读扫一致性.yaml`（52 条）
 
-把同一输入分别交给读者（`NBTPathReader`）与扫描器（`NBTPathScanner`），对照两者的结论，供 `TestNBTPathScanConsistency` 使用。两者结论不一致的用例，在 `注` 字段说明缘由。
+把同一输入分别交给读取器（`NBTPathReader`）与扫描器（`NBTPathScanner`），对照两者的结论，供 `TestNBTPathScanConsistency` 使用。两者结论不一致的用例，在 `注` 字段说明缘由。
 
-不一致主要来自两处，都是扫描器只做浅层语法扫描、读者做深层校验：
+不一致主要来自两处，都是扫描器只做浅层语法扫描、读取器做深层校验：
 
 - 扫描器缺的语法位置校验：复合过滤器位置检查（含方法或索引之后毗连复合）、空引号名的识别。数据的 `注` 字段把这些差异标为作者已确认的预期行为。
-- 扫描器不做的决议类检查：方法注册、方法重载、过滤器内的 SNBT 函数决议。读者做这些检查而扫描器不做，于是产生同族的"读者报错 / 扫描通过"差异，每条差异都有用例锁定。
+- 扫描器不做的决议类检查：方法注册、方法重载、过滤器内的 SNBT 函数决议。读者做这些检查而扫描器不做，于是产生同族的"读者报错 / 扫描通过"差异，每条差异都有用例记录现状。
 
 ### 宽容行为
 
@@ -40,7 +40,7 @@
 
 - `名`：用例名，作为 JUnit 参数化报告里的显示名；
 - `输入`：待解析的路径原文；
-- `期望`：可选，期望的 `NBTPath#toString()` 结果。注意 toString 与解析语法不完全往返：节点之间一律以 `.` 连接（如 `a[0]` 的 toString 是 `a.[0]`），方法节点的 toString 是注册签名（如 `a.type("INT")` 的 toString 是 `a.type(STRING)`）。含过滤器的节点因过滤器字符串形态不稳定，不写 `期望`，只写 `长度`；
+- `期望`：可选，期望的 `NBTPath#toString()` 结果。注意 toString 的输出与解析语法不完全一致：节点之间一律以 `.` 连接（如 `a[0]` 的 toString 是 `a.[0]`），方法节点的 toString 是注册签名（如 `a.type("INT")` 的 toString 是 `a.type(STRING)`）。含过滤器的节点因过滤器字符串形态不稳定，不写 `期望`，只写 `长度`；
 - `长度`：可选，期望的节点数（`NBTPath#length()`）；
 - `异常`：可选布尔值，默认 `false`。取 `true` 时期望解析抛出 `CommandException`；
 - `键`：可选，期望异常信息组件树里出现的翻译键（仅在能确定具体报错键时填写）；
@@ -81,9 +81,9 @@
 
 ### 样例 2 解释
 
-`nosuchmeth` 未在 `NBTPathMethods` 注册。读者在解析期决议方法失败而报错（`nickel.command.nbt.path.method.undefined`）；扫描器只做语法层面的实参扫描，不做方法决议，因此通过。该差异属现状行为，一致性测试按 `注` 里记录的期望分别断言两侧。
+`nosuchmeth` 未在 `NBTPathMethods` 注册。读取器在解析期决议方法失败而报错（`nickel.command.nbt.path.method.undefined`）；扫描器只做语法层面的实参扫描，不做方法决议，因此通过。该差异属现状行为，一致性测试按 `注` 里记录的期望分别断言两侧。
 
 ### 其他约定
 
-- 含方法调用的用例，要求测试先经 `NBTPathMethods.loadFuncs(NBTPathMethods.class)` 注册内置方法。测试侧有幂等守卫，绕开 FML 的 `scanProviders`。
+- 含方法调用的用例，要求测试先经 `NBTPathMethods.loadFuncs(NBTPathMethods.class)` 注册内置方法。重复注册只会生效一次，注册时绕开 FML 的 `scanProviders`。
 - `信号` 结论对应扫描器的补全语义：输入在语法完整之前断流时，扫描器抛 `NickelScanEOFSignal` 而非报错。
