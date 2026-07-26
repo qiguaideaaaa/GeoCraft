@@ -40,7 +40,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import 清汩萌.天圆地方.util.ClassGraphUtils;
 import 清汩萌.天圆地方.util.网格工具;
 import 清汩萌.天圆地方.世界.模拟区块世界;
-import 清汩萌.天圆地方.世界.沙盒.测试参数;
 import 清汩萌.天圆地方.世界.沙盒.沙盒测试样例;
 import 清汩萌.天圆地方.世界.配置.模拟世界配置;
 import 清汩萌.造.格文件;
@@ -54,6 +53,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -67,31 +67,39 @@ public final class 打包方块计划刻调度器测试 extends 方块计划刻�
     @ParameterizedTest
     @MethodSource("为测试方块调度准备数据")
     public void 测试方块调度(final @Nonnull 方块调度测试样例 $样例) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-        test(new Object[]{网格工具.打包网格数据($样例.$网格),$样例.$计划刻数据,$样例.$时长});
+        test(new Object[]{网格工具.打包网格数据($样例.$网格),$样例.$计划刻数据,$样例.$测试时段});
     }
 
     public static final class 方块调度测试样例 extends 沙盒测试样例 {
-        @测试参数(键 = "duration") int $时长;
-        final String $计划刻数据;
+        final @Nonnull String $计划刻数据;
+        final @Nonnull long[][] $测试时段;
 
+        @SuppressWarnings("DataFlowIssue")
         方块调度测试样例(@Nonnull final 格文件 $格文件, @Nonnull final String $计划刻数据) {
             super($格文件);
             this.$计划刻数据 = $计划刻数据;
+            final List<?> $原始测试时段 = (List<?>) this.$格文件.获取附加数据().get("测试时段");
+            this.$测试时段 = $原始测试时段.stream().map(s -> ((List<?>) s)
+                    .stream()
+                    .mapToLong(e -> Long.parseUnsignedLong(e.toString()))
+                    .limit(2)
+                    .toArray())
+                    .toArray(long[][]::new);
         }
     }
 
     @Nonnull
     public static Stream<方块调度测试样例> 为测试方块调度准备数据(){
-        final List<方块调度测试样例> $样例们 = new ArrayList<>();
+        final List<Supplier<方块调度测试样例>> $样例们 = new ArrayList<>();
         ClassGraphUtils.寻找特定类型文件("data/world/schedule/packed/调度",格文件._扩展名_,(scan,$原始网格资源)->{
             final String $计划刻数据 = ClassGraphUtils.基于样例文件获取指定类型文件("yaml",scan,$原始网格资源).getContentAsString();
-            $样例们.add(new 方块调度测试样例(格文件.解析($原始网格资源.getURI()),$计划刻数据));
+            $样例们.add(() -> new 方块调度测试样例(格文件.解析($原始网格资源.getURI()),$计划刻数据));
         });
-        return $样例们.stream();
+        return $样例们.stream().map(Supplier::get);
     }
 
     @SuppressWarnings("unused")
-    public static void 测试方块调度_Inner(final @Nonnull Object[] $打包网格数据,final @Nonnull String $未解析的计划刻数据,final int $时长){
+    public static void 测试方块调度_Inner(final @Nonnull Object[] $打包网格数据,final @Nonnull String $未解析的计划刻数据,final long[][] $测试时段){
         final @Nonnull 词块网格 $网格 = 网格工具.恢复网格数据($打包网格数据);
         final @Nonnull 空间构造器 $构造器 = 获取或用默认构造器($网格);
         if($网格.获取默认填充方块() == null) $网格.默认用("〇");
@@ -103,18 +111,21 @@ public final class 打包方块计划刻调度器测试 extends 方块计划刻�
         $世界.getChunkProvider().监听区块创建(c -> c.获取聚合能力().注册(new PackedBlockTickDatum()));
         空间工具.导入世界($世界,$计划刻数据.获取基点(),$网格.构造($构造器));
         final ArrayList<可测试的计划刻> $计划表 = new ArrayList<>($计划刻数据.ticks);
-        int left = $时长;
-        while (left-->0){
-            final Iterator<可测试的计划刻> iterator = $计划表.iterator();
-            while (iterator.hasNext()){
-                final 可测试的计划刻 $计划刻 = iterator.next();
-                if($计划刻.$创时 == $世界.getTotalWorldTime()){
-                    iterator.remove();
-                    scheduler.schedule($计划刻);
+        for (final @Nonnull long[] $时段 : $测试时段) {
+            final long begin = $计划刻数据.time + $时段[0];
+            final long end = $计划刻数据.time + $时段[1];
+            while ($世界.getTotalWorldTime() != end) {
+                final Iterator<可测试的计划刻> iterator = $计划表.iterator();
+                while (iterator.hasNext()) {
+                    final 可测试的计划刻 $计划刻 = iterator.next();
+                    if ($计划刻.$创时 == $世界.getTotalWorldTime()) {
+                        iterator.remove();
+                        scheduler.schedule($计划刻);
+                    }
                 }
+                BlockTickScheduler.onWorldTick($世界);
+                $世界.setTotalWorldTime($世界.getTotalWorldTime() + 1L);
             }
-            BlockTickScheduler.onWorldTick($世界);
-            $世界.setTotalWorldTime($世界.getTotalWorldTime()+1L);
         }
         final IBlockState[][][] $结果 = 空间工具.导出世界($世界,$计划刻数据.获取基点(),$网格.获取层数(),$网格.获取行数(),$网格.获取列数());
         $构造器.打印($结果,LOGGER);
@@ -133,7 +144,7 @@ public final class 打包方块计划刻调度器测试 extends 方块计划刻�
     }
 
     @SuppressWarnings("unused")
-    public static void 结束测试方块调度_Inner() throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    public static void 结束测试方块调度_Inner() {
         BlockTickScheduler.onServerStop();
     }
 }
