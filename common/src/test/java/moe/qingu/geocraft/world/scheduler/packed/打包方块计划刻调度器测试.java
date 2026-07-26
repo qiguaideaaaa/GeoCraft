@@ -114,6 +114,7 @@ public final class 打包方块计划刻调度器测试 extends 方块计划刻�
         for (final @Nonnull long[] $时段 : $测试时段) {
             final long begin = $计划刻数据.time + $时段[0];
             final long end = $计划刻数据.time + $时段[1];
+            $世界.setTotalWorldTime(begin);
             while ($世界.getTotalWorldTime() != end) {
                 final Iterator<可测试的计划刻> iterator = $计划表.iterator();
                 while (iterator.hasNext()) {
