@@ -51,6 +51,7 @@ public final class 可测试的计划刻 implements IScheduledTick {
     public int[] $于 = new int[]{0,0,0};
     public String $块;
     public long $时;
+    public long $创时 = 0L;
     public 计划刻等级 $级 = 计划刻等级.中上7;
 
     private BlockPos $位置;
@@ -202,6 +203,10 @@ public final class 可测试的计划刻 implements IScheduledTick {
     @SuppressWarnings("unused")
     public void set时(final long $时) {
         this.$时 = $时;
+    }
+
+    public void set创时(final long $创时) {
+        this.$创时 = $创时;
     }
 
     @SuppressWarnings("unused")

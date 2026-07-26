@@ -41,6 +41,7 @@ import 清汩萌.天圆地方.天圆地方测试;
 
 import javax.annotation.Nonnull;
 import java.util.Random;
+import java.util.logging.Logger;
 
 import static 清汩萌.天圆地方.原料.方块原料.常用.〇;
 
@@ -73,6 +74,11 @@ public final class 猹方块 extends Block {
                            final @Nonnull BlockPos pos,
                            final @Nonnull IBlockState state,
                            final @Nonnull Random rand) {
+        天圆地方测试.LOGGER.info("世界时间 {} (猹月 {} )时.位于 {} 的猹 {} 更新了!",
+                Long.toUnsignedString(worldIn.getTotalWorldTime()),
+                worldIn.getTotalWorldTime() & 0xFL,
+                pos,
+                state.getValue(_出现时间_));
         if((worldIn.getTotalWorldTime() & 0xFL) == state.getValue(_出现时间_))
             worldIn.setBlockState(pos, 〇, Constants.BlockFlags.NO_OBSERVERS | Constants.BlockFlags.NO_RERENDER);
     }

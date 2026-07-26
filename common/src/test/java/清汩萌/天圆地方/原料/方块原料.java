@@ -43,6 +43,7 @@ import 清汩萌.天圆地方.方块.模拟载流方块;
 import 清汩萌.天圆地方.方块.MockBlockLiquid;
 import 清汩萌.天圆地方.方块.猹方块;
 import 清汩萌.天圆地方.天圆地方测试;
+import 清汩萌.天圆地方.方块.鲁迅方块;
 import 清汩萌.造.映射.映射;
 import 清汩萌.造.映射.映射器;
 import 清汩萌.造.空间.空间构造器;
@@ -69,7 +70,8 @@ public final class 方块原料 {
     private static final BlockStaticLiquid STATIC_WATER = WATERS.getRight();
     private static final BlockDynamicLiquid DYNAMIC_LAVA = LAVAS.getKey();
     private static final BlockStaticLiquid STATIC_LAVA = LAVAS.getRight();
-    private static final 猹方块 _猹_ = new 猹方块();
+    public static final 猹方块 _猹_ = new 猹方块();
+    public static final 鲁迅方块 _鲁迅_ = new 鲁迅方块();
 
     public static final class LayeredFluidHosts{
         public static 模拟载流方块 FLUID_HOST_COMMON = new 模拟载流方块();
@@ -312,6 +314,25 @@ public final class 方块原料 {
         public static final IBlockState 猹f = _猹_.getDefaultState().withProperty(猹方块._出现时间_,15);
         public static final @映射.别名 IBlockState 猹 = 猹0;
 
+        public static final IBlockState 鲁x = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,0).withProperty(鲁迅方块._增减模式_,false);
+        public static final IBlockState 鲁o = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,1).withProperty(鲁迅方块._增减模式_,false);
+        public static final IBlockState 鲁λ = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,2).withProperty(鲁迅方块._增减模式_,false);
+        public static final IBlockState 鲁v = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,3).withProperty(鲁迅方块._增减模式_,false);
+        public static final IBlockState 鲁э = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,4).withProperty(鲁迅方块._增减模式_,false);
+        public static final IBlockState 鲁e = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,5).withProperty(鲁迅方块._增减模式_,false);
+        public static final IBlockState 鲁4 = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,6).withProperty(鲁迅方块._增减模式_,false);
+        public static final IBlockState 鲁6 = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,7).withProperty(鲁迅方块._增减模式_,false);
+        public static final @映射.别名 IBlockState 鲁 = 鲁6;
+        public static final IBlockState 讯x = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,0).withProperty(鲁迅方块._增减模式_,true);
+        public static final IBlockState 讯o = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,1).withProperty(鲁迅方块._增减模式_,true);
+        public static final IBlockState 讯λ = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,2).withProperty(鲁迅方块._增减模式_,true);
+        public static final IBlockState 讯v = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,3).withProperty(鲁迅方块._增减模式_,true);
+        public static final IBlockState 讯э = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,4).withProperty(鲁迅方块._增减模式_,true);
+        public static final IBlockState 讯e = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,5).withProperty(鲁迅方块._增减模式_,true);
+        public static final IBlockState 讯4 = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,6).withProperty(鲁迅方块._增减模式_,true);
+        public static final IBlockState 讯6 = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,7).withProperty(鲁迅方块._增减模式_,true);
+        public static final @映射.别名 IBlockState 讯 = 讯6;
+
         static {
             _方块计划刻测试映射_ = new 映射器(new ResourceLocation(天圆地方测试.MODID,"scheduler")).导入映射数据(方块计划刻测试方块.class);
             _方块计划刻测试构造器_ = new 空间构造器()
@@ -327,6 +348,7 @@ public final class 方块原料 {
         RegistryHandler.registerVanillaBlockOverride(DYNAMIC_LAVA.setHardness(100.0F).setLightLevel(1.0F).setLightOpacity(3));
         Block.registerBlocks();
         Block.REGISTRY.register(256,_猹_.getRegistryName(), _猹_);
+        Block.REGISTRY.register(257,_鲁迅_.getRegistryName(),_鲁迅_);
         _全构造器_ = new 空间构造器()
                 .添加映射(常用._常用映射_)
                 .添加映射(土壤._土壤映射_)

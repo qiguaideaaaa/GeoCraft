@@ -38,6 +38,9 @@
           "时": {
             "type": "integer"
           },
+          "创时": {
+            "type": "integer"
+          },
           "级": {
             "type": "string",
             "enum": [

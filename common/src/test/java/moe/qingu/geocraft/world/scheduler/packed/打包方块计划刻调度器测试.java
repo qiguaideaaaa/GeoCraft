@@ -28,6 +28,7 @@
 package moe.qingu.geocraft.world.scheduler.packed;
 
 import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
+import moe.qingu.geocraft.world.scheduler.可测试的计划刻;
 import moe.qingu.geocraft.world.scheduler.方块计划刻调度器测试;
 import moe.qingu.geocraft.world.scheduler.计划刻数据;
 import net.minecraft.block.state.IBlockState;
@@ -51,6 +52,7 @@ import 清汩萌.造.造;
 import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -100,16 +102,24 @@ public final class 打包方块计划刻调度器测试 extends 方块计划刻�
         BlockTickScheduler.getSchedulers().put($世界.provider.getDimension(),scheduler);
         $世界.getChunkProvider().监听区块创建(c -> c.获取聚合能力().注册(new PackedBlockTickDatum()));
         空间工具.导入世界($世界,$计划刻数据.获取基点(),$网格.构造($构造器));
-        $计划刻数据.ticks.forEach(scheduler::schedule);
+        final ArrayList<可测试的计划刻> $计划表 = new ArrayList<>($计划刻数据.ticks);
         int left = $时长;
         while (left-->0){
+            final Iterator<可测试的计划刻> iterator = $计划表.iterator();
+            while (iterator.hasNext()){
+                final 可测试的计划刻 $计划刻 = iterator.next();
+                if($计划刻.$创时 == $世界.getTotalWorldTime()){
+                    iterator.remove();
+                    scheduler.schedule($计划刻);
+                }
+            }
             BlockTickScheduler.onWorldTick($世界);
             $世界.setTotalWorldTime($世界.getTotalWorldTime()+1L);
         }
         final IBlockState[][][] $结果 = 空间工具.导出世界($世界,$计划刻数据.获取基点(),$网格.获取层数(),$网格.获取行数(),$网格.获取列数());
         $构造器.打印($结果,LOGGER);
         final List<BlockPos> $不合法位置 = new ArrayList<>();
-        for(int $层=1;$层<=$结果.length;$层++) for(int $行=1;$行<=$结果.length;$行++) for(int $列=1;$列<=$结果.length;$列++)
+        for(int $层=1;$层<=$结果.length;$层++) for(int $行=1;$行<=$结果[$层-1].length;$行++) for(int $列=1;$列<=$结果[$层-1][$行-1].length;$列++)
             if($结果[$层-1][$行-1][$列-1].getBlock() == 猹.getBlock()) $不合法位置.add(new BlockPos($层,$行,$列));
         if($不合法位置.isEmpty()) return;
         Assertions.fail($不合法位置.stream()

@@ -35,7 +35,14 @@ import javax.annotation.Nonnull;
  * @author QiguaiAAAA
  */
 public final class 下标工具 {
-    private static final int[] _允许的下标字符_ = "0123456789abcdefghijklmnopqrstuvwxyz".codePoints().toArray();
+    private static final int[] _允许的下标字符_ =
+            (
+                    "0123456789abcdefghijklmnopqrstuvwxyz"
+                            + "$€£¥¢₩₪₮"
+                            + "αβδζθλμξπρστψω"
+                            + "ℓℏℵ"
+                            + "бгджзпфцшэюя"
+            ).codePoints().toArray();
     private static final @Nonnull IntOpenHashSet _允许的下标字符集合_ = new IntOpenHashSet(_允许的下标字符_,1.0f);
 
     static {
