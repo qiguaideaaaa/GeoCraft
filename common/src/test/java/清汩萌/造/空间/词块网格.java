@@ -49,6 +49,7 @@ import java.util.stream.IntStream;
 /**
  * @author QiguaiAAAA
  */
+@SuppressWarnings("UnusedReturnValue")
 public final class 词块网格 {
     private @Nullable 空间构造器 $构造器;
     private @Nullable String $默认构造器名;

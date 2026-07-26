@@ -79,7 +79,7 @@ public final class TestNBTFunctionType {
             final Class<? extends NBTBase> para = (Class<? extends NBTBase>) c[1];
             final int expected = (Integer) c[2];
             final int actual = NBTFunctionType.distance(arg,para);
-            镍测试.镍日志.info("distance({},{})={} expected={}",arg.getSimpleName(),para.getSimpleName(),actual,expected);
+            镍测试._镍日志_.info("distance({},{})={} expected={}",arg.getSimpleName(),para.getSimpleName(),actual,expected);
             Assertions.assertEquals(expected,actual,"distance("+arg.getSimpleName()+","+para.getSimpleName()+")");
         }
     }

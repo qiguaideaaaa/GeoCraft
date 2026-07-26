@@ -215,7 +215,7 @@ public final class TestNBTMatcherArray {
         Assertions.assertEquals("[I;2]",intArrayMatcher(2).toString());
         Assertions.assertEquals("[L;3]",longArrayMatcher(3).toString());
         Assertions.assertEquals("[B;]",byteArrayMatcher().toString());
-        镍测试.镍日志.info("array matcher toString: {} {} {}",
+        镍测试._镍日志_.info("array matcher toString: {} {} {}",
                 byteArrayMatcher(1),intArrayMatcher(2),longArrayMatcher(3));
     }
 

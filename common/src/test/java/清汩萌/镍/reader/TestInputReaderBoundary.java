@@ -90,7 +90,7 @@ public final class TestInputReaderBoundary {
         Assertions.assertEquals(0,base.getCursor());//也不动祖
         Assertions.assertEquals("two",child.readToken());
         Assertions.assertEquals("one",base.readToken());
-        镍测试.镍日志.info("subReaderOfSubReaderTest passed, grand=[{}]",grand.getInput());
+        镍测试._镍日志_.info("subReaderOfSubReaderTest passed, grand=[{}]",grand.getInput());
     }
 
     /**
@@ -380,7 +380,7 @@ public final class TestInputReaderBoundary {
         Assertions.assertFalse(reader.canRead(Integer.MAX_VALUE));//cursor=1：溢出被检出，返回 false
         reader.read();
         Assertions.assertFalse(reader.canRead(Integer.MAX_VALUE));//cursor=2：同上
-        镍测试.镍日志.info("canReadOverflowTest passed, cursor={}",reader.getCursor());
+        镍测试._镍日志_.info("canReadOverflowTest passed, cursor={}",reader.getCursor());
     }
 
     /**
@@ -445,7 +445,7 @@ public final class TestInputReaderBoundary {
         Assertions.assertEquals(" rest",reader.readRemaining());//readRemaining 保留前导空白
         Assertions.assertEquals(36,reader.getCursor());
         Assertions.assertFalse(reader.canRead());
-        镍测试.镍日志.info("mixedSequenceScriptTest passed, cursor={}",reader.getCursor());
+        镍测试._镍日志_.info("mixedSequenceScriptTest passed, cursor={}",reader.getCursor());
     }
 
     /**

@@ -70,7 +70,7 @@ public final class TestSNBTFunctionRegistry extends 镍测试 {
     public static void loadAll(){
         SNBTOperations.loadFuncs(GoodProvider.class);
         SNBTOperations.loadFuncs(BadProvider.class);
-        镍测试.镍日志.info("SNBT 函数注册表已加载（测试 provider）");
+        镍测试._镍日志_.info("SNBT 函数注册表已加载（测试 provider）");
     }
 
     @Nonnull

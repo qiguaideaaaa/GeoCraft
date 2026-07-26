@@ -30,6 +30,7 @@ package 清汩萌.天圆地方.util;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.Resource;
 import io.github.classgraph.ScanResult;
+import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.Assertions;
 
 import javax.annotation.Nonnull;
@@ -44,69 +45,92 @@ import java.util.stream.Stream;
  * @author QGMoe
  */
 public final class ClassGraphUtils {
-    public static final String COMMON_ANSWER_FILE_EXT = "ans";
+    public static final String _一般答案文件扩展名_ = "ans";
 
     private ClassGraphUtils(){}
 
-    public static void findInputs(final @Nonnull String dataDir,
-                                  final @Nonnull String fileExt,
-                                  final @Nonnull IOBiConsumer<ScanResult, Resource> forEachInput){
-        try (final @Nonnull ScanResult scan = new ClassGraph().acceptPaths(dataDir).scan()){
-            findInputs(fileExt,scan,forEachInput);
-        }
-    }
-
     @SuppressWarnings("resource")
-    public static void findInputs(final @Nonnull String fileExt,
-                                  final @Nonnull ScanResult scan,
-                                  final @Nonnull IOBiConsumer<ScanResult, Resource> forEachInput){
-        scan.getResourcesWithExtension(fileExt)
-                .filter(r -> r.getPath().endsWith(".in."+fileExt))
-                .forEach(in -> {
-                    try {
-                        forEachInput.accept(scan,in);
-                    } catch (final @Nonnull Exception e) {
-                        Assertions.fail("error occurred when processing "+in.getPath(),e);
-                    }
-                });
-    }
-
-    @Nonnull
-    public static Resource getAnswerByInput(final @Nonnull String inputFileExt,final @Nonnull ScanResult scan,final @Nonnull Resource in){
-        return getAnswerByInput(inputFileExt,inputFileExt,scan,in);
-    }
-
-    @Nonnull
-    public static Resource getAnswerByInput(final @Nonnull String inputFileExt,final @Nonnull String ansFileExt,final @Nonnull ScanResult scan,final @Nonnull Resource in){
-        final String ansPre = "."+COMMON_ANSWER_FILE_EXT;
-        final String ansSuf = ansFileExt.isEmpty()?"":"."+ansFileExt;
-        final String outPath = in.getPath().replaceAll("\\.in\\."+inputFileExt+"$", ansPre+ansSuf);
-        return scan.getResourcesWithPath(outPath).get(0);
-    }
-
-    @Nonnull
-    public static Resource getAppendixByInput(final @Nonnull String inputFileExt,final @Nonnull String appendixFileExt,final @Nonnull ScanResult scan,final @Nonnull Resource in){
-        final String appendixSuf = appendixFileExt.isEmpty()?"":"."+appendixFileExt;
-        final String outPath = in.getPath().replaceAll("\\.in\\."+inputFileExt+"$", appendixSuf);
-        return scan.getResourcesWithPath(outPath).get(0);
-    }
-
-    @Nonnull
-    public static Stream<String> getLinesWithoutYAMLComments(final @Nonnull Resource resource) throws IOException {
-        final ArrayList<String> lines = new ArrayList<>();
-        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(resource.open(), StandardCharsets.UTF_8))){
-            String line;
-            while ((line = reader.readLine()) != null) lines.add(line.split("#",2)[0]);
+    public static void 寻找样例输入(final @Nonnull String $样例目录,
+                                    final @Nonnull String $扩展名,
+                                    final @Nonnull IOBiConsumer<ScanResult, Resource> $处理器){
+        try (final @Nonnull ScanResult scan = new ClassGraph().acceptPaths($样例目录).scan()){
+            scan.getResourcesWithExtension($扩展名)
+                    .filter(r -> r.getPath().endsWith(".in."+$扩展名))
+                    .forEach(r -> {
+                        try {
+                            $处理器.accept(scan, r);
+                        } catch (final @Nonnull Exception e) {
+                            Assertions.fail("在处理资源 "+r.getPath() +" 时出现错误",e);
+                        }
+                    });
         }
-        return lines.stream();
+    }
+
+    public static void 寻找特定类型文件(final @Nonnull String $样例目录,
+                                        final @Nonnull String $扩展名,
+                                        final @Nonnull IOBiConsumer<ScanResult, Resource> $处理器){
+        try (final @Nonnull ScanResult scan = new ClassGraph().acceptPaths($样例目录).scan()){
+            scan.getResourcesWithExtension($扩展名)
+                    .forEach(r -> {
+                        try {
+                            $处理器.accept(scan,r);
+                        } catch (final @Nonnull Exception e) {
+                            Assertions.fail("在处理资源 "+r.getPath() +" 时出现错误",e);
+                        }
+                    });
+        }
     }
 
     @Nonnull
-    public static Stream<String> getLinesWithoutJSONComments(final @Nonnull Resource resource) throws IOException {
+    public static Resource 基于样例输入获取答案(final @Nonnull ScanResult $扫描结果, final @Nonnull Resource r){
+        return 基于样例输入获取答案(FilenameUtils.getExtension(r.getPath()),$扫描结果,r);
+    }
+
+    @Nonnull
+    public static Resource 基于样例输入获取一般答案(final @Nonnull ScanResult $扫描结果, final @Nonnull Resource r){
+        return 基于样例输入获取答案("",$扫描结果,r);
+    }
+
+    @Nonnull
+    public static Resource 基于样例输入获取答案(final @Nonnull String $答案扩展名, final @Nonnull ScanResult $扫描结果, final @Nonnull Resource $输入){
+        final String $答案二级扩展 = "."+ _一般答案文件扩展名_;
+        final String $答案一级扩展 = $答案扩展名.isEmpty()?"":"."+$答案扩展名;
+        return 基于资源路径替换得到新资源($扫描结果,$输入,"\\.in\\."+ FilenameUtils.getExtension($输入.getPath()) +"$",$答案二级扩展+$答案一级扩展);
+    }
+
+    @Nonnull
+    public static Resource 基于样例输入获取指定类型文件(final @Nonnull String $扩展名, final @Nonnull ScanResult $扫描结果, final @Nonnull Resource $输入){
+        return 基于资源路径替换得到新资源($扫描结果,$输入,"\\.in\\."+FilenameUtils.getExtension($输入.getPath())+"$",$扩展名.isEmpty()?"":"."+$扩展名);
+    }
+
+    @Nonnull
+    public static Resource 基于样例文件获取指定类型文件(final @Nonnull String $扩展名, final @Nonnull ScanResult $扫描结果, final @Nonnull Resource $输入){
+        return 基于资源路径替换得到新资源($扫描结果,$输入,"\\."+FilenameUtils.getExtension($输入.getPath())+"$",$扩展名.isEmpty()?"":"."+$扩展名);
+    }
+
+    @Nonnull
+    public static Resource 基于资源路径替换得到新资源(final @Nonnull ScanResult $扫描结果, final @Nonnull Resource $输入, final @Nonnull String regex,final @Nonnull String $替换){
+        final String $文件路径 = $输入.getPath().replaceAll(regex, $替换);
+        return $扫描结果.getResourcesWithPath($文件路径).get(0);
+    }
+
+    @Nonnull
+    public static Stream<String> 获取去除YAML风格注释的文本(final @Nonnull Resource resource) throws IOException {
+        return 获取去除特定风格注释的文本(resource,"#");
+    }
+
+    @Nonnull
+    public static Stream<String> 获取去除Java风格注释的文本(final @Nonnull Resource resource) throws IOException {
+        return 获取去除特定风格注释的文本(resource,"//");
+    }
+
+
+    @Nonnull
+    public static Stream<String> 获取去除特定风格注释的文本(final @Nonnull Resource resource,final @Nonnull String $风格) throws IOException {
         final ArrayList<String> lines = new ArrayList<>();
         try (final BufferedReader reader = new BufferedReader(new InputStreamReader(resource.open(), StandardCharsets.UTF_8))){
             String line;
-            while ((line = reader.readLine()) != null) lines.add(line.split("//",2)[0]);
+            while ((line = reader.readLine()) != null) lines.add(line.split($风格,2)[0]);
         }
         return lines.stream();
     }

@@ -39,21 +39,21 @@ import java.util.Objects;
  * @author QGMoe
  */
 public final class 空间构造局 {
-    private static final HashMap<ResourceLocation, 空间构造器> $构造注册表 = new HashMap<>();
+    private static final HashMap<ResourceLocation, 空间构造器> _构造注册表_ = new HashMap<>();
 
     public static void 登记(final ResourceLocation id, final 空间构造器 $空间构造器){
-        final 空间构造器 $旧的 = $构造注册表.put(id,$空间构造器);
+        final 空间构造器 $旧的 = _构造注册表_.put(id,$空间构造器);
         if($旧的 != null) throw new IllegalArgumentException(id+" 已被占用");
     }
 
     @Nullable
     public static 空间构造器 查询(final @Nonnull ResourceLocation id){
-        return $构造注册表.get(Objects.requireNonNull(id));
+        return _构造注册表_.get(Objects.requireNonNull(id));
     }
 
     @Nonnull
     public static 空间构造器 需要(final @Nonnull ResourceLocation id){
-        final @Nullable 空间构造器 $器 = $构造注册表.get(id);
+        final @Nullable 空间构造器 $器 = _构造注册表_.get(id);
         if ($器 == null) throw new IllegalArgumentException("未知的空间构造器："+id);
         return $器;
     }

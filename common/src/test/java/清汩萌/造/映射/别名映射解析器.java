@@ -39,17 +39,17 @@ import java.util.HashMap;
  */
 public final class 别名映射解析器 implements 词块解析器{
 
-    private final HashMap<词块,IBlockState> 别名映射 = new HashMap<>();
+    private final HashMap<词块,IBlockState> $别名映射 = new HashMap<>();
 
     public void 映射别名(final @Nonnull 词块 $别名词块,final @Nonnull IBlockState state){
-        if(别名映射.containsKey($别名词块)) throw new IllegalArgumentException();
-        别名映射.put($别名词块,state);
+        if($别名映射.containsKey($别名词块)) throw new IllegalArgumentException();
+        $别名映射.put($别名词块,state);
     }
 
     @Nonnull
     @Override
     public IBlockState 解析(@Nonnull final 词块 $词块) {
-        final @Nullable IBlockState res = 别名映射.get($词块);
+        final @Nullable IBlockState res = $别名映射.get($词块);
         if(res == null) throw new IllegalArgumentException("无法解析 "+$词块);
         return res;
     }

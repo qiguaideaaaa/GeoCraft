@@ -219,6 +219,6 @@ public final class TestNBTMatcherList {
         dup.expect(new NBTIntMatcher(1));
         dup.expect(new NBTIntMatcher(1));
         Assertions.assertEquals(1,dup.toNBT().tagCount()); //去重后只剩一个元素
-        镍测试.镍日志.info("list matcher a={} dup={}",a,dup);
+        镍测试._镍日志_.info("list matcher a={} dup={}",a,dup);
     }
 }

@@ -114,7 +114,7 @@ public final class 映射器 {
             Assertions.assertNotNull(state);
 
             final 词块 $词块 = 词块.of($原始词块);
-            造.LOGGER.info("{} 从 {} 中映射了 {} <-> {}",$名称,field.getDeclaringClass().getName(),$词块,state);
+            造._日志_.info("{} 从 {} 中映射了 {} <-> {}",$名称,field.getDeclaringClass().getName(),$词块,state);
             设定标准映射($词块,state);
         } catch (final IllegalAccessException e) {
             Assertions.fail(e);
@@ -132,7 +132,7 @@ public final class 映射器 {
             final @Nonnull 词块解析器 $解析器 = $词块.是多字主体()? $多字别名解析表.computeIfAbsent($词块.获取多字主体(),k -> new 别名映射解析器()):
                     $单字别名解析表.computeIfAbsent($词块.获取单字主体(),k -> new 别名映射解析器());
             if($解析器 instanceof 别名映射解析器){
-                造.LOGGER.info("{} 从 {} 中映射了 {} -> {}",$名称,field.getDeclaringClass().getName(),$词块,state);
+                造._日志_.info("{} 从 {} 中映射了 {} -> {}",$名称,field.getDeclaringClass().getName(),$词块,state);
                 ((别名映射解析器)$解析器).映射别名($词块,state);
             }else throw new IllegalArgumentException($词块.获取主体() + " 已经拥有了一个自定义的词块解析器");
         } catch (final IllegalAccessException e) {
@@ -145,13 +145,13 @@ public final class 映射器 {
         try {
             final 词块解析器 $解析器 = (词块解析器) field.get(null);
             if($解析器 == null){
-                造.LOGGER.warn("{} 在解析 {} 时遇到了取值为 NULL 的解析器 {}",$名称,field.getDeclaringClass().getName(),field.getName());
+                造._日志_.warn("{} 在解析 {} 时遇到了取值为 NULL 的解析器 {}",$名称,field.getDeclaringClass().getName(),field.getName());
             }else if(field.isAnnotationPresent(映射.用于.class)){
                 final 映射.用于 $目标 = field.getAnnotation(映射.用于.class);
                 final String[] targets = $目标.value();
                 for(final String t:targets) 设定解析器(主体工具.需要合法主体(t),$解析器);
             }else{
-                造.LOGGER.error("{} 在解析 {} 时遇到了未设定目标的解析器 {}",$名称,field.getDeclaringClass().getName(),field.getName());
+                造._日志_.error("{} 在解析 {} 时遇到了未设定目标的解析器 {}",$名称,field.getDeclaringClass().getName(),field.getName());
             }
         } catch (final IllegalAccessException e) {
             Assertions.fail(e);

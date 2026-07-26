@@ -123,7 +123,7 @@ public final class TestInputReaderToken {
     public void readTokenTest(final @Nonnull String input,final @Nonnull String expected,final int cursorAfter){
         final @Nonnull InputReader reader = new InputReader(input);
         final @Nonnull String token = reader.readToken();
-        镍测试.镍日志.info("readTokenTest input=[{}] token=[{}] cursor={}",input,token,reader.getCursor());
+        镍测试._镍日志_.info("readTokenTest input=[{}] token=[{}] cursor={}",input,token,reader.getCursor());
         Assertions.assertEquals(expected,token);
         Assertions.assertEquals(cursorAfter,reader.getCursor());
     }
@@ -229,7 +229,7 @@ public final class TestInputReaderToken {
     public void readStringTest(final @Nonnull String input,final @Nonnull String expected) throws Exception {
         final @Nonnull InputReader reader = new InputReader(input);
         final @Nonnull String result = reader.readString();
-        镍测试.镍日志.info("readStringTest input=[{}] result=[{}]",input,result);
+        镍测试._镍日志_.info("readStringTest input=[{}] result=[{}]",input,result);
         Assertions.assertEquals(expected,result);
     }
 

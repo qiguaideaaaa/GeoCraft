@@ -27,6 +27,10 @@
 
 package 清汩萌.造.空间;
 
+import moe.qingu.geocraft.api.util.math.vec.MBlockPos;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
@@ -49,5 +53,40 @@ public final class 空间工具 {
         $日志.info("网格默认构造器名：{}",$网格.获取默认构造器名称() == null?"NULL":$网格.获取默认构造器名称());
         $日志.info("网格使用/附加映射：{}",$网格.获取默认映射器名称集合()==null?"{}":$网格.获取默认映射器名称集合());
         $日志.info("默认方块：{}",$网格.获取默认填充方块()==null?"NULL":$网格.获取默认填充方块());
+    }
+
+    public static void 导入世界(final @Nonnull World world, final @Nonnull BlockPos $基点, final @Nonnull IBlockState[][][] $网格){
+        final MBlockPos pos = new MBlockPos($基点);
+        for(int dy=0;dy<$网格.length;dy++){
+            final IBlockState[][] $层 = $网格[dy];
+            if($层 == null) continue;
+            for(int dz=0;dz<$层.length;dz++){
+                final IBlockState[] $行 = $层[dz];
+                if($行 == null) continue;
+                for(int dx=0;dx<$行.length;dx++){
+                    final IBlockState $块 = $行[dx];
+                    if($块 == null) continue;
+                    pos.setPos($基点.getX()+dx,$基点.getY()+dy,$基点.getZ()+dz);
+                    world.setBlockState(pos,$块);
+                }
+            }
+        }
+    }
+
+    @Nonnull
+    public static IBlockState[][][] 导出世界(final @Nonnull World world, final @Nonnull BlockPos $基点, final int $层数,final int $行数,final int $列数){
+        final MBlockPos pos = new MBlockPos($基点);
+        final IBlockState[][][] $网格 = new IBlockState[$层数][][];
+        for(int dy=0;dy<$网格.length;dy++){
+            final IBlockState[][] $层 = $网格[dy] = new IBlockState[$行数][];
+            for(int dz=0;dz<$层.length;dz++){
+                final IBlockState[] $行 = $层[dz] = new IBlockState[$列数];
+                for(int dx=0;dx<$行.length;dx++){
+                    pos.setPos($基点.getX()+dx,$基点.getY()+dy,$基点.getZ()+dz);
+                    $行[dx] = world.getBlockState(pos);
+                }
+            }
+        }
+        return $网格;
     }
 }

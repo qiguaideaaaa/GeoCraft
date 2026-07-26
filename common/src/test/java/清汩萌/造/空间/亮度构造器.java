@@ -43,8 +43,9 @@ import java.util.stream.IntStream;
 /**
  * @author QGMoe
  */
+@SuppressWarnings("unused")
 public final class 亮度构造器 {
-    public static final 亮度构造器 $亮度构造器 = new 亮度构造器();
+    public static final 亮度构造器 _亮度构造器_ = new 亮度构造器();
     public static final byte 零 = 0;
     public static final byte 一 = 1;
     public static final byte 二 = 2;
@@ -124,7 +125,7 @@ public final class 亮度构造器 {
     }
 
     public void 打印(final @Nonnull byte[][][] $网格){
-        打印($网格, 造.LOGGER);
+        打印($网格, 造._日志_);
     }
 
     public void 打印(final @Nonnull byte[][][] $网格, final @Nonnull Logger logger){

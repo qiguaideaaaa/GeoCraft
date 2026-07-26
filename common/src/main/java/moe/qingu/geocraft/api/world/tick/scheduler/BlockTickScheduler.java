@@ -40,7 +40,6 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -64,6 +63,12 @@ public abstract class BlockTickScheduler implements ICapabilityProvider {
 
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     public abstract boolean schedule(final @Nonnull BlockPos pos, final @Nonnull Block block, final int delay, final @Nonnull TickPriority priority);
+
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
+    public boolean schedule(final @Nonnull IScheduledTick tick){
+        final long diff = tick.triggeredTick()-this.world.getTotalWorldTime();
+        return this.schedule(tick.pos(),tick.block(),(int) diff == diff ? (int) diff : Integer.MIN_VALUE,tick.priority());
+    }
 
     @Nonnull
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
@@ -121,7 +126,7 @@ public abstract class BlockTickScheduler implements ICapabilityProvider {
     }
 
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public static void onWorldTick(@Nonnull final WorldServer world){
+    public static void onWorldTick(@Nonnull final World world){
         final BlockTickScheduler scheduler = getScheduler(world);
         if(scheduler == null) return;
         scheduler.update();

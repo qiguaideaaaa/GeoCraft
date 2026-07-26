@@ -52,10 +52,10 @@ import java.util.stream.Stream;
  * @author QiguaiAAAA
  */
 public final class 格文件 {
-    public static final String 扩展名 = "格";
+    public static final String _扩展名_ = "格";
     private static final Function<Object,String> STRIPE = o -> StringUtil.strip(o.toString());
-    private static final int[] $关键字 = "略用".codePoints().toArray();
-    private static final @Nonnull IntOpenHashSet $关键字集合 = new IntOpenHashSet($关键字,1.0f);
+    private static final int[] _关键字_ = "略用".codePoints().toArray();
+    private static final @Nonnull IntOpenHashSet _关键字集合_ = new IntOpenHashSet(_关键字_,1.0f);
 
     private int $版本;
     private @Nullable Map<String,Object> $头部信息;
@@ -64,19 +64,19 @@ public final class 格文件 {
     private @Nullable Map<String,Object> $附加数据;
 
     static {
-        $关键字集合.trim();
+        _关键字集合_.trim();
     }
 
     private 格文件(){};
 
     public static boolean 是关键字(final int codePoint){
-        return $关键字集合.contains(codePoint);
+        return _关键字集合_.contains(codePoint);
     }
 
     @Nonnull
     public static Stream<格文件> 获取目录下所有格文件(final @Nonnull String path){
         try (final @Nonnull ScanResult scan = new ClassGraph().acceptPaths(path).scan()){
-            return scan.getResourcesWithExtension(格文件.扩展名).stream()
+            return scan.getResourcesWithExtension(格文件._扩展名_).stream()
                     .map(in -> 解析(new File(in.getURI())));
         }
     }
@@ -138,7 +138,7 @@ public final class 格文件 {
             final @Nonnull Object o = 造.YAML.load(builder.toString());
             if(o instanceof Map) return (Map<String, Object>) o;
             else{
-                造.LOGGER.fatal("解析 YAML 失败: {} 不是一个有效的映射表",builder.toString());
+                造._日志_.fatal("解析 YAML 失败: {} 不是一个有效的映射表",builder.toString());
                 throw new IllegalArgumentException();
             }
         }else return null;
@@ -207,7 +207,7 @@ public final class 格文件 {
                     $网格.期望($大小.get($参数.ordinal()),$参数);
             $附加数据 = (Map<String,Object>) $头部信息.get("ext");
 
-            空间工具.打印元数据(造.LOGGER,$网格);
+            空间工具.打印元数据(造._日志_,$网格);
         }else{
             throw new RuntimeException(); //TODO
         }

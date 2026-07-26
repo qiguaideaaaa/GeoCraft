@@ -274,7 +274,7 @@ public final class TestNBTPathMethods extends 镍测试 {
         final List<NBTBase> res = resolve("mixed.cl-custom-echo()");
         Assertions.assertEquals(1,res.size());
         Assertions.assertSame(root.getTag("mixed"),res.get(0)); //args[0] 即当前标签
-        镍测试.镍日志.info("自定义方法 cl-custom-echo 求值结果：{}",res.get(0));
+        镍测试._镍日志_.info("自定义方法 cl-custom-echo 求值结果：{}",res.get(0));
     }
 
     /**

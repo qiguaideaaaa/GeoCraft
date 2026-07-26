@@ -117,7 +117,7 @@ public final class TestNBTMatcherConvert {
     @MethodSource("pullDataForRoundTrip")
     public void roundTripMatchTest(final @Nonnull NBTBase nbt){
         final @Nonnull NBTMatcher<?> matcher = NBTMatcher.toMatcher(nbt);
-        镍测试.镍日志.info("roundTrip nbt={} matcher={}",nbt,matcher);
+        镍测试._镍日志_.info("roundTrip nbt={} matcher={}",nbt,matcher);
         Assertions.assertTrue(matcher.match(nbt),"matcher "+matcher+" should match its source "+nbt);
     }
 

@@ -45,9 +45,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.Mixins;
-import 清汩萌.天圆地方.assets.FluidPhysicsMocks;
-import 清汩萌.天圆地方.assets.MockBlocks;
-import 清汩萌.天圆地方.assets.MockFluids;
+import 清汩萌.天圆地方.原料.FluidPhysicsMocks;
+import 清汩萌.天圆地方.原料.方块原料;
+import 清汩萌.天圆地方.原料.流体原料;
 import 清汩萌.天圆地方.util.NullableArg;
 import 清汩萌.镍.镍测试;
 
@@ -65,7 +65,7 @@ import java.util.Objects;
 /**
  * @author QiguaiAAAA
  */
-@ExtendWith(天圆地方测试.SetupGeoTestExtension.class)
+@ExtendWith(天圆地方测试.测试环境准备.class)
 public class 天圆地方测试 extends 镍测试 {
     public static final String MODID = "天圆地方";
     private static byte stage = Stage.NO_INIT;
@@ -141,10 +141,10 @@ public class 天圆地方测试 extends 镍测试 {
             }
         }
 
-        MockBlocks.BUILDER.getClass(); //force Load
+        方块原料._全构造器_.getClass(); //force Load
 
         LOGGER.info("Initialising Fluids");
-        MockFluids.initMinecraftFluids();
+        流体原料.initMinecraftFluids();
 
         LOGGER.info("Initialising GeoCraft");
         FluidPhysicsMocks.initFluidPhysicsMode();
@@ -183,6 +183,7 @@ public class 天圆地方测试 extends 镍测试 {
             } else methodParaments[i] = requireTransferSafely(toPrimitiveIfNumber(data[i].getClass()), Launch.classLoader);
         }
         final @Nonnull Method entryPoint = entryCls.getMethod(testEntryPoint,methodParaments);
+        entryPoint.setAccessible(true);
         entryPoint.invoke(null,data);
     }
 
@@ -210,7 +211,7 @@ public class 天圆地方测试 extends 镍测试 {
         throw new IllegalArgumentException(cls.getName() +" can't be transfer safely across classloader "+target.getClass().getName());
     }
 
-    public static final class SetupGeoTestExtension implements BeforeAllCallback{
+    static final class 测试环境准备 implements BeforeAllCallback{
 
         @Override
         public void beforeAll(ExtensionContext context) throws Exception {
@@ -222,6 +223,7 @@ public class 天圆地方测试 extends 镍测试 {
         run(this.getClass().getName(),methodName);
     }
 
+    @SuppressWarnings("JUnit3StyleTestMethodInJUnit4Class")
     public void test() throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         run(this.getClass().getName(),Thread.currentThread().getStackTrace()[2].getMethodName()+"_Inner");
     }

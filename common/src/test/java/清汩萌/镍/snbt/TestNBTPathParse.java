@@ -67,14 +67,14 @@ public final class TestNBTPathParse extends 镍测试 {
                     CommandException.class,
                     () -> NBTPathTestSupport.parse(c.input)
             );
-            镍测试.镍日志.info("解析用例[{}] 输入=<{}> 报错类型={}",c.name,c.input,e.getClass().getSimpleName());
+            镍测试._镍日志_.info("解析用例[{}] 输入=<{}> 报错类型={}",c.name,c.input,e.getClass().getSimpleName());
             if(c.errorKey != null) NBTPathTestSupport.assertInfoHasKey(e,c.errorKey);
             return;
         }
         try{
             final InputReader input = NBTPathTestSupport.readerOf(c.input);
             final NBTPath path = NBTPathReader.readPathFromInput(input);
-            镍测试.镍日志.info("解析用例[{}] 输入=<{}> 结果=<{}>",c.name,c.input,path);
+            镍测试._镍日志_.info("解析用例[{}] 输入=<{}> 结果=<{}>",c.name,c.input,path);
             if(c.expected != null) Assertions.assertEquals(c.expected,path.toString(),"用例："+c.name);
             if(c.length != null) Assertions.assertEquals(c.length.intValue(),path.length(),"用例："+c.name);
             if(c.remaining != null) Assertions.assertEquals(c.remaining,input.getSubInput(input.getCursor()),"用例："+c.name);

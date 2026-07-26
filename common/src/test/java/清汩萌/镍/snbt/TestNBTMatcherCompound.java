@@ -129,6 +129,6 @@ public final class TestNBTMatcherCompound {
         final @Nonnull NBTCompoundMatcher quoted = new NBTCompoundMatcher();
         quoted.expectByte("a b",(byte)1);
         Assertions.assertEquals("{\"a b\":1b}",quoted.toString());
-        镍测试.镍日志.info("compound matcher toString: {} / {}",a,quoted);
+        镍测试._镍日志_.info("compound matcher toString: {} / {}",a,quoted);
     }
 }

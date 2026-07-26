@@ -7,6 +7,15 @@
     "upon": {
       "type": "string"
     },
+    "使用网格坐标": {
+      "type": "boolean"
+    },
+    "原点": {
+      "type": "array",
+      "minLength": 3,
+      "maxLength": 3,
+      "items": {"type": "integer"}
+    },
     "time": {
       "type": "integer"
     },
@@ -15,16 +24,13 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["x","y","z","块","时"],
+        "required": ["于","块","时"],
         "properties": {
-          "x": {
-            "type": "integer"
-          },
-          "y": {
-            "type": "integer"
-          },
-          "z": {
-            "type": "integer"
+          "于": {
+            "type": "array",
+            "minLength": 3,
+            "maxLength": 3,
+            "items": {"type": "integer"}
           },
           "块": {
             "type": "string"

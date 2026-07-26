@@ -103,7 +103,7 @@ public final class 空间构造器 {
     }
 
     public void 打印(final @Nonnull IBlockState[][][] $网格){
-        打印($网格,造.LOGGER);
+        打印($网格,造._日志_);
     }
 
     public void 打印(final @Nonnull IBlockState[][][] $网格, final @Nonnull Logger logger){

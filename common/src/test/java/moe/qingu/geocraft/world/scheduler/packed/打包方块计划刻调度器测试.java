@@ -1,0 +1,129 @@
+/*
+ * Copyright 2026 QGMoe
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * 版权所有 2026 QGMoe
+ * 根据Apache许可证第2.0版（“本许可证”）许可；
+ * 除非符合本许可证的规定，否则你不得使用此文件。
+ * 你可以在此获取本许可证的副本：
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 除非所适用法律要求或经书面同意，在本许可证下分发的软件是“按原样”分发的，
+ * 没有任何形式的担保或条件，不论明示或默示。
+ * 请查阅本许可证了解有关本许可证下许可和限制的具体要求。
+ * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
+ */
+
+package moe.qingu.geocraft.world.scheduler.packed;
+
+import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
+import moe.qingu.geocraft.world.scheduler.方块计划刻调度器测试;
+import moe.qingu.geocraft.world.scheduler.计划刻数据;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.util.math.BlockPos;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import 清汩萌.天圆地方.util.ClassGraphUtils;
+import 清汩萌.天圆地方.util.网格工具;
+import 清汩萌.天圆地方.世界.模拟区块世界;
+import 清汩萌.天圆地方.世界.沙盒.测试参数;
+import 清汩萌.天圆地方.世界.沙盒.沙盒测试样例;
+import 清汩萌.天圆地方.世界.配置.模拟世界配置;
+import 清汩萌.造.格文件;
+import 清汩萌.造.空间.空间工具;
+import 清汩萌.造.空间.空间构造器;
+import 清汩萌.造.空间.词块网格;
+import 清汩萌.造.造;
+
+import javax.annotation.Nonnull;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static 清汩萌.天圆地方.原料.方块原料.方块计划刻测试方块.猹;
+
+/**
+ * @author QGMoe
+ */
+public final class 打包方块计划刻调度器测试 extends 方块计划刻调度器测试 {
+
+    @ParameterizedTest
+    @MethodSource("为测试方块调度准备数据")
+    public void 测试方块调度(final @Nonnull 方块调度测试样例 $样例) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        test(new Object[]{网格工具.打包网格数据($样例.$网格),$样例.$计划刻数据,$样例.$时长});
+    }
+
+    public static final class 方块调度测试样例 extends 沙盒测试样例 {
+        @测试参数(键 = "duration") int $时长;
+        final String $计划刻数据;
+
+        方块调度测试样例(@Nonnull final 格文件 $格文件, @Nonnull final String $计划刻数据) {
+            super($格文件);
+            this.$计划刻数据 = $计划刻数据;
+        }
+    }
+
+    @Nonnull
+    public static Stream<方块调度测试样例> 为测试方块调度准备数据(){
+        final List<方块调度测试样例> $样例们 = new ArrayList<>();
+        ClassGraphUtils.寻找特定类型文件("data/world/schedule/packed/调度",格文件._扩展名_,(scan,$原始网格资源)->{
+            final String $计划刻数据 = ClassGraphUtils.基于样例文件获取指定类型文件("yaml",scan,$原始网格资源).getContentAsString();
+            $样例们.add(new 方块调度测试样例(格文件.解析($原始网格资源.getURI()),$计划刻数据));
+        });
+        return $样例们.stream();
+    }
+
+    @SuppressWarnings("unused")
+    public static void 测试方块调度_Inner(final @Nonnull Object[] $打包网格数据,final @Nonnull String $未解析的计划刻数据,final int $时长){
+        final @Nonnull 词块网格 $网格 = 网格工具.恢复网格数据($打包网格数据);
+        final @Nonnull 空间构造器 $构造器 = 获取或用默认构造器($网格);
+        if($网格.获取默认填充方块() == null) $网格.默认用("〇");
+        final @Nonnull 计划刻数据 $计划刻数据 = 造.YAML.loadAs($未解析的计划刻数据,计划刻数据.class);
+        $计划刻数据.初始化();
+        final @Nonnull 模拟区块世界 $世界 = 模拟区块世界.构建(模拟世界配置.create(b -> b.withTotalTime($计划刻数据.time)) ,false);
+        final PackedBlockTickScheduler scheduler = new PackedBlockTickScheduler($世界);
+        BlockTickScheduler.getSchedulers().put($世界.provider.getDimension(),scheduler);
+        $世界.getChunkProvider().监听区块创建(c -> c.获取聚合能力().注册(new PackedBlockTickDatum()));
+        空间工具.导入世界($世界,$计划刻数据.获取基点(),$网格.构造($构造器));
+        $计划刻数据.ticks.forEach(scheduler::schedule);
+        int left = $时长;
+        while (left-->0){
+            BlockTickScheduler.onWorldTick($世界);
+            $世界.setTotalWorldTime($世界.getTotalWorldTime()+1L);
+        }
+        final IBlockState[][][] $结果 = 空间工具.导出世界($世界,$计划刻数据.获取基点(),$网格.获取层数(),$网格.获取行数(),$网格.获取列数());
+        $构造器.打印($结果,LOGGER);
+        final List<BlockPos> $不合法位置 = new ArrayList<>();
+        for(int $层=1;$层<=$结果.length;$层++) for(int $行=1;$行<=$结果.length;$行++) for(int $列=1;$列<=$结果.length;$列++)
+            if($结果[$层-1][$行-1][$列-1].getBlock() == 猹.getBlock()) $不合法位置.add(new BlockPos($层,$行,$列));
+        if($不合法位置.isEmpty()) return;
+        Assertions.fail($不合法位置.stream()
+                .map(p -> "在第 "+p.getX()+" 层第 "+p.getY()+" 行第 "+p.getZ()+" 列的方块仍然是 " + $构造器.进行映射($结果[p.getX()-1][p.getY()-1][p.getZ()-1]))
+                .collect(Collectors.joining("\n")));
+    }
+
+    @AfterEach
+    public void 结束测试方块调度() throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        test();
+    }
+
+    @SuppressWarnings("unused")
+    public static void 结束测试方块调度_Inner() throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        BlockTickScheduler.onServerStop();
+    }
+}

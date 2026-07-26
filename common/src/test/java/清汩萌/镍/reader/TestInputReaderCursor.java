@@ -248,7 +248,7 @@ public final class TestInputReaderCursor {
         Assertions.assertEquals('天',reader.read());
         Assertions.assertEquals('圆',reader.peek());
         Assertions.assertEquals("圆地",reader.getSubInput(1,3));
-        镍测试.镍日志.info("chineseCodepointTest passed, length={}",reader.getLength());
+        镍测试._镍日志_.info("chineseCodepointTest passed, length={}",reader.getLength());
     }
 
     /**

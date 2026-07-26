@@ -44,20 +44,20 @@ public final class YamlUtil {
     public static String getString(final @Nonnull Map<String,Object> data,final @Nonnull String key){
         return Optional.ofNullable(Objects.requireNonNull(data).get(Objects.requireNonNull(key)))
                 .map(Object::toString)
-                .orElseThrow(() -> new IllegalArgumentException(key + " not found"));
+                .orElseThrow(() -> new 无参异常(key + " not found"));
     }
 
     public static boolean getBool(final @Nonnull Map<String,Object> data,final @Nonnull String key){
         return Optional.ofNullable(Objects.requireNonNull(data).get(Objects.requireNonNull(key)))
                 .filter(o -> o instanceof Boolean)
                 .map(o -> (Boolean)o)
-                .orElseThrow(() -> new IllegalArgumentException(key + " not found"));
+                .orElseThrow(() -> new 无参异常(key + " not found"));
     }
 
     public static int getInt(final @Nonnull Map<String,Object> data,final @Nonnull String key){
         return Optional.ofNullable(Objects.requireNonNull(data).get(Objects.requireNonNull(key)))
                 .map(o -> Integer.parseInt(o.toString()))
-                .orElseThrow(() -> new IllegalArgumentException(key + " not found"));
+                .orElseThrow(() -> new 无参异常(key + " not found"));
     }
 
     @SuppressWarnings("unchecked")
@@ -78,7 +78,7 @@ public final class YamlUtil {
         return Optional.ofNullable(Objects.requireNonNull(data).get(Objects.requireNonNull(key)))
                 .filter(o -> Objects.requireNonNull(type).isAssignableFrom(o.getClass()))
                 .map(type::cast)
-                .orElseThrow(() -> new IllegalArgumentException(key + " not found"));
+                .orElseThrow(() -> new 无参异常(key + " not found"));
     }
 }
 

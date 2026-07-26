@@ -29,8 +29,10 @@ package moe.qingu.geocraft.world.scheduler;
 
 import moe.qingu.geocraft.api.world.tick.IScheduledTick;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Assertions;
 import 清汩萌.天圆地方.天圆地方测试;
+import 清汩萌.造.空间.空间工具;
 import 清汩萌.造.空间.空间构造器;
 import 清汩萌.造.管理.空间构造局;
 
@@ -45,11 +47,16 @@ import java.util.List;
 public final class 计划刻数据 {
     public String upon = 天圆地方测试.MODID+":scheduler";
     public long time = 0L;
+    public int[] $原点 = new int[]{0,0,0};
+    public boolean $使用网格坐标 = false;
     public List<可测试的计划刻> ticks = Collections.emptyList();
+    private BlockPos $基点;
 
     public void 初始化(){
+        if($使用网格坐标) $原点 = 空间工具.转换为游戏坐标($原点);
+        this.$基点 = new BlockPos($原点[0], $原点[1], $原点[2]);
         final 空间构造器 $空间构造器 = 空间构造局.需要(new ResourceLocation(upon));
-        for(final 可测试的计划刻 $刻:ticks) $刻.初始化($空间构造器);
+        for(final 可测试的计划刻 $刻:ticks) $刻.初始化($空间构造器, $原点, $使用网格坐标);
     }
 
     public void 假设相等(final @Nonnull List<? extends IScheduledTick> $实际){
@@ -67,5 +74,22 @@ public final class 计划刻数据 {
             Assertions.fail("出现不存在于答案的计划刻："+tick);
         }
         if(!ticks.isEmpty()) Assertions.fail("出现不存在于输出的计划刻："+ticks);
+    }
+
+    @Nonnull
+    public BlockPos 获取基点() {
+        return $基点;
+    }
+
+    /*  ---------------------------
+             Setter 用于 YAML
+        --------------------------- */
+
+    public void set原点(final @Nonnull int[] $原点) {
+        this.$原点 = $原点;
+    }
+
+    public void set使用网格坐标(final boolean $网格坐标) {
+        this.$使用网格坐标 = $网格坐标;
     }
 }

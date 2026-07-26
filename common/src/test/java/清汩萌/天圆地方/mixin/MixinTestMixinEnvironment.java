@@ -31,7 +31,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import 清汩萌.天圆地方.tests.TestMixinEnvironment;
+import 清汩萌.天圆地方.测试.TestMixinEnvironment;
 
 import javax.annotation.Nonnull;
 

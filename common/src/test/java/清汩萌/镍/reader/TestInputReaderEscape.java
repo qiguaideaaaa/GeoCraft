@@ -106,7 +106,7 @@ public final class TestInputReaderEscape {
     public void readEscapeHexTest(final @Nonnull String body,final int expected) throws Exception {
         final @Nonnull InputReader reader = new InputReader(body);
         final int cp = reader.readEscape();
-        镍测试.镍日志.info("readEscapeHexTest body=[{}] cp={}",body,cp);
+        镍测试._镍日志_.info("readEscapeHexTest body=[{}] cp={}",body,cp);
         Assertions.assertEquals(expected,cp);
         Assertions.assertFalse(reader.canRead());//恰好消费完
     }

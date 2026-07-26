@@ -437,7 +437,7 @@ public final class TestNBTPathModify extends 镍测试 {
     public void initNestedCompoundTest() throws CommandException {
         final NBTTagCompound blank = new NBTTagCompound();
         final List<NBTBase> res = path("a.b.c").init(blank);
-        镍测试.镍日志.info("init a.b.c 结果数={} 树={}",res.size(),blank);
+        镍测试._镍日志_.info("init a.b.c 结果数={} 树={}",res.size(),blank);
         Assertions.assertTrue(res.isEmpty()); //init 只补建父级，末键 c 不建
         Assertions.assertTrue(blank.getCompoundTag("a").hasKey("b")); //a.b 已补建
         Assertions.assertEquals(1,path("a.b.c").set(blank,new NBTTagInt(1),false)); //init 后 set 直接成功

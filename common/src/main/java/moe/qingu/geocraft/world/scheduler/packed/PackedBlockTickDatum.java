@@ -66,7 +66,8 @@ public final class PackedBlockTickDatum extends ChunkyBlockTickDatum {
                 queue = new HeapPackedBlockTickQueue();
                 queue.baseTime = worldTotalTime;
             }else if(Long.compareUnsigned(worldTotalTime - queue.baseTime, 2147483647L) > 0) queue.updateBaseTime(worldTotalTime);
-            queue.queue(cx,cy,cz,blockID,worldTotalTime+delay-queue.baseTime,priority.ordinal());
+            final long offset = worldTotalTime-queue.baseTime+delay; // worldTotalTime-baseTime 为 [0,2^31-1]
+            queue.queue(cx,cy,cz,blockID, Math.max(offset, 0L),priority.ordinal());
         }finally {
             lock.unlock();
         }

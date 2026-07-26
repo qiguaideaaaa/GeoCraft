@@ -35,11 +35,11 @@ import javax.annotation.Nonnull;
  * @author QiguaiAAAA
  */
 public final class 下标工具 {
-    private static final int[] $允许的下标字符 = "0123456789abcdefghijklmnopqrstuvwxyz".codePoints().toArray();
-    private static final @Nonnull IntOpenHashSet $允许的下标字符集合 = new IntOpenHashSet($允许的下标字符,1.0f);
+    private static final int[] _允许的下标字符_ = "0123456789abcdefghijklmnopqrstuvwxyz".codePoints().toArray();
+    private static final @Nonnull IntOpenHashSet _允许的下标字符集合_ = new IntOpenHashSet(_允许的下标字符_,1.0f);
 
     static {
-        $允许的下标字符集合.trim();
+        _允许的下标字符集合_.trim();
     }
 
     private 下标工具(){}
@@ -54,7 +54,7 @@ public final class 下标工具 {
     }
 
     public static boolean 是下标字符(final int codePoint){
-        return $允许的下标字符集合.contains(codePoint);
+        return _允许的下标字符集合_.contains(codePoint);
     }
 
     /**

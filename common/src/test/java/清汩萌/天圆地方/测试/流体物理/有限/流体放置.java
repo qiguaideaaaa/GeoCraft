@@ -1,0 +1,107 @@
+/*
+ * Copyright 2025 QiguaiAAAA
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * 版权所有 2025 QiguaiAAAA
+ * 根据Apache许可证第2.0版（“本许可证”）许可；
+ * 除非符合本许可证的规定，否则你不得使用此文件。
+ * 你可以在此获取本许可证的副本：
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 除非所适用法律要求或经书面同意，在本许可证下分发的软件是“按原样”分发的，
+ * 没有任何形式的担保或条件，不论明示或默示。
+ * 请查阅本许可证了解有关本许可证下许可和限制的具体要求。
+ * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
+ */
+
+package 清汩萌.天圆地方.测试.流体物理.有限;
+
+import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fluids.FluidStack;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import moe.qingu.geocraft.api.util.FluidUtil;
+import moe.qingu.geocraft.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
+import moe.qingu.geocraft.util.wrappers.FiniteBlockLiquidWrapper;
+import 清汩萌.天圆地方.util.网格工具;
+import 清汩萌.天圆地方.世界.沙盒.测试参数;
+import 清汩萌.天圆地方.天圆地方测试;
+import 清汩萌.天圆地方.世界.沙盒.数组沙盒;
+import 清汩萌.天圆地方.世界.沙盒.沙盒测试样例;
+import 清汩萌.造.工具.StringUtil;
+import 清汩萌.造.格文件;
+import 清汩萌.造.空间.空间构造器;
+import 清汩萌.造.空间.词块网格;
+import 清汩萌.造.词块.词块;
+
+import javax.annotation.Nonnull;
+import java.lang.reflect.InvocationTargetException;
+import java.util.stream.Stream;
+
+import static 清汩萌.天圆地方.原料.方块原料.原版流体.*;
+
+/**
+ * @author QiguaiAAAA
+ */
+public final class 流体放置 extends 有限模式测试 {
+    @ParameterizedTest
+    @MethodSource("为测试原版流体放置准备数据")
+    public void 测试原版流体放置(final @Nonnull 流体放置测试样例 data) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        test(new Object[]{网格工具.打包网格数据(data.$网格),
+                data.$放置位置,
+                data.$放置的流体方块.toString(),
+                data.$应当的放置结果});
+    }
+
+    public static final class 流体放置测试样例 extends 沙盒测试样例 {
+        @测试参数(键 = "at", 于 = "place", 型 = 测试参数.型.坐标) int[] $放置位置;
+        @测试参数(键 = "fluid", 于 = "place")                  词块 $放置的流体方块;
+        @测试参数(键 = "expected")                             boolean $应当的放置结果;
+
+        public 流体放置测试样例(final @Nonnull 格文件 $格文件) {
+            super($格文件);
+        }
+    }
+
+    @Nonnull
+    public static Stream<流体放置测试样例> 为测试原版流体放置准备数据(){
+        return 沙盒测试样例.寻找格样例输入("data/流体物理/有限/原版流体放置/", 流体放置测试样例::new);
+    }
+
+    @SuppressWarnings("unused")
+    public static void 测试原版流体放置_Inner(final @Nonnull Object[] $打包网格数据,
+                                            final @Nonnull int[] placePosRaw,
+                                            final @Nonnull String placementRaw,
+                                            final boolean expectedAbleToPlace){
+        final BlockPos placePos = new BlockPos(placePosRaw[0],placePosRaw[1],placePosRaw[2]);
+        final 词块网格 $网格 = 网格工具.恢复网格数据($打包网格数据);
+        final 空间构造器 $构造器 = 获取或用默认构造器($网格);
+        final @Nonnull 数组沙盒 sandbox = initWorldSandbox($网格,placePos);
+        final @Nonnull IBlockState state = $构造器.进行映射(词块.of(StringUtil.removeWhites(placementRaw)));
+        Assertions.assertFalse(state.getValue(BlockLiquid.LEVEL)>7);
+        天圆地方测试.LOGGER.info("{} block state is {}",placePos,world.getBlockState(placePos));
+
+        final @Nonnull FiniteFlowingVanilla flowing = getFlowingByMaterial(state.getMaterial());
+        final @Nonnull FiniteBlockLiquidWrapper wrapper = new FiniteBlockLiquidWrapper(flowing,world,placePos);
+        final int quanta = 8- state.getValue(BlockLiquid.LEVEL);
+        final int amount = quanta* FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
+        final int filledAmount = wrapper.fill(new FluidStack(flowing.fluid,amount),true);
+        天圆地方测试.LOGGER.info("Input Amount: {} mB, Filled Amount: {} mB",amount,filledAmount);
+        Assertions.assertEquals(expectedAbleToPlace,filledAmount==amount);
+        $构造器.打印(sandbox.getStructure());
+    }
+}

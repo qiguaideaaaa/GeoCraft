@@ -69,7 +69,7 @@ public final class TestSNBTReader {
     public void readTest(final @Nonnull SNBTTestSupport.SNBTCase data) throws CommandException {
         final NBTBase expected = SNBTTestSupport.buildExpected(data.expected);
         final NBTTagCompound actual = parse(data);
-        镍测试.镍日志.info("SNBT read case [{}] input={} expected={} actual={}",data,data.input,expected,actual);
+        镍测试._镍日志_.info("SNBT read case [{}] input={} expected={} actual={}",data,data.input,expected,actual);
         Assertions.assertEquals(expected,actual,"Failed case: "+data);
     }
 
@@ -90,7 +90,7 @@ public final class TestSNBTReader {
     @ParameterizedTest
     @MethodSource("pullDataForReadError")
     public void readErrorTest(final @Nonnull SNBTTestSupport.SNBTCase data){
-        镍测试.镍日志.info("SNBT read error case [{}] input={}",data,data.input);
+        镍测试._镍日志_.info("SNBT read error case [{}] input={}",data,data.input);
         Assertions.assertThrows(
                 NickelRuntimeException.class,
                 () -> parse(data),
@@ -135,7 +135,7 @@ public final class TestSNBTReader {
             expected = outer;
         }
         final NBTTagCompound actual = SNBTReader.readNBTFromInput(SNBTTestSupport.newInput(input));
-        镍测试.镍日志.info("deepNestingTest depth={} inputLength={}",depth,input.length());
+        镍测试._镍日志_.info("deepNestingTest depth={} inputLength={}",depth,input.length());
         Assertions.assertEquals(expected,actual);
     }
 
@@ -154,7 +154,7 @@ public final class TestSNBTReader {
         builder.append("]}");
         final NBTTagCompound actual = SNBTReader.readNBTFromInput(SNBTTestSupport.newInput(builder.toString()));
         final NBTTagList list = (NBTTagList) actual.getTag("l");
-        镍测试.镍日志.info("longListInputTest inputLength={} tagCount={}",builder.length(),list.tagCount());
+        镍测试._镍日志_.info("longListInputTest inputLength={} tagCount={}",builder.length(),list.tagCount());
         Assertions.assertEquals(size,list.tagCount());
         Assertions.assertEquals(0,list.getIntAt(0));
         Assertions.assertEquals(1145,list.getIntAt(1145));
@@ -171,7 +171,7 @@ public final class TestSNBTReader {
         final StringBuilder value = new StringBuilder(size);
         for(int i=0;i<size;i++) value.append((char) ('a'+i%26));
         final NBTTagCompound actual = SNBTReader.readNBTFromInput(SNBTTestSupport.newInput("{a:\""+value+"\"}"));
-        镍测试.镍日志.info("longStringInputTest valueLength={}",size);
+        镍测试._镍日志_.info("longStringInputTest valueLength={}",size);
         Assertions.assertEquals(new NBTTagString(value.toString()),actual.getTag("a"));
     }
 

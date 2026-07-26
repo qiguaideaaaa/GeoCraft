@@ -113,7 +113,7 @@ public final class TestNBTMatcherSNBT extends 镍测试 {
         final @Nonnull NBTTagCompound matcherNBT = SNBTReader.readNBTFromInput(newInput(c.matcherSNBT));
         final @Nonnull NBTTagCompound target = SNBTReader.readNBTFromInput(newInput(c.targetSNBT));
         final @Nonnull NBTCompoundMatcher matcher = NBTMatcher.toMatcher(matcherNBT,c.strict); //构造期设置，严格模式下重复期望才能保全
-        镍测试.镍日志.info("SNBT匹配用例[{}] matcher={} target={} expected={} strict={}",c.name,matcher,c.targetSNBT,c.expected,c.strict);
+        镍测试._镍日志_.info("SNBT匹配用例[{}] matcher={} target={} expected={} strict={}",c.name,matcher,c.targetSNBT,c.expected,c.strict);
         Assertions.assertEquals(c.expected,matcher.match(target),"用例："+c.name);
     }
 

@@ -39,21 +39,21 @@ import java.util.Objects;
  * @author QGMoe
  */
 public final class 映射局 {
-    private static final HashMap<ResourceLocation, 映射器> $映射注册表 = new HashMap<>();
+    private static final HashMap<ResourceLocation, 映射器> _映射注册表_ = new HashMap<>();
 
     public static void 登记(final @Nonnull 映射器 $映射器){
-        final 映射器 $旧的 = $映射注册表.put(Objects.requireNonNull($映射器).获取名称(),$映射器);
+        final 映射器 $旧的 = _映射注册表_.put(Objects.requireNonNull($映射器).获取名称(),$映射器);
         if($旧的 != null) throw new IllegalArgumentException($映射器.获取名称()+" 已被占用");
     }
 
     @Nullable
     public static 映射器 查询(final @Nonnull ResourceLocation id){
-        return $映射注册表.get(Objects.requireNonNull(id));
+        return _映射注册表_.get(Objects.requireNonNull(id));
     }
 
     @Nonnull
     public static 映射器 需要(final @Nonnull ResourceLocation id){
-        final @Nullable 映射器 $映射器 = $映射注册表.get(Objects.requireNonNull(id));
+        final @Nullable 映射器 $映射器 = _映射注册表_.get(Objects.requireNonNull(id));
         if ($映射器 == null) throw new IllegalArgumentException("未知的映射器："+id);
         return $映射器;
     }

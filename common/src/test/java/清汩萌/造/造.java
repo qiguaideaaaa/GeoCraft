@@ -37,6 +37,6 @@ import 清汩萌.造.Yaml.造YAML构建器;
  * @author QiguaiAAAA
  */
 public final class 造 {
-    public static final Logger LOGGER = LogManager.getLogger("造");
+    public static final Logger _日志_ = LogManager.getLogger("造");
     public static final Yaml YAML = new Yaml(new 造YAML构建器(new LoaderOptions()));
 }
