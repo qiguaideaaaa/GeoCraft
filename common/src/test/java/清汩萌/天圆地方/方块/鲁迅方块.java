@@ -96,7 +96,7 @@ public final class 鲁迅方块 extends Block {
 
     @Override
     public int getMetaFromState(final @Nonnull IBlockState state) {
-        return state.getValue(_方位模式_);
+        return state.getValue(_方位模式_) | (state.getValue(_增减模式_)?0b1000:0);
     }
 
 
