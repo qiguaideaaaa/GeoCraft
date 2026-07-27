@@ -149,8 +149,8 @@ public final class BoxedBlockTickScheduler extends ChunkyBlockTickScheduler<Boxe
                     ) datum.set.remove(tempArr[n++] = datum.queue.poll());
                     cot += n;
                     count += n;
-                    int j = n;
-                    while (j>0) consume(ebs,tempArr[--j]);
+                    for(int j=0;j<n;j++) //noinspection DataFlowIssue
+                        consume(ebs,tempArr[j]);
                 } while (n>0 && count < maxUpdateNum);
             }finally {
                 datum.lock.unlock();

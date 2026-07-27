@@ -28,6 +28,7 @@
 package 清汩萌.天圆地方.世界;
 
 import net.minecraft.profiler.Profiler;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.storage.WorldInfo;
 import 清汩萌.天圆地方.世界.区块.模拟区块提供器;
@@ -76,5 +77,10 @@ public class 模拟区块世界 extends 模拟世界 {
     @Override
     protected boolean isChunkLoaded(final int x,final int z,final boolean allowEmpty) {
         return true;
+    }
+
+    @Override
+    public boolean checkLight(final @Nonnull BlockPos pos) {
+        return false;
     }
 }
