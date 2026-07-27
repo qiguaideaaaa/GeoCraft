@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=../../data.schema.json
 # Claude Generated
-# 世界时间距 2^64≡0 回卷点仅 10 刻：
-# 第一条的触发刻越过回卷点回到小正数，环差不受影响，delay 位段照常写出
+# 世界时间距 2^64≡0 归零点仅 10 刻：
+# 第一条的触发刻越过归零点回到小正数，时间差不受影响，存储的 delay 照常写出
 
 time: 18446744073709551606
 ticks:

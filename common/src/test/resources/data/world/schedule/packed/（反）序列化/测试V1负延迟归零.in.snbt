@@ -1,5 +1,5 @@
 # Claude Generated
-# 旧存档中已过期的条目 time 为负：打包实现夹持为立即到期（触发刻=存盘时间）
+# 旧存档中已过期的条目 time 为负：打包实现改为立即到期（触发刻=存盘时间）
 {
   "version": 1,
   "totalWorldTime": 300L,

@@ -1,5 +1,5 @@
 # Claude Generated
-# 同一份输入交给装箱实现：V1 的负 time 如实还原为过期触发刻（对照打包实现的夹持）
+# 同一份输入交给装箱实现：V1 的负 time 如实还原为过期触发刻（对照打包实现的归 0）
 {
   "version": 1,
   "totalWorldTime": 300L,

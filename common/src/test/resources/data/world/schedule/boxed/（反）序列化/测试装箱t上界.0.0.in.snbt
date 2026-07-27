@@ -1,5 +1,5 @@
 # Claude Generated
-# t = 2147483647 是 int 上限，也是合法未来窗口内最后一个值：装箱读取按 baseTime + t 如实还原，不夹持
+# t = 2147483647 是 int 上限，也是合法未来窗口内最后一个值：装箱读取按 baseTime + t 如实还原，不做归 0 处理
 {
   "version": 2,
   "type": 0b,

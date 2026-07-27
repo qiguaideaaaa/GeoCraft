@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=../../data.schema.json
 # Claude Generated
-# t 装得进 int 的过期条目如实存为负 t；触发刻与存盘时间的环差装不进 int 时压成 MIN_VALUE 哨兵
+# t 装得进 int 的过期条目如实存为负 t；触发刻与存盘时间的时间差装不进 int 时压成 MIN_VALUE 标记值
 
 time: 1000
 ticks:
@@ -9,7 +9,7 @@ ticks:
     时: 995
   - 于: [4, 31, 4]
     块: 圆
-    时: 9446744073709551616   # 与存盘时间的环差远超 int，存盘压成哨兵
+    时: 9446744073709551616   # 与存盘时间的时间差远超 int，存盘压成标记值
   - 于: [6, 32, 6]
     块: 基
     时: 1003
