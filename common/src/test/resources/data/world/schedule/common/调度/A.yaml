@@ -1,6 +1,5 @@
 # yaml-language-server: $schema=../../data.schema.json
 
-原点: [1,1,1]
 使用网格坐标: true
 time: 0
 ticks:

@@ -145,12 +145,12 @@ public final class BoxedBlockTickScheduler extends ChunkyBlockTickScheduler<Boxe
                     n = 0;
                     while (!datum.queue.isEmpty() &&
                             n < tempArr.length &&
-                            Long.compareUnsigned(datum.queue.peek().triggeredTick() - totalWorldTime, 2147483647L) > 0 //环上到期,因为延迟不可能超过Integer.MAX_VALUE,因此超出则代表时间过了
+                            Long.compareUnsigned(datum.queue.peek().triggeredTick() - totalWorldTime -1L, 2147483647L) >= 0 //环上到期,因为延迟不可能超过Integer.MAX_VALUE,因此超出则代表时间过了
                     ) datum.set.remove(tempArr[n++] = datum.queue.poll());
                     cot += n;
                     count += n;
                     int j = n;
-                    while (j>0) consume(chunk,ebs,tempArr[--j]);
+                    while (j>0) consume(ebs,tempArr[--j]);
                 } while (n>0 && count < maxUpdateNum);
             }finally {
                 datum.lock.unlock();
@@ -161,11 +161,10 @@ public final class BoxedBlockTickScheduler extends ChunkyBlockTickScheduler<Boxe
         }
     }
 
-    private void consume(final @Nonnull Chunk chunk,
-                         final @Nonnull ExtendedBlockStorage[] ebs,
+    private void consume(final @Nonnull ExtendedBlockStorage[] ebs,
                          final @Nonnull IScheduledTick tick){
         final BlockPos position = tick.pos();
-        final @Nonnull IBlockState state = getBlockState(chunk,ebs,position);
+        final @Nonnull IBlockState state = getBlockState(ebs,position);
 
         if(!validator.accepts(position,tick.block(),state)) return;
         try {
@@ -175,9 +174,9 @@ public final class BoxedBlockTickScheduler extends ChunkyBlockTickScheduler<Boxe
         }
     }
 
-    private static @Nonnull IBlockState getBlockState(final @Nonnull Chunk chunk,final @Nonnull ExtendedBlockStorage[] ebs,final @Nonnull BlockPos pos){
+    private @Nonnull IBlockState getBlockState(final @Nonnull ExtendedBlockStorage[] ebs,final @Nonnull BlockPos pos){
         final int y = pos.getY();
-        if(y<0 || y > 255) return chunk.getBlockState(pos);
+        if(y<0 || y > 255) return this.world.getBlockState(pos);
         else {
             final ExtendedBlockStorage storage = ebs[y>>4];
             if(storage == Chunk.NULL_BLOCK_STORAGE) return Blocks.AIR.getDefaultState();

@@ -27,12 +27,15 @@
 
 package 清汩萌.天圆地方.世界;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.storage.SaveHandlerMP;
 import net.minecraft.world.storage.WorldInfo;
+import org.junit.jupiter.api.Assertions;
 
 import javax.annotation.Nonnull;
 
@@ -45,6 +48,34 @@ public abstract class 模拟世界 extends World {
                        final @Nonnull Profiler profilerIn,
                        final boolean client) {
         super(new SaveHandlerMP(), info, providerIn, profilerIn, client);
+    }
+
+    @Override
+    public void neighborChanged(final @Nonnull BlockPos pos, final @Nonnull Block blockIn, final @Nonnull BlockPos fromPos) {
+        if (!this.isRemote) {
+            final @Nonnull IBlockState iblockstate = this.getBlockState(pos);
+
+            try {
+                iblockstate.neighborChanged(this, pos, blockIn, fromPos);
+            } catch (final Throwable throwable) {
+                Assertions.fail(throwable);
+            }
+        }
+    }
+
+    @Override
+    public void observedNeighborChanged(final @Nonnull BlockPos pos,
+                                        final @Nonnull Block changedBlock,
+                                        final @Nonnull BlockPos changedBlockPos) {
+        if (!this.isRemote) {
+            final @Nonnull IBlockState iblockstate = this.getBlockState(pos);
+
+            try {
+                iblockstate.getBlock().observedNeighborChange(iblockstate, this, pos, changedBlock, changedBlockPos);
+            } catch (final Throwable throwable) {
+                Assertions.fail(throwable);
+            }
+        }
     }
 
     @Override

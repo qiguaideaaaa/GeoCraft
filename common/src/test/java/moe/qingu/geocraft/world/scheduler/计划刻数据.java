@@ -47,13 +47,14 @@ import java.util.List;
 public final class 计划刻数据 {
     public String upon = 天圆地方测试.MODID+":scheduler";
     public long time = 0L;
-    public int[] $原点 = new int[]{0,0,0};
+    public int[] $原点;
     public boolean $使用网格坐标 = false;
     public List<可测试的计划刻> ticks = Collections.emptyList();
     private BlockPos $基点;
 
     public void 初始化(){
-        if($使用网格坐标) $原点 = 空间工具.转换为游戏坐标($原点);
+        if($使用网格坐标 & $原点 != null) $原点 = 空间工具.转换为游戏坐标($原点);
+        if($原点 == null) $原点 = new int[]{0,0,0};
         this.$基点 = new BlockPos($原点[0], $原点[1], $原点[2]);
         final 空间构造器 $空间构造器 = 空间构造局.需要(new ResourceLocation(upon));
         for(final 可测试的计划刻 $刻:ticks) $刻.初始化($空间构造器, $原点, $使用网格坐标);

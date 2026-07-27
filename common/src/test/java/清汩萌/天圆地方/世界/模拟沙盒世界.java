@@ -28,7 +28,6 @@
 package 清汩萌.天圆地方.世界;
 
 import com.google.common.annotations.Beta;
-import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.tileentity.TileEntity;
@@ -129,34 +128,6 @@ public class 模拟沙盒世界 extends 模拟世界 {
     public boolean setBlockToAir(final @Nonnull BlockPos pos) {
         Assertions.assertNotNull($空气方块);
         return this.setBlockState(pos, $空气方块);
-    }
-
-    @Override
-    public void neighborChanged(final @Nonnull BlockPos pos,final @Nonnull Block blockIn,final @Nonnull BlockPos fromPos) {
-        if (!this.isRemote) {
-            final @Nonnull IBlockState iblockstate = this.getBlockState(pos);
-
-            try {
-                iblockstate.neighborChanged(this, pos, blockIn, fromPos);
-            } catch (final Throwable throwable) {
-                Assertions.fail(throwable);
-            }
-        }
-    }
-
-    @Override
-    public void observedNeighborChanged(final @Nonnull BlockPos pos,
-                                        final @Nonnull Block changedBlock,
-                                        final @Nonnull BlockPos changedBlockPos) {
-        if (!this.isRemote) {
-            final @Nonnull IBlockState iblockstate = this.getBlockState(pos);
-
-            try {
-                iblockstate.getBlock().observedNeighborChange(iblockstate, this, pos, changedBlock, changedBlockPos);
-            } catch (final Throwable throwable) {
-                Assertions.fail(throwable);
-            }
-        }
     }
 
     @Override

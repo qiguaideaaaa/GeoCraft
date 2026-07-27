@@ -17,7 +17,7 @@
       "items": {"type": "integer"}
     },
     "time": {
-      "type": "integer"
+      "type": "number"
     },
     "ticks": {
       "type": "array",
@@ -36,10 +36,10 @@
             "type": "string"
           },
           "时": {
-            "type": "integer"
+            "type": "number"
           },
           "创时": {
-            "type": "integer"
+            "type": "number"
           },
           "级": {
             "type": "string",

@@ -48,7 +48,7 @@ import javax.annotation.Nonnull;
  */
 public final class 可测试的计划刻 implements IScheduledTick {
     private static boolean $初始化;
-    public int[] $于 = new int[]{0,0,0};
+    public int[] $于;
     public String $块;
     public long $时;
     public long $创时 = 0L;
@@ -174,21 +174,6 @@ public final class 可测试的计划刻 implements IScheduledTick {
     /*  ---------------------------
              Setter 用于 YAML
         --------------------------- */
-
-    @Deprecated
-    public void setX(final int x) {
-        this.$于[0] = x;
-    }
-
-    @Deprecated
-    public void setY(final int y) {
-        this.$于[1] = y;
-    }
-
-    @Deprecated
-    public void setZ(final int z) {
-        this.$于[2] = z;
-    }
 
     @SuppressWarnings("unused")
     public void set于(final @Nonnull int[] $于) {

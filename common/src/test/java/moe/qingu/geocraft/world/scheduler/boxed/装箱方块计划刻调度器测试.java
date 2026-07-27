@@ -25,13 +25,13 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.geocraft.world.scheduler.packed;
+package moe.qingu.geocraft.world.scheduler.boxed;
 
-import moe.qingu.geocraft.world.scheduler.*;
+import moe.qingu.geocraft.world.scheduler.方块计划刻调度器测试;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import 清汩萌.天圆地方.util.网格工具;
-import 清汩萌.天圆地方.世界.模拟区块世界;
+import 清汩萌.天圆地方.世界.扩展模拟区块世界;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
@@ -40,7 +40,7 @@ import java.util.stream.Stream;
 /**
  * @author QGMoe
  */
-public final class 打包方块计划刻调度器测试 extends 方块计划刻调度器测试 {
+public final class 装箱方块计划刻调度器测试 extends 方块计划刻调度器测试 {
 
     @ParameterizedTest
     @MethodSource("为测试方块调度准备数据")
@@ -51,13 +51,14 @@ public final class 打包方块计划刻调度器测试 extends 方块计划刻�
     @SuppressWarnings("unused")
     public static void 测试方块调度_Inner(final @Nonnull Object[] $打包网格数据,final @Nonnull String $未解析的计划刻数据,final long[][] $测试时段){
         测试方块调度核心($打包网格数据,$未解析的计划刻数据, $测试时段,
-                i -> 模拟区块世界.构建(i,false),
-                PackedBlockTickScheduler::new,
-                c -> new PackedBlockTickDatum());
+                i -> 扩展模拟区块世界.构建(i,false),
+                BoxedBlockTickScheduler::new,
+                BoxedBlockTickDatum::new);
     }
 
     @Nonnull
     public static Stream<方块调度测试样例> 为测试方块调度准备数据(){
-        return 为测试方块调度准备数据("data/world/schedule/packed/调度");
+        return 为测试方块调度准备数据("data/world/schedule/boxed/调度");
     }
+
 }

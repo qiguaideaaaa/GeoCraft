@@ -1,0 +1,99 @@
+/*
+ * Copyright 2026 QGMoe
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * 版权所有 2026 QGMoe
+ * 根据Apache许可证第2.0版（“本许可证”）许可；
+ * 除非符合本许可证的规定，否则你不得使用此文件。
+ * 你可以在此获取本许可证的副本：
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 除非所适用法律要求或经书面同意，在本许可证下分发的软件是“按原样”分发的，
+ * 没有任何形式的担保或条件，不论明示或默示。
+ * 请查阅本许可证了解有关本许可证下许可和限制的具体要求。
+ * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
+ */
+
+package 清汩萌.天圆地方.世界;
+
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.profiler.Profiler;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.WorldProvider;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.storage.WorldInfo;
+import 清汩萌.天圆地方.世界.沙盒.散列沙盒;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import static 清汩萌.天圆地方.原料.方块原料.常用.〇;
+
+/**
+ * @author QGMoe
+ */
+public class 扩展模拟区块世界 extends 模拟区块世界{
+    protected final 散列沙盒 $扩展区域 = new 散列沙盒(〇);
+
+    protected 扩展模拟区块世界(@Nonnull final WorldInfo info, @Nonnull final WorldProvider providerIn, @Nonnull final Profiler profilerIn,final boolean client) {
+        super(info, providerIn, profilerIn, client);
+    }
+
+    @Nonnull
+    public static 扩展模拟区块世界 构建(final @Nonnull WorldInfo info, final boolean isClient){
+        return 构建(info,new MockWorldProvider(),isClient);
+    }
+
+    @Nonnull
+    public static 扩展模拟区块世界 构建(final @Nonnull WorldInfo info, final @Nonnull MockWorldProvider provider, final boolean isClient){
+        return new 扩展模拟区块世界(
+                info,
+                provider,
+                new Profiler(),
+                isClient
+        );
+    }
+
+    @Override
+    public boolean isOutsideBuildHeight(final @Nonnull BlockPos pos) {
+        return false;
+    }
+
+    @Override
+    public boolean setBlockState(final @Nonnull BlockPos pos,final @Nonnull IBlockState newState,final int flags) {
+        final Chunk chunk = this.getChunk(pos);
+        if(pos.getY()<0 || pos.getY()>255){
+            final IBlockState old = $扩展区域.setBlockState(pos,newState);
+            this.markAndNotifyBlock(pos, chunk, old, newState, flags);
+            return true;
+        }else return super.setBlockState(pos, newState, flags);
+    }
+
+    @Nonnull
+    @Override
+    public IBlockState getBlockState(final @Nonnull BlockPos pos) {
+        if(pos.getY()<0 || pos.getY()>255){
+            return $扩展区域.getBlockState(pos);
+        }else return super.getBlockState(pos);
+    }
+
+    @Nullable
+    @Override
+    public TileEntity getTileEntity(final @Nonnull BlockPos pos) {
+        if(pos.getY()<0 || pos.getY()>255){
+            return $扩展区域.getTileEntity(pos);
+        }else return super.getTileEntity(pos);
+    }
+}
