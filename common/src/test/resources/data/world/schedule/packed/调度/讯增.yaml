@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=../../data.schema.json
+# Claude Generated
+# 讯（增一）东向拨表两次，第二次是消费后同位再入队的去重残留探针；详见 讯增.md
+
+原点: [1,1,1]
+使用网格坐标: true
+time: 0
+ticks:
+  - 于: [1,1,1]
+    块: 讯
+    时: 1
+  - 创时: 3
+    于: [1,1,1]
+    块: 讯
+    时: 5
+  - 于: [1,1,2]
+    块: 猹
+    时: 17

@@ -1,6 +1,6 @@
 # Claude Generated
-# 打包实现读装箱格式：负 t（过期）与 MIN_VALUE 哨兵都落在合法未来窗口外，
-# delay 一律夹持为 0（触发刻=baseTime，读档立即到期），不保留过期时长
+# 打包实现读装箱格式：负 t（过期）与 MIN_VALUE 标记值都落在合法未来窗口外，
+# delay 一律归 0（触发刻=baseTime，读档立即到期），不保留过期时长
 {
   "version": 2,
   "type": 0b,

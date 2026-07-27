@@ -1,0 +1,11 @@
+---
+# Claude Generated
+name: 过期即触
+ver: 1
+default: 〇
+ext:
+  测试时段:
+    - [0,3]
+---
+猹4 〇 猹4
+猹6 猹4 〇

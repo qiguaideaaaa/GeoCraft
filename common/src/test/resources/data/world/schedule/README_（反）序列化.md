@@ -27,10 +27,10 @@ data/world/schedule/
 
   | 测试类 | 测试方法 | 扫描目录 |
   |---|---|---|
-  | `TestPackedBlockTickDatum` | `测试打包反序列化` | `common/（反）序列化/`、`packed/（反）序列化/` |
-  | `TestPackedBlockTickDatum` | `测试打包序列化` | `common/序列化/`、`packed/序列化/` |
-  | `TestBoxedBlockTickDatum` | `测试装箱反序列化` | `common/（反）序列化/`、`boxed/（反）序列化/` |
-  | `TestBoxedBlockTickDatum` | `测试装箱序列化` | `common/序列化/`、`boxed/序列化/` |
+  | `区块打包计划刻测试` | `测试打包反序列化` | `common/（反）序列化/`、`packed/（反）序列化/` |
+  | `区块打包计划刻测试` | `测试打包序列化` | `common/序列化/`、`packed/序列化/` |
+  | `区块装箱计划刻测试` | `测试装箱反序列化` | `common/（反）序列化/`、`boxed/（反）序列化/` |
+  | `区块装箱计划刻测试` | `测试装箱序列化` | `common/序列化/`、`boxed/序列化/` |
 
 - `common/` 下的样例被两个实现各跑一遍，其答案必须对两个实现同时成立。答案依赖某一实现独有语义（坐标掩码、越界过滤、区块基址还原）的样例只能放专属目录；
 - 样例成对出现，输入与答案主干同名、后缀不同：反序列化是 `.in.snbt` 配 `.ans.yaml`，序列化是 `.in.yaml` 配 `.ans.snbt`。配对由路径替换完成，缺一侧会在收集阶段失败；
@@ -52,7 +52,7 @@ data/world/schedule/
 1. 判断答案是否对两个实现同时成立：成立放 `common/`，否则放 `packed/` 或 `boxed/`；
 2. 按用途选配对后缀，两个文件主干保持一致；
 3. 放进 `common/` 或 `boxed/` 时给主干补上 `.X.Z` 区块坐标；
-4. `.snbt` 侧用 `blockOf`、`tick`、`packPosAndPri` 写位段，`.yaml` 侧首行加 schema 注释；
+4. `.snbt` 侧用 `blockOf`、`tick`、`packPosAndPri` 写打包值，`.yaml` 侧首行加 schema 注释；
 5. 序列化答案要写全所有键，并确认不依赖容器内部顺序；
 6. 在样例文件开头加一行注释，说明该样例记录的现状是什么——样例的说明只写在样例文件里，README 不维护样例清单。
 

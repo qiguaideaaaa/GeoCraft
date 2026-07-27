@@ -8,7 +8,7 @@
 
 - 内置函数的调用语义：`bool`、`uuid`（单参 / 双参）、`concat`（复合标签 / 字节数组 / 整型数组 / 长整型数组 / 列表 / 字符串六种重载）；
 - 函数调用的嵌套：函数结果作为另一函数的实参、作为列表元素、位于深层复合标签内；
-- 语法形态：参数与键周围的空白、尾随逗号、空参列表；
+- 语法形态：参数与键周围的空白、尾随逗号、空参列表（本数据集只含空参决议失败的用例，成功解析的正例见 `Scan/scan.yaml`）；
 - 错误语义：
   - 未定义函数名、参数个数不符、参数类型无重载可匹配——以上是决议失败，报 OPT_UNDEFINED；
   - 函数体抛出 `NickelRuntimeException`——报 OPT_FAILED，如 UUID 格式非法。
@@ -28,6 +28,8 @@
 
 ## 样例 #1
 
+### 输入 #1
+
 ```yaml
 cases:
   - name: bool-整数零
@@ -36,6 +38,8 @@ cases:
 ```
 
 ## 样例 #2
+
+### 输入 #2
 
 ```yaml
 cases:
@@ -46,11 +50,11 @@ cases:
 
 ## 说明/提示
 
-### 样例 1 解释
+### 样例 1 解释：
 
 `bool` 接受一个 NUMBER（`NBTPrimitive`）参数，`getLong()` 为 0 时返回 `0b`，否则返回 `1b`。输入里的 `0` 解析为 `NBTTagInt`，沿继承链匹配 NUMBER 形参，求值结果是 `0b`。
 
-### 样例 2 解释
+### 样例 2 解释：
 
 `uuid` 的函数体对非法 UUID 字符串抛出 `NickelRuntimeException`，`SNBTReader.invokeFunction` 捕获后以 OPT_FAILED 语义 panic。
 

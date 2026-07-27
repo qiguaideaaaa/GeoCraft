@@ -1,5 +1,5 @@
 # Claude Generated
-# t 为 Integer.MIN_VALUE 是序列化侧的严重过期哨兵：读档还原成远早于 baseTime 的触发刻，读档后立即视为到期
+# t 为 Integer.MIN_VALUE 是序列化侧的严重过期标记值：读档还原成远早于 baseTime 的触发刻，读档后立即视为到期
 {
   "version": 2,
   "type": 0b,
