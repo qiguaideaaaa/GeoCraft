@@ -133,6 +133,14 @@ public abstract class ConfigItem<V,S extends ConfigItem<V,S>> {
     }
 
     /**
+     * 重置配置项的值
+     * @since GeoCraft API 0.3.4
+     */
+    public void reset(){
+        this.value = this.defaultValue;
+    }
+
+    /**
      * 更新配置项的值
      * @param newValue 新值，注意不能为 null
      */

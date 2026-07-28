@@ -99,7 +99,6 @@ public final class HeapPackedBlockTickQueue extends PackedBlockTickQueue {
         final long maxValue = (maxDelay<<32) | 0xFFFF_FFFFL;
         int count = 0;
         while (size > 0 && count < temp.length && Long.compareUnsigned(heap[0],maxValue)<=0) temp[count++] = dequeue();
-        if(maxDelay > 2147483647L) updateBaseTime(worldTotalTime);
         for(int i=0;i<count;i++){
             final long tick = temp[i];
             final int x = (int) ((tick >>> 12) & 0xFL);

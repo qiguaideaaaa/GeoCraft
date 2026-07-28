@@ -27,7 +27,7 @@
 
 package moe.qingu.geocraft.world.scheduler.boxed;
 
-import moe.qingu.geocraft.world.scheduler.方块计划刻调度器测试;
+import moe.qingu.geocraft.world.scheduler.common.方块计划刻调度测试;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import 清汩萌.天圆地方.util.网格工具;
@@ -40,17 +40,17 @@ import java.util.stream.Stream;
 /**
  * @author QGMoe
  */
-public final class 装箱方块计划刻调度器测试 extends 方块计划刻调度器测试 {
+public final class 装箱方块计划刻调度器测试 extends 方块计划刻调度测试 {
 
     @ParameterizedTest
     @MethodSource("为测试方块调度准备数据")
-    public void 测试方块调度(final @Nonnull 方块调度测试样例 $样例) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-        test(new Object[]{网格工具.打包网格数据($样例.$网格),$样例.$计划刻数据,$样例.$测试时段});
+    public void 测试方块调度(final @Nonnull 方块计划刻调度测试.方块调度测试样例 $样例) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        test(new Object[]{网格工具.打包网格数据($样例.$网格),$样例.$计划刻数据,$样例.$测试时段,$样例.$一次性最大更新方块数});
     }
 
     @SuppressWarnings("unused")
-    public static void 测试方块调度_Inner(final @Nonnull Object[] $打包网格数据,final @Nonnull String $未解析的计划刻数据,final long[][] $测试时段){
-        测试方块调度核心($打包网格数据,$未解析的计划刻数据, $测试时段,
+    public static void 测试方块调度_Inner(final @Nonnull Object[] $打包网格数据,final @Nonnull String $未解析的计划刻数据,final long[][] $测试时段,final int $一次性最大更新方块数){
+        测试方块调度核心($打包网格数据,$未解析的计划刻数据, $测试时段,$一次性最大更新方块数,
                 i -> 扩展模拟区块世界.构建(i,false),
                 BoxedBlockTickScheduler::new,
                 BoxedBlockTickDatum::new);
