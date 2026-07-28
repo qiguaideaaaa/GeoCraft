@@ -56,7 +56,7 @@ import java.util.Set;
 @SuppressWarnings("OctalInteger")
 public final class PackedBlockTickDatum extends ChunkyBlockTickDatum {
     private static final ThreadLocal<LongArrayList> TEMP = ThreadLocal.withInitial(LongArrayList::new);
-    PackedBlockTickQueue queue = null;
+    HeapPackedBlockTickQueue queue = null;
 
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
     public void schedule(final long worldTotalTime,final int cx, final int cy, final int cz, final int blockID, final long delay, final @Nonnull TickPriority priority){
@@ -153,11 +153,11 @@ public final class PackedBlockTickDatum extends ChunkyBlockTickDatum {
     }
 
     @Nullable
-    public static PackedBlockTickQueue deserializeNBTV2Packed(final @Nonnull NBTTagCompound nbt){
+    public static HeapPackedBlockTickQueue deserializeNBTV2Packed(final @Nonnull NBTTagCompound nbt){
         if(nbt.hasKey("queue")){
             final NBTBase tag = nbt.getTag("queue");
             try {
-                final PackedBlockTickQueue queue;
+                final HeapPackedBlockTickQueue queue;
                 if(!(tag instanceof NBTTagLongArray)) return null;
                 final long[] dat = NBTUtils.getLongArray((NBTTagLongArray) tag);
                 if(dat.length > 0) queue = new HeapPackedBlockTickQueue();
@@ -172,11 +172,11 @@ public final class PackedBlockTickDatum extends ChunkyBlockTickDatum {
     }
 
     @Nullable
-    public static PackedBlockTickQueue deserializeNBTV2Boxed(final @Nonnull NBTTagCompound nbt){
+    public static HeapPackedBlockTickQueue deserializeNBTV2Boxed(final @Nonnull NBTTagCompound nbt){
         final PriorityQueue<IScheduledTick> ticks = new PriorityQueue<>();
         BoxedBlockTickDatum.deserializeNBTV2Boxed(0,0,ticks,nbt);
         if(ticks.isEmpty()) return null;
-        final @Nonnull PackedBlockTickQueue queue = new HeapPackedBlockTickQueue();
+        final @Nonnull HeapPackedBlockTickQueue queue = new HeapPackedBlockTickQueue();
         queue.baseTime = nbt.getLong(KEY_BASE_TIME);
         for(final @Nonnull IScheduledTick tick: ticks){
             final BlockPos pos = tick.pos();

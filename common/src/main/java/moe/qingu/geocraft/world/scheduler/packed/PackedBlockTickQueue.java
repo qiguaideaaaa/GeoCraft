@@ -35,6 +35,7 @@ import net.minecraft.util.math.BlockPos;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.LongConsumer;
 import java.util.stream.Stream;
 
@@ -59,7 +60,10 @@ public abstract class PackedBlockTickQueue {
 
     public abstract boolean contains(final int cx,final int cy,final int cz,final int blockID);
 
-    public abstract int forNext(final long worldTotalTime, final @Nonnull PackedBlockTickConsumer consumer, final @Nonnull long[] temp);
+    public abstract int forNext(final long worldTotalTime,
+                                final @Nonnull PackedBlockTickConsumer consumer,
+                                final @Nonnull long[] temp,
+                                final @Nonnull ReentrantLock lock);
 
     public abstract void forEach(final @Nonnull LongConsumer consumer);
 

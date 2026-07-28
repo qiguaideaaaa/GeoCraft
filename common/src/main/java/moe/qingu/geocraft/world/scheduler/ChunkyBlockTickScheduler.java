@@ -50,6 +50,7 @@ import net.minecraft.world.chunk.Chunk;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Array;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -136,11 +137,25 @@ public abstract class ChunkyBlockTickScheduler<T extends ChunkyBlockTickDatum> e
         return volume;
     }
 
-    protected final void prepareUpdate(){
+    protected final void preparePartialUpdate(){
         volume.temp = schedules.toLongArray(volume.temp);
         final int size = schedules.size();
         if(size <=1) return;
         if(GeneralConfig.SORT_UPDATE_TASKS_BY_DISTANCE_TO_PLAYERS.getValue()) volume.sortTempByPlayers(world,size);
+    }
+
+    @Nonnull
+    @SuppressWarnings("unchecked")
+    protected final T[] prepareTotalUpdate(@Nonnull T[] datumTemp, @Nonnull final ObjectLongHeaps.BiComparator<? super T> comparator, @Nonnull final T nullObject){
+        volume.temp = schedules.toLongArray(volume.temp);
+        final int size = schedules.size();
+        if(datumTemp.length<size) datumTemp = (T[]) Array.newInstance(getStorageType(),size);
+        for(int i=0;i<size;i++){
+            final @Nullable T datum = volume.data.get(volume.temp[i]);
+            datumTemp[i] = datum == null?nullObject:datum;
+        }
+        ObjectLongHeaps.makeHeap(datumTemp,volume.temp,size,comparator);
+        return datumTemp;
     }
 
     @Nonnull

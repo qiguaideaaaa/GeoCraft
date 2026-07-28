@@ -29,50 +29,32 @@ package moe.qingu.geocraft.world.scheduler.packed;
 
 import moe.qingu.geocraft.api.util.annotation.ThreadOnly;
 import moe.qingu.geocraft.api.util.annotation.ThreadType;
-import moe.qingu.geocraft.api.util.math.vec.MBlockPos;
 import moe.qingu.geocraft.api.world.tick.IScheduledTick;
 import moe.qingu.geocraft.api.world.tick.TickPriority;
-import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
-import moe.qingu.geocraft.configs.GeneralConfig;
 import moe.qingu.geocraft.util.math.MathUtil;
 import moe.qingu.geocraft.world.scheduler.ChunkyBlockTickScheduler;
-import moe.qingu.geocraft.world.scheduler.boxed.BoxedBlockTickScheduler;
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
 
 /**
  * @author QGMoe
  */
-public final class PackedBlockTickScheduler extends ChunkyBlockTickScheduler<PackedBlockTickDatum> {
-    private final Consumer consumer = new Consumer();
-
+public abstract class PackedBlockTickScheduler extends ChunkyBlockTickScheduler<PackedBlockTickDatum> {
     public PackedBlockTickScheduler(final @Nonnull World world) {
         super(world);
-    }
-
-    /**
-     * 一个工具方法，返回 {@link BlockTickScheduler}，用于 {@link moe.qingu.geocraft.world.scheduler.GeoBlockTickType}
-     * 避免类过早被加载
-     */
-    @Nonnull
-    public static BlockTickScheduler create(final @Nonnull World world){
-        return new PackedBlockTickScheduler(world);
     }
 
     @Override
     @SuppressWarnings("OctalInteger")
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public boolean schedule(final @Nonnull BlockPos pos, final @Nonnull Block block,final int delay,final @Nonnull TickPriority priority){
+    public final boolean schedule(final @Nonnull BlockPos pos, final @Nonnull Block block,final int delay,final @Nonnull TickPriority priority){
         if(pos.getY()>255 || pos.getY()<0) return false;
         final int chunkX = pos.getX()>>4;
         final int chunkZ = pos.getZ()>>4;
@@ -96,7 +78,7 @@ public final class PackedBlockTickScheduler extends ChunkyBlockTickScheduler<Pac
     @Nonnull
     @Override
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public Set<IScheduledTick> query(@Nonnull final BlockPos pos) {
+    public final Set<IScheduledTick> query(@Nonnull final BlockPos pos) {
         if(pos.getY()>255 || pos.getY()<0) return Collections.emptySet();
         final int chunkX = pos.getX()>>4;
         final int chunkZ = pos.getZ()>>4;
@@ -107,7 +89,7 @@ public final class PackedBlockTickScheduler extends ChunkyBlockTickScheduler<Pac
 
     @Override
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public void collect(final int chunkX,final int chunkZ,
+    public final void collect(final int chunkX,final int chunkZ,
                         final int minX,final int maxX,
                         final int minY,final int maxY,
                         final int minZ,final int maxZ,
@@ -127,7 +109,7 @@ public final class PackedBlockTickScheduler extends ChunkyBlockTickScheduler<Pac
 
     @Override
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public void collect(final int chunkX,final int chunkZ,final int minY,final int maxY,final @Nonnull Set<IScheduledTick> collector){
+    public final void collect(final int chunkX,final int chunkZ,final int minY,final int maxY,final @Nonnull Set<IScheduledTick> collector){
         final PackedBlockTickDatum datum = getDatum(chunkX,chunkZ);
         if(datum == null) return;
         datum.queue.forEach(t ->{
@@ -137,77 +119,9 @@ public final class PackedBlockTickScheduler extends ChunkyBlockTickScheduler<Pac
         });
     }
 
-    @Override
-    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public void update(){
-        final long beginTime = System.currentTimeMillis(),maxTime = GeneralConfig.BLOCK_UPDATER_MAX_TIME_USAGE.getValue();
-        final long totalWorldTime = world.getTotalWorldTime();
-        final long[] tempArr = new long[100];
-        prepareUpdate();
-        final int size = schedules.size();
-        long count = 0;
-        int i = 0;
-        while (count < maxUpdateNum && i < size){
-            final long pos = volume.temp[i++];
-            final PackedBlockTickDatum datum = data.get(pos);
-            if(datum == null) {
-                schedules.remove(pos);
-                continue;
-            }
-            final int z = (int) (pos>>Integer.SIZE);
-            final int x = (int) pos;
-            int cot = 0;
-            final Chunk chunk = world.getChunk(x,z);
-            consumer.ebs = chunk.getBlockStorageArray();
-            consumer.baseX = chunk.x <<4;
-            consumer.baseZ = chunk.z <<4;
-            datum.lock.lock();
-            try {
-                int n;
-                do {
-                    n = datum.queue.forNext(totalWorldTime,consumer,tempArr);
-                    cot += n;
-                    count += n;
-                } while (n>0 && count < maxUpdateNum);
-            }finally {
-                datum.lock.unlock();
-            }
-            if(cot != 0 && datum.markDirty()){
-                chunk.markDirty();
-                dirties.add(datum);
-            }
-            if(datum.queue.isEmpty()) schedules.remove(pos);
-            if(System.currentTimeMillis() - beginTime > maxTime) break;
-        }
-        consumer.ebs = null;
-    }
-
     @Nonnull
     @Override
     public Class<PackedBlockTickDatum> getStorageType() {
         return PackedBlockTickDatum.class;
-    }
-
-    private class Consumer extends PackedBlockTickConsumer {
-        private final MBlockPos posContainer = new MBlockPos();
-        private int baseX;
-        private int baseZ;
-        private ExtendedBlockStorage[] ebs;
-
-        @Override
-        public void consume(final int x,final int y,final int z, @Nonnull final Block block) {
-            final @Nullable ExtendedBlockStorage storage = ebs[y>>4];
-            if(storage != Chunk.NULL_BLOCK_STORAGE){
-                final IBlockState state = storage.get(x,y & 0xF,z);
-                posContainer.setPos(baseX + x, y, baseZ + z);
-                if(!PackedBlockTickScheduler.this.validator.accepts(posContainer,block,state)) return;
-                final World world = PackedBlockTickScheduler.this.world;
-                try {
-                    block.updateTick(world,posContainer,state,world.rand);
-                } catch (final Throwable t) {
-                    throw createReport(t,posContainer,state);
-                }
-            }
-        }
     }
 }

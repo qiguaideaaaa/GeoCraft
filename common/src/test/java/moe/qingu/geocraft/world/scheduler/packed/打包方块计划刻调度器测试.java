@@ -52,7 +52,7 @@ public final class 打包方块计划刻调度器测试 extends 方块计划刻�
     public static void 测试方块调度_Inner(final @Nonnull Object[] $打包网格数据,final @Nonnull String $未解析的计划刻数据,final long[][] $测试时段,final int $一次性最大更新方块数){
         测试方块调度核心($打包网格数据,$未解析的计划刻数据, $测试时段,$一次性最大更新方块数,
                 i -> 模拟区块世界.构建(i,false),
-                PackedBlockTickScheduler::new,
+                PartialOrderPackedBlockTickScheduler::new,
                 c -> new PackedBlockTickDatum());
     }
 

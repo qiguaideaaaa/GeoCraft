@@ -24,6 +24,22 @@
  * 请查阅本许可证了解有关本许可证下许可和限制的具体要求。
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
+/*
+ * This file contains code derived from fastutil (https://fastutil.di.unimi.it/)
+ * Original class: it.unimi.dsi.fastutil.longs.LongHeapPriorityQueue (partial)
+ * Copyright (C) 2003-2024 Paolo Boldi and Sebastiano Vigna
+ * Licensed under the Apache License, Version 2.0
+ *
+ * Modifications: Extracted heap operations and merged into this class
+ * to enable direct array access for iteration and serialization.
+ *
+ * 本文件包含源自 fastutil (https://fastutil.di.unimi.it/) 的代码
+ * 原始类：it.unimi.dsi.fastutil.longs.LongHeapPriorityQueue（部分）
+ * 版权所有 (C) 2003-2024 Paolo Boldi 与 Sebastiano Vigna
+ * 根据 Apache 许可证第 2.0 版许可
+ *
+ * 修改内容：提取了堆操作并整合至该类以支持直接数组访问来实现遍历与序列化。
+ */
 
 package moe.qingu.geocraft.world.scheduler.packed;
 
@@ -35,6 +51,7 @@ import net.minecraft.block.Block;
 
 import javax.annotation.Nonnull;
 import java.util.NoSuchElementException;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.LongConsumer;
 
 /**
@@ -61,6 +78,10 @@ public final class HeapPackedBlockTickQueue extends PackedBlockTickQueue {
     @Override
     public int size() {
         return size;
+    }
+
+    public long first(){
+        return heap[0];
     }
 
     public void clear() {
@@ -93,22 +114,27 @@ public final class HeapPackedBlockTickQueue extends PackedBlockTickQueue {
     }
 
     @Override
-    public int forNext(final long worldTotalTime, @Nonnull final PackedBlockTickConsumer consumer, final @Nonnull long[] temp) {
+    public int forNext(final long worldTotalTime, @Nonnull final PackedBlockTickConsumer consumer, final @Nonnull long[] temp, final @Nonnull ReentrantLock lock) {
         final long elapsed = worldTotalTime - baseTime; //环上流逝的时间(无符号)
         final long maxDelay = Long.compareUnsigned(elapsed,0xFFFF_FFFFL)>0?0xFFFF_FFFFL:elapsed;
         final long maxValue = (maxDelay<<32) | 0xFFFF_FFFFL;
         int count = 0;
         while (size > 0 && count < temp.length && Long.compareUnsigned(heap[0],maxValue)<=0) temp[count++] = dequeue();
-        for(int i=0;i<count;i++){
-            final long tick = temp[i];
-            final int x = (int) ((tick >>> 12) & 0xFL);
-            final int y = (int) ((tick >>> 20) & 0xFFL);
-            final int z = (int) ((tick >>> 16) & 0xFL);
-            final int blockID = (int) (tick & 0_7777L);
-            final int key = (y<<20) | (blockID<<8) | (x << 4) | z;
-            set.remove(key);
-            final Block block = Block.getBlockById(blockID);
-            consumer.consume(x,y,z,block);
+        lock.unlock();
+        try{
+            for(int i=0;i<count;i++){
+                final long tick = temp[i];
+                final int x = (int) ((tick >>> 12) & 0xFL);
+                final int y = (int) ((tick >>> 20) & 0xFFL);
+                final int z = (int) ((tick >>> 16) & 0xFL);
+                final int blockID = (int) (tick & 0_7777L);
+                final int key = (y<<20) | (blockID<<8) | (x << 4) | z;
+                set.remove(key);
+                final Block block = Block.getBlockById(blockID);
+                consumer.consume(x,y,z,block);
+            }
+        }finally {
+            lock.lock();
         }
         return count;
     }

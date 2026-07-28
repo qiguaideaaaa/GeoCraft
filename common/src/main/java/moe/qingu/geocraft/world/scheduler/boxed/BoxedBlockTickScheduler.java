@@ -124,7 +124,7 @@ public final class BoxedBlockTickScheduler extends ChunkyBlockTickScheduler<Boxe
         final long beginTime = System.currentTimeMillis(),maxTime = GeneralConfig.BLOCK_UPDATER_MAX_TIME_USAGE.getValue();
         final long totalWorldTime = world.getTotalWorldTime();
         final IScheduledTick[] tempArr = new IScheduledTick[100];
-        prepareUpdate();
+        preparePartialUpdate();
         final int size = schedules.size();
         long count = 0;
         int i = 0;
