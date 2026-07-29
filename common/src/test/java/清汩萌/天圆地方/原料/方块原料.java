@@ -39,11 +39,8 @@ import moe.qingu.geocraft.api.block.BlockProperties;
 import moe.qingu.geocraft.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
 import moe.qingu.geocraft.geography.fluidphysics.finite.flow.FiniteFlowings;
 import moe.qingu.geocraft.handler.RegistryHandler;
-import 清汩萌.天圆地方.方块.模拟载流方块;
-import 清汩萌.天圆地方.方块.MockBlockLiquid;
-import 清汩萌.天圆地方.方块.猹方块;
+import 清汩萌.天圆地方.方块.*;
 import 清汩萌.天圆地方.天圆地方测试;
-import 清汩萌.天圆地方.方块.鲁迅方块;
 import 清汩萌.造.映射.映射;
 import 清汩萌.造.映射.映射器;
 import 清汩萌.造.空间.空间构造器;
@@ -72,6 +69,7 @@ public final class 方块原料 {
     private static final BlockStaticLiquid STATIC_LAVA = LAVAS.getRight();
     public static final 猹方块 _猹_ = new 猹方块();
     public static final 鲁迅方块 _鲁迅_ = new 鲁迅方块();
+    public static final 闰土方块 _闰土_ = new 闰土方块();
 
     public static final class LayeredFluidHosts{
         public static 模拟载流方块 FLUID_HOST_COMMON = new 模拟载流方块();
@@ -333,6 +331,26 @@ public final class 方块原料 {
         public static final IBlockState 讯6 = _鲁迅_.getDefaultState().withProperty(鲁迅方块._方位模式_,7).withProperty(鲁迅方块._增减模式_,true);
         public static final @映射.别名 IBlockState 讯 = 讯6;
 
+        public static final IBlockState 閏8 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,0);
+        public static final IBlockState 閏7 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,1);
+        public static final IBlockState 閏6 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,2);
+        public static final IBlockState 閏5 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,3);
+        public static final IBlockState 閏4 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,4);
+        public static final IBlockState 閏3 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,5);
+        public static final IBlockState 閏2 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,6);
+        public static final IBlockState 閏1 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,7);
+        public static final @映射.别名 IBlockState 閏 = 閏1;
+        public static final IBlockState 閏0 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,8);
+        public static final @映射.别名 IBlockState 闰0 = 閏0;
+        public static final IBlockState 闰1 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,9);
+        public static final @映射.别名 IBlockState 闰 = 闰1;
+        public static final IBlockState 闰2 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,10);
+        public static final IBlockState 闰3 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,11);
+        public static final IBlockState 闰4 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,12);
+        public static final IBlockState 闰5 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,13);
+        public static final IBlockState 闰6 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,14);
+        public static final IBlockState 闰7 = _闰土_.getDefaultState().withProperty(闰土方块._计划时间_,15);
+
         static {
             _方块计划刻测试映射_ = new 映射器(new ResourceLocation(天圆地方测试.MODID,"scheduler")).导入映射数据(方块计划刻测试方块.class);
             _方块计划刻测试构造器_ = new 空间构造器()
@@ -349,6 +367,7 @@ public final class 方块原料 {
         Block.registerBlocks();
         Block.REGISTRY.register(256,_猹_.getRegistryName(), _猹_);
         Block.REGISTRY.register(257,_鲁迅_.getRegistryName(),_鲁迅_);
+        Block.REGISTRY.register(258,_闰土_.getRegistryName(),_闰土_);
         _全构造器_ = new 空间构造器()
                 .添加映射(常用._常用映射_)
                 .添加映射(土壤._土壤映射_)

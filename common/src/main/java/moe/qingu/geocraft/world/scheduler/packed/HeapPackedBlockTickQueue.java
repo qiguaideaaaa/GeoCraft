@@ -144,7 +144,12 @@ public final class HeapPackedBlockTickQueue extends PackedBlockTickQueue {
         final long maxDelay = Long.compareUnsigned(elapsed,0xFFFF_FFFFL)>0?0xFFFF_FFFFL:elapsed;
         final long maxValue = (maxDelay<<32) | 0xFFFF_FFFFL;
         int count = 0;
-        while (size > 0 && Long.compareUnsigned(heap[0],maxValue)<=0) collector.add(toScheduledTick(dequeue(),x,z));
+        while (size > 0 && Long.compareUnsigned(heap[0],maxValue)<=0){
+            final long tick = dequeue();
+            this.set.remove((int)(tick & 0xFFFF_FFFL));
+            collector.add(toScheduledTick(tick,x,z));
+            count++;
+        }
         return count;
     }
 

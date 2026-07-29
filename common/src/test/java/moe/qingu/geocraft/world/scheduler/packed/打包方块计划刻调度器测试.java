@@ -45,19 +45,38 @@ public final class 打包方块计划刻调度器测试 extends 方块计划刻�
     @ParameterizedTest
     @MethodSource("为测试方块调度准备数据")
     public void 测试方块调度(final @Nonnull 方块调度测试样例 $样例) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-        test(new Object[]{网格工具.打包网格数据($样例.$网格),$样例.$计划刻数据,$样例.$测试时段,$样例.$一次性最大更新方块数});
+        test(new Object[]{网格工具.打包网格数据($样例.$网格),$样例.$计划刻数据,$样例.$测试时段});
+    }
+
+    @ParameterizedTest
+    @MethodSource("为测试全序方块调度准备数据")
+    public void 测试全序方块调度(final @Nonnull 方块调度测试样例 $样例) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        test(new Object[]{网格工具.打包网格数据($样例.$网格),$样例.$计划刻数据,$样例.$测试时段});
     }
 
     @SuppressWarnings("unused")
-    public static void 测试方块调度_Inner(final @Nonnull Object[] $打包网格数据,final @Nonnull String $未解析的计划刻数据,final long[][] $测试时段,final int $一次性最大更新方块数){
-        测试方块调度核心($打包网格数据,$未解析的计划刻数据, $测试时段,$一次性最大更新方块数,
+    public static void 测试方块调度_Inner(final @Nonnull Object[] $打包网格数据,final @Nonnull String $未解析的计划刻数据,final long[][] $测试时段){
+        测试方块调度核心($打包网格数据,$未解析的计划刻数据, $测试时段,
                 i -> 模拟区块世界.构建(i,false),
                 PartialOrderPackedBlockTickScheduler::new,
                 c -> new PackedBlockTickDatum());
     }
 
+    @SuppressWarnings("unused")
+    public static void 测试全序方块调度_Inner(final @Nonnull Object[] $打包网格数据,final @Nonnull String $未解析的计划刻数据,final long[][] $测试时段){
+        测试方块调度核心($打包网格数据,$未解析的计划刻数据, $测试时段,
+                i -> 模拟区块世界.构建(i,false),
+                TotalOrderPackedBlockTickScheduler::new,
+                c -> new PackedBlockTickDatum());
+    }
+
     @Nonnull
     public static Stream<方块调度测试样例> 为测试方块调度准备数据(){
-        return 为测试方块调度准备数据("data/world/schedule/packed/调度");
+        return 为测试方块调度准备数据("data/world/schedule/common/偏序调度","data/world/schedule/packed/调度", "data/world/schedule/packed/偏序调度");
+    }
+
+    @Nonnull
+    public static Stream<方块调度测试样例> 为测试全序方块调度准备数据(){
+        return 为测试方块调度准备数据("data/world/schedule/common/全序调度", "data/world/schedule/packed/调度", "data/world/schedule/packed/全序调度");
     }
 }
