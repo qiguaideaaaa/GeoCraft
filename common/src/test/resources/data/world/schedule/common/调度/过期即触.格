@@ -1,6 +1,6 @@
 ---
 # Claude Generated
-name: 过期即触
+name: 通用-过期即触
 ver: 1
 default: 〇
 ext:
@@ -9,3 +9,6 @@ ext:
 ---
 猹4 〇 猹4
 猹6 猹4 〇
+
+---
+详见 过期即触.md。

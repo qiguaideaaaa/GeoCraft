@@ -1,6 +1,6 @@
 ---
 # Claude Generated
-name: 讯增
+name: 通用-讯增
 ver: 1
 default: 〇
 ext:
@@ -8,3 +8,6 @@ ext:
     - [0,18]
 ---
 讯e 猹f
+
+---
+详见 讯增.md。
