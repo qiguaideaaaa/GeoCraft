@@ -39,6 +39,7 @@ import moe.qingu.geocraft.handler.CapabilityHandler;
 import moe.qingu.geocraft.util.math.MathUtil;
 import moe.qingu.geocraft.api.world.tick.validator.BlockTickValidator;
 import moe.qingu.geocraft.api.world.tick.validator.IdentityBlockTickValidator;
+import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
@@ -51,6 +52,7 @@ import net.minecraft.world.chunk.Chunk;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -141,6 +143,21 @@ public abstract class ChunkyBlockTickScheduler<T extends ChunkyBlockTickDatum> e
         final int size = schedules.size();
         if(size <=1) return;
         if(GeneralConfig.SORT_UPDATE_TASKS_BY_DISTANCE_TO_PLAYERS.getValue()) volume.sortTempByPlayers(world,size);
+    }
+
+    protected final void consumeByTotalOrder(final @Nonnull PriorityQueue<IScheduledTick> ticks){
+        while (!ticks.isEmpty()){
+            final IScheduledTick tick = ticks.poll();
+            final BlockPos pos = tick.pos();
+            final IBlockState state = world.getBlockState(pos);
+            final Block block = tick.block();
+            if(!validator.accepts(pos,block,state)) continue;
+            try {
+                block.updateTick(world,pos,state,world.rand);
+            } catch(final @Nonnull Throwable t){
+                throw createReport(t,pos,state);
+            }
+        }
     }
 
     @Nonnull

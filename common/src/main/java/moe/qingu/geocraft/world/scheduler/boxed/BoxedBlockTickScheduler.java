@@ -29,18 +29,12 @@ package moe.qingu.geocraft.world.scheduler.boxed;
 
 import moe.qingu.geocraft.api.world.tick.IScheduledTick;
 import moe.qingu.geocraft.api.world.tick.TickPriority;
-import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
-import moe.qingu.geocraft.configs.GeneralConfig;
 import moe.qingu.geocraft.util.math.MathUtil;
 import moe.qingu.geocraft.world.scheduler.ChunkyBlockTickScheduler;
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import moe.qingu.geocraft.api.util.annotation.ThreadOnly;
 import moe.qingu.geocraft.api.util.annotation.ThreadType;
 
@@ -52,24 +46,15 @@ import java.util.*;
  * @since 0.3.0-alpha.1
  * @author QiguaiAAAA
  */
-public final class BoxedBlockTickScheduler extends ChunkyBlockTickScheduler<BoxedBlockTickDatum> {
+public abstract class BoxedBlockTickScheduler extends ChunkyBlockTickScheduler<BoxedBlockTickDatum> {
 
     public BoxedBlockTickScheduler(final @Nonnull World world){
         super(world);
     }
 
-    /**
-     * 一个工具方法，返回 {@link BlockTickScheduler}，用于 {@link moe.qingu.geocraft.world.scheduler.GeoBlockTickType}
-     * 避免类过早被加载
-     */
-    @Nonnull
-    public static BlockTickScheduler create(final @Nonnull World world){
-        return new BoxedBlockTickScheduler(world);
-    }
-
     @Override
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public boolean schedule(@Nonnull final BlockPos pos,
+    public final boolean schedule(@Nonnull final BlockPos pos,
                             @Nonnull final Block block,
                             final int delay,
                             @Nonnull final TickPriority priority) {
@@ -88,7 +73,7 @@ public final class BoxedBlockTickScheduler extends ChunkyBlockTickScheduler<Boxe
     @Nonnull
     @Override
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public Set<IScheduledTick> query(@Nonnull final BlockPos pos) {
+    public final Set<IScheduledTick> query(@Nonnull final BlockPos pos) {
         final int chunkX = pos.getX()>>4;
         final int chunkZ = pos.getZ()>>4;
         final BoxedBlockTickDatum datum = getDatum(chunkX,chunkZ);
@@ -98,7 +83,7 @@ public final class BoxedBlockTickScheduler extends ChunkyBlockTickScheduler<Boxe
 
     @Override
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public void collect(final int chunkX,final int chunkZ,
+    public final void collect(final int chunkX,final int chunkZ,
                         final int minX,final int maxX,
                         final int minY,final int maxY,
                         final int minZ,final int maxZ,
@@ -112,81 +97,15 @@ public final class BoxedBlockTickScheduler extends ChunkyBlockTickScheduler<Boxe
 
     @Override
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public void collect(final int chunkX,final int chunkZ,final int minY,final int maxY,final @Nonnull Set<IScheduledTick> collector){
+    public final void collect(final int chunkX,final int chunkZ,final int minY,final int maxY,final @Nonnull Set<IScheduledTick> collector){
         final BoxedBlockTickDatum datum = getDatum(chunkX,chunkZ);
         if(datum == null) return;
         for(final IScheduledTick tick:datum.queue) if(MathUtil.inRangeClose(tick.pos().getY(),minY,maxY)) collector.add(tick);
     }
 
-    @Override
-    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public void update() {
-        final long beginTime = System.currentTimeMillis(),maxTime = GeneralConfig.BLOCK_UPDATER_MAX_TIME_USAGE.getValue();
-        final long totalWorldTime = world.getTotalWorldTime();
-        final IScheduledTick[] tempArr = new IScheduledTick[100];
-        preparePartialUpdate();
-        final int size = schedules.size();
-        long count = 0;
-        int i = 0;
-        while (count < maxUpdateNum && i < size){
-            final long pos = volume.temp[i++];
-            final BoxedBlockTickDatum datum = data.get(pos);
-            if(datum == null) {
-                schedules.remove(pos);
-                continue;
-            }
-            int cot = 0;
-            datum.lock.lock();
-            final Chunk chunk = datum.getChunk();
-            final ExtendedBlockStorage[] ebs= chunk.getBlockStorageArray();
-            try {
-                int n;
-                do {
-                    n = 0;
-                    while (!datum.queue.isEmpty() &&
-                            n < tempArr.length &&
-                            Long.compareUnsigned(datum.queue.peek().triggeredTick() - totalWorldTime -1L, 2147483647L) >= 0 //环上到期,因为延迟不可能超过Integer.MAX_VALUE,因此超出则代表时间过了
-                    ) datum.set.remove(tempArr[n++] = datum.queue.poll());
-                    cot += n;
-                    count += n;
-                    for(int j=0;j<n;j++) //noinspection DataFlowIssue
-                        consume(ebs,tempArr[j]);
-                } while (n>0 && count < maxUpdateNum);
-            }finally {
-                datum.lock.unlock();
-            }
-            if(cot != 0 && datum.markDirty()) dirties.add(datum);
-            if(datum.queue.isEmpty()) schedules.remove(pos);
-            if(System.currentTimeMillis() - beginTime > maxTime) break;
-        }
-    }
-
-    private void consume(final @Nonnull ExtendedBlockStorage[] ebs,
-                         final @Nonnull IScheduledTick tick){
-        final BlockPos position = tick.pos();
-        final @Nonnull IBlockState state = getBlockState(ebs,position);
-
-        if(!validator.accepts(position,tick.block(),state)) return;
-        try {
-            state.getBlock().updateTick(world,position,state,world.rand);
-        } catch (final Throwable t) {
-            throw createReport(t,position,state);
-        }
-    }
-
-    private @Nonnull IBlockState getBlockState(final @Nonnull ExtendedBlockStorage[] ebs,final @Nonnull BlockPos pos){
-        final int y = pos.getY();
-        if(y<0 || y > 255) return this.world.getBlockState(pos);
-        else {
-            final ExtendedBlockStorage storage = ebs[y>>4];
-            if(storage == Chunk.NULL_BLOCK_STORAGE) return Blocks.AIR.getDefaultState();
-            else return storage.get(pos.getX() & 0xF,y &0xF,pos.getZ() &0xF);
-        }
-    }
-
     @Nonnull
     @Override
-    public Class<BoxedBlockTickDatum> getStorageType() {
+    public final Class<BoxedBlockTickDatum> getStorageType() {
         return BoxedBlockTickDatum.class;
     }
 }

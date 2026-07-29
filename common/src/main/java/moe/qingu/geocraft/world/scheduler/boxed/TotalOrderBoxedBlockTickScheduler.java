@@ -25,7 +25,7 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.geocraft.world.scheduler.packed;
+package moe.qingu.geocraft.world.scheduler.boxed;
 
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import moe.qingu.geocraft.api.util.annotation.ThreadOnly;
@@ -33,7 +33,6 @@ import moe.qingu.geocraft.api.util.annotation.ThreadType;
 import moe.qingu.geocraft.api.world.tick.IScheduledTick;
 import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
 
 import javax.annotation.Nonnull;
 import java.util.PriorityQueue;
@@ -41,10 +40,10 @@ import java.util.PriorityQueue;
 /**
  * @author QGMoe
  */
-public final class TotalOrderPackedBlockTickScheduler extends PackedBlockTickScheduler{
+public final class TotalOrderBoxedBlockTickScheduler extends BoxedBlockTickScheduler{
     private final PriorityQueue<IScheduledTick> queue = new PriorityQueue<>();
 
-    public TotalOrderPackedBlockTickScheduler(@Nonnull final World world) {
+    public TotalOrderBoxedBlockTickScheduler(@Nonnull final World world) {
         super(world);
     }
 
@@ -54,37 +53,38 @@ public final class TotalOrderPackedBlockTickScheduler extends PackedBlockTickSch
      */
     @Nonnull
     public static BlockTickScheduler create(final @Nonnull World world){
-        return new TotalOrderPackedBlockTickScheduler(world);
+        return new TotalOrderBoxedBlockTickScheduler(world);
     }
 
     @Override
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public void update(){
+    public void update() {
         final long totalWorldTime = world.getTotalWorldTime();
         long count = 0;
         final LongIterator iterator = schedules.iterator();
         while (count < maxUpdateNum && iterator.hasNext()){
             final long pos = iterator.nextLong();
-            final PackedBlockTickDatum datum = data.get(pos);
+            final BoxedBlockTickDatum datum = data.get(pos);
             if(datum == null) {
                 iterator.remove();
                 continue;
             }
-            final int z = (int) (pos>>Integer.SIZE);
-            final int x = (int) pos;
-            final Chunk chunk = world.getChunk(x,z);
-            final int cot;
+            int cot = 0;
             datum.lock.lock();
             try {
-                cot = datum.queue.collectNext(totalWorldTime,queue,x,z);
+                IScheduledTick tick;
+                while (!datum.queue.isEmpty() &&
+                        Long.compareUnsigned(datum.queue.peek().triggeredTick() - totalWorldTime -1L, 2147483647L) >= 0 //环上到期,因为延迟不可能超过Integer.MAX_VALUE,因此超出则代表时间过了
+                ){
+                    datum.set.remove(tick = datum.queue.poll());
+                    queue.add(tick);
+                    cot++;
+                }
                 count += cot;
             }finally {
                 datum.lock.unlock();
             }
-            if(cot != 0 && datum.markDirty()){
-                chunk.markDirty();
-                dirties.add(datum);
-            }
+            if(cot != 0 && datum.markDirty()) dirties.add(datum);
             if(datum.queue.isEmpty()) iterator.remove();
         }
         consumeByTotalOrder(queue);

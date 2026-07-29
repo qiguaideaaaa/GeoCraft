@@ -121,7 +121,7 @@ public abstract class PackedBlockTickScheduler extends ChunkyBlockTickScheduler<
 
     @Nonnull
     @Override
-    public Class<PackedBlockTickDatum> getStorageType() {
+    public final Class<PackedBlockTickDatum> getStorageType() {
         return PackedBlockTickDatum.class;
     }
 }
