@@ -77,7 +77,7 @@ public final class 区块打包计划刻测试 extends 方块计划刻调度器�
         final PackedBlockTickDatum datum = new PackedBlockTickDatum();
         datum.deserializeNBT(inNBT);
         final List<IScheduledTick> inTicks = Optional.ofNullable(datum.queue)
-                .map(q -> q.stream().collect(Collectors.toList()))
+                .map(q -> q.stream(0,0).collect(Collectors.toList()))
                 .orElse(Collections.emptyList());
         $答案数据.假设相等(inTicks);
     }

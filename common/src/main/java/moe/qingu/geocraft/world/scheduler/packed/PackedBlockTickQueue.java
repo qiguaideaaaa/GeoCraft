@@ -35,6 +35,7 @@ import net.minecraft.util.math.BlockPos;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.LongConsumer;
 import java.util.stream.Stream;
@@ -65,23 +66,28 @@ public abstract class PackedBlockTickQueue {
                                 final @Nonnull long[] temp,
                                 final @Nonnull ReentrantLock lock);
 
+    public abstract int collectNext(final long worldTotalTime,
+                                    @Nonnull final PriorityQueue<IScheduledTick> collector,
+                                    final int x,
+                                    final int z);
+
     public abstract void forEach(final @Nonnull LongConsumer consumer);
 
     public abstract void updateBaseTime(final long newBaseTime);
 
-    public final @Nonnull Stream<IScheduledTick> stream(){
+    public final @Nonnull Stream<IScheduledTick> stream(final int x,final int z){
         final List<IScheduledTick> ticks = new ArrayList<>();
-        this.forEach(t -> ticks.add(this.toScheduledTick(t)));
+        this.forEach(t -> ticks.add(this.toScheduledTick(t,x,z)));
         return ticks.stream();
     }
 
-    public final @Nonnull IScheduledTick toScheduledTick(final long t){
-        final long x = (t >>> 12) & 0xFL;
+    public final @Nonnull IScheduledTick toScheduledTick(final long t,final int cx,final int cz){
+        final int x = (cx << 4) + ((int)((t >>> 12) & 0xFL));
         final long y = (t >>> 20) & 0xFFL;
-        final long z = (t >>> 16) & 0xFL;
+        final int z = (cz << 4) + ((int)((t >>> 16) & 0xFL));
         final long scheduledTime = this.baseTime + (t >>> 32);
         final @Nonnull Block block = Block.getBlockById((int)(t &0_7777L));
         final @Nonnull TickPriority priority = TickPriority.of((int)((t >>> 28)&0xFL));
-        return IScheduledTick.of(block,new BlockPos((int) x,(int) y,(int) z),scheduledTime,priority);
+        return IScheduledTick.of(block,new BlockPos(x,(int) y, z),scheduledTime,priority);
     }
 }

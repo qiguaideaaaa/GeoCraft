@@ -27,131 +27,70 @@
 
 package moe.qingu.geocraft.world.scheduler.packed;
 
-import moe.qingu.geocraft.api.util.math.vec.MBlockPos;
-import moe.qingu.geocraft.configs.GeneralConfig;
-import moe.qingu.geocraft.world.scheduler.ObjectLongHeaps;
+import it.unimi.dsi.fastutil.longs.LongIterator;
+import moe.qingu.geocraft.api.util.annotation.ThreadOnly;
+import moe.qingu.geocraft.api.util.annotation.ThreadType;
+import moe.qingu.geocraft.api.world.tick.IScheduledTick;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 
 import javax.annotation.Nonnull;
+import java.util.PriorityQueue;
 
 /**
  * @author QGMoe
  */
 public final class TotalOrderPackedBlockTickScheduler extends PackedBlockTickScheduler{
-    private static final PackedBlockTickDatum NULL_DATUM = new PackedBlockTickDatum();
-    private static final DatumComparator COMPARATOR = new DatumComparator();
-    private final MBlockPos posContainer = new MBlockPos();
-    private final long[] xzs = new long[100];
-    private final int[] lefts = new int[100];
-    private PackedBlockTickDatum[] datumTemp = new PackedBlockTickDatum[0];
-    private int tempQueueSize;
+    private final PriorityQueue<IScheduledTick> queue = new PriorityQueue<>();
 
     public TotalOrderPackedBlockTickScheduler(@Nonnull final World world) {
         super(world);
     }
 
     @Override
-    @SuppressWarnings("OctalInteger")
-    public void update() {
-        final long beginTime = System.currentTimeMillis(),maxTime = GeneralConfig.BLOCK_UPDATER_MAX_TIME_USAGE.getValue();
-        tempQueueSize = schedules.size();
-        this.datumTemp = prepareTotalUpdate(datumTemp,COMPARATOR,NULL_DATUM);
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER)
+    public void update(){
+        final long totalWorldTime = world.getTotalWorldTime();
         long count = 0;
-        int n;
-        do {
-            n = collectNext(xzs,lefts);
-            for(int i=0;i<n;i++){
-                posContainer.setPos((int)(xzs[i]&0xFFFF_FFFFL),(lefts[i]>>>12)&0xF,(int)(xzs[i]>>>32));
-                final Block block = Block.REGISTRY.getObjectById(lefts[i]&0_7777);
-                final Chunk chunk = world.getChunk(posContainer);
+        final LongIterator iterator = schedules.iterator();
+        while (count < maxUpdateNum && iterator.hasNext()){
+            final long pos = iterator.nextLong();
+            final PackedBlockTickDatum datum = data.get(pos);
+            if(datum == null) {
+                iterator.remove();
+                continue;
+            }
+            final int z = (int) (pos>>Integer.SIZE);
+            final int x = (int) pos;
+            final Chunk chunk = world.getChunk(x,z);
+            datum.lock.lock();
+            final int cot;
+            try {
+                cot = datum.queue.collectNext(totalWorldTime,queue,x,z);
+                count += cot;
+            }finally {
+                datum.lock.unlock();
+            }
+            if(cot != 0 && datum.markDirty()){
                 chunk.markDirty();
-                final IBlockState state = chunk.getBlockState(posContainer);
-                if(!validator.accepts(posContainer,block,state)) continue;
-                try {
-                    block.updateTick(world,posContainer,state,world.rand);
-                } catch (final Throwable t) {
-                    throw createReport(t,posContainer,state);
-                }
+                dirties.add(datum);
             }
-            count += n;
-            if(System.currentTimeMillis() - beginTime > maxTime) break;
-        } while (n>0 && count < maxUpdateNum);
-    }
-
-    @SuppressWarnings("OctalInteger")
-    public int collectNext(final @Nonnull long[] xzs, final @Nonnull int[] lefts) {
-        int count = 0;
-        final long worldTotalTime = world.getTotalWorldTime();
-        while (tempQueueSize > 0 && count < xzs.length) {
-            final long pos = volume.temp[0];
-            final PackedBlockTickDatum datum = datumTemp[0];
-            tempQueueSize--;
-            volume.temp[0] = volume.temp[tempQueueSize];
-            datumTemp[0] = datumTemp[tempQueueSize];
-            if (tempQueueSize != 0) ObjectLongHeaps.downHeap(datumTemp, volume.temp, tempQueueSize, 0, COMPARATOR);
-            if (datum.isEmpty()) {
-                schedules.remove(pos);
-                break;
-            }
-            final long tick = datum.queue.first();
-            final long triggeredTick = datum.queue.baseTime + (tick >>> 32);
-            if (Long.compareUnsigned(triggeredTick - worldTotalTime - 1L, 2147483647L) >= 0) {
-                datum.lock.lock();
-                try{
-                    datum.queue.dequeue();
-                    final long x = ((pos >>> 32 << 4) + ((tick >>> 12) & 0xFL)) & 0xFFFF_FFFL;
-                    final long z = (pos & 0xFFFF_FFFFL << 4) + ((tick >>> 16) & 0xFL);
-                    xzs[count] = (z << 32) | x;
-                    final int y = (int) ((tick >>> 20) & 0xFFL);
-                    final int blockID = (int) (tick & 0_7777L);
-                    lefts[count] = (y << 12) | blockID;
-                    count++;
-                }finally {
-                    datum.markDirty();
-                    datum.lock.unlock();
-                }
-                if (datum.isEmpty()) {
-                    schedules.remove(pos);
-                    continue;
-                }
-                tempQueueSize++;
-                volume.temp[tempQueueSize] = pos;
-                datumTemp[tempQueueSize] = datum;
-                ObjectLongHeaps.upHeap(datumTemp,volume.temp,tempQueueSize,tempQueueSize-1,COMPARATOR);
-            }else break;
+            if(datum.queue.isEmpty()) iterator.remove();
         }
-        return count;
-    }
-
-    private final static class DatumComparator extends ObjectLongHeaps.BiComparator<PackedBlockTickDatum> {
-
-        @Override
-        @SuppressWarnings("OctalInteger")
-        public int compare(@Nonnull final PackedBlockTickDatum d1,final long pos1, @Nonnull final PackedBlockTickDatum d2,final long pos2) {
-            if(d1.isEmpty() || d2.isEmpty()) return Boolean.compare(d1.isEmpty(),d2.isEmpty());
-            final long first1 = d1.queue.first();
-            final long first2 = d2.queue.first();
-            final long triggered1 = d1.queue.baseTime+(first1>>>32);
-            final long triggered2 = d2.queue.baseTime+(first2>>>32);
-            if(triggered1 != triggered2) return triggered1 - triggered2 < 0?-1:1;
-            final long priority1 = (first1>>>28)&0xFL;
-            final long priority2 = (first2>>>28)&0xFL;
-            if(priority1 != priority2) return Long.compare(priority1,priority2);
-            final long y1 = (first1>>>20)&0xFFL;
-            final long y2 = (first2>>>20)&0xFFL;
-            if(y1!=y2) return Long.compare(y1,y2);
-            final int z1 = (int)((pos1>>>32) + (first1>>>16)&0xFL);
-            final int z2 = (int)((pos2>>>32) + (first2>>>16)&0xFL);
-            if(z1!=z2) return Integer.compare(z1,z2);
-            final int x1 = (int)((pos1&0xFFFF_FFFFL) + (first1>>>12)&0xFL);
-            final int x2 = (int)((pos2&0xFFFF_FFFFL) + (first2>>>12)&0xFL);
-            if(x1!=x2) return Integer.compare(x1,x2);
-            final long block1 = first1 & 0_7777L;
-            final long block2 = first2 & 0_7777L;
-            return Long.compare(block1,block2);
+        while (!queue.isEmpty()){
+            final IScheduledTick tick = queue.poll();
+            final BlockPos pos = tick.pos();
+            final IBlockState state = world.getBlockState(pos);
+            final Block block = tick.block();
+            if(!validator.accepts(pos,block,state)) continue;
+            try {
+                block.updateTick(world,pos,state,world.rand);
+            } catch(final @Nonnull Throwable t){
+                throw createReport(t,pos,state);
+            }
         }
     }
 }

@@ -47,10 +47,12 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongArrays;
 import it.unimi.dsi.fastutil.longs.LongComparator;
 import it.unimi.dsi.fastutil.longs.LongHeaps;
+import moe.qingu.geocraft.api.world.tick.IScheduledTick;
 import net.minecraft.block.Block;
 
 import javax.annotation.Nonnull;
 import java.util.NoSuchElementException;
+import java.util.PriorityQueue;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.LongConsumer;
 
@@ -80,10 +82,6 @@ public final class HeapPackedBlockTickQueue extends PackedBlockTickQueue {
         return size;
     }
 
-    public long first(){
-        return heap[0];
-    }
-
     public void clear() {
         size = 0;
     }
@@ -91,9 +89,10 @@ public final class HeapPackedBlockTickQueue extends PackedBlockTickQueue {
     @Override
     public void queue(final int cx,final int cy,final int cz,final int blockID,final long delay,final int priority) {
         if (size == heap.length) heap = LongArrays.grow(heap, size + 1);
-        heap[size++] = (delay << 32) | ((long) priority <<28) | ((long) cy << 20) | ((long) cz << 16) | ((long) cx << 12) | blockID;
+        final long t = (delay << 32) | ((long) priority <<28) | ((long) cy << 20) | ((long) cz << 16) | ((long) cx << 12) | blockID;
+        heap[size++] = t;
         LongHeaps.upHeap(heap, size, size - 1, COMPARE_UNSIGNED_LOW_FIRST);
-        set.add((cy<<20) | (blockID << 8) | (cx << 4) | cz);
+        set.add((int)(t & 0xFFFF_FFFL));
     }
 
     public long dequeue() {
@@ -110,7 +109,7 @@ public final class HeapPackedBlockTickQueue extends PackedBlockTickQueue {
 
     @Override
     public boolean contains(final int cx,final int cy,final int cz,final int blockID) {
-        return set.contains((cy<<20) | (blockID << 8) | (cx << 4) | cz);
+        return set.contains((cy<<20) | (cz << 16) | (cx << 12) | blockID);
     }
 
     @Override
@@ -128,7 +127,7 @@ public final class HeapPackedBlockTickQueue extends PackedBlockTickQueue {
                 final int y = (int) ((tick >>> 20) & 0xFFL);
                 final int z = (int) ((tick >>> 16) & 0xFL);
                 final int blockID = (int) (tick & 0_7777L);
-                final int key = (y<<20) | (blockID<<8) | (x << 4) | z;
+                final int key = (int) (tick & 0xFFFF_FFFL);
                 set.remove(key);
                 final Block block = Block.getBlockById(blockID);
                 consumer.consume(x,y,z,block);
@@ -136,6 +135,16 @@ public final class HeapPackedBlockTickQueue extends PackedBlockTickQueue {
         }finally {
             lock.lock();
         }
+        return count;
+    }
+
+    @Override
+    public int collectNext(final long worldTotalTime, @Nonnull final PriorityQueue<IScheduledTick> collector, final int x,final int z) {
+        final long elapsed = worldTotalTime - baseTime; //环上流逝的时间(无符号)
+        final long maxDelay = Long.compareUnsigned(elapsed,0xFFFF_FFFFL)>0?0xFFFF_FFFFL:elapsed;
+        final long maxValue = (maxDelay<<32) | 0xFFFF_FFFFL;
+        int count = 0;
+        while (size > 0 && Long.compareUnsigned(heap[0],maxValue)<=0) collector.add(toScheduledTick(dequeue(),x,z));
         return count;
     }
 

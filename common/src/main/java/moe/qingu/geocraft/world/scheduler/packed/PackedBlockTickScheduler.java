@@ -103,7 +103,7 @@ public abstract class PackedBlockTickScheduler extends ChunkyBlockTickScheduler<
             final int tickZ = baseZ + (int) ((t >>> 16)&0xFL);
             final long tickY = (t>>>20) & 0xFFL;
             if(!MathUtil.inRangeClose(tickX,minX,maxX) || !MathUtil.inRangeClose(tickZ,minZ,maxZ) || tickY < minY || tickY > maxY) return;
-            collector.add(datum.queue.toScheduledTick(t));
+            collector.add(datum.queue.toScheduledTick(t,chunkX,chunkZ));
         });
     }
 
@@ -115,7 +115,7 @@ public abstract class PackedBlockTickScheduler extends ChunkyBlockTickScheduler<
         datum.queue.forEach(t ->{
             final long y = (t>>>20) & 0xFFL;
             if(y < minY || y > maxY) return;
-            collector.add(datum.queue.toScheduledTick(t));
+            collector.add(datum.queue.toScheduledTick(t,chunkX,chunkZ));
         });
     }
 
