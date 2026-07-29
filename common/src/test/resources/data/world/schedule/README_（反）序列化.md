@@ -19,7 +19,7 @@ data/world/schedule/
     └── 序列化/               装箱实现的序列化样例
 ```
 
-数据集说明只有两份：所有反序列化样例（含 `packed/`、`boxed/` 下的）记在 `common/（反）序列化/README.md`，所有序列化样例记在 `common/序列化/README.md`。`packed/`、`boxed/` 下不再设 README。
+数据集说明只有两份：所有反序列化样例（含 `packed/`、`boxed/` 下的）记在 `common/（反）序列化/README.md`，所有序列化样例记在 `common/序列化/README.md`。`packed/`、`boxed/` 下不再设 README。三个目录下另有本数据集之外的 `调度/` 子目录，见 `common/调度/README.md`。
 
 ## 约定
 

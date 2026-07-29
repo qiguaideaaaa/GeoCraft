@@ -1,6 +1,6 @@
 ---
 # Claude Generated
-name: 跨零
+name: 通用-跨零
 ver: 1
 default: 〇
 ext:
@@ -8,3 +8,6 @@ ext:
     - [0,6]
 ---
 猹e 猹0 猹2
+
+---
+详见 跨零.md。
