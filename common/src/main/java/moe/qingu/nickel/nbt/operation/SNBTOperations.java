@@ -61,7 +61,7 @@ public final class SNBTOperations {
             NickelAPI.LOGGER.error("Duplicated register for SNBTOperation {}",signature);
             return;
         }
-        NickelAPI.LOGGER.info("Registered SNBTOperation {}",signature);
+        NickelAPI.LOGGER.debug("Registered SNBTOperation {}",signature);
         functions.put(name,type,function);
         signatures.put(function,signature);
     }

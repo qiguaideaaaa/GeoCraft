@@ -80,7 +80,7 @@ public final class GeneralConfig {
     public static final ConfigCategory CATEGORY_BLOCK_UPDATER = GENERAL.getChildCategory("block_updater");
 
     @Config.Comment("使用天圆地方自己的方块计划刻调度器以在1游戏刻内提供额外的方块更新额度、更精细的更新管理以及更好的调度性能，但可能会降低兼容性\n" +
-            "Enable GeoCraft's Block Tick Scheduler to provide additional block update quotas and more refined update management within a single game tick.")
+            "Enable GeoCraft's Block Tick Scheduler to provide additional block update quotas, more refined update management, and better scheduling performance within a single game tick, but may reduce compatibility.")
     @Config.LangKey("geocraft.config.comment.general.enable_block_updater")
     @GeoConfig.Support(since = "0.1")
     @Config.RequiresWorldRestart
@@ -88,19 +88,24 @@ public final class GeneralConfig {
             new ConfigBoolean(CATEGORY_BLOCK_UPDATER, "enableBlockUpdater",true);
 
     @Config.Comment({"设定启用天圆地方自己的方块计划刻调度器时，需要使用的调度器模式。",
-            "支持的模式有：BOXED | PACKED  装箱模式 | 打包模式",
-            "装箱模式兼容性更好，但内存占用和性能会变差；打包模式性能更好，但不兼容扩展方块 ID 的模组",
-            "从打包模式切换到装箱模式是无损切换，但从装箱模式切换到打包模式可能出现数据丢失"})
+            "支持的模式有：BOXED | BOXED_TOTAL_ORDER | PACKED | PACKED_TOTAL_ORDER   装箱偏序模式 | 裝箱全序模式 | 打包偏序模式 | 打包全序模式",
+            "装箱模式兼容性更好，但内存占用和性能会变差；打包模式性能更好，但不兼容扩展方块 ID 的模组。全序模式的性能和内存占用会略差于偏序模式，但计划刻的执行顺序更符合原版语义。",
+            "从打包模式切换到装箱模式是无损切换，但从装箱模式切换到打包模式可能出现数据丢失",
+            "Set the scheduler mode for GeoCraft's Block Tick Scheduler.",
+            "Boxed mode has better compatibility but worse memory usage and performance; Packed mode has better performance but is incompatible with mods that extend block IDs. Total-order mode has slightly worse performance and memory usage than partial-order mode, but the execution order of scheduled ticks more closely matches vanilla semantics.",
+            "Switching from Packed to Boxed is lossless, but switching from Boxed to Packed may cause data loss."})
     @GeoConfig.Support(since = "0.3.0-alpha.1")
     @Config.RequiresWorldRestart
     public static final ConfigEnum<GeoBlockTickType> BLOCK_TICK_SCHEDULER_TYPE =
             new ConfigEnum<>(CATEGORY_BLOCK_UPDATER,"blockTickSchedulerMode",GeoBlockTickType.PACKED, GeoBlockTickType.class)
-                    .withAlias(GeoBlockTickType.BOXED,"装箱","装箱模式","裝箱","裝箱模式")
-                    .withAlias(GeoBlockTickType.PACKED,"打包","打包模式");
+                    .withAlias(GeoBlockTickType.BOXED,"装箱","装箱偏序","偏序装箱","装箱模式","装箱偏序模式","偏序装箱模式","裝箱","裝箱偏序","偏序裝箱","裝箱模式","裝箱偏序模式","偏序裝箱模式")
+                    .withAlias(GeoBlockTickType.BOXED_TOTAL_ORDER,"装箱全序","全序装箱","装箱全序模式","全序装箱模式","裝箱全序","全序裝箱","裝箱全序模式","全序裝箱模式")
+                    .withAlias(GeoBlockTickType.PACKED,"打包","打包偏序","偏序打包","打包模式","打包偏序模式","偏序打包模式")
+                    .withAlias(GeoBlockTickType.PACKED_TOTAL_ORDER,"打包全序","全序打包","打包全序模式","全序打包模式");
 
     @Config.RangeInt(min = 1)
-    @Config.Comment("天圆地方内置的附加方块更新器在一游戏刻内最多更新的方块数量，多余的更新任务会被忽略。\n" +
-            "The max number of blocks to update by Block Updater inside GeoCraft. The excess part will be ignored.")
+    @Config.Comment("天圆地方内置的方块计划刻调度器在一游戏刻内最多更新的方块数量，多余的更新任务会被忽略。\n" +
+            "The max number of blocks the Block Tick Scheduler inside GeoCraft can update within a single game tick. Excess update tasks will be ignored.")
     @GeoConfig.Support(since = "0.1")
     @Config.RequiresWorldRestart
     public static final ConfigInteger BLOCK_UPDATER_MAX_UPDATES_BLOCK =
@@ -108,12 +113,12 @@ public final class GeneralConfig {
 
     @Config.RangeInt(min = -1)
     @GeoConfig.Support(since = "0.1")
-    @Config.Comment("天圆地方自己的方块计划刻调度器在1游戏刻内的最大耗时，当用时超过该阈值时，将会推迟剩余任务更新到下一游戏刻。设为-1以禁用时间限制。\n" +
-            "The maximum processing time allowed for BlockUpdater within a single game tick. When the processing time exceeds this threshold, non-compliant update tasks will be discarded. Set it to -1 to disable this function.")
+    @Config.Comment("天圆地方自己的偏序方块计划刻调度器在1游戏刻内的最大耗时，当用时超过该阈值时，将会推迟剩余任务更新到下一游戏刻。设为-1以禁用时间限制。全序模式因为底层限制，该项不会生效。\n" +
+            "The maximum processing time for GeoCraft's partial-order Block Tick Scheduler within a single game tick. When the time exceeds this threshold, remaining tasks will be postponed to the next game tick. Set to -1 to disable this time limit. This setting has no effect in total-order mode due to underlying limitations.")
     public static final ConfigInteger BLOCK_UPDATER_MAX_TIME_USAGE = new ConfigInteger(CATEGORY_BLOCK_UPDATER, "maxTimeUsage",200);
 
-    @Config.Comment("按距离最近玩家距离从进到远更新方块。\n" +
-            "Update blocks in order of proximity to the nearest player.")
+    @Config.Comment("按距离最近玩家距离从进到远更新方块。全序模式因为底层限制，该项不会生效。\n" +
+            "Update blocks in order of proximity to the nearest player. This setting has no effect in total-order mode due to underlying limitations.")
     @GeoConfig.Support(since = "0.1")
     public static final ConfigBoolean SORT_UPDATE_TASKS_BY_DISTANCE_TO_PLAYERS =
             new ConfigBoolean(CATEGORY_BLOCK_UPDATER, "sortTasksByDistanceToPlayers",false);

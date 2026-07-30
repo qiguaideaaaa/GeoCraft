@@ -29,7 +29,9 @@ package moe.qingu.geocraft.world.scheduler;
 
 import moe.qingu.geocraft.api.util.annotation.EarlyLoaded;
 import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
+import moe.qingu.geocraft.world.scheduler.boxed.TotalOrderBoxedBlockTickScheduler;
 import moe.qingu.geocraft.world.scheduler.packed.PartialOrderPackedBlockTickScheduler;
+import moe.qingu.geocraft.world.scheduler.packed.TotalOrderPackedBlockTickScheduler;
 import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
@@ -47,11 +49,25 @@ public enum GeoBlockTickType {
             return () -> PartialOrderPackedBlockTickScheduler.create(world);
         }
     },
+    BOXED_TOTAL_ORDER{
+        @Nonnull
+        @Override
+        public Supplier<BlockTickScheduler> supplier(@Nonnull final World world) {
+            return () -> TotalOrderBoxedBlockTickScheduler.create(world);
+        }
+    },
     PACKED(){
         @Nonnull
         @Override
         public Supplier<BlockTickScheduler> supplier(@Nonnull final World world) {
             return () -> PartialOrderPackedBlockTickScheduler.create(world);
+        }
+    },
+    PACKED_TOTAL_ORDER{
+        @Nonnull
+        @Override
+        public Supplier<BlockTickScheduler> supplier(@Nonnull final World world) {
+            return () -> TotalOrderPackedBlockTickScheduler.create(world);
         }
     };
 
