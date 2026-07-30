@@ -69,11 +69,12 @@ public final class BoxedBlockTickDatum extends ChunkyBlockTickDatum {
     }
 
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public void schedule(final @Nonnull IScheduledTick tick){
+    public boolean schedule(final @Nonnull IScheduledTick tick){
         lock.lock();
         try {
+            if(!this.set.add(tick)) return false;
             this.queue.add(tick);
-            this.set.add(tick);
+            return true;
         }finally {
             lock.unlock();
         }

@@ -87,12 +87,13 @@ public final class HeapPackedBlockTickQueue extends PackedBlockTickQueue {
     }
 
     @Override
-    public void queue(final int cx,final int cy,final int cz,final int blockID,final long delay,final int priority) {
+    public boolean queue(final int cx,final int cy,final int cz,final int blockID,final long delay,final int priority) {
         if (size == heap.length) heap = LongArrays.grow(heap, size + 1);
         final long t = (delay << 32) | ((long) priority <<28) | ((long) cy << 20) | ((long) cz << 16) | ((long) cx << 12) | blockID;
+        if(!set.add((int)(t & 0xFFFF_FFFL))) return false;
         heap[size++] = t;
         LongHeaps.upHeap(heap, size, size - 1, COMPARE_UNSIGNED_LOW_FIRST);
-        set.add((int)(t & 0xFFFF_FFFL));
+        return true;
     }
 
     public long dequeue() {
@@ -128,7 +129,7 @@ public final class HeapPackedBlockTickQueue extends PackedBlockTickQueue {
                 final int z = (int) ((tick >>> 16) & 0xFL);
                 final int blockID = (int) (tick & 0_7777L);
                 final int key = (int) (tick & 0xFFFF_FFFL);
-                set.remove(key);
+                set.rem(key);
                 final Block block = Block.getBlockById(blockID);
                 consumer.consume(x,y,z,block);
             }

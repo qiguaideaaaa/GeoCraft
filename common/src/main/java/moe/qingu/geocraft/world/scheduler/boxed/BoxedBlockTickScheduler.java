@@ -63,8 +63,7 @@ public abstract class BoxedBlockTickScheduler extends ChunkyBlockTickScheduler<B
         final @Nullable BoxedBlockTickDatum datum = getDatum(chunkX,chunkZ);
         if(datum == null) return false;
         final IScheduledTick tick = IScheduledTick.of(block,pos.toImmutable(),this.world.getTotalWorldTime()+delay,priority);
-        if(datum.isScheduled(tick)) return false;
-        datum.schedule(tick);
+        if(!datum.schedule(tick)) return false;
         schedules.add(ChunkPos.asLong(chunkX,chunkZ));
         if(!datum.isDirty() && datum.markDirty()) dirties.add(datum);
         return true;

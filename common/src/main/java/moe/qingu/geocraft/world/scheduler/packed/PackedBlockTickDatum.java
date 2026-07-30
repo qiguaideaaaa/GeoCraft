@@ -59,7 +59,7 @@ public final class PackedBlockTickDatum extends ChunkyBlockTickDatum {
     HeapPackedBlockTickQueue queue = null;
 
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public void schedule(final long worldTotalTime,final int cx, final int cy, final int cz, final int blockID, final long delay, final @Nonnull TickPriority priority){
+    public boolean schedule(final long worldTotalTime,final int cx, final int cy, final int cz, final int blockID, final long delay, final @Nonnull TickPriority priority){
         lock.lock();
         try {
             if(queue == null){
@@ -67,7 +67,7 @@ public final class PackedBlockTickDatum extends ChunkyBlockTickDatum {
                 queue.baseTime = worldTotalTime;
             }else if(Long.compareUnsigned(worldTotalTime - queue.baseTime, 2147483647L) > 0) queue.updateBaseTime(worldTotalTime);
             final long offset = worldTotalTime-queue.baseTime+delay; // worldTotalTime-baseTime 为 [0,2^31-1]
-            queue.queue(cx,cy,cz,blockID, Math.max(offset, 0L),priority.ordinal());
+            return queue.queue(cx,cy,cz,blockID, Math.max(offset, 0L),priority.ordinal());
         }finally {
             lock.unlock();
         }

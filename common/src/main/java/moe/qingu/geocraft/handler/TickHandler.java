@@ -39,12 +39,16 @@ import moe.qingu.geocraft.geography.fluidphysics.pressure.FluidPressureSearchMan
 import moe.qingu.geocraft.util.MiscUtil;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author QiguaiAAAA
  */
 @Mod.EventBusSubscriber(modid = GeoCraft.MODID)
 public final class TickHandler {
+    public static final ReentrantLock TICKING_LOCK = new ReentrantLock();
+    public static BlockTickScheduler currentBlockScheduler;
 
     private TickHandler(){}
 
@@ -57,10 +61,17 @@ public final class TickHandler {
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onWorldTickEnd(@Nonnull TickEvent.WorldTickEvent event){
         if(event.phase == TickEvent.Phase.START) return;
-        WorldServer world = MiscUtil.getValidWorld(event.world);
+        final @Nullable WorldServer world = MiscUtil.getValidWorld(event.world);
         if(world == null) return;
-        FluidPressureSearchManager.onWorldTick(world);
-        BlockTickScheduler.onWorldTick(world);
-        FluidTaskScheduler.onWorldTick(world);
+        TICKING_LOCK.lock();
+        try {
+            currentBlockScheduler = BlockTickScheduler.getScheduler(world);
+            FluidPressureSearchManager.onWorldTick(world);
+            BlockTickScheduler.onWorldTick(world);
+            FluidTaskScheduler.onWorldTick(world);
+        }finally {
+            currentBlockScheduler = null;
+            TICKING_LOCK.unlock();
+        }
     }
 }

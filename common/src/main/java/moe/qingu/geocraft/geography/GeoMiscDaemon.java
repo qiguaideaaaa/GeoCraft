@@ -31,6 +31,7 @@ import moe.qingu.geocraft.api.fluidphysics.task.scheduler.FluidTaskScheduler;
 import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
 import moe.qingu.geocraft.geography.fluidphysics.scheduler.ChunkyFluidTaskDatum;
 import moe.qingu.geocraft.geography.fluidphysics.scheduler.ChunkyFluidTaskScheduler;
+import moe.qingu.geocraft.handler.TickHandler;
 import moe.qingu.geocraft.world.scheduler.ChunkyBlockTickDatum;
 import moe.qingu.geocraft.world.scheduler.ChunkyBlockTickScheduler;
 import net.minecraft.server.MinecraftServer;
@@ -115,15 +116,22 @@ public final class GeoMiscDaemon implements Runnable {
         int cot = 0;
         while (cot++ < size){
             if(dirties.isEmpty()) break;
-            final ChunkyFluidTaskDatum datum = dirties.poll();
-            if(!datum.isDirty()) continue;
-            if(datum.getLock().tryLock()){
+            if(TickHandler.TICKING_LOCK.tryLock()){
                 try {
-                    datum.serializeNBT();
+                    final ChunkyFluidTaskDatum datum = dirties.poll();
+                    assert datum != null;
+                    if(!datum.isDirty()) continue;
+                    if(datum.getLock().tryLock()){
+                        try {
+                            datum.serializeNBT();
+                        }finally {
+                            datum.getLock().unlock();
+                        }
+                    }else dirties.add(datum);
                 }finally {
-                    datum.getLock().unlock();
+                    TickHandler.TICKING_LOCK.unlock();
                 }
-            }else dirties.add(datum);
+            }
         }
     }
 
@@ -142,15 +150,22 @@ public final class GeoMiscDaemon implements Runnable {
         int cot = 0;
         while (cot++ < size){
             if(dirties.isEmpty()) break;
-            final ChunkyBlockTickDatum datum = dirties.poll();
-            if(!datum.isDirty()) continue;
-            if(datum.lock.tryLock()){
+            if(TickHandler.TICKING_LOCK.tryLock()){
                 try {
-                    datum.serializeNBT();
+                    final ChunkyBlockTickDatum datum = dirties.poll();
+                    assert datum != null;
+                    if(!datum.isDirty()) continue;
+                    if(datum.lock.tryLock()){
+                        try {
+                            datum.serializeNBT();
+                        }finally {
+                            datum.lock.unlock();
+                        }
+                    }else dirties.add(datum);
                 }finally {
-                    datum.lock.unlock();
+                    TickHandler.TICKING_LOCK.unlock();
                 }
-            }else dirties.add(datum);
+            }
         }
     }
 }

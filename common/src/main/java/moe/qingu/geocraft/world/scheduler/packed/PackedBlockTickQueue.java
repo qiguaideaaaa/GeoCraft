@@ -53,7 +53,7 @@ public abstract class PackedBlockTickQueue {
 
     public abstract int size();
 
-    public abstract void queue(final int cx,final int cy,final int cz,final int blockID,final long delay,final int priority);
+    public abstract boolean queue(final int cx,final int cy,final int cz,final int blockID,final long delay,final int priority);
 
     public void queue(final long tick){
         queue((int) ((tick>>>12)&0xFL), (int) ((tick>>>20)&0xFFL), (int) ((tick>>>16)&0xFL), (int) (tick&0_7777L),tick>>>32, (int) ((tick>>>28)&0xFL));

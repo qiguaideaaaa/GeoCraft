@@ -64,8 +64,7 @@ public abstract class PackedBlockTickScheduler extends ChunkyBlockTickScheduler<
         if(blockID < 0 || blockID > 0_7777) return false;
         final int cx = pos.getX() & 0xF;
         final int cz = pos.getZ() & 0xF;
-        if(datum.isScheduled(cx,pos.getY(),cz,blockID)) return false;
-        datum.schedule(world.getTotalWorldTime(), cx, pos.getY(), cz, blockID, delay, priority);
+        if(!datum.schedule(world.getTotalWorldTime(), cx, pos.getY(), cz, blockID, delay, priority)) return false;
         schedules.add(ChunkPos.asLong(chunkX,chunkZ));
         if(!datum.isDirty() && datum.markDirty()){
             final Chunk chunk = world.getChunk(chunkX,chunkZ);
