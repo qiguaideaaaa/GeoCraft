@@ -27,10 +27,10 @@
 
 package moe.qingu.geocraft.geography.fluidphysics.scheduler;
 
+import it.unimi.dsi.fastutil.chars.CharOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntComparator;
-import it.unimi.dsi.fastutil.shorts.ShortOpenHashSet;
 import moe.qingu.geocraft.api.fluidphysics.task.FluidTaskRegistry;
 import moe.qingu.geocraft.api.fluidphysics.task.IFluidTask;
 
@@ -55,7 +55,7 @@ public class LinearFluidTaskQueue extends FluidTaskQueue{
     };
 
     protected final IntArrayList list = new IntArrayList();
-    protected final ShortOpenHashSet presence = new ShortOpenHashSet();
+    protected final CharOpenHashSet presence = new CharOpenHashSet();
 
     @Override
     public int size() {
@@ -64,9 +64,9 @@ public class LinearFluidTaskQueue extends FluidTaskQueue{
 
     @Override
     public void queue(final int cx, final int cy, final int cz, final int taskID) {
-        final int task = cy << 24 | taskID << 8 | cx << 4 | cz;
-        presence.add((short) (cy <<8 | cx << 4 | cz));
-        list.add(task);
+        final int pos = (cy << 8) | (cz << 4) | cx;
+        presence.add((char) pos);
+        list.add((pos << 16) | taskID);
     }
 
     @Nullable
@@ -75,14 +75,14 @@ public class LinearFluidTaskQueue extends FluidTaskQueue{
         if(!contains(cx, cy, cz)) return null;
         for(int i=0;i<list.size();i++){
             final int task = list.getInt(i);
-            if(task >>> 24 == cy && ((task >>> 4) & 0xF) == cx && (task & 0xF) == cz) return FluidTaskRegistry.getTaskByID((task>>>8)&0xFFFF);
+            if((task >>> 24) == cy && (((task >>> 16) & 0xFF) == ((cz << 4) | cx))) return FluidTaskRegistry.getTaskByID(task&0xFFFF);
         }
         return null;
     }
 
     @Override
-    public boolean contains(int cx, int cy, int cz) {
-        return presence.contains((short) (cy <<8 | cx << 4 | cz));
+    public boolean contains(final int cx,final int cy,final int cz) {
+        return presence.contains((char) ((cy <<8) | (cz << 4) | cx));
     }
 
     @Override
@@ -92,9 +92,9 @@ public class LinearFluidTaskQueue extends FluidTaskQueue{
             for(int i = 0;i< list.size();i++){
                 final int task = list.getInt(i);
                 final int taskY = task >>> 24;
-                final int taskX = (task >>> 4) & 0xF;
-                final int taskZ = task & 0xF;
-                final int taskID = (task >>> 8) & 0xFFFF;
+                final int taskZ = (task >>> 20) & 0xF;
+                final int taskX = (task >>> 16) & 0xF;
+                final int taskID = task & 0xFFFF;
                 consumer.consume(taskX,taskY,taskZ, FluidTaskRegistry.getTaskByID(taskID));
             }
             return list.size();

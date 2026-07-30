@@ -59,8 +59,8 @@ public final class ChunkyScheduledData<T> {
         if(tempDist == null || size > tempDist.length) tempDist = new double[size];
         for(int i =0;i<size;i++){
             final long pos = temp[i];
-            final int x = (int) (pos & 0xFFFF_FFFFL);
-            final int z = (int) (pos >>> 32);
+            final int x = (int) (pos & 0xFFFF_FFFFL) << 4;
+            final int z = (int) (pos >>> 32) << 4;
             double minDist = Double.POSITIVE_INFINITY;
             for(final EntityPlayerMP player:players){
                 final double dx = player.posX - x;

@@ -299,11 +299,11 @@ public final class ChunkyFluidTaskScheduler extends FluidTaskScheduler implement
 
         @Override
         public void accept(final int task) {
-            final int x = (task >>> 4) & 0xF;
+            final int x = (task >>> 16) & 0xF;
             final int y = task >>> 24;
-            final int z = task & 0xF;
+            final int z = (task >>> 20) & 0xF;
             if(!datum.isScheduled(x,y,z)){
-                final int taskID = (task >> 8) & 0xFFFF;
+                final int taskID = task & 0xFFFF;
                 if(light) datum.scheduleLight(x,y,z,taskID); else datum.scheduleHeavy(x,y,z,taskID);
             }
         }

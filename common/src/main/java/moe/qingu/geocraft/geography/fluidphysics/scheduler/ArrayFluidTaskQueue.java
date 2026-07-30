@@ -54,10 +54,10 @@ public class ArrayFluidTaskQueue extends FluidTaskQueue{
     @Override
     public void queue(final int cx, final int cy, final int cz, final int taskID) {
         if(layers[cy] == null) layers[cy] = new IntArrayList();
-        bitmap[cy >>>6] |= 1L<<(cy & 0_77);
-        final int xz = cx <<4 | cz;
-        presence[(cy <<2)|(xz>>>6)] |= 1L<<(xz & 0_77);
-        layers[cy].add(taskID<< 8 | cx << 4 | cz);
+        bitmap[cy >>> 6] |= 1L<<(cy & 0_77);
+        final int zx = (cz << 4) | cx;
+        presence[(cy <<2)|(zx>>>6)] |= 1L<<(zx & 0_77);
+        layers[cy].add((zx << 16) | taskID);
         count ++;
     }
 
@@ -68,15 +68,15 @@ public class ArrayFluidTaskQueue extends FluidTaskQueue{
         final IntArrayList tasks = layers[cy];
         for(int i=0;i<tasks.size();i++){
             final int task = tasks.getInt(i);
-            if(((task>>>4) & 0xF) == cx && (task & 0xF) == cz) return FluidTaskRegistry.getTaskByID((task>>>8)&0xFFFF);
+            if((((task>>>16) & 0xFF) == ((cz << 4) | cx))) return FluidTaskRegistry.getTaskByID(task&0xFFFF);
         }
         return null;
     }
 
     @Override
     public boolean contains(final int cx, final int cy, final int cz) {
-        final int xz = cx <<4 | cz;
-        return (presence[(cy <<2)|(xz>>>6)] & 1L<<(xz & 0_77)) != 0L;
+        final int zx = (cz <<4) | cx;
+        return (presence[(cy <<2)|(zx>>>6)] & 1L<<(zx & 0_77)) != 0L;
     }
 
     @Override
@@ -90,9 +90,9 @@ public class ArrayFluidTaskQueue extends FluidTaskQueue{
             try {
                 for(int i=0;i<tasks.size();i++){
                     final int task = tasks.getInt(i);
-                    final int x = (task >>> 4) & 0xF;
-                    final int z = task & 0xF;
-                    consumer.consume(x,curY,z, FluidTaskRegistry.getTaskByID((task>>8)&0xFFFF));
+                    final int x = (task >>> 16) & 0xF;
+                    final int z = (task >>> 20) & 0xF;
+                    consumer.consume(x,curY,z, FluidTaskRegistry.getTaskByID(task&0xFFFF));
                 }
                 return size;
             }finally {
@@ -120,10 +120,6 @@ public class ArrayFluidTaskQueue extends FluidTaskQueue{
                 for(int j=0;j<tasks.size();j++) consumer.accept(y<<24 | tasks.getInt(j));
             }
         }
-    }
-
-    public int getCurrentY() {
-        return curY;
     }
 
     public int getLowestY(){

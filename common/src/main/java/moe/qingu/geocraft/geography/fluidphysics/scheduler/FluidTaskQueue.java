@@ -47,7 +47,7 @@ public abstract class FluidTaskQueue {
     public abstract void queue(final int cx,final int cy,final int cz,final int taskID);
 
     public void queue(final int task){
-        queue((task>>>4)&0xF,task>>>24,task & 0xF, (short) ((task>>>8)&0xFFFF));
+        queue((task>>>16)&0xF,task>>>24,(task>>>20) & 0xF, task&0xFFFF);
     }
 
     @Nullable
