@@ -31,6 +31,7 @@ import moe.qingu.geocraft.api.fluidphysics.task.FluidTaskCollector;
 import moe.qingu.geocraft.api.fluidphysics.task.IFluidTaskResponder;
 import moe.qingu.geocraft.api.util.DeferredActions;
 import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
+import moe.qingu.geocraft.geography.fluidphysics.AbstractFluidTask;
 import moe.qingu.geocraft.geography.fluidphysics.FluidTasks;
 import moe.qingu.geocraft.api.fluidphysics.task.IFluidTask;
 import moe.qingu.geocraft.api.fluidphysics.task.scheduler.FluidTaskScheduler;
@@ -92,7 +93,7 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements IFluidTaskRe
             this.天圆地方$CLASSIC$thisFluid = material == Material.LAVA? FluidRegistry.LAVA:FluidRegistry.WATER;
             final Block dynamic = material == Material.LAVA? Blocks.FLOWING_LAVA:Blocks.FLOWING_WATER;
             final Block static_ = material == Material.LAVA? Blocks.LAVA:Blocks.WATER;
-            this.天圆地方$CLASSIC$task = new IFluidTask() {
+            this.天圆地方$CLASSIC$task = new AbstractFluidTask() {
                 @Override
                 public void onUpdate(@Nonnull final World world, @Nonnull final IBlockState state, @Nonnull final BlockPos pos, @Nonnull final Random rand) {
                     天圆地方$CLASSIC$flowing(world, pos, state, rand);

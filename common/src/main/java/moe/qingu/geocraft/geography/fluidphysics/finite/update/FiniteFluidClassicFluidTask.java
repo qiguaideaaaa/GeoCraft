@@ -29,8 +29,8 @@ package moe.qingu.geocraft.geography.fluidphysics.finite.update;
 
 import moe.qingu.geocraft.api.util.LayeredFluidHostUtil;
 import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
+import moe.qingu.geocraft.geography.fluidphysics.AbstractFluidTask;
 import moe.qingu.geocraft.geography.fluidphysics.finite.flow.FiniteFlowings;
-import moe.qingu.geocraft.api.fluidphysics.task.IFluidTask;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
@@ -65,7 +65,7 @@ import static moe.qingu.geocraft.configs.FluidPhysicsConfig.slopeModeForModsWhen
  */
 @ThreadOnly(ThreadType.MINECRAFT_SERVER)
 @NotThreadSafe
-public class FiniteFluidClassicFluidTask implements IFluidTask {
+public class FiniteFluidClassicFluidTask extends AbstractFluidTask {
     private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) List<OldFlowChoice> averageFlowChoices = new ArrayList<>(5);
     private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) Set<EnumFacing> slopeFlowableDirections = EnumSet.noneOf(EnumFacing.class);
     private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) EnumFacing[] slopeFlowDirectionsArr = new EnumFacing[4];

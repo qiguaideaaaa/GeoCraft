@@ -72,7 +72,7 @@ public final class ChunkyScheduledData<T> {
         Arrays.quickSort(0, size, this.sorter, this.sorter);
     }
 
-    protected class DistanceComparator implements IntComparator, Swapper {
+    protected final class DistanceComparator implements IntComparator, Swapper {
         @Override
         public int compare(final int k1,final int k2) {
             return Double.compare(tempDist[k1],tempDist[k2]);

@@ -38,11 +38,13 @@ import net.minecraft.util.ResourceLocation;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author QGMoe
  */
 public final class FluidTaskRegistry {
+    private static final AtomicInteger HASHCODE = new AtomicInteger(0);
     private static final HashMap<ResourceLocation, IFluidTask> ID2Tasks = new HashMap<>();
     private static final Map<ResourceLocation,IFluidTask> UNMODIFIABLE_ID2Tasks = Collections.unmodifiableMap(ID2Tasks);
     private static final IdentityHashMap<IFluidTask,ResourceLocation> Tasks2ID = new IdentityHashMap<>();
@@ -133,5 +135,9 @@ public final class FluidTaskRegistry {
     @Nonnull
     public static Map<ResourceLocation,IFluidTask> getTasks(){
         return UNMODIFIABLE_ID2Tasks;
+    }
+
+    public static int receiveHashcode(){
+        return HASHCODE.incrementAndGet();
     }
 }

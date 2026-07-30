@@ -25,31 +25,19 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.geocraft.geography.fluidphysics.vanilla.update;
+package moe.qingu.geocraft.geography.fluidphysics;
 
-import moe.qingu.geocraft.geography.fluidphysics.AbstractFluidTask;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.fluids.BlockFluidClassic;
-
-import javax.annotation.Nonnull;
-import java.util.Random;
+import moe.qingu.geocraft.api.fluidphysics.task.FluidTaskRegistry;
+import moe.qingu.geocraft.api.fluidphysics.task.IFluidTask;
 
 /**
  * @author QGMoe
  */
-public final class VanillaFluidClassicFluidTask extends AbstractFluidTask {
-    @Override
-    public void onUpdate(@Nonnull final World world, @Nonnull final IBlockState state, @Nonnull final BlockPos pos, @Nonnull final Random rand) {
-        state.getBlock().updateTick(world,pos,state,rand);
-    }
+public abstract class AbstractFluidTask implements IFluidTask {
+    protected final int hashcode = FluidTaskRegistry.receiveHashcode();
 
     @Override
-    public void onFailure(@Nonnull final World world, @Nonnull final IBlockState state, @Nonnull final BlockPos pos, @Nonnull final Random rand) {}
-
-    @Override
-    public boolean accepts(@Nonnull final World world, @Nonnull final IBlockState state) {
-        return state.getBlock() instanceof BlockFluidClassic;
+    public final int hashCode() {
+        return hashcode;
     }
 }

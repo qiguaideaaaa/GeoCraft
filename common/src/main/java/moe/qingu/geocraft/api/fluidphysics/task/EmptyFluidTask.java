@@ -42,6 +42,7 @@ import java.util.Random;
 public final class EmptyFluidTask implements IFluidTask{
     public static final ResourceLocation ID = new ResourceLocation(ModIDs.MC,"empty");
     public static final EmptyFluidTask INSTANCE = new EmptyFluidTask();
+    private static final int hashcode = FluidTaskRegistry.receiveHashcode();
 
     private EmptyFluidTask(){}
 
@@ -54,5 +55,10 @@ public final class EmptyFluidTask implements IFluidTask{
     @Override
     public boolean accepts(@Nonnull final World world, @Nonnull final IBlockState state) {
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return hashcode;
     }
 }

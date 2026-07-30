@@ -27,8 +27,8 @@
 
 package moe.qingu.geocraft.geography.fluidphysics.classic.update;
 
+import moe.qingu.geocraft.geography.fluidphysics.AbstractFluidTask;
 import moe.qingu.geocraft.geography.fluidphysics.classic.mixin.IClassicBlock;
-import moe.qingu.geocraft.api.fluidphysics.task.IFluidTask;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -40,7 +40,7 @@ import java.util.Random;
 /**
  * @author QiguaiAAAA
  */
-public final class ClassicFluidClassicFluidTask implements IFluidTask {
+public final class ClassicFluidClassicFluidTask extends AbstractFluidTask {
 
     public ClassicFluidClassicFluidTask() {}
 

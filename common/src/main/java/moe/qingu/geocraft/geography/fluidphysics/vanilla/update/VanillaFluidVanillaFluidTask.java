@@ -27,7 +27,7 @@
 
 package moe.qingu.geocraft.geography.fluidphysics.vanilla.update;
 
-import moe.qingu.geocraft.api.fluidphysics.task.IFluidTask;
+import moe.qingu.geocraft.geography.fluidphysics.AbstractFluidTask;
 import net.minecraft.block.BlockDynamicLiquid;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.BlockStaticLiquid;
@@ -43,7 +43,7 @@ import java.util.Random;
 /**
  * @author QGMoe
  */
-final class VanillaFluidVanillaFluidTask implements IFluidTask {
+final class VanillaFluidVanillaFluidTask extends AbstractFluidTask {
     public final BlockDynamicLiquid dynamic;
     public final BlockStaticLiquid static_;
 
