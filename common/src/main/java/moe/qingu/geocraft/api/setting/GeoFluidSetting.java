@@ -47,6 +47,10 @@ public final class GeoFluidSetting {
 
     private static final Int2DoubleOpenHashMap GRAVITIES = new Int2DoubleOpenHashMap();
 
+    static {
+        GRAVITIES.defaultReturnValue(1d);
+    }
+
     /**
      * 设置指定流体是否需要被物理化
      * @since 0.1
@@ -138,6 +142,6 @@ public final class GeoFluidSetting {
      * @return 一个双精度浮点数，表示重力大小的倒数。当值为 0 时，表示无重力。
      */
     public static double getGravity(final int dimensionId){
-        return GRAVITIES.containsKey(dimensionId)?GRAVITIES.get(dimensionId):1d;
+        return GRAVITIES.get(dimensionId);
     }
 }

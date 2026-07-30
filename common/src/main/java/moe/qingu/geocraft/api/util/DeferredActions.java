@@ -81,6 +81,10 @@ public final class DeferredActions {
         on(LoaderState.SERVER_STARTED,runnable);
     }
 
+    public static void onServerStopped(final @Nonnull Runnable runnable){
+        on(LoaderState.SERVER_STOPPED,runnable);
+    }
+
     public static void run(final @Nonnull LoaderState state){
         if(state.ordinal() >= LoaderState.ERRORED.ordinal()) throw new IllegalArgumentException();
         if(state.ordinal() < LoaderState.SERVER_ABOUT_TO_START.ordinal()) runSingle(state);

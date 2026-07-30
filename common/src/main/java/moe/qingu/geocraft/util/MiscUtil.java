@@ -64,11 +64,11 @@ public final class MiscUtil {
                                                 final @Nonnull BlockPos pos,
                                                 final @Nonnull Block block,
                                                 final int tickRate){
-        final double gravity = GeoFluidSetting.getGravity(world);
+        final double gravity = TickHandler.currentWorld == world?TickHandler.currentGravity:GeoFluidSetting.getGravity(world);
         if(gravity == 0d) return;
         final int modifiedTickRate = Math.max((int) (tickRate*gravity),1);
-        if(TickHandler.currentBlockScheduler != null && TickHandler.currentBlockScheduler.getWorld() == world){
-            TickHandler.currentBlockScheduler.schedule(pos,block,tickRate, TickPriority.DEFAULT);
+        if(TickHandler.currentBlockScheduler != null && TickHandler.currentWorld == world){
+            TickHandler.currentBlockScheduler.schedule(pos,block,modifiedTickRate, TickPriority.DEFAULT);
         }else BlockTickScheduler.schedule(world,pos,block,modifiedTickRate);
     }
 

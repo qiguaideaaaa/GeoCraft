@@ -157,6 +157,7 @@ public class GeoCraft {
         AtmosphereRegionFileCache.clearRegionFileReferences();
         AtmosphereSystemRunner.onServerStopped(event);
         GeoCompatLoader.loadCompats(LoaderState.SERVER_STOPPED);
+        DeferredActions.run(LoaderState.SERVER_STOPPED);
         DeferredActions.restore();
     }
 
