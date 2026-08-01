@@ -37,6 +37,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import net.minecraft.world.天圆地方$WorldUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -79,6 +80,12 @@ public final class PartialOrderPackedBlockTickScheduler extends PackedBlockTickS
             }
             final int z = (int) (pos>>Integer.SIZE);
             final int x = (int) pos;
+            switch (天圆地方$WorldUtil.ensureAreaTickable(world,x,z)){
+                case -1:{
+                    schedules.remove(pos);
+                    data.remove(pos);
+                } case 0: continue; //-1 & 0 都continue
+            }
             int cot = 0;
             final Chunk chunk = world.getChunk(x,z);
             consumer.ebs = chunk.getBlockStorageArray();

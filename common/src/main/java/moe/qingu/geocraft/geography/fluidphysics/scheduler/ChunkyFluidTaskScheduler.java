@@ -48,6 +48,7 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import net.minecraft.world.天圆地方$WorldUtil;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fluids.Fluid;
 import org.apache.logging.log4j.Logger;
@@ -114,6 +115,12 @@ public final class ChunkyFluidTaskScheduler extends FluidTaskScheduler implement
             }
             final int z = (int) (pos>>Integer.SIZE);
             final int x = (int) pos;
+            switch (天圆地方$WorldUtil.ensureAreaTickable(world,x,z)){
+                case -1:{
+                    schedules.remove(pos);
+                    data.remove(pos);
+                } case 0: continue; //-1 & 0 都continue
+            }
             int cot = 0;
             final Chunk chunk = world.getChunk(x,z);
             consumer.chunk = chunk;

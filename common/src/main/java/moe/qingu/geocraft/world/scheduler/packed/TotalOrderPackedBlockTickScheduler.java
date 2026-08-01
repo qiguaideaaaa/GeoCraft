@@ -34,6 +34,7 @@ import moe.qingu.geocraft.api.world.tick.IScheduledTick;
 import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.天圆地方$WorldUtil;
 
 import javax.annotation.Nonnull;
 import java.util.PriorityQueue;
@@ -72,6 +73,12 @@ public final class TotalOrderPackedBlockTickScheduler extends PackedBlockTickSch
             }
             final int z = (int) (pos>>Integer.SIZE);
             final int x = (int) pos;
+            switch (天圆地方$WorldUtil.ensureAreaTickable(world,x,z)){
+                case -1:{
+                    schedules.remove(pos);
+                    data.remove(pos);
+                } case 0: continue; //-1 & 0 都continue
+            }
             final Chunk chunk = world.getChunk(x,z);
             final int cot;
             datum.lock.lock();
