@@ -72,7 +72,7 @@ public final class TotalOrderBoxedBlockTickScheduler extends BoxedBlockTickSched
             }
             switch (天圆地方$WorldUtil.ensureAreaTickable(world,datum.getChunk())){
                 case -1:{
-                    schedules.remove(pos);
+                    iterator.remove();
                     data.remove(pos);
                 } case 0: continue; //-1 & 0 都continue
             }

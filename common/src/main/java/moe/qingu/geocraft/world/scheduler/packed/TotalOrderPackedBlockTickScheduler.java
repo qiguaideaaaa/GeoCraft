@@ -75,7 +75,7 @@ public final class TotalOrderPackedBlockTickScheduler extends PackedBlockTickSch
             final int x = (int) pos;
             switch (天圆地方$WorldUtil.ensureAreaTickable(world,x,z)){
                 case -1:{
-                    schedules.remove(pos);
+                    iterator.remove();
                     data.remove(pos);
                 } case 0: continue; //-1 & 0 都continue
             }

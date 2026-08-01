@@ -78,8 +78,6 @@ public final class PartialOrderBoxedBlockTickScheduler extends BoxedBlockTickSch
                 schedules.remove(pos);
                 continue;
             }
-            int cot = 0;
-            datum.lock.lock();
             final Chunk chunk = datum.getChunk();
             switch (天圆地方$WorldUtil.ensureAreaTickable(world,chunk)){
                 case -1:{
@@ -87,6 +85,8 @@ public final class PartialOrderBoxedBlockTickScheduler extends BoxedBlockTickSch
                     data.remove(pos);
                 } case 0: continue; //-1 & 0 都continue
             }
+            int cot = 0;
+            datum.lock.lock();
             final ExtendedBlockStorage[] ebs= chunk.getBlockStorageArray();
             try {
                 int n;
