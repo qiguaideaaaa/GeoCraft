@@ -32,7 +32,6 @@ import moe.qingu.geocraft.api.util.annotation.ThreadType;
 import moe.qingu.geocraft.api.world.tick.IScheduledTick;
 import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
 import moe.qingu.geocraft.configs.GeneralConfig;
-import moe.qingu.geocraft.world.scheduler.packed.PartialOrderPackedBlockTickScheduler;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
@@ -58,7 +57,7 @@ public final class PartialOrderBoxedBlockTickScheduler extends BoxedBlockTickSch
      */
     @Nonnull
     public static BlockTickScheduler create(final @Nonnull World world){
-        return new PartialOrderPackedBlockTickScheduler(world);
+        return new PartialOrderBoxedBlockTickScheduler(world);
     }
 
     @Override

@@ -11,7 +11,10 @@
     - 类: moe.qingu.geocraft.api.configs.item.map.ConfigMap
 
 - 中文: "方块状态选择器"
-  英文: "Configurable Block State"
+  英文: "Block State Selector"
+  别称:
+    - []
+    - ["Configurable Block State"]
   定义: "本模组配置文件中用以选择一种或多种方块状态的值类型。"
   出处:
     - "https://www.mcmod.cn/item/892906.html"
@@ -22,24 +25,6 @@
   定义: "天圆地方对方块添加的属性，也是层级的一种地理属性，表示温度每升高一单位所需吸收的热量。"
   出处:
     - "https://www.mcmod.cn/item/905244.html"
-
-- 中文: "方块计划刻调度器"
-  英文: "Block Tick Scheduler"
-  定义: "为管理流体方块计划刻引入的延时方块更新机制，在原版计划刻基础上针对流体更新拓展，可配置。"
-  出处:
-    - "https://www.mcmod.cn/item/904958.html"
-    - 类: moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler
-
-- 中文: null
-  英文: "Scheduled Tick"
-  别称:
-    - ["更新计划"]
-    - ["Next Tick Entry","NTE"]
-  定义: "方块计划刻调度器中记录一次延时方块更新的条目。"
-  出处:
-    - "https://www.mcmod.cn/item/904958.html"
-    - 类: net.minecraft.world.NextTickListEntry
-    - 类: moe.qingu.geocraft.api.world.tick.IScheduledTick
 
 - 中文: "反射率"
   英文: null
@@ -55,3 +40,57 @@
   英文: null
   定义: "天圆地方性能监控机制中比延迟警报更高的预警信息。"
   出处: "https://www.mcmod.cn/item/919288.html"
+
+  # =========== 调度 ==========
+
+- 中文: "方块计划刻调度器"
+  英文: "Block Tick Scheduler"
+  定义: "天圆地方对原版计划刻调度的重新实现"
+  别称:
+    - ["计划刻调度器","调度器"]
+    - ["Tick Scheduler","Scheduler"]
+  出处:
+    - "https://www.mcmod.cn/item/904958.html"
+    - 类: moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler
+
+- 中文: "计划刻"
+  英文: "Scheduled Tick"
+  别称:
+    - [ "更新计划" ]
+    - [ "Next Tick Entry","NTE" ]
+  定义: "方块计划刻调度器中记录一次延时方块更新的条目。"
+  出处:
+    - "https://www.mcmod.cn/item/904958.html"
+    - 类: net.minecraft.world.NextTickListEntry
+    - 类: moe.qingu.geocraft.api.world.tick.IScheduledTick
+
+- 中文: "偏序调度"
+  英文: "Partial Order Schedule"
+  定义: "指仅在有限连续区域内计划刻调度满足标准计划刻调度顺序的调度方式"
+  出处:
+    - 类: moe.qingu.geocraft.world.scheduler.GeoBlockTickType
+
+- 中文: "全序调度"
+  英文: "Total Order Schedule"
+  定义: "对于一个维度所有可进行计划刻更新的区域所包含的计划刻，顺序满足标准计划刻调度顺序的调度方式"
+  出处:
+    - 类: moe.qingu.geocraft.world.scheduler.GeoBlockTickType
+
+- 中文: "打包"
+  英文: "Packed"
+  定义: "调度器的一种数据存储方式，指计划刻数据通过位运算紧密存储的方式。"
+  出处:
+    - 类: moe.qingu.geocraft.world.scheduler.GeoBlockTickType
+
+- 中文: "装箱"
+  英文: "Boxed"
+  定义: "调度器的一种数据存储方式，指计划刻数据打包成对象存储的方式"
+  出处:
+    - 类: moe.qingu.geocraft.world.scheduler.GeoBlockTickType
+
+- 中文: "区块型调度器"
+  英文: "Chunky Scheduler"
+  定义: "基于区块模型设计的调度器"
+  出处:
+    - 类: moe.qingu.geocraft.world.scheduler.ChunkyBlockTickScheduler
+

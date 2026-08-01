@@ -139,18 +139,6 @@
   定义: "流体物理中与重力相关的机制。"
   出处: "https://github.com/QGMoe/GeoCraft/blob/b1bfa0906b967e0081364de36692866275bb944d/README.md"
 
-- 中文: "流体任务调度器"
-  英文: "Fluid Task Scheduler"
-  别称:
-    - ["流体调度器"]
-    - ["Fluid Scheduler"]
-  旧称:
-    - ["流体更新器"]
-    - ["Fluid Updater"]
-  出处:
-    - "https://www.mcmod.cn/item/904888.html"
-    - 类: moe.qingu.geocraft.api.fluidphysics.task.scheduler.FluidTaskScheduler
-
 - 中文: "标准测试"
   英文: "Standard Test"
   定义: "一种常用的流体物理性能测试方法，往往能够综合体现出各流动算法（规则）的物理和性能特性。"
@@ -185,6 +173,25 @@
   英文: null
   定义: "有限设计下水位差难以表达，致使经典设计水车玩法失效的问题。"
   出处: "https://www.mcmod.cn/item/938274.html"
+
+# ============  调度   ============
+
+- 中文: "流体任务调度器"
+  英文: "Fluid Task Scheduler"
+  别称:
+    - ["流体调度器"]
+    - ["Fluid Scheduler"]
+  旧称:
+    - ["流体更新器"]
+    - ["Fluid Updater"]
+  出处:
+    - "https://www.mcmod.cn/item/904888.html"
+    - 类: moe.qingu.geocraft.api.fluidphysics.task.scheduler.FluidTaskScheduler
+
+- 中文: "流体任务"
+  英文: "Fluid Task"
+  出处:
+    - 类: moe.qingu.geocraft.api.fluidphysics.task.IFluidTask
 
 # ============ 原版模式 ============
 

@@ -100,7 +100,7 @@ public final class CommandFluidPhysics {
     }
 
     @Nonnull
-    public static INodeBuilder<? extends ISmartNode> buildTaskCommand(){ //unfinished
+    public static INodeBuilder<? extends ISmartNode> buildTaskCommand(){
         return literal("task")
                 .then(literals()
                         .when("query").then(¥天圆地方_world().then(¥天圆地方_pos().then(execute(CommandFluidPhysics::queryTask))))

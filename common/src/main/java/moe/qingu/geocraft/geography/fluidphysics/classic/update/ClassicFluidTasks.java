@@ -39,6 +39,10 @@ public final class ClassicFluidTasks {
 
     private ClassicFluidTasks(){}
 
+    /**
+     * 经典模式下 {@link FluidTasks#WATER_TASK}、{@link FluidTasks#LAVA_TASK} 由 {@link moe.qingu.geocraft.mixin.classic.BlockDynamicLiquidMixin}
+     * 使用 {@link moe.qingu.geocraft.api.util.DeferredActions} 在 init 阶段注册
+     */
     public static void load(){
         FluidTasks.CLASSIC_TASK = new ClassicFluidClassicFluidTask();
         if(Loader.isModLoaded(ModIDs.IMMERSIVE_ENGINEERING)) FluidTasks.IE_CONCRETE_TASK = new VanillaFluidClassicFluidTask();
