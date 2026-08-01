@@ -29,6 +29,7 @@ package moe.qingu.geocraft;
 
 import com.google.common.collect.Lists;
 import moe.qingu.geocraft.api.util.annotation.EarlyLoaded;
+import moe.qingu.geocraft.configs.OptimisationConfig;
 import net.minecraftforge.common.ForgeVersion;
 import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
@@ -101,6 +102,7 @@ public class MixinEarlyInit implements IFMLLoadingPlugin, IEarlyMixinLoader {
         mixinList.add("mixins/atmosphere/mixins.orbtellus.atmosphere.json");
         LOGGER.info("天圆地方(GeoCraft)'s Fluid Physics is using {} mode",mode);
         FluidPhysicsMode.setCurrentMode(mode);
+        OptimisationConfig.加载优化注入(mixinList);
 
         return mixinList;
     }

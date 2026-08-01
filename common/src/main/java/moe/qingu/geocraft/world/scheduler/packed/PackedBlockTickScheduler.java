@@ -51,6 +51,9 @@ public abstract class PackedBlockTickScheduler extends ChunkyBlockTickScheduler<
         super(world);
     }
 
+    protected Block lastBlock;
+    protected int lastId = -1;
+
     @Override
     @SuppressWarnings("OctalInteger")
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
@@ -60,7 +63,7 @@ public abstract class PackedBlockTickScheduler extends ChunkyBlockTickScheduler<
         final int chunkZ = pos.getZ()>>4;
         final PackedBlockTickDatum datum = getDatum(chunkX,chunkZ);
         if(datum == null) return false;
-        final int blockID = Block.getIdFromBlock(block);
+        final int blockID = (lastBlock == block)? lastId:  (lastId = Block.getIdFromBlock(lastBlock = block));
         if(blockID < 0 || blockID > 0_7777) return false;
         final int cx = pos.getX() & 0xF;
         final int cz = pos.getZ() & 0xF;

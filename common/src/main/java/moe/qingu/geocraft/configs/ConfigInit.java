@@ -127,6 +127,7 @@ public final class ConfigInit {
         initConfigClass(FluidPhysicsConfig.class);
         initConfigClass(AtmosphereConfig.class);
         initConfigClass(SoilConfig.class);
+        initConfigClass(OptimisationConfig.class);
         hasLoaded = true;
     }
 
