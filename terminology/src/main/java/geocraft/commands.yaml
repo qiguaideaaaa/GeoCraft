@@ -7,7 +7,7 @@
   定义: "/atmosphere 是用于管理大气系统的命令。"
   出处:
     - 链: "https://www.mcmod.cn/item/927875.html"
-    - 类: moe.qingu.geocraft.command.atmosphere
+    - 类: moe.qingu.orbtellus.command.atmosphere
 
 - 中文: "/fluidphysics"
   英文: null

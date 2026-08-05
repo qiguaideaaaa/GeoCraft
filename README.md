@@ -1,4 +1,4 @@
-# 天圆地方 GeoCraft
+# 天圆地方 OrbTellusCraft
 
 **切换语言**: **简体中文** | [English](https://github.com/QGMoe/GeoCraft/blob/master/README_EN.md)
 
@@ -15,7 +15,9 @@
 
 [![](https://raw.githubusercontent.com/intergrav/devins-badges/refs/heads/v3/assets/compact/documentation/readthedocs_46h.png)](https://github.com/QGMoe/GeoCraft/wiki)
 
-天圆地方（GeoCraft）是一个致力于将地理要素融合进 Minecraft 的模组。 模组在保证尽可能不添加新方块、物品等要素的情况下，尽一切可能通过修改游戏机制，使 Minecraft 世界更加符合真实世界，将真正的地理带入 Minecraft。
+天圆地方（OrbTellusCraft，简称 OTC）是一个致力于将地理要素融合进 Minecraft 的模组。 模组在保证尽可能不添加新方块、物品等要素的情况下，尽一切可能通过修改游戏机制，使 Minecraft 世界更加符合真实世界，将真正的地理带入 Minecraft。
+
+从正在开发中的 0.3.0 版本开始，天圆地方的英文名将改名为 **OrbTellusCraft**，简称 **OTC**。原 GeoCraft 模组名称仅在 modid 保留。
 
 该模组仍然处于早期开发中，功能尚不全面，且不保证能够稳定运行。如遇 bug，欢迎在上方提个 Issue，记得附上日志捏～
 
@@ -220,13 +222,13 @@ flowchart TB
 
     subgraph PACK[":common 模块映射与打包部分（RetroFuturaGradle）"]
         direction TB
-        JAR["任务 jar"] --> ForgeDev(["GeoCraft-{版本}-Forge-dev.jar"])
-        JARCRL["任务 jarCRL"] --> CRLDev(["GeoCraft-{版本}-CRL-dev.jar"])
+        JAR["任务 jar"] --> ForgeDev(["OrbTellusCraft-{版本}-Forge-dev.jar"])
+        JARCRL["任务 jarCRL"] --> CRLDev(["OrbTellusCraft-{版本}-CRL-dev.jar"])
         ForgeDev --> REOBFJAR["任务 reobfJar<br/>（将 MCP 名映射回 SRG 名）"]
-        REOBFJAR --> ForgeJar(["GeoCraft-{版本}-Forge.jar<br/>（Forge 生产版本）"])
+        REOBFJAR --> ForgeJar(["OrbTellusCraft-{版本}-Forge.jar<br/>（Forge 生产版本）"])
         CRLDev --> REOBFCRLJAR["任务 reobfJarCRL<br/>（将 MCP 名映射回 SRG 名）"]
-        REOBFCRLJAR --> CRLJar(["GeoCraft-{版本}-CRL.jar<br/>（Cleanroom 生产版本）"])
-        SRCJAR["任务 sourcesJar"] --> SourcesJar(["GeoCraft-{版本}-sources.jar"])
+        REOBFCRLJAR --> CRLJar(["OrbTellusCraft-{版本}-CRL.jar<br/>（Cleanroom 生产版本）"])
+        SRCJAR["任务 sourcesJar"] --> SourcesJar(["OrbTellusCraft-{版本}-sources.jar"])
     end
 
     cCLASS --> JAR
