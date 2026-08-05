@@ -1,6 +1,6 @@
 nickel.command.parameter.geocraft.atmosphere_accessor=Atmosphere Accessor
 nickel.command.parameter.geocraft.fluid_task=Fluid Task
-nickel.command.parameter.geocraft.config_item=GeoCraft Config Item
+nickel.command.parameter.geocraft.config_item=OrbTellusCraft Config Item
 
 geocraft.storage.mismatch.fluidphysics=Warning: The current fluid physics mode is %s, but the save's fluid physics mode is %s. Are you sure you want to continue loading this save?
 geocraft.storage.mismatch.fluidphysics.unknown=Warning: The save's fluid physics mode cannot be identified for unknown reasons. The current fluid physics mode is %s. Are you sure you want to continue loading this save?
@@ -23,9 +23,9 @@ geocraft.config.type.collection.set.int=Integer Set
 geocraft.config.type.collection.map=Map
 
 geocraft.config.comment.atmosphere.enable_detailed_logging=Enable detailed atmosphere logging
-geocraft.config.comment.general.enable_security_check=Whether to allow GeoCraft to check if all system states match the save's states before entering a world (e.g. fluid physics mode), and warn and block loading when mismatched.
+geocraft.config.comment.general.enable_security_check=Whether to allow OrbTellusCraft to check if all system states match the save's states before entering a world (e.g. fluid physics mode), and warn and block loading when mismatched.
 geocraft.config.comment.general.prevent_falling_block_while_generation=Prevent blocks from falling during chunk generation, which may help reduce lag caused by massive fluid updates.
-geocraft.config.comment.general.enable_block_updater=Enable GeoCraft's Block Tick Scheduler to provide additional block update quotas, more refined update management, and better scheduling performance within a single game tick, but may reduce compatibility.
+geocraft.config.comment.general.enable_block_updater=Enable OrbTellusCraft's Block Tick Scheduler to provide additional block update quotas, more refined update management, and better scheduling performance within a single game tick, but may reduce compatibility.
 geocraft.config.comment.fluidphysics.finite.adjustment.boat=Whether to enable adjustments for boats
 geocraft.config.comment.fluidphysics.finite.adjustment.boat_sinking_threshold=Threshold for determining whether a boat is passively sinking underwater, measured in blocks
 geocraft.config.comment.soil.enable_soil=Enable soil system. Note: Disabling soil system is an experimental feature and may break your save. Use with caution!

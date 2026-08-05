@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=../.schema.json
-# 天圆地方 GeoCraft 术语表 —— 通用概念与系统交集
+# 通用概念与系统交集
 # 范围：跨系统共用的框架级基础概念（层级、地理属性/状态、海拔、配置类型、方块更新器等）。
 # 格式与规则见本目录 README.md。
 
@@ -8,7 +8,7 @@
   定义: "本模组基于 Forge 配置文件字符串列表定义的新配置类型，表示一系列具有映射关系的数据。"
   出处:
     - "https://www.mcmod.cn/item/892905.html"
-    - 类: moe.qingu.geocraft.api.configs.item.map.ConfigMap
+    - 类: moe.qingu.orbtellus.api.configs.item.map.ConfigMap
 
 - 中文: "方块状态选择器"
   英文: "Block State Selector"
@@ -18,7 +18,7 @@
   定义: "本模组配置文件中用以选择一种或多种方块状态的值类型。"
   出处:
     - "https://www.mcmod.cn/item/892906.html"
-    - 类: moe.qingu.geocraft.api.configs.value.minecraft.ConfigurableBlockState
+    - 类: moe.qingu.orbtellus.api.configs.value.minecraft.ConfigurableBlockState
 
 - 中文: "热容"
   英文: "Heat Capacity"
@@ -51,7 +51,7 @@
     - ["Tick Scheduler","Scheduler"]
   出处:
     - "https://www.mcmod.cn/item/904958.html"
-    - 类: moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler
+    - 类: moe.qingu.orbtellus.api.world.tick.scheduler.BlockTickScheduler
 
 - 中文: "计划刻"
   英文: "Scheduled Tick"
@@ -62,35 +62,35 @@
   出处:
     - "https://www.mcmod.cn/item/904958.html"
     - 类: net.minecraft.world.NextTickListEntry
-    - 类: moe.qingu.geocraft.api.world.tick.IScheduledTick
+    - 类: moe.qingu.orbtellus.api.world.tick.IScheduledTick
 
 - 中文: "偏序调度"
   英文: "Partial Order Schedule"
   定义: "指仅在有限连续区域内计划刻调度满足标准计划刻调度顺序的调度方式"
   出处:
-    - 类: moe.qingu.geocraft.world.scheduler.GeoBlockTickType
+    - 类: moe.qingu.orbtellus.world.scheduler.GeoBlockTickType
 
 - 中文: "全序调度"
   英文: "Total Order Schedule"
   定义: "对于一个维度所有可进行计划刻更新的区域所包含的计划刻，顺序满足标准计划刻调度顺序的调度方式"
   出处:
-    - 类: moe.qingu.geocraft.world.scheduler.GeoBlockTickType
+    - 类: moe.qingu.orbtellus.world.scheduler.GeoBlockTickType
 
 - 中文: "打包"
   英文: "Packed"
   定义: "调度器的一种数据存储方式，指计划刻数据通过位运算紧密存储的方式。"
   出处:
-    - 类: moe.qingu.geocraft.world.scheduler.GeoBlockTickType
+    - 类: moe.qingu.orbtellus.world.scheduler.GeoBlockTickType
 
 - 中文: "装箱"
   英文: "Boxed"
   定义: "调度器的一种数据存储方式，指计划刻数据打包成对象存储的方式"
   出处:
-    - 类: moe.qingu.geocraft.world.scheduler.GeoBlockTickType
+    - 类: moe.qingu.orbtellus.world.scheduler.GeoBlockTickType
 
 - 中文: "区块型调度器"
   英文: "Chunky Scheduler"
   定义: "基于区块模型设计的调度器"
   出处:
-    - 类: moe.qingu.geocraft.world.scheduler.ChunkyBlockTickScheduler
+    - 类: moe.qingu.orbtellus.world.scheduler.ChunkyBlockTickScheduler
 

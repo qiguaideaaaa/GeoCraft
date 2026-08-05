@@ -29,8 +29,8 @@ package 清汩萌.天圆地方.测试.api.vec;
 
 import net.minecraft.util.math.Vec3i;
 import org.junit.jupiter.api.Test;
-import moe.qingu.geocraft.api.util.math.Int10;
-import moe.qingu.geocraft.api.util.math.vec.Vec3s;
+import moe.qingu.orbtellus.api.util.math.Int10;
+import moe.qingu.orbtellus.api.util.math.vec.Vec3s;
 
 import static org.junit.jupiter.api.Assertions.*;
 

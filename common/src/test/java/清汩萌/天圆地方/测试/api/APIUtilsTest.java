@@ -29,8 +29,8 @@ package 清汩萌.天圆地方.测试.api;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import moe.qingu.geocraft.api.util.APIMathUtil;
-import moe.qingu.geocraft.api.util.APIUtil;
+import moe.qingu.orbtellus.api.util.APIMathUtil;
+import moe.qingu.orbtellus.api.util.APIUtil;
 import 清汩萌.天圆地方.天圆地方测试;
 
 /**

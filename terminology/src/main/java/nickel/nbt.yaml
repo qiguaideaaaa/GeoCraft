@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=../.schema.json
-# 天圆地方 GeoCraft 术语表 —— NickelAPI NBT 系统
+# NickelAPI NBT 系统
 # 范围：NickelAPI 中 NBT 相关的参数类型名（NBT 标签、复合标签、路径）。
 # 格式与规则见本目录 README.md。
 - 中文: "NBT 路径"

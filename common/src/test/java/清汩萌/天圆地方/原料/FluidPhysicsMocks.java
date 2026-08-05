@@ -27,9 +27,9 @@
 
 package 清汩萌.天圆地方.原料;
 
-import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsMode;
-import moe.qingu.geocraft.geography.fluidphysics.finite.FiniteFluidOperationChecker;
-import moe.qingu.geocraft.geography.fluidphysics.vanilla.VanillaFluidOperationChecker;
+import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
+import moe.qingu.orbtellus.geography.fluidphysics.finite.FiniteFluidOperationChecker;
+import moe.qingu.orbtellus.geography.fluidphysics.vanilla.VanillaFluidOperationChecker;
 
 /**
  * @author QiguaiAAAA

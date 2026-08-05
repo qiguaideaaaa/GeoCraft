@@ -1,0 +1,179 @@
+/*
+ * Copyright 2026 QGMoe
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * 版权所有 2026 QGMoe
+ * 根据Apache许可证第2.0版（“本许可证”）许可；
+ * 除非符合本许可证的规定，否则你不得使用此文件。
+ * 你可以在此获取本许可证的副本：
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 除非所适用法律要求或经书面同意，在本许可证下分发的软件是“按原样”分发的，
+ * 没有任何形式的担保或条件，不论明示或默示。
+ * 请查阅本许可证了解有关本许可证下许可和限制的具体要求。
+ * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
+ */
+
+package moe.qingu.orbtellus;
+
+import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsSystem;
+import moe.qingu.orbtellus.api.util.DeferredActions;
+import moe.qingu.orbtellus.api.fluidphysics.task.FluidTaskRegistry;
+import moe.qingu.orbtellus.api.world.tick.scheduler.BlockTickScheduler;
+import moe.qingu.orbtellus.geography.GeoMiscDaemon;
+import moe.qingu.orbtellus.geography.fluidphysics.FluidTasks;
+import moe.qingu.orbtellus.api.fluidphysics.task.scheduler.FluidTaskScheduler;
+import moe.qingu.orbtellus.handler.CacheHandler;
+import moe.qingu.orbtellus.network.PackageFluidPhysicsMessage;
+import net.minecraft.server.MinecraftServer;
+import net.minecraftforge.fml.common.*;
+import net.minecraftforge.fml.common.Mod.EventHandler;
+import net.minecraftforge.fml.common.event.*;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.relauncher.Side;
+import org.apache.logging.log4j.Logger;
+import moe.qingu.orbtellus.api.atmosphere.AtmosphereSystemRunner;
+import moe.qingu.orbtellus.api.atmosphere.storage.AtmosphereRegionFileCache;
+import moe.qingu.orbtellus.command.atmosphere.CommandAtmosphere;
+import moe.qingu.orbtellus.command.CommandFluidPhysics;
+import moe.qingu.orbtellus.command.CommandGeoConfig;
+import moe.qingu.orbtellus.command.CommandGeoTest;
+import moe.qingu.orbtellus.compat.GeoCompatLoader;
+import moe.qingu.orbtellus.configs.FluidPhysicsConfig;
+import moe.qingu.orbtellus.configs.GeneralConfig;
+import moe.qingu.orbtellus.geography.fluidphysics.pressure.FluidPressureSearchManager;
+import moe.qingu.orbtellus.world.gen.OrbTellusPostPopulatingGenerator;
+import moe.qingu.orbtellus.world.storage.GeoDataFile;
+
+import javax.annotation.Nonnull;
+import java.io.File;
+
+@Mod(modid = OrbTellusCraft.MODID, name = OrbTellusCraft.NAME, version = OrbTellusCraft.VERSION, dependencies = "required:mixinbooter;required:nickelapi@[0.0.5,)",acceptableRemoteVersions = "*",useMetadata = true)
+public class OrbTellusCraft {
+    public static final String MODID = "geocraft";
+    public static final String NAME = "OrbTellusCraft";
+    public static final String VERSION = "0.3.0-alpha.2";
+    @SuppressWarnings("unused") @SidedProxy(clientSide = "moe.qingu.orbtellus.ClientProxy",serverSide = "moe.qingu.orbtellus.CommonProxy")
+    private static CommonProxy proxy;
+    private static Logger logger;
+    public final static SimpleNetworkWrapper CHANNEL = NetworkRegistry.INSTANCE.newSimpleChannel(MODID+":network");
+
+    @EventHandler
+    public void preInit(final @Nonnull FMLPreInitializationEvent event) {
+        logger = event.getModLog();
+        proxy.preInit(event);
+        GameRegistry.registerWorldGenerator(new OrbTellusPostPopulatingGenerator(),100000);
+        CHANNEL.registerMessage(PackageFluidPhysicsMessage.Handler.class, PackageFluidPhysicsMessage.class,0, Side.CLIENT);
+        GeoCompatLoader.loadCompats(LoaderState.PREINITIALIZATION);
+        DeferredActions.run(LoaderState.PREINITIALIZATION);
+    }
+
+    @EventHandler
+    public void init(final @Nonnull FMLInitializationEvent event){
+        proxy.init(event);
+        FluidTasks.load();
+        GeoCompatLoader.loadCompats(LoaderState.INITIALIZATION);
+        DeferredActions.run(LoaderState.INITIALIZATION);
+
+    }
+
+    @EventHandler
+    public void postInit(final @Nonnull FMLPostInitializationEvent event){
+        proxy.postInit(event);
+        FluidTasks.register();
+        AtmosphereSystemRunner.onPostInit(event);
+        GeoCompatLoader.loadCompats(LoaderState.POSTINITIALIZATION);
+        DeferredActions.run(LoaderState.POSTINITIALIZATION);
+    }
+
+    @EventHandler
+    public void inited(final @Nonnull FMLLoadCompleteEvent event){
+        DeferredActions.run(LoaderState.AVAILABLE);
+    }
+
+    @EventHandler
+    public void onServerAboutToStart(final @Nonnull FMLServerAboutToStartEvent event){
+        FluidTaskRegistry.freeze();
+        final @Nonnull MinecraftServer server = event.getServer();
+        final File saveDir = server.isDedicatedServer()? new File(server.getDataDirectory(),server.getFolderName()):
+                new File(server.getDataDirectory(),"saves"+File.separator+server.getFolderName());
+        GeoDataFile.init(saveDir);
+        if(GeneralConfig.ENABLE_SECURE_CHECK.getValue()){
+            try {
+                GeoDataFile.validateEqualization();
+            }catch (final @Nonnull StartupQuery.AbortedException ignored){
+                GeoDataFile.CURRENT.setTrash(true);
+            }
+        }
+        FluidTaskRegistry.reloadMapping(GeoDataFile.CURRENT.getFluidTasksMapping());
+        DeferredActions.run(LoaderState.SERVER_ABOUT_TO_START);
+    }
+
+    @EventHandler
+    public void onServerStarting(final @Nonnull FMLServerStartingEvent event){
+        event.registerServerCommand(CommandAtmosphere.create(event.getServer()));
+        event.registerServerCommand(CommandFluidPhysics.create());
+        event.registerServerCommand(CommandGeoTest.create());
+        event.registerServerCommand(CommandGeoConfig.create());
+//        event.registerServerCommand(new CommandQueryBlockState());
+        if(FluidPhysicsConfig.RUN_PRESSURE_SYSTEM_AS_ASYNC.getValue()){
+            FluidPressureSearchManager.asyncRun();
+        }else{
+            FluidPressureSearchManager.syncRun();
+        }
+        GeoMiscDaemon.start();
+        GeoCompatLoader.loadCompats(LoaderState.SERVER_STARTING);
+        DeferredActions.run(LoaderState.SERVER_STARTING);
+    }
+
+    @EventHandler
+    public void onServerStarted(final @Nonnull FMLServerStartedEvent event){
+        GeoDataFile.captureCurrentState();
+        CacheHandler.resetCache();
+        DeferredActions.run(LoaderState.SERVER_STARTED);
+    }
+
+    @EventHandler
+    public void onServerStopping(final @Nonnull FMLServerStoppingEvent event){
+        GeoDataFile.captureCurrentState();
+        AtmosphereSystemRunner.onServerStopping(event);
+        GeoMiscDaemon.stop();
+        if(FluidPhysicsConfig.RUN_PRESSURE_SYSTEM_AS_ASYNC.getValue()){
+            FluidPressureSearchManager.asyncStop();
+        }else{
+            FluidPressureSearchManager.syncStop();
+        }
+        FluidTaskScheduler.onServerStop();
+        BlockTickScheduler.onServerStop();
+        GeoCompatLoader.loadCompats(LoaderState.SERVER_STOPPING);
+    }
+
+    @EventHandler
+    public void onServerStop(final @Nonnull FMLServerStoppedEvent event){
+        AtmosphereRegionFileCache.clearRegionFileReferences();
+        AtmosphereSystemRunner.onServerStopped(event);
+        CacheHandler.clearCache();
+        FluidPhysicsSystem.onServerStop();
+        GeoCompatLoader.loadCompats(LoaderState.SERVER_STOPPED);
+        DeferredActions.run(LoaderState.SERVER_STOPPED);
+        DeferredActions.restore();
+    }
+
+    @Nonnull
+    public static Logger getLogger(){
+        return logger;
+    }
+}

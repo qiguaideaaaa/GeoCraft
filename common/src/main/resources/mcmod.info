@@ -16,7 +16,7 @@
   {
     "modid": "nickelapi",
     "name": "NickelAPI",
-    "description": "A Experimental Command API inside GeoCraft.",
+    "description": "A Experimental Command API inside OrbTellusCraft.",
     "version": "${nickel_api_version}",
     "mcversion": "1.12.2",
     "authorList": ["${mod_authors}"],

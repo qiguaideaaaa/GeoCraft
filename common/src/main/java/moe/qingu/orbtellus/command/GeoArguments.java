@@ -1,0 +1,115 @@
+/*
+ * Copyright 2026 QGMoe
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * 版权所有 2026 QGMoe
+ * 根据Apache许可证第2.0版（“本许可证”）许可；
+ * 除非符合本许可证的规定，否则你不得使用此文件。
+ * 你可以在此获取本许可证的副本：
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 除非所适用法律要求或经书面同意，在本许可证下分发的软件是“按原样”分发的，
+ * 没有任何形式的担保或条件，不论明示或默示。
+ * 请查阅本许可证了解有关本许可证下许可和限制的具体要求。
+ * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
+ */
+
+package moe.qingu.orbtellus.command;
+
+import moe.qingu.nickel.command.node.parameter.forge.FluidSelectorNode;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import moe.qingu.nickel.command.builder.parameter.FastParameterNodeBuilder;
+import moe.qingu.nickel.command.builder.parameter.StringNodeBuilder;
+import moe.qingu.nickel.command.builder.parameter.minecraft.MinecraftVec3NodeBuilder;
+import moe.qingu.nickel.command.builder.parameter.num.NumberNodeBuilder;
+import moe.qingu.nickel.command.node.parameter.generic.number.NumberNode;
+import moe.qingu.nickel.command.node.parameter.minecraft.BlockPosNode;
+import moe.qingu.nickel.command.node.parameter.minecraft.DimensionNode;
+import net.minecraftforge.fluids.Fluid;
+
+import javax.annotation.Nonnull;
+
+import java.util.Collections;
+
+import static moe.qingu.nickel.command.Nodes.*;
+
+/**
+ * @author QiguaiAAAA
+ */
+public final class GeoArguments {
+
+    public static final String POS = "pos";
+    public static final String VALUE = "value";
+    public static final String FLUID = "fluid";
+    public static final String MULTIPLY = "multiply";
+    public static final String PROPERTY = "property";
+    public static final String WORLD = "world";
+
+    public static final String DOIT = "doit";
+
+    private GeoArguments(){}
+
+    @Nonnull
+    public static MinecraftVec3NodeBuilder<BlockPos, BlockPosNode> ¥天圆地方_pos(){
+        return $blockPos(POS)
+                .asOptional()
+                .translate("geocraft.command.common.arg.pos");
+    }
+
+    @Nonnull
+    public static NumberNodeBuilder<Double, NumberNode<Double>> ¥天圆地方$value(){
+        return $double(VALUE)
+                .translate("geocraft.command.common.arg.value");
+    }
+
+    @Nonnull
+    public static FastParameterNodeBuilder<Fluid, FluidSelectorNode> ¥天圆地方$fluid(){
+        return $fluid(FLUID)
+                .translate("geocraft.command.common.arg.fluid");
+    }
+
+    @Nonnull
+    public static NumberNodeBuilder<Double, NumberNode<Double>> ¥天圆地方_multiply(){
+        return $double(MULTIPLY)
+                .asOptional()
+                .defaultAs(1d)
+                .suggest(Collections.emptyList())
+                .translate("geocraft.command.common.arg.multiply")
+                .comment("geocraft.command.common.comment.multiply");
+    }
+
+    @Nonnull
+    public static StringNodeBuilder ¥天圆地方$property(){
+        return $token(PROPERTY)
+                .translate("geocraft.command.common.arg.property");
+    }
+
+    @Nonnull
+    public static FastParameterNodeBuilder<World, DimensionNode> ¥天圆地方_world(){
+        return $dimension(WORLD)
+                .asOptional()
+                .translate("geocraft.command.common.arg.world");
+    }
+
+    @Nonnull
+    public static StringNodeBuilder ¥天圆地方_doit(){
+        return $token(DOIT)
+                .asOptional()
+                .defaultAs("")
+                .translate("geocraft.command.common.arg.doit")
+                .comment("geocraft.command.common.comment.doit")
+                .allow("do");
+    }
+}

@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import moe.qingu.geocraft.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
+import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
 import 清汩萌.天圆地方.util.ClassGraphUtils;
 import 清汩萌.天圆地方.util.网格工具;
 import 清汩萌.天圆地方.世界.沙盒.数组沙盒;

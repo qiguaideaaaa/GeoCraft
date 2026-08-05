@@ -28,7 +28,7 @@
 package 清汩萌.天圆地方.测试.流体物理.有限;
 
 import org.junit.jupiter.api.BeforeAll;
-import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsMode;
+import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
 import 清汩萌.天圆地方.测试.流体物理.流体物理测试;
 
 import java.lang.reflect.InvocationTargetException;

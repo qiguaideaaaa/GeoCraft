@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=../.schema.json
-# 天圆地方 GeoCraft 术语表 —— 流体物理
+# 流体物理
 # 范围：流体物理系统基础概念、各流体物理模式的独有概念，以及压强系统。
 # 格式与规则见本目录 README.md。
 
@@ -18,14 +18,14 @@
   定义: "天圆地方提供的多种流体物理系统，每种系统即一个模式。"
   出处:
     - "https://www.mcmod.cn/item/938274.html"
-    - 类: moe.qingu.geocraft.api.fluidphysics.FluidPhysicsMode
+    - 类: moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode
 
 - 中文: "流体物理信息"
   英文: "Fluid Physics Info"
   定义: "维度层面针对流体物理系统的 JSON 配置，具有版本控制。"
   出处:
     - "https://www.mcmod.cn/item/938274.html"
-    - 类: moe.qingu.geocraft.geography.fluidphysics.FluidPhysicsInfo
+    - 类: moe.qingu.orbtellus.geography.fluidphysics.FluidPhysicsInfo
 
 - 中文: "设计"
   英文: "Design"
@@ -186,12 +186,12 @@
     - ["Fluid Updater"]
   出处:
     - "https://www.mcmod.cn/item/904888.html"
-    - 类: moe.qingu.geocraft.api.fluidphysics.task.scheduler.FluidTaskScheduler
+    - 类: moe.qingu.orbtellus.api.fluidphysics.task.scheduler.FluidTaskScheduler
 
 - 中文: "流体任务"
   英文: "Fluid Task"
   出处:
-    - 类: moe.qingu.geocraft.api.fluidphysics.task.IFluidTask
+    - 类: moe.qingu.orbtellus.api.fluidphysics.task.IFluidTask
 
 # ============ 原版模式 ============
 
@@ -298,14 +298,14 @@
   定义: "最大搜寻范围为 511 格的压强任务。"
   出处:
     - "https://www.mcmod.cn/item/919288.html"
-    - 类: moe.qingu.geocraft.geography.fluidphysics.pressure.task.FluidPressureSmallBFSBaseTask
+    - 类: moe.qingu.orbtellus.geography.fluidphysics.pressure.task.FluidPressureSmallBFSBaseTask
 
 - 中文: "大范围压强任务"
   英文: null
   定义: "最大搜寻范围为 1048575 格的压强任务。"
   出处:
     - "https://www.mcmod.cn/item/919288.html"
-    - 类: moe.qingu.geocraft.geography.fluidphysics.pressure.task.FluidPressureLargeBFSBaseTask
+    - 类: moe.qingu.orbtellus.geography.fluidphysics.pressure.task.FluidPressureLargeBFSBaseTask
 
 - 中文: "单次搜寻任务"
   英文: null
@@ -321,49 +321,49 @@
   英文: null
   出处:
     - "https://www.mcmod.cn/item/919288.html"
-    - 类: moe.qingu.geocraft.geography.fluidphysics.finite.pressure.单次小范围有限原版压强广搜任务
+    - 类: moe.qingu.orbtellus.geography.fluidphysics.finite.pressure.单次小范围有限原版压强广搜任务
 
 - 中文: "小范围（原版）普通压强任务"
   英文: null
   出处:
     - "https://www.mcmod.cn/item/919288.html"
-    - 类: moe.qingu.geocraft.geography.fluidphysics.finite.pressure.小范围有限原版压强广搜任务
+    - 类: moe.qingu.orbtellus.geography.fluidphysics.finite.pressure.小范围有限原版压强广搜任务
 
 - 中文: "大范围（原版）单次压强任务"
   英文: null
   出处:
     - "https://www.mcmod.cn/item/919288.html"
-    - 类: moe.qingu.geocraft.geography.fluidphysics.finite.pressure.单次大范围有限原版压强广搜任务
+    - 类: moe.qingu.orbtellus.geography.fluidphysics.finite.pressure.单次大范围有限原版压强广搜任务
 
 - 中文: "大范围（原版）普通压强任务"
   英文: null
   出处:
     - "https://www.mcmod.cn/item/919288.html"
-    - 类: moe.qingu.geocraft.geography.fluidphysics.finite.pressure.大范围有限原版压强广搜任务
+    - 类: moe.qingu.orbtellus.geography.fluidphysics.finite.pressure.大范围有限原版压强广搜任务
 
 - 中文: "小范围（模组）单次压强任务"
   英文: null
   出处:
     - "https://www.mcmod.cn/item/919288.html"
-    - 类: moe.qingu.geocraft.geography.fluidphysics.finite.pressure.单次小范围有限经典压强广搜任务
+    - 类: moe.qingu.orbtellus.geography.fluidphysics.finite.pressure.单次小范围有限经典压强广搜任务
 
 - 中文: "小范围（模组）普通压强任务"
   英文: null
   出处:
     - "https://www.mcmod.cn/item/919288.html"
-    - 类: moe.qingu.geocraft.geography.fluidphysics.finite.pressure.小范围有限经典压强广搜任务
+    - 类: moe.qingu.orbtellus.geography.fluidphysics.finite.pressure.小范围有限经典压强广搜任务
 
 - 中文: "大范围（模组）单次压强任务"
   英文: null
   出处:
     - "https://www.mcmod.cn/item/919288.html"
-    - 类: moe.qingu.geocraft.geography.fluidphysics.finite.pressure.单次大范围有限经典压强广搜任务
+    - 类: moe.qingu.orbtellus.geography.fluidphysics.finite.pressure.单次大范围有限经典压强广搜任务
 
 - 中文: "大范围（模组）普通压强任务"
   英文: null
   出处:
     - "https://www.mcmod.cn/item/919288.html"
-    - 类: moe.qingu.geocraft.geography.fluidphysics.finite.pressure.大范围有限经典压强广搜任务
+    - 类: moe.qingu.orbtellus.geography.fluidphysics.finite.pressure.大范围有限经典压强广搜任务
 
 # ============ 压强系统 ============
 
@@ -375,7 +375,7 @@
   定义: "天圆地方流体物理系统中一个专门处理压强流动核心计算逻辑的子系统。"
   出处:
     - "https://www.mcmod.cn/item/894341.html"
-    - 类: moe.qingu.geocraft.geography.fluidphysics.pressure.FluidPressureSearchManager
+    - 类: moe.qingu.orbtellus.geography.fluidphysics.pressure.FluidPressureSearchManager
 
 - 中文: "压强刻"
   英文: "Pressure Tick"
@@ -387,7 +387,7 @@
   定义: "压强系统为寻找可流入位置而处理的广度优先搜寻任务。"
   出处:
     - "https://www.mcmod.cn/item/894341.html"
-    - 类: moe.qingu.geocraft.geography.fluidphysics.pressure.task.IFluidPressureSearchTask
+    - 类: moe.qingu.orbtellus.geography.fluidphysics.pressure.task.IFluidPressureSearchTask
 
 - 中文: "压强流动"
   英文: "Pressure Flow"

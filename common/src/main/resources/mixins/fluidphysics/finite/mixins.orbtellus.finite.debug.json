@@ -1,5 +1,5 @@
 {
-  "package": "moe.qingu.geocraft.mixin.finite",
+  "package": "moe.qingu.orbtellus.mixin.finite",
   "required": false,
   "compatibilityLevel": "JAVA_8",
   "refmap": "mixins.geocraft.refmap.json",

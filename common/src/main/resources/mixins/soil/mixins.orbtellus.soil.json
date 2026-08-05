@@ -1,5 +1,5 @@
 {
-  "package": "moe.qingu.geocraft.mixin.soil",
+  "package": "moe.qingu.orbtellus.mixin.soil",
   "required": true,
   "compatibilityLevel": "JAVA_8",
   "refmap": "mixins.geocraft.refmap.json",

@@ -27,7 +27,7 @@
 
 package 清汩萌.造.空间;
 
-import moe.qingu.geocraft.api.util.math.vec.MBlockPos;
+import moe.qingu.orbtellus.api.util.math.vec.MBlockPos;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;

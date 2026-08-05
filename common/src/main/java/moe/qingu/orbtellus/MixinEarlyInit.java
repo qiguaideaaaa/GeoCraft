@@ -1,0 +1,134 @@
+/*
+ * Copyright 2026 QGMoe
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * 版权所有 2026 QGMoe
+ * 根据Apache许可证第2.0版（“本许可证”）许可；
+ * 除非符合本许可证的规定，否则你不得使用此文件。
+ * 你可以在此获取本许可证的副本：
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 除非所适用法律要求或经书面同意，在本许可证下分发的软件是“按原样”分发的，
+ * 没有任何形式的担保或条件，不论明示或默示。
+ * 请查阅本许可证了解有关本许可证下许可和限制的具体要求。
+ * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
+ */
+
+package moe.qingu.orbtellus;
+
+import com.google.common.collect.Lists;
+import moe.qingu.orbtellus.api.util.annotation.EarlyLoaded;
+import moe.qingu.orbtellus.configs.OptimisationConfig;
+import net.minecraftforge.common.ForgeVersion;
+import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
+import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
+import net.minecraftforge.fml.relauncher.Side;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
+import moe.qingu.orbtellus.api.soil.SoilSystem;
+import moe.qingu.orbtellus.configs.FluidPhysicsConfig;
+import moe.qingu.orbtellus.configs.GeneralConfig;
+import zone.rong.mixinbooter.IEarlyMixinLoader;
+
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
+
+@EarlyLoaded
+@SuppressWarnings("unused")
+@IFMLLoadingPlugin.Name(OrbTellusCraft.MODID)
+@IFMLLoadingPlugin.MCVersion(ForgeVersion.mcVersion)
+@IFMLLoadingPlugin.SortingIndex(1)
+public class MixinEarlyInit implements IFMLLoadingPlugin, IEarlyMixinLoader {
+    public static final boolean isClient = FMLLaunchHandler.side() == Side.CLIENT;
+    public static final Logger LOGGER = LogManager.getLogger(OrbTellusCraft.MODID + " Init");
+
+    @Override
+    public List<String> getMixinConfigs() {
+        CommonProxy.earlyInit();
+        List<String> mixinList =  Lists.newArrayList("mixins/common/mixins.orbtellus.json");
+        FluidPhysicsMode mode = FluidPhysicsConfig.FLUID_PHYSICS_MODE.getValue();
+        switch (mode){
+            case VANILLA:{
+                if(FluidPhysicsConfig.ENABLE_MIXIN_FOR_WATER_EVAPORATE.getValue())
+                    mixinList.add("mixins/fluidphysics/vanilla/mixins.orbtellus.vanilla.json");
+                break;
+            }
+            case CLASSIC:{
+                mixinList.add("mixins/fluidphysics/classic/mixins.orbtellus.classic.json");
+                break;
+            }
+            case FINITE:
+            default:{
+                mixinList.add("mixins/fluidphysics/finite/mixins.orbtellus.finite.json");
+                if(FluidPhysicsConfig.ENABLE_INVALID_LIQUID_STATE_REPORT.getValue()){
+                    mixinList.add("mixins/fluidphysics/finite/mixins.orbtellus.finite.debug.json");
+                }
+                if(FluidPhysicsConfig.BOAT_ADJUSTMENT.getValue()){
+                    mixinList.add("mixins/fluidphysics/finite/mixins.orbtellus.finite.boat.json");
+                }
+                break;
+            }
+        }
+        if(!isClient && GeneralConfig.COMPATIBLE_FOR_VANILLA_CLIENT.getValue()){
+            mixinList.add("mixins/soil/mixins.orbtellus.soil.fake.json");
+        }
+
+        if(GeneralConfig.PREVENT_FALLING_BLOCK_FROM_FALLING_WHILE_GENERATION.getValue()){
+            mixinList.add("mixins/common/mixins.orbtellus.falling_block.json");
+        }
+
+        if(FluidPhysicsConfig.PAUSE_PRESSURE_SYSTEM_WHILE_CHUNK_SAVING.getValue()){
+            if(FluidPhysicsConfig.WRAP_MODIFIED_CHUNK_SAVING_METHOD.getValue()){
+                mixinList.add("mixins/pressure/async/mixins.orbtellus.pressure_async_8.json");
+            }else mixinList.add("mixins/pressure/async/mixins.orbtellus.pressure_async.json");
+        }
+        mixinList.add("mixins/soil/mixins.orbtellus.soil.base.json");
+        if(SoilSystem.getStatus()){
+            mixinList.add("mixins/soil/mixins.orbtellus.soil.json");
+        }else mixinList.add("mixins/soil/mixins.orbtellus.disabled_soil.json");
+        mixinList.add("mixins/atmosphere/mixins.orbtellus.atmosphere.json");
+        LOGGER.info("天圆地方(OrbTellusCraft)'s Fluid Physics is using {} mode",mode);
+        FluidPhysicsMode.setCurrentMode(mode);
+        OptimisationConfig.加载优化注入(mixinList);
+
+        return mixinList;
+    }
+
+    @Override
+    public String[] getASMTransformerClass() {
+        return new String[0];
+        //return new String[]{"moe.qingu.orbtellus.asm.FluidloggedAPICompatTransformer"};
+    }
+
+    @Override
+    public String getModContainerClass() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public String getSetupClass() {
+        return null;
+    }
+
+    @Override
+    public void injectData(Map<String, Object> data) {}
+
+    @Override
+    public String getAccessTransformerClass() {
+        return null;
+    }
+}

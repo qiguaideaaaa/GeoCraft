@@ -101,7 +101,6 @@ public class SmartSplitNode extends NoSplitNode implements IDocumentaryNode {
     @Nullable
     @Override
     public Suggestion suggest(@Nonnull final InputReader input, @Nonnull final SuggestContext context) throws CommandException {
-        //GeoCraft.getLogger().info("[Smart] Provide Suggest For [len={}] : {}",args.size(),String.join(" ",args));
         if(!input.isRemainingEmpty()){ //Smart 的位置不需要建议
             final ICommandNode node = findNextNode(input);
             if (node == null) return null;

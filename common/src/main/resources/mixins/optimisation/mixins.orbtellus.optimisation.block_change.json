@@ -1,5 +1,5 @@
 {
-  "package": "moe.qingu.geocraft.mixin.optimisation",
+  "package": "moe.qingu.orbtellus.mixin.optimisation",
   "required": false,
   "compatibilityLevel": "JAVA_8",
   "refmap": "mixins.geocraft.refmap.json",

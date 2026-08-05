@@ -146,7 +146,7 @@ public class 天圆地方测试 extends 镍测试 {
         LOGGER.info("Initialising Fluids");
         流体原料.initMinecraftFluids();
 
-        LOGGER.info("Initialising GeoCraft");
+        LOGGER.info("Initialising OrbTellusCraft");
         FluidPhysicsMocks.initFluidPhysicsMode();
 
         LOGGER.info("Initialising I18n");

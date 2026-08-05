@@ -31,7 +31,7 @@ import org.spongepowered.asm.logging.ILogger;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.service.mojang.LoggerAdapterLog4j2;
 import org.spongepowered.asm.service.mojang.MixinServiceLaunchWrapper;
-import moe.qingu.geocraft.api.util.APIUtil;
+import moe.qingu.orbtellus.api.util.APIUtil;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;

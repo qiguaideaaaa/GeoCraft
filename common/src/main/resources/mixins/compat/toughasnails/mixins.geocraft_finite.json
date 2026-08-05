@@ -1,5 +1,5 @@
 {
-  "package": "moe.qingu.geocraft.mixin.finite.compat.toughasnails",
+  "package": "moe.qingu.orbtellus.mixin.finite.compat.toughasnails",
   "required": true,
   "compatibilityLevel": "JAVA_8",
   "refmap": "mixins.geocraft.refmap.json",

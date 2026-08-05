@@ -65,8 +65,7 @@ import static moe.qingu.nickel.text.Texts.translation;
  * 当为可选的时候，应当通过 {@link #setChildNode(ICommandNode)} 来设置默认的子节点
  * @see LiteralNode
  * @see LiteralsNodeBuilder
- * @since GeoCraft API-0.2.0
- * @author QiguaiAAAA
+ * @author QGMoe
  */
 public class LiteralsNode extends PermitNode implements IOptionalNode, ISmartNode, IDocumentaryNode {
     protected final Map<String, ICommandNode> literal2Node = new LinkedHashMap<>();

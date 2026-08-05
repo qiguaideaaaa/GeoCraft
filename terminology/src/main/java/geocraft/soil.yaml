@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=../.schema.json
-# 天圆地方 GeoCraft 术语表 —— 土壤系统
+# 土壤系统
 # 范围：土壤系统的水分机制。
 # 格式与规则见本目录 README.md。
 - 中文: "土壤含水量"

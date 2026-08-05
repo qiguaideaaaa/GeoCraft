@@ -27,7 +27,7 @@
 
 package 清汩萌.天圆地方.方块;
 
-import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
+import moe.qingu.orbtellus.api.world.tick.scheduler.BlockTickScheduler;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyInteger;

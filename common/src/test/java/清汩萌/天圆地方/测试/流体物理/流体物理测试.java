@@ -27,11 +27,12 @@
 
 package 清汩萌.天圆地方.测试.流体物理;
 
+import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsSystem;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import moe.qingu.geocraft.configs.GeneralConfig;
+import moe.qingu.orbtellus.configs.GeneralConfig;
 import 清汩萌.天圆地方.原料.方块原料;
 import 清汩萌.天圆地方.util.网格工具;
 import 清汩萌.天圆地方.天圆地方测试;
@@ -63,6 +64,8 @@ public class 流体物理测试 extends 天圆地方测试 {
         GeneralConfig.ENABLE_BLOCK_UPDATER.setValue(false);
         world = 模拟沙盒世界.构建(模拟世界配置.create(b-> b.withGameType(GameType.CREATIVE)), false);
         world.配置空气方块(〇);
+        final @Nonnull FluidPhysicsSystem system = FluidPhysicsSystem.createFluidPhysicsSystem(world);
+        system.setGravity(1.0d);
     }
 
     @AfterEach
@@ -74,6 +77,7 @@ public class 流体物理测试 extends 天圆地方测试 {
     public static void afterFluidPhysicsTest_Inner(){
         world = null;
         GeneralConfig.ENABLE_BLOCK_UPDATER.setValue(true);
+        FluidPhysicsSystem.onServerStop();
     }
 
     @Nonnull

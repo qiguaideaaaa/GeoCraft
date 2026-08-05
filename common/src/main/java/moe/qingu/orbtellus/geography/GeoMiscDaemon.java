@@ -1,0 +1,171 @@
+/*
+ * Copyright 2026 QGMoe
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * 版权所有 2026 QGMoe
+ * 根据Apache许可证第2.0版（“本许可证”）许可；
+ * 除非符合本许可证的规定，否则你不得使用此文件。
+ * 你可以在此获取本许可证的副本：
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 除非所适用法律要求或经书面同意，在本许可证下分发的软件是“按原样”分发的，
+ * 没有任何形式的担保或条件，不论明示或默示。
+ * 请查阅本许可证了解有关本许可证下许可和限制的具体要求。
+ * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
+ */
+
+package moe.qingu.orbtellus.geography;
+
+import moe.qingu.orbtellus.api.fluidphysics.task.scheduler.FluidTaskScheduler;
+import moe.qingu.orbtellus.api.world.tick.scheduler.BlockTickScheduler;
+import moe.qingu.orbtellus.geography.fluidphysics.scheduler.ChunkyFluidTaskDatum;
+import moe.qingu.orbtellus.geography.fluidphysics.scheduler.ChunkyFluidTaskScheduler;
+import moe.qingu.orbtellus.handler.TickHandler;
+import moe.qingu.orbtellus.world.scheduler.ChunkyBlockTickDatum;
+import moe.qingu.orbtellus.world.scheduler.ChunkyBlockTickScheduler;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+
+import javax.annotation.Nonnull;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+/**
+ * @author QGMoe
+ */
+public final class GeoMiscDaemon implements Runnable {
+    public static final String THREAD_NAME = "GeoMiscDaemon";
+    private static GeoMiscDaemon daemon;
+    private static Thread thread;
+    private volatile boolean running;
+
+    private GeoMiscDaemon(){}
+
+    public static void start(){
+        stop();
+        daemon = new GeoMiscDaemon();
+        daemon.running = true;
+        thread = new Thread(daemon , THREAD_NAME);
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    public static void stop(){
+        if(daemon != null) daemon.running = false;
+        if(thread != null && thread.isAlive()) {
+            thread.interrupt();
+            try {
+                thread.join(1000);
+            } catch (final @Nonnull InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    @Override
+    public void run() {
+        while (running){
+            final long startTime = System.currentTimeMillis();
+
+            tick();
+            if(Thread.interrupted()) break;
+
+            final long usedTime = System.currentTimeMillis()-startTime;
+            final int duration = 10;
+            if(usedTime<duration){
+                try {
+                    Thread.sleep(duration-usedTime);
+                } catch (final InterruptedException ignored) {
+                    break;
+                }
+            }
+        }
+    }
+
+    private void tick(){
+        final MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
+        if(server == null) return;
+        for(final WorldServer world : server.worlds){
+            cleanupFluidScheduler(world);
+            cleanupBlockScheduler(world);
+        }
+    }
+
+    private void cleanupFluidScheduler(final @Nonnull WorldServer world){
+        final ChunkyFluidTaskScheduler scheduler;
+        try {
+            final FluidTaskScheduler s = FluidTaskScheduler.getSchedulers().get(world.provider.getDimension());
+            if(s instanceof ChunkyFluidTaskScheduler) scheduler = (ChunkyFluidTaskScheduler) s;
+            else return;
+        }catch (final IndexOutOfBoundsException e){  //Fastutil的多线程错误
+            return;
+        }
+        final ConcurrentLinkedQueue<ChunkyFluidTaskDatum> dirties = scheduler.getDirties();
+        final int size = dirties.size();
+        int cot = 0;
+        while (cot++ < size){
+            if(dirties.isEmpty()) break;
+            if(TickHandler.TICKING_LOCK.tryLock()){
+                try {
+                    final ChunkyFluidTaskDatum datum = dirties.poll();
+                    assert datum != null;
+                    if(!datum.isDirty()) continue;
+                    if(datum.getLock().tryLock()){
+                        try {
+                            datum.serializeNBT();
+                        }finally {
+                            datum.getLock().unlock();
+                        }
+                    }else dirties.add(datum);
+                }finally {
+                    TickHandler.TICKING_LOCK.unlock();
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void cleanupBlockScheduler(final @Nonnull WorldServer world){
+        final ChunkyBlockTickScheduler<?> scheduler;
+        try {
+            final BlockTickScheduler s = BlockTickScheduler.getSchedulers().get(world.provider.getDimension());
+            if(s instanceof ChunkyBlockTickScheduler<?>) scheduler = (ChunkyBlockTickScheduler<?>) s;
+            else return;
+        }catch (final IndexOutOfBoundsException e){  //Fastutil的多线程错误
+            return;
+        }
+        final ConcurrentLinkedQueue<ChunkyBlockTickDatum> dirties = (ConcurrentLinkedQueue<ChunkyBlockTickDatum>) scheduler.getVolume().dirties;
+        final int size = dirties.size();
+        int cot = 0;
+        while (cot++ < size){
+            if(dirties.isEmpty()) break;
+            if(TickHandler.TICKING_LOCK.tryLock()){
+                try {
+                    final ChunkyBlockTickDatum datum = dirties.poll();
+                    assert datum != null;
+                    if(!datum.isDirty()) continue;
+                    if(datum.lock.tryLock()){
+                        try {
+                            datum.serializeNBT();
+                        }finally {
+                            datum.lock.unlock();
+                        }
+                    }else dirties.add(datum);
+                }finally {
+                    TickHandler.TICKING_LOCK.unlock();
+                }
+            }
+        }
+    }
+}

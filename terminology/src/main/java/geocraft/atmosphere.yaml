@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=../.schema.json
-# 天圆地方 GeoCraft 术语表 —— 大气系统
+# 大气系统
 # 范围：大气系统及其层级、属性、机制与存储格式。
 # 格式与规则见本目录 README.md。
 
@@ -11,21 +11,21 @@
   定义: "大气系统以及其它基于层级实现的系统中用以定义地理状态和创建地理状态实例的标识符。"
   出处:
     - 链: "https://www.mcmod.cn/item/892676.html"
-    - 类: moe.qingu.geocraft.api.property.IGeographyProperty
+    - 类: moe.qingu.orbtellus.api.property.IGeographyProperty
 
 - 中文: "流体属性"
   英文: null
   出处:
     - "https://www.mcmod.cn/item/927875.html"
     - "https://www.mcmod.cn/item/892845.html"
-    - 类: moe.qingu.geocraft.api.property.FluidProperty
+    - 类: moe.qingu.orbtellus.api.property.FluidProperty
 
 - 中文: "大气属性"
   英文: "Atmosphere Property"
   定义: "一种地理属性，其往往具有流动性或会对大气层级本身的流动性（风）或其它地理状态造成影响，例如水蒸气。"
   出处:
     - 链: "https://www.mcmod.cn/item/894342.html"
-    - 类: moe.qingu.geocraft.api.property.IAtmosphereProperty
+    - 类: moe.qingu.orbtellus.api.property.IAtmosphereProperty
 
 - 中文: "温度属性"
   英文: "Temperature Property"
@@ -35,14 +35,14 @@
   定义: "大气以及其他层级的一类采用单精度浮点数进行存储，单位为开尔文（K）的地理属性。"
   出处:
     - 链: "https://www.mcmod.cn/item/894343.html"
-    - 类: moe.qingu.geocraft.api.property.TemperatureProperty
+    - 类: moe.qingu.orbtellus.api.property.TemperatureProperty
 
 - 中文: "深层温度"
   英文: "Deep Temperature"
   定义: "主世界大气系统中下垫面层级的温度属性，用于地表之下的温度计算。"
   出处:
     - 链: "https://www.mcmod.cn/item/894819.html"
-    - 类: moe.qingu.geocraft.geography.property.DeepTemperature
+    - 类: moe.qingu.orbtellus.geography.property.DeepTemperature
 
 - 中文: "地理状态"
   英文: "Geography State"
@@ -52,7 +52,7 @@
   定义: "狭义指地理属性在特定层级中存储具体数据（部分可持久化为 NBT）的实例；广义指层级的所有具体数据。"
   出处:
     - "https://www.mcmod.cn/item/892677.html"
-    - 类: moe.qingu.geocraft.api.state.GeographyState
+    - 类: moe.qingu.orbtellus.api.state.GeographyState
 
 - 中文: "流体状态"
   英文: "Fluid State"
@@ -62,14 +62,14 @@
   定义: "地理状态的一种，可被调用 fill 方法补充流体。"
   出处:
     - "https://github.com/QGMoe/GeoCraft/releases/tag/v0.2.2"
-    - 类: moe.qingu.geocraft.api.state.FluidState
+    - 类: moe.qingu.orbtellus.api.state.FluidState
 
 - 中文: "海拔"
   英文: "Altitude"
   定义: "以Y轴正方向为正方向，世界中某坐标相对于水平参考平面的垂直距离。"
   出处:
     - "https://www.mcmod.cn/item/892847.html"
-    - 类: moe.qingu.geocraft.api.util.math.Altitude
+    - 类: moe.qingu.orbtellus.api.util.math.Altitude
 
 - 中文: "游戏海拔"
   英文: null
@@ -86,21 +86,21 @@
   定义: "在一个区块内，竖直方向上横跨一定距离的空间。"
   出处:
     - 链: "https://www.mcmod.cn/item/892675.html"
-    - 类: moe.qingu.geocraft.api.atmosphere.layer.Layer
+    - 类: moe.qingu.orbtellus.api.atmosphere.layer.Layer
 
 - 中文: "大气层级"
   英文: "Atmosphere Layer"
   定义: "层级的一种，是大气系统的组成部分之一。"
   出处:
   - 链: "https://www.mcmod.cn/item/892845.html"
-  - 类: moe.qingu.geocraft.api.atmosphere.layer.AtmosphereLayer
+  - 类: moe.qingu.orbtellus.api.atmosphere.layer.AtmosphereLayer
 
 - 中文: "下垫面层级"
   英文: "Underlying Layer"
   定义: "层级的一种，往住代表一个维度的地表部分，也是大气系统的重要组成部分。"
   出处:
   - 链: "https://www.mcmod.cn/item/892846.html"
-  - 类: moe.qingu.geocraft.api.atmosphere.layer.UnderlyingLayer
+  - 类: moe.qingu.orbtellus.api.atmosphere.layer.UnderlyingLayer
 
 - 中文: "大气实例"
   英文: "Atmosphere Instance"
@@ -110,7 +110,7 @@
   定义: "每个区块中用于管理层级链并承担一定模拟计算的基础单元。"
   出处:
     - 链: "https://www.mcmod.cn/item/894817.html"
-    - 类: moe.qingu.geocraft.api.atmosphere.Atmosphere
+    - 类: moe.qingu.orbtellus.api.atmosphere.Atmosphere
 
 - 中文: "大气受热过程"
   英文: null
@@ -122,21 +122,21 @@
   定义: "负责管理各维度中所有大气实例，并作为游戏其它机制与大气交互的抽象层。"
   出处:
     - 链: "https://www.mcmod.cn/item/894655.html"
-    - 类: moe.qingu.geocraft.api.atmosphere.system.IAtmosphereSystem
+    - 类: moe.qingu.orbtellus.api.atmosphere.system.IAtmosphereSystem
 
 - 中文: "原版大气系统"
   英文: "Vanilla Atmosphere System"
   定义: "一种基于原版生物群系机制的静态大气系统，其在游戏内 ID 为 vanilla。"
   出处:
   - 链: "https://www.mcmod.cn/item/894965.html"
-  - 类: moe.qingu.geocraft.geography.atmosphere.system.VanillaAtmosphereSystem
+  - 类: moe.qingu.orbtellus.geography.atmosphere.system.VanillaAtmosphereSystem
 
 - 中文: "封闭大气系统"
   英文: "Close Atmosphere System"
   定义: "一种恒温恒压的静态大气系统，适合空间上封闭的维度，例如下界。"
   出处:
   - 链: "https://www.mcmod.cn/item/904889.html"
-  - 类: moe.qingu.geocraft.geography.atmosphere.system.CloseAtmosphereSystem
+  - 类: moe.qingu.orbtellus.geography.atmosphere.system.CloseAtmosphereSystem
 
 - 中文: "类地大气系统"
   英文: "Surface Atmosphere System"
@@ -146,7 +146,7 @@
   定义: "模仿地球表层大气环境下物质迁移和能量循环的动态大气系统，适合空间上开放、类地球环境的维度。"
   出处:
   - 链: "https://www.mcmod.cn/item/929712.html"
-  - 类: moe.qingu.geocraft.geography.atmosphere.system.SurfaceAtmosphereSystem
+  - 类: moe.qingu.orbtellus.geography.atmosphere.system.SurfaceAtmosphereSystem
 
 - 中文: "大气区域文件"
   英文: "Atmosphere Region File"
@@ -156,7 +156,7 @@
   定义: "天圆地方保存大气实例数据的文件格式，类似原版区域文件，后缀一般为 .atmdat。"
   出处:
   - 链: "https://www.mcmod.cn/item/905005.html"
-  - 类: moe.qingu.geocraft.api.atmosphere.storage.AtmosphereRegionFile
+  - 类: moe.qingu.orbtellus.api.atmosphere.storage.AtmosphereRegionFile
 
 - 中文: "大气刻"
   英文: "Atmosphere Tick"
@@ -168,45 +168,45 @@
   定义: "大气系统向外提供、供外部逻辑与大气交互的接口。"
   出处:
   - 链: "https://www.mcmod.cn/item/894655.html"
-  - 类: moe.qingu.geocraft.api.atmosphere.accessor.IAtmosphereAccessor
+  - 类: moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor
 
 - 中文: "大气系统信息"
   英文: "Atmosphere System Information"
   定义: "配置中描述维度所用大气系统的 JSON 对象。"
   出处:
   - 链: "https://www.mcmod.cn/item/894655.html"
-  - 类: moe.qingu.geocraft.api.atmosphere.config.AtmosphereSystemInfo
+  - 类: moe.qingu.orbtellus.api.atmosphere.config.AtmosphereSystemInfo
 
 - 中文: "大气数据"
   英文: "Atmosphere Data"
   定义: "封装大气实例的对象，用于对大气实例进行数据管理。"
   出处:
   - 链: "https://www.mcmod.cn/item/894817.html"
-  - 类: moe.qingu.geocraft.api.atmosphere.storage.AtmosphereData
+  - 类: moe.qingu.orbtellus.api.atmosphere.storage.AtmosphereData
 
 - 中文: "大气数据提供器"
   英文: "Atmosphere Data Provider"
   出处:
   - 链: "https://www.mcmod.cn/item/894817.html"
-  - 类: moe.qingu.geocraft.api.atmosphere.gen.IAtmosphereDataProvider
+  - 类: moe.qingu.orbtellus.api.atmosphere.gen.IAtmosphereDataProvider
 
 - 中文: "大气数据加载器"
   英文: "Atmosphere Data Loader"
   出处:
   - 链: "https://www.mcmod.cn/item/894817.html"
-  - 类: moe.qingu.geocraft.api.atmosphere.storage.IAtmosphereDataLoader
+  - 类: moe.qingu.orbtellus.api.atmosphere.storage.IAtmosphereDataLoader
 
 - 中文: "大气区域文件缓存"
   英文: "Atmosphere Region File Cache"
   出处:
   - 链: "https://www.mcmod.cn/item/894817.html"
-  - 类: moe.qingu.geocraft.api.atmosphere.storage.AtmosphereRegionFileCache
+  - 类: moe.qingu.orbtellus.api.atmosphere.storage.AtmosphereRegionFileCache
 
 - 中文: "大气监听器"
   英文: "Atmosphere Tracker"
   出处:
   - 链: "https://www.mcmod.cn/item/894817.html"
-  - 类: moe.qingu.geocraft.api.atmosphere.tracker.IAtmosphereTracker
+  - 类: moe.qingu.orbtellus.api.atmosphere.tracker.IAtmosphereTracker
 
 - 中文: "大气区域"
   英文: "Atmosphere Region"

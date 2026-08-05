@@ -28,11 +28,11 @@
 package 清汩萌.天圆地方.asm;
 
 import git.jbredwards.fluidlogged_api.api.asm.IASMPlugin;
-import moe.qingu.geocraft.mixin.soil.block.BlockMixin;
+import moe.qingu.orbtellus.mixin.soil.block.BlockMixin;
 import net.minecraft.block.Block;
 import net.minecraft.util.ResourceLocation;
 import org.objectweb.asm.tree.ClassNode;
-import moe.qingu.geocraft.handler.RegistryHandler;
+import moe.qingu.orbtellus.handler.RegistryHandler;
 import 清汩萌.天圆地方.天圆地方测试;
 
 import javax.annotation.Nonnull;

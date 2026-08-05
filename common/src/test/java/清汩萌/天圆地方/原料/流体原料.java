@@ -29,7 +29,7 @@ package 清汩萌.天圆地方.原料;
 
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
-import moe.qingu.geocraft.fluid.FluidSnow;
+import moe.qingu.orbtellus.fluid.FluidSnow;
 
 /**
  * @author QiguaiAAAA

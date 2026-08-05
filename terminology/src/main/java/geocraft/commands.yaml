@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=../.schema.json
-# 天圆地方 GeoCraft 术语表 —— 命令与命令参数名
+# 命令与命令参数名
 # 范围：GeoCraft 的命令、命令概念，以及语言文件中已定的命令参数名（*.arg.*）。
 # 格式与规则见本目录 README.md。
 - 中文: "/atmosphere"
@@ -14,21 +14,21 @@
   定义: "/fluidphysics 是用于管理流体物理的命令。"
   出处:
     - 链: "https://www.mcmod.cn/item/927876.html"
-    - 类: moe.qingu.geocraft.command.CommandFluidPhysics
+    - 类: moe.qingu.orbtellus.command.CommandFluidPhysics
 
 - 中文: "/geoconfig"
   英文: null
   定义: "/geoconfig 是用于管理天圆地方模组的配置的命令。"
   出处:
     - 链: "https://www.mcmod.cn/item/950633.html"
-    - 类: moe.qingu.geocraft.command.CommandGeoConfig
+    - 类: moe.qingu.orbtellus.command.CommandGeoConfig
 
 - 中文: "/geotest"
   英文: null
   定义: "/geotest 是用于在游戏中进行 GeoTest 集成测试的命令。"
   出处:
     - 链: "https://www.mcmod.cn/item/950634.html"
-    - 类: moe.qingu.geocraft.command.CommandGeoTest
+    - 类: moe.qingu.orbtellus.command.CommandGeoTest
 
 - 中文: "查询结果"
   英文: "QueryResult"
