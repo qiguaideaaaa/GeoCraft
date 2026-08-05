@@ -45,7 +45,7 @@ import moe.qingu.geocraft.api.configs.value.map.entry.ConfigEntry;
 import moe.qingu.geocraft.api.configs.value.minecraft.ConfigurableFluid;
 import moe.qingu.geocraft.api.configs.item.collection.list.ConfigIntegerWeightDistribution;
 import moe.qingu.geocraft.api.configs.item.collection.list.ConfigList;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.geography.fluidphysics.FluidPhysicsInfo;
 import moe.qingu.geocraft.geography.fluidphysics.pressure.FluidPressureSearchManager;
 import moe.qingu.geocraft.api.util.math.Int10;
@@ -353,9 +353,9 @@ public final class FluidPhysicsConfig {
     public static final ConfigBoolean disableInfiniteFluidForAllModFluid =
             new ConfigBoolean(CATEGORY_FLUID_PHYSICS_VANILLA_LIKE,"disableInfiniteFluidForAllModFluid",true);
     /**
-     * @see GeoFluidSetting#setFluidToBePhysical(String, boolean)
-     * @see GeoFluidSetting#isFluidToBePhysical(Fluid) 
-     * @see GeoFluidSetting#isFluidToBePhysical(BlockLiquid) 
+     * @see FluidPhysicsSystem#setFluidToBePhysical(String, boolean)
+     * @see FluidPhysicsSystem#isFluidToBePhysical(Fluid)
+     * @see FluidPhysicsSystem#isFluidToBePhysical(BlockLiquid)
      */
     @GeoConfig.Support(since = "0.1")
     @Config.Comment("不受此模式影响的流体\n" +
@@ -557,8 +557,8 @@ public final class FluidPhysicsConfig {
     public static final ConfigInteger bottleFindFluidMaxDistance =
             new ConfigInteger(CATEGORY_FLUIDPHYSICS_FINITE,"bottleFindFluidMaxDistance",3);
     /**
-     * @see GeoFluidSetting#isFluidToUseVanillaBucketMode(Fluid) 
-     * @see GeoFluidSetting#setFluidToUseVanillaBucketMode(String, boolean) 
+     * @see FluidPhysicsSystem#isFluidToUseVanillaBucketMode(Fluid)
+     * @see FluidPhysicsSystem#setFluidToUseVanillaBucketMode(String, boolean)
      */
     @GeoConfig.Support(since = "0.1")
     @Config.Comment("流体对应的桶其行为表现不受本模组影响的流体。\n" +
@@ -567,9 +567,9 @@ public final class FluidPhysicsConfig {
             ConfigList.create(CATEGORY_FLUIDPHYSICS_FINITE,"fluidsWhoseBucketsBehavesAsVanillaBuckets", new ConfigurableList<>(), ConfigurableFluid::new);
 
     /**
-     * @see GeoFluidSetting#isFluidToBePhysical(Fluid) 
-     * @see GeoFluidSetting#isFluidToBePhysical(BlockLiquid) 
-     * @see GeoFluidSetting#setFluidToBePhysical(String, boolean) 
+     * @see FluidPhysicsSystem#isFluidToBePhysical(Fluid)
+     * @see FluidPhysicsSystem#isFluidToBePhysical(BlockLiquid)
+     * @see FluidPhysicsSystem#setFluidToBePhysical(String, boolean)
      */
     @GeoConfig.Support(since = "0.1")
     public static final ConfigList<ConfigurableFluid,?> fluidsNotToSimulate =

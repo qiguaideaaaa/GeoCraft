@@ -30,6 +30,7 @@ package moe.qingu.geocraft.util.fluid;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import moe.qingu.geocraft.handler.CacheHandler;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -41,7 +42,6 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.IFluidBlock;
 import org.apache.commons.lang3.tuple.Pair;
 import moe.qingu.geocraft.GeoCraft;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
 import moe.qingu.geocraft.api.util.FluidUtil;
 import moe.qingu.geocraft.api.util.math.PlaceChoice;
 import moe.qingu.geocraft.configs.FluidPhysicsConfig;
@@ -332,8 +332,7 @@ public final class FluidSearchUtil {
         dis.put(origin,0L);
         queue.add(Pair.of(origin,0L));
 
-        final double gravity = dir == EnumFacing.UP?-GeoFluidSetting.getGravity(world):GeoFluidSetting.getGravity(world);
-        final long valueInfo = getPlaceableSearchNodeValues(gravity == 0?0:1d/gravity);
+        final long valueInfo = getPlaceableSearchNodeValues(dir == EnumFacing.UP?-CacheHandler.getGravity(world) : CacheHandler.getGravity(world));
         final short v_down = (short) (valueInfo>>(Short.SIZE<<1));
         final short v_0 = (short) ((valueInfo>>Short.SIZE) & 0xffffL);
         final short v_up = (short) (valueInfo & 0xffffL);

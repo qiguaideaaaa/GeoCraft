@@ -28,8 +28,7 @@
 package moe.qingu.geocraft.util;
 
 import moe.qingu.geocraft.api.world.tick.TickPriority;
-import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
-import moe.qingu.geocraft.handler.TickHandler;
+import moe.qingu.geocraft.handler.CacheHandler;
 import net.minecraft.block.Block;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.math.BlockPos;
@@ -37,7 +36,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -64,17 +62,15 @@ public final class MiscUtil {
                                                 final @Nonnull BlockPos pos,
                                                 final @Nonnull Block block,
                                                 final int tickRate){
-        final double gravity = TickHandler.currentWorld == world?TickHandler.currentGravity:GeoFluidSetting.getGravity(world);
-        if(gravity == 0d) return;
-        final int modifiedTickRate = Math.max((int) (tickRate*gravity),1);
-        if(TickHandler.currentBlockScheduler != null && TickHandler.currentWorld == world){
-            TickHandler.currentBlockScheduler.schedule(pos,block,modifiedTickRate, TickPriority.DEFAULT);
-        }else BlockTickScheduler.schedule(world,pos,block,modifiedTickRate);
+        final double levity = CacheHandler.getLevity(world);
+        if(levity == Double.POSITIVE_INFINITY) return;
+        final int modifiedTickRate = Math.max((int) (tickRate*levity),1);
+        CacheHandler.schedule(world,pos,block,modifiedTickRate,TickPriority.DEFAULT);
     }
 
     public static int modifyTickRateByGravity(final @Nonnull World world,final int tickRate){
-        final double gravity = GeoFluidSetting.getGravity(world);
-        return gravity == 0d?0:Math.max((int) (tickRate*gravity),1);
+        final double levity = CacheHandler.getLevity(world);
+        return levity == Double.POSITIVE_INFINITY?0:Math.max((int) (tickRate*levity),1);
     }
 
     @Nonnull

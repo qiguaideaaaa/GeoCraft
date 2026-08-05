@@ -27,8 +27,10 @@
 
 package moe.qingu.geocraft.api.event;
 
+import moe.qingu.geocraft.api.event.fluidphysics.FluidPhysicsSystemEvent;
 import moe.qingu.geocraft.api.event.fluidphysics.FluidTaskSchedulerEvent;
 import moe.qingu.geocraft.api.event.world.BlockTickSchedulerEvent;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.api.fluidphysics.task.scheduler.FluidTaskScheduler;
 import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
 import moe.qingu.geocraft.api.world.tick.validator.BlockTickValidator;
@@ -164,6 +166,10 @@ public final class EventFactory {
     /* -----------------------
        FluidPhysics Events
        ----------------------- */
+
+    public static void onFluidPhysicsSystemLoad(final @Nonnull World world, final @Nonnull FluidPhysicsSystem system){
+        EVENT_BUS.post(new FluidPhysicsSystemEvent.Load(world, system));
+    }
 
     @Nullable
     public static Supplier<FluidTaskScheduler> onFluidTaskSchedulerCreate(@Nonnull final World world){

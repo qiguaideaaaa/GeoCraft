@@ -47,7 +47,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.block.finite.ILayeredFluidHostFiniteLiquid;
 import moe.qingu.geocraft.configs.FluidPhysicsConfig;
 import moe.qingu.geocraft.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
@@ -86,7 +86,7 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements ILayeredFlui
             if(天圆地方$FINITE$flowingHandler.fluid == FluidRegistry.WATER) 天圆地方$FINITE$task = FluidTasks.WATER_TASK;
             else 天圆地方$FINITE$task = FluidTasks.LAVA_TASK;
         });
-        DeferredActions.onServerAboutToStart(()-> this.天圆地方$FINITE$physical = GeoFluidSetting.isFluidToBePhysical(天圆地方$FINITE$flowingHandler.fluid));
+        DeferredActions.onServerAboutToStart(()-> this.天圆地方$FINITE$physical = FluidPhysicsSystem.isFluidToBePhysical(天圆地方$FINITE$flowingHandler.fluid));
     }
 
     @Inject(method = "updateTick",at = @At("HEAD"),cancellable = true)

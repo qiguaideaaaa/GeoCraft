@@ -55,7 +55,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.api.util.FluidUtil;
 import moe.qingu.geocraft.configs.FluidPhysicsConfig;
 import moe.qingu.geocraft.util.MiscUtil;
@@ -114,7 +114,7 @@ public class BlockDynamicLiquidMixin extends BlockLiquid implements IFluidTaskRe
             if(material == Material.LAVA) FluidTasks.LAVA_TASK = 天圆地方$CLASSIC$task;
             else FluidTasks.WATER_TASK = 天圆地方$CLASSIC$task;
         });
-        DeferredActions.onServerAboutToStart(()-> this.天圆地方$CLASSIC$physical = GeoFluidSetting.isFluidToBePhysical(天圆地方$CLASSIC$thisFluid));
+        DeferredActions.onServerAboutToStart(()-> this.天圆地方$CLASSIC$physical = FluidPhysicsSystem.isFluidToBePhysical(天圆地方$CLASSIC$thisFluid));
     }
 
     /**

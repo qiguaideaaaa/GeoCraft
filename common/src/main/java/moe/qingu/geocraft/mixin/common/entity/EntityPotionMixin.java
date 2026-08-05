@@ -45,7 +45,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import moe.qingu.geocraft.api.block.ILayeredFluidHost;
 import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsMode;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.api.util.FluidUtil;
 import moe.qingu.geocraft.api.util.QBUtil;
 import moe.qingu.geocraft.api.util.math.vec.MBlockPos;
@@ -95,7 +95,7 @@ public abstract class EntityPotionMixin extends EntityThrowable {
             }
         }
         final int quantaLeft = QBUtil.toQuanta(left);
-        if(quantaLeft >0 && GeoFluidSetting.isFluidToBePhysical(FluidRegistry.WATER) && FluidPhysicsMode.getCurrentMode() == FluidPhysicsMode.FINITE){
+        if(quantaLeft >0 && FluidPhysicsSystem.isFluidToBePhysical(FluidRegistry.WATER) && FluidPhysicsMode.getCurrentMode() == FluidPhysicsMode.FINITE){
             final FiniteBlockLiquidWrapper wrapper = new FiniteBlockLiquidWrapper(FiniteFlowings.WATER_FLOW,world,curPos);
             wrapper.fill(new FluidStack(FluidRegistry.WATER,quantaLeft* FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME),true);
         }

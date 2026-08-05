@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 QiguaiAAAA
+ * Copyright 2026 QGMoe
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * 版权所有 2025 QiguaiAAAA
+ * 版权所有 2026 QGMoe
  * 根据Apache许可证第2.0版（“本许可证”）许可；
  * 除非符合本许可证的规定，否则你不得使用此文件。
  * 你可以在此获取本许可证的副本：
@@ -25,10 +25,40 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.geocraft.util.mixinapi.network;
+package moe.qingu.geocraft.api.event.fluidphysics;
 
-import net.minecraft.network.PacketBuffer;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
+import net.minecraft.world.World;
+import net.minecraftforge.fml.common.eventhandler.Event;
 
-public interface NetworkOverridable {
-    void networkWrite(PacketBuffer buf);
+import javax.annotation.Nonnull;
+
+/**
+ * @author QGMoe
+ */
+public class FluidPhysicsSystemEvent extends Event {
+    private final World world;
+    private final FluidPhysicsSystem system;
+
+    public FluidPhysicsSystemEvent(final @Nonnull World world,final @Nonnull FluidPhysicsSystem system) {
+        this.world = world;
+        this.system = system;
+    }
+
+    @Nonnull
+    public World getWorld() {
+        return world;
+    }
+
+    @Nonnull
+    public FluidPhysicsSystem getSystem() {
+        return system;
+    }
+
+    public static class Load extends FluidPhysicsSystemEvent{
+
+        public Load(@Nonnull final World world, @Nonnull final FluidPhysicsSystem system) {
+            super(world, system);
+        }
+    }
 }

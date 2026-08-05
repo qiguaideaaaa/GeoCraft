@@ -70,7 +70,7 @@ import moe.qingu.geocraft.api.event.atmosphere.AtmosphereUpdateEvent;
 import moe.qingu.geocraft.api.event.block.StaticLiquidUpdateEvent;
 import moe.qingu.geocraft.api.event.player.FillGlassBottleEvent.FillGlassBottleOnFluidEvent;
 import moe.qingu.geocraft.api.property.TemperatureProperty;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.api.util.AtmosphereUtil;
 import moe.qingu.geocraft.api.util.FluidUtil;
 import moe.qingu.geocraft.api.util.QBUtil;
@@ -155,7 +155,7 @@ public final class FiniteEventHandler {
         }
         FluidStack stack;
         if(item == Items.WATER_BUCKET){
-            if(GeoFluidSetting.isFluidToUseVanillaBucketMode(FluidRegistry.WATER)) return;
+            if(FluidPhysicsSystem.isFluidToUseVanillaBucketMode(FluidRegistry.WATER)) return;
             stack = new FluidStack(FluidRegistry.WATER, Fluid.BUCKET_VOLUME);
             boolean success = tryPlaceFluid(playerIn, worldIn, pos, InfiniteFluidBucketWrapper.INFINITE_WATER_BUCKET_WRAPPER,stack);
             if(!success){
@@ -163,7 +163,7 @@ public final class FiniteEventHandler {
                 return;
             }
         }else {
-            if(GeoFluidSetting.isFluidToUseVanillaBucketMode(FluidRegistry.LAVA)) return;
+            if(FluidPhysicsSystem.isFluidToUseVanillaBucketMode(FluidRegistry.LAVA)) return;
             stack = new FluidStack(FluidRegistry.LAVA, Fluid.BUCKET_VOLUME);
             boolean success = tryPlaceFluid(playerIn, worldIn, pos, InfiniteFluidBucketWrapper.INFINITE_LAVA_BUCKET_WRAPPER,stack);
             if(!success){
@@ -408,16 +408,16 @@ public final class FiniteEventHandler {
     public static void onPostInit(final @Nonnull FMLPostInitializationEvent event){
         for(ConfigurableFluid fluid:fluidsNotToSimulate){
             if(fluid == null) continue;
-            GeoFluidSetting.setFluidToBePhysical(fluid.toString(),false);
+            FluidPhysicsSystem.setFluidToBePhysical(fluid.toString(),false);
         }
         for(ConfigurableFluid fluid:fluidsWhoseBucketsBehavesAsVanillaBuckets){
             if(fluid == null) continue;
-            GeoFluidSetting.setFluidToUseVanillaBucketMode(fluid.toString(),true);
+            FluidPhysicsSystem.setFluidToUseVanillaBucketMode(fluid.toString(),true);
         }
-        if(!GeoFluidSetting.isFluidToBePhysical(FluidRegistry.WATER)){
+        if(!FluidPhysicsSystem.isFluidToBePhysical(FluidRegistry.WATER)){
             Blocks.WATER.setTickRandomly(false);
         }
-        if(!GeoFluidSetting.isFluidToBePhysical(FluidRegistry.LAVA)){
+        if(!FluidPhysicsSystem.isFluidToBePhysical(FluidRegistry.LAVA)){
             Blocks.LAVA.setTickRandomly(false);
         }
     }

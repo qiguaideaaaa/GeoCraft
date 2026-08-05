@@ -35,8 +35,8 @@ import moe.qingu.geocraft.api.util.APIUtil;
  * @author QiguaiAAAA
  */
 public final class GeoCraftAPI {
-    public final static long API_VERSION = 6;
-    public final static String API_VERSION_NAME = "0.3.4";
+    public final static long API_VERSION = 7;
+    public final static String API_VERSION_NAME = "0.3.5";
     public final static String MODID = "geocraft";
     public final static String PROVIDERS = "GeoCraftAPI";
     public final static Logger LOGGER = APIUtil.LOGGER;

@@ -46,7 +46,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import moe.qingu.geocraft.api.event.EventFactory;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.configs.FluidPhysicsConfig;
 import moe.qingu.geocraft.geography.fluidphysics.pressure.FluidPressureSearchManager;
 import moe.qingu.geocraft.block.finite.ILayeredFluidHostFiniteLiquid;
@@ -79,7 +79,7 @@ public class BlockStaticLiquidMixin extends BlockLiquid implements ILayeredFluid
     private void 天圆地方$FINITE$init(final @Nonnull Material material,final @Nonnull CallbackInfo ci) {
         this.setTickRandomly(true);
         DeferredActions.onInited(() -> this.天圆地方$FINITE$flowingHandler = FiniteFlowingVanilla.getFlowingByMaterial(this.material));
-        DeferredActions.onServerAboutToStart(()-> this.天圆地方$FINITE$physical = GeoFluidSetting.isFluidToBePhysical(天圆地方$FINITE$flowingHandler.fluid));
+        DeferredActions.onServerAboutToStart(()-> this.天圆地方$FINITE$physical = FluidPhysicsSystem.isFluidToBePhysical(天圆地方$FINITE$flowingHandler.fluid));
     }
 
 

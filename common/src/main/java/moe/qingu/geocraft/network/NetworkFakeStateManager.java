@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 QiguaiAAAA
+ * Copyright 2026 QGMoe
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * 版权所有 2025 QiguaiAAAA
+ * 版权所有 2026 QGMoe
  * 根据Apache许可证第2.0版（“本许可证”）许可；
  * 除非符合本许可证的规定，否则你不得使用此文件。
  * 你可以在此获取本许可证的副本：
@@ -25,7 +25,7 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.geocraft.handler.network;
+package moe.qingu.geocraft.network;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.block.Block;
@@ -33,6 +33,9 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import moe.qingu.geocraft.api.soil.SoilSystem;
 import moe.qingu.geocraft.configs.SoilConfig;
+import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nonnull;
 
@@ -44,6 +47,7 @@ import java.util.function.IntBinaryOperator;
 import static moe.qingu.geocraft.api.block.BlockProperties.HUMIDITY;
 import static moe.qingu.geocraft.api.block.BlockProperties.MIXTURE;
 
+@SideOnly(Side.SERVER)
 public final class NetworkFakeStateManager {
     public static final Function<IBlockState,IBlockState> DEFAULT_OVERWRITE_RULE = state -> state;
     public static final IntBinaryOperator REMOVE_META_RULE = (id,meta)->id<<4;
@@ -91,5 +95,9 @@ public final class NetworkFakeStateManager {
         registerRule(Blocks.GRASS_PATH,removeHumidity,REMOVE_META_RULE);
         registerRule(Blocks.GRAVEL,removeHumidity,REMOVE_META_RULE);
         registerRule(Blocks.CLAY,removeHumidity,REMOVE_META_RULE);
+    }
+
+    public interface NetworkOverridable {
+        void 天圆地方$networkWrite(final @Nonnull PacketBuffer buf);
     }
 }

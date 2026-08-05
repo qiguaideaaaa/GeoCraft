@@ -45,7 +45,7 @@ import moe.qingu.geocraft.api.atmosphere.Atmosphere;
 import moe.qingu.geocraft.api.configs.value.minecraft.ConfigurableFluid;
 import moe.qingu.geocraft.api.event.atmosphere.AtmosphereUpdateEvent;
 import moe.qingu.geocraft.api.event.block.StaticLiquidUpdateEvent;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.api.util.FluidUtil;
 import moe.qingu.geocraft.geography.fluidphysics.vanilla.FluidPhysicsCoreVanilla;
 import moe.qingu.geocraft.geography.fluidphysics.classic.FluidPhysicsCoreClassic;
@@ -110,7 +110,7 @@ public final class ClassicEventHandler {
     public static void onPostInit(FMLPostInitializationEvent event){
         for(ConfigurableFluid fluid:fluidsNotToSimulateInVanillaLike){
             if(fluid == null) continue;
-            GeoFluidSetting.setFluidToBePhysical(fluid.toString(),false);
+            FluidPhysicsSystem.setFluidToBePhysical(fluid.toString(),false);
         }
     }
 }

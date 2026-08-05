@@ -28,6 +28,7 @@
 package moe.qingu.geocraft;
 
 import moe.qingu.geocraft.handler.CapabilityHandler;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -41,8 +42,9 @@ import moe.qingu.geocraft.handler.RegistryHandler;
 import moe.qingu.geocraft.handler.event.FiniteEventHandler;
 import moe.qingu.geocraft.handler.event.SoilEventHandler;
 import moe.qingu.geocraft.handler.event.ClassicEventHandler;
-import moe.qingu.geocraft.handler.network.NetworkFakeStateManager;
+import moe.qingu.geocraft.network.NetworkFakeStateManager;
 import moe.qingu.geocraft.util.BaseUtil;
+import net.minecraftforge.fml.relauncher.Side;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -73,7 +75,7 @@ public class CommonProxy {
         RegistryHandler.registerEventHandler();
     }
 
-    public void postInit(@Nonnull FMLPostInitializationEvent event) {
+    public void postInit(@Nonnull final FMLPostInitializationEvent event) {
         ConfigInit.verifyConfigValidity();
         FluidHandler.initRegisteredFluids();
         FluidPhysicsMode.CLASSIC.setChecker(new VanillaFluidOperationChecker());
@@ -85,7 +87,9 @@ public class CommonProxy {
             ClassicEventHandler.onPostInit(event);
         }
         SoilEventHandler.onPostInit(event);
-        NetworkFakeStateManager.registerDefaultConfig();
+        if(FMLCommonHandler.instance().getSide() == Side.SERVER){
+            NetworkFakeStateManager.registerDefaultConfig();
+        }
     }
 
     private static void initConfig(){

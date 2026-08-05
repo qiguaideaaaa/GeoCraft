@@ -28,11 +28,8 @@
 package moe.qingu.geocraft.handler;
 
 import moe.qingu.geocraft.api.fluidphysics.task.scheduler.FluidTaskScheduler;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
-import moe.qingu.geocraft.api.util.DeferredActions;
 import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -51,50 +48,30 @@ import java.util.concurrent.locks.ReentrantLock;
 @Mod.EventBusSubscriber(modid = GeoCraft.MODID)
 public final class TickHandler {
     public static final ReentrantLock TICKING_LOCK = new ReentrantLock();
-    public static WorldServer currentWorld;
-    public static BlockTickScheduler currentBlockScheduler;
-    public static double currentGravity;
-
-    static {
-        DeferredActions.onServerStarted(TickHandler::resetCache);
-        DeferredActions.onServerStopped(()->{
-            currentWorld = null;
-            currentBlockScheduler = null;
-            currentGravity = 1d;
-        });
-    }
 
     private TickHandler(){}
 
     @SubscribeEvent(priority = EventPriority.LOW)
-    public static void onServerTickStart(@Nonnull TickEvent.ServerTickEvent event){
+    public static void onServerTickStart(@Nonnull final TickEvent.ServerTickEvent event){
         if(event.phase == TickEvent.Phase.END) return;
         FluidPressureSearchManager.onServerTick(event);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public static void onWorldTickEnd(@Nonnull TickEvent.WorldTickEvent event){
+    public static void onWorldTickEnd(@Nonnull final TickEvent.WorldTickEvent event){
         if(event.phase == TickEvent.Phase.START) return;
         final @Nullable WorldServer world = MiscUtil.getValidWorld(event.world);
         if(world == null) return;
         TICKING_LOCK.lock();
         try {
-            currentWorld = world;
-            currentBlockScheduler = BlockTickScheduler.getScheduler(world);
-            currentGravity = GeoFluidSetting.getGravity(world);
+            CacheHandler.loadCache(world);
             FluidPressureSearchManager.onWorldTick(world);
             BlockTickScheduler.onWorldTick(world);
             FluidTaskScheduler.onWorldTick(world);
         }finally {
-            resetCache();
+            CacheHandler.resetCache();
             TICKING_LOCK.unlock();
         }
     }
 
-    private static void resetCache(){
-        currentWorld = DimensionManager.getWorld(0);
-        if(currentWorld == null) return;
-        currentBlockScheduler = BlockTickScheduler.getScheduler(currentWorld);
-        currentGravity = GeoFluidSetting.getGravity(0);
-    }
 }

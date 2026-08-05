@@ -45,7 +45,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.geography.fluidphysics.finite.update.FiniteIEConcreteFluidTask;
 
 import javax.annotation.Nonnull;
@@ -63,7 +63,7 @@ public class BlockIEFluidConcreteMixin extends BlockIEFluid implements IFluidTas
     @Inject(method = "Lblusunrize/immersiveengineering/common/blocks/BlockIEFluidConcrete;<init>(Ljava/lang/String;Lnet/minecraftforge/fluids/Fluid;Lnet/minecraft/block/material/Material;)V",
             at = @At("TAIL"))
     private void 天圆地方$FINITE$init(final @Nonnull String name,final @Nonnull Fluid fluid,final @Nonnull Material material,final @Nonnull CallbackInfo ci) {
-        DeferredActions.onServerAboutToStart(() -> 天圆地方$FINITE$沉浸工程$physical = GeoFluidSetting.isFluidToBePhysical(FiniteIEConcreteFluidTask.IE_CONCRETE_FLOWING_UPDATER.fluid));
+        DeferredActions.onServerAboutToStart(() -> 天圆地方$FINITE$沉浸工程$physical = FluidPhysicsSystem.isFluidToBePhysical(FiniteIEConcreteFluidTask.IE_CONCRETE_FLOWING_UPDATER.fluid));
     }
 
     @Inject(method = "updateTick",at = @At("HEAD"),cancellable = true,remap = true)

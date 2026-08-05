@@ -36,7 +36,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import moe.qingu.geocraft.handler.network.NetworkFakeStateManager;
+import moe.qingu.geocraft.network.NetworkFakeStateManager;
 
 @Mixin(value = SPacketMultiBlockChange.class)
 public class SPacketMultiBlockChangeMixin {
@@ -45,6 +45,7 @@ public class SPacketMultiBlockChangeMixin {
     @Shadow
     private SPacketMultiBlockChange.BlockUpdateData[] changedBlocks;
 
+    @SuppressWarnings("deprecation")
     @Inject(method = "writePacketData",at = @At("HEAD"),cancellable = true)
     public void writePacketData(PacketBuffer buf, CallbackInfo ci) {
         ci.cancel();

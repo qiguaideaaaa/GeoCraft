@@ -40,7 +40,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
 import moe.qingu.geocraft.util.wrappers.FiniteBlockLiquidWrapper;
 import moe.qingu.geocraft.util.wrappers.FiniteFluidBlockWrapper;
@@ -62,7 +62,7 @@ public class ForgeFluidUtilMixin {
     private static boolean 天圆地方$useVanillaFluidBehavior(final @Nonnull IFluidBlock block){
         if(block instanceof BlockFluidBase){
             final @Nonnull Fluid fluid = block.getFluid();
-            return GeoFluidSetting.isFluidToUseVanillaBucketMode(fluid) || !GeoFluidSetting.isFluidToBePhysical(fluid);
+            return FluidPhysicsSystem.isFluidToUseVanillaBucketMode(fluid) || !FluidPhysicsSystem.isFluidToBePhysical(fluid);
         }else return true;
     }
 
@@ -71,7 +71,7 @@ public class ForgeFluidUtilMixin {
             at=@At(value = "NEW",
                     target = "net/minecraftforge/fluids/capability/wrappers/BlockLiquidWrapper"),remap = false)
     private static BlockLiquidWrapper 天圆地方$Inject$getFluidBlockHandlerVanilla(final @Nonnull BlockLiquid block, final @Nonnull World world, final @Nonnull BlockPos pos) {
-        if(!GeoFluidSetting.isFluidToBePhysical(block)) return new BlockLiquidWrapper(block,world,pos);
+        if(!FluidPhysicsSystem.isFluidToBePhysical(block)) return new BlockLiquidWrapper(block,world,pos);
         return new FiniteBlockLiquidWrapper(FiniteFlowingVanilla.getFlowingByMaterial(block.getDefaultState().getMaterial()),world,pos);
     }
 }

@@ -44,7 +44,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import moe.qingu.geocraft.api.event.EventFactory;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.util.MiscUtil;
 
 import javax.annotation.Nonnull;
@@ -64,7 +64,7 @@ public class BlockStaticLiquidMixin extends BlockLiquid{
     private void 天圆地方$onInit(Material materialIn, CallbackInfo ci) {
         this.setTickRandomly(true);
         DeferredActions.onInited(()-> 天圆地方$thisFluid = Material.LAVA == materialIn ? FluidRegistry.LAVA:FluidRegistry.WATER);
-        DeferredActions.onServerAboutToStart(()-> this.天圆地方$CLASSIC$physical = GeoFluidSetting.isFluidToBePhysical(天圆地方$thisFluid));
+        DeferredActions.onServerAboutToStart(()-> this.天圆地方$CLASSIC$physical = FluidPhysicsSystem.isFluidToBePhysical(天圆地方$thisFluid));
     }
 
     @Override

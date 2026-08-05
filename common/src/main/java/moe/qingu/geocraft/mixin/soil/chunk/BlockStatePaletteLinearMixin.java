@@ -34,19 +34,21 @@ import net.minecraft.world.chunk.BlockStatePaletteLinear;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import moe.qingu.geocraft.handler.network.NetworkFakeStateManager;
-import moe.qingu.geocraft.util.mixinapi.network.NetworkOverridable;
+import moe.qingu.geocraft.network.NetworkFakeStateManager;
+
+import javax.annotation.Nonnull;
 
 @Mixin(BlockStatePaletteLinear.class)
-public class BlockStatePaletteLinearMixin implements NetworkOverridable {
+public class BlockStatePaletteLinearMixin implements NetworkFakeStateManager.NetworkOverridable {
     @Final
     @Shadow
     private IBlockState[] states;
     @Shadow
     private int arraySize;
 
+    @SuppressWarnings("deprecation")
     @Override
-    public void networkWrite(PacketBuffer buf) {
+    public void 天圆地方$networkWrite(final @Nonnull PacketBuffer buf) {
         buf.writeVarInt(this.arraySize);
 
         for (int i = 0; i < this.arraySize; ++i) {

@@ -29,9 +29,12 @@ package moe.qingu.geocraft.handler.event;
 
 import moe.qingu.geocraft.GeoCraft;
 import moe.qingu.geocraft.api.event.EventFactory;
+import moe.qingu.geocraft.api.event.fluidphysics.FluidPhysicsSystemEvent;
 import moe.qingu.geocraft.api.event.fluidphysics.FluidTaskSchedulerEvent;
 import moe.qingu.geocraft.api.fluidphysics.task.scheduler.EmptyFluidTaskScheduler;
 import moe.qingu.geocraft.api.fluidphysics.task.scheduler.FluidTaskScheduler;
+import moe.qingu.geocraft.configs.FluidPhysicsConfig;
+import moe.qingu.geocraft.geography.fluidphysics.FluidPhysicsInfo;
 import moe.qingu.geocraft.geography.fluidphysics.scheduler.ChunkyFluidTaskScheduler;
 import moe.qingu.geocraft.geography.fluidphysics.scheduler.ChunkyFluidTaskDatum;
 import moe.qingu.geocraft.handler.CapabilityHandler;
@@ -54,8 +57,14 @@ import java.util.function.Supplier;
 @Mod.EventBusSubscriber(modid = GeoCraft.MODID)
 public final class FluidPhysicsEventHandler {
 
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onFluidPhysicsSystemLoaded(final @Nonnull FluidPhysicsSystemEvent.Load event){
+        final FluidPhysicsInfo.FluidPhysicsInfoJSONWrapper info = FluidPhysicsConfig.FLUID_PHYSICS_INFO.get(event.getWorld().provider.getDimension());
+        event.getSystem().setGravity(info == null? 1d: info.getGravity().relativeGravitySize);
+    }
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void createFluidTaskScheduler(final @Nonnull FluidTaskSchedulerEvent.Create event){
+    public static void onCreateFluidTaskScheduler(final @Nonnull FluidTaskSchedulerEvent.Create event){
         if(event.getCandidate() == null && !event.getWorld().isRemote && event.getResult() != Event.Result.ALLOW){
             final World world = event.getWorld();
             event.setCandidate(() -> new ChunkyFluidTaskScheduler(world));
@@ -85,12 +94,12 @@ public final class FluidPhysicsEventHandler {
         scheduler.getData().remove(pos);
     }
 
-    public static void onWorldAttachCapabilities(final @Nonnull AttachCapabilitiesEvent<World> event,final @Nonnull World world){
+    public static void createFluidTaskScheduler(final @Nonnull AttachCapabilitiesEvent<World> event, final @Nonnull World world){
         final Supplier<FluidTaskScheduler> supplier = EventFactory.onFluidTaskSchedulerCreate(world);
         event.addCapability(FluidTaskScheduler.ID,supplier == null?new EmptyFluidTaskScheduler(world): supplier.get());
     }
 
-    public static void onChunkAttachCapabilities(final @Nonnull AttachCapabilitiesEvent<Chunk> event,final @Nonnull World world){
+    public static void createFluidTaskDatum(final @Nonnull AttachCapabilitiesEvent<Chunk> event, final @Nonnull World world){
         if(ChunkyFluidTaskScheduler.getChunkyScheduler(world) != null) event.addCapability(ChunkyFluidTaskDatum.ID, new ChunkyFluidTaskDatum());
     }
 }

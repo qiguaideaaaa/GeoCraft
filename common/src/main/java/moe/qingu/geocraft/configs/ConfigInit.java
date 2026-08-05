@@ -42,7 +42,6 @@ import moe.qingu.geocraft.api.configs.item.map.ConfigMap;
 import moe.qingu.geocraft.api.configs.item.number.ConfigDouble;
 import moe.qingu.geocraft.api.configs.item.number.ConfigInteger;
 import moe.qingu.geocraft.api.configs.item.number.ConfigLong;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
 import moe.qingu.geocraft.api.util.exception.ConfigParseError;
 
 import javax.annotation.Nonnull;
@@ -134,7 +133,6 @@ public final class ConfigInit {
     public static void verifyConfigValidity(){
         FluidPhysicsConfig.FLUID_PHYSICS_INFO.forEach((dim,infoWrapper)->{
             if(infoWrapper.getGravity().relativeGravitySize<0) throw new ConfigParseError("Gravity "+infoWrapper.getGravity().relativeGravitySize+" for dimension "+dim+" in "+FluidPhysicsConfig.FLUID_PHYSICS_INFO.getPath()+" can't be negative!");
-            GeoFluidSetting.setGravity(dim,infoWrapper.getGravity().relativeGravitySize);
         });
     }
 

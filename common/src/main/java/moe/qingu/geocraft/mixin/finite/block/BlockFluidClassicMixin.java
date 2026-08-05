@@ -49,7 +49,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.api.util.FluidUtil;
 import moe.qingu.geocraft.util.MiscUtil;
 
@@ -72,7 +72,7 @@ public abstract class BlockFluidClassicMixin extends BlockFluidBase implements I
             at = @At("TAIL"))
     private void 天圆地方$FINITE$init(final @Nonnull Fluid fluid,final @Nonnull Material material,final @Nonnull MapColor color,final @Nonnull CallbackInfo ci) {
         DeferredActions.onInited(() -> this.天圆地方$FINITE$fluid = this.getFluid());
-        DeferredActions.onServerAboutToStart(() -> 天圆地方$FINITE$physical = GeoFluidSetting.isFluidToBePhysical(this.天圆地方$FINITE$fluid));
+        DeferredActions.onServerAboutToStart(() -> 天圆地方$FINITE$physical = FluidPhysicsSystem.isFluidToBePhysical(this.天圆地方$FINITE$fluid));
     }
 
     /**

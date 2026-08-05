@@ -42,7 +42,7 @@ import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import moe.qingu.geocraft.GeoCraft;
 import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsMode;
-import moe.qingu.geocraft.api.setting.GeoFluidSetting;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.test.GeoTestItem;
 import moe.qingu.geocraft.util.wrappers.FiniteBlockLiquidWrapper;
 
@@ -93,7 +93,7 @@ public final class FluidDrainMixinTest extends GeoTestItem {
             if(sender != null) sender.sendMessage(translation("geocraft.geotest.finite_fluid_drain_mixin_test.pass").arg(pos,state).color(TextFormatting.RED).done());
             return EnumActionResult.PASS;
         }
-        if(GeoFluidSetting.isFluidToUseVanillaBucketMode(fluid) || !GeoFluidSetting.isFluidToBePhysical(fluid)){
+        if(FluidPhysicsSystem.isFluidToUseVanillaBucketMode(fluid) || !FluidPhysicsSystem.isFluidToBePhysical(fluid)){
             if(sender != null) sender.sendMessage(translation("geocraft.geotest.finite_fluid_drain_mixin_test.pass_because_config").arg(pos,fluid.getName())
                     .color(TextFormatting.RED).done());
             return EnumActionResult.PASS;

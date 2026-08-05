@@ -27,17 +27,23 @@
 
 package moe.qingu.geocraft;
 
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.api.util.DeferredActions;
 import moe.qingu.geocraft.api.fluidphysics.task.FluidTaskRegistry;
 import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
 import moe.qingu.geocraft.geography.GeoMiscDaemon;
 import moe.qingu.geocraft.geography.fluidphysics.FluidTasks;
 import moe.qingu.geocraft.api.fluidphysics.task.scheduler.FluidTaskScheduler;
+import moe.qingu.geocraft.handler.CacheHandler;
+import moe.qingu.geocraft.network.PackageFluidPhysicsMessage;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.fml.common.*;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.*;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.relauncher.Side;
 import org.apache.logging.log4j.Logger;
 import moe.qingu.geocraft.api.atmosphere.AtmosphereSystemRunner;
 import moe.qingu.geocraft.api.atmosphere.storage.AtmosphereRegionFileCache;
@@ -59,16 +65,18 @@ import java.io.File;
 public class GeoCraft {
     public static final String MODID = "geocraft";
     public static final String NAME = "Geo Craft";
-    public static final String VERSION = "0.3.0-alpha.1";
+    public static final String VERSION = "0.3.0-alpha.2";
     @SuppressWarnings("unused") @SidedProxy(clientSide = "moe.qingu.geocraft.ClientProxy",serverSide = "moe.qingu.geocraft.CommonProxy")
     private static CommonProxy proxy;
     private static Logger logger;
+    public final static SimpleNetworkWrapper CHANNEL = NetworkRegistry.INSTANCE.newSimpleChannel(MODID+":network");
 
     @EventHandler
     public void preInit(final @Nonnull FMLPreInitializationEvent event) {
         logger = event.getModLog();
         proxy.preInit(event);
         GameRegistry.registerWorldGenerator(new GeoCraftPostPopulatingGenerator(),100000);
+        CHANNEL.registerMessage(PackageFluidPhysicsMessage.Handler.class, PackageFluidPhysicsMessage.class,0, Side.CLIENT);
         GeoCompatLoader.loadCompats(LoaderState.PREINITIALIZATION);
         DeferredActions.run(LoaderState.PREINITIALIZATION);
     }
@@ -134,6 +142,7 @@ public class GeoCraft {
     @EventHandler
     public void onServerStarted(final @Nonnull FMLServerStartedEvent event){
         GeoDataFile.captureCurrentState();
+        CacheHandler.resetCache();
         DeferredActions.run(LoaderState.SERVER_STARTED);
     }
 
@@ -156,6 +165,8 @@ public class GeoCraft {
     public void onServerStop(final @Nonnull FMLServerStoppedEvent event){
         AtmosphereRegionFileCache.clearRegionFileReferences();
         AtmosphereSystemRunner.onServerStopped(event);
+        CacheHandler.clearCache();
+        FluidPhysicsSystem.onServerStop();
         GeoCompatLoader.loadCompats(LoaderState.SERVER_STOPPED);
         DeferredActions.run(LoaderState.SERVER_STOPPED);
         DeferredActions.restore();

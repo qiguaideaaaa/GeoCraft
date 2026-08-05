@@ -30,16 +30,19 @@ package moe.qingu.geocraft.handler.event;
 import moe.qingu.geocraft.api.GeoCraftAPI;
 import moe.qingu.geocraft.api.event.EventFactory;
 import moe.qingu.geocraft.api.event.world.BlockTickSchedulerEvent;
+import moe.qingu.geocraft.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.geocraft.api.fluidphysics.task.scheduler.FluidTaskScheduler;
 import moe.qingu.geocraft.api.world.tick.scheduler.BlockTickScheduler;
 import moe.qingu.geocraft.api.world.tick.scheduler.MojangBlockTickScheduler;
 import moe.qingu.geocraft.api.world.tick.validator.BlockTickValidator;
 import moe.qingu.geocraft.configs.GeneralConfig;
 import moe.qingu.geocraft.handler.CapabilityHandler;
+import moe.qingu.geocraft.network.PackageFluidPhysicsMessage;
 import moe.qingu.geocraft.world.scheduler.ChunkyBlockTickDatum;
 import moe.qingu.geocraft.world.scheduler.ChunkyBlockTickScheduler;
 import moe.qingu.geocraft.world.scheduler.GeoBlockTickType;
 import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -63,7 +66,7 @@ import java.util.function.Supplier;
 public final class CommonEventHandler {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void createBlockTickScheduler(final @Nonnull BlockTickSchedulerEvent.Create event){
+    public static void onCreateBlockTickScheduler(final @Nonnull BlockTickSchedulerEvent.Create event){
         if(!GeneralConfig.ENABLE_BLOCK_UPDATER.getValue()) return;
         if(event.getCandidate() == null && !event.getWorld().isRemote && event.getResult() != Event.Result.ALLOW){
             final World world = event.getWorld();
@@ -71,6 +74,12 @@ public final class CommonEventHandler {
             event.setCandidate(tickType.supplier(world));
             event.setResult(Event.Result.ALLOW);
         }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerJoin(final @Nonnull net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent event){
+        if(!(event.player instanceof EntityPlayerMP)) return;
+        GeoCraft.CHANNEL.sendTo(new PackageFluidPhysicsMessage(FluidPhysicsSystem.serializeForClient()),(EntityPlayerMP) event.player);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
@@ -109,8 +118,15 @@ public final class CommonEventHandler {
     @SubscribeEvent
     public static void onWorldAttachCapabilities(final @Nonnull AttachCapabilitiesEvent<World> event){
         if(event.getObject().isRemote) return;
-        final Supplier<BlockTickScheduler> supplier = EventFactory.onBlockTickSchedulerCreate(event.getObject());
-        final BlockTickScheduler scheduler = supplier == null?new MojangBlockTickScheduler(event.getObject()):supplier.get();
+        FluidPhysicsSystem.createFluidPhysicsSystem(event.getObject());
+        createBlockTickScheduler(event);
+        FluidPhysicsEventHandler.createFluidTaskScheduler(event,event.getObject());
+    }
+
+    private static void createBlockTickScheduler(final @Nonnull AttachCapabilitiesEvent<World> event){
+        final World world = event.getObject();
+        final Supplier<BlockTickScheduler> supplier = EventFactory.onBlockTickSchedulerCreate(world);
+        final BlockTickScheduler scheduler = supplier == null?new MojangBlockTickScheduler(world):supplier.get();
         final Supplier<BlockTickValidator> validatorSupplier = EventFactory.onBlockTickValidatorInit(scheduler);
         if(validatorSupplier != null){
             try {
@@ -120,7 +136,6 @@ public final class CommonEventHandler {
             }
         }
         event.addCapability(BlockTickScheduler.ID, scheduler);
-        FluidPhysicsEventHandler.onWorldAttachCapabilities(event,event.getObject());
     }
 
     @SubscribeEvent
@@ -130,7 +145,7 @@ public final class CommonEventHandler {
         if(world == null || world.isRemote) return;
         final @Nullable ChunkyBlockTickDatum datum = ChunkyBlockTickDatum.createByScheduler(BlockTickScheduler.getScheduler(world),event.getObject());
         if(datum != null) event.addCapability(ChunkyBlockTickDatum.ID,datum);
-        FluidPhysicsEventHandler.onChunkAttachCapabilities(event,world);
+        FluidPhysicsEventHandler.createFluidTaskDatum(event,world);
     }
 
     @SubscribeEvent

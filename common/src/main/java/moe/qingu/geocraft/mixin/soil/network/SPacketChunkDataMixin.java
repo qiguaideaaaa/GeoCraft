@@ -27,19 +27,19 @@
 
 package moe.qingu.geocraft.mixin.soil.network;
 
+import moe.qingu.geocraft.network.NetworkFakeStateManager;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.server.SPacketChunkData;
 import net.minecraft.world.chunk.BlockStateContainer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import moe.qingu.geocraft.util.mixinapi.network.NetworkOverridable;
 
 @Mixin(value = SPacketChunkData.class)
 public class SPacketChunkDataMixin {
     @Redirect(method = "extractChunkData",
             at =@At(value = "INVOKE",target = "Lnet/minecraft/world/chunk/BlockStateContainer;write(Lnet/minecraft/network/PacketBuffer;)V"))
     public void extractChunkData(BlockStateContainer instance, PacketBuffer buf) {
-        ((NetworkOverridable)instance).networkWrite(buf);
+        ((NetworkFakeStateManager.NetworkOverridable)instance).天圆地方$networkWrite(buf);
     }
 }
