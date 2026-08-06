@@ -25,7 +25,7 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.orbtellus.api.util;
+package moe.qingu.orbtellus.api.laminarifer.qb;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
@@ -36,7 +36,7 @@ import net.minecraftforge.fluids.Fluid;
  * @since 0.2.0
  * @author QiguaiAAAA
  */
-public final class QBUtil {
+public final class QBUnit {
     public static final long BUCKET_VOLUME = 72072000L;
     public static final long MB_VOLUME = BUCKET_VOLUME/Fluid.BUCKET_VOLUME;
     public static final long QUANTA_VOLUME = BUCKET_VOLUME/8L;

@@ -43,11 +43,11 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.orbtellus.api.util.FluidUtil;
-import moe.qingu.orbtellus.api.util.QBUtil;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.api.util.math.vec.MBlockPos;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowings;
 import moe.qingu.orbtellus.util.math.MathUtil;
@@ -71,7 +71,7 @@ public abstract class EntityPotionMixin extends EntityThrowable {
     private void 天圆地方$applyWaterImpact(final @Nonnull RayTraceResult res, final @Nonnull CallbackInfo ci){
         final BlockPos hitPos = res.getBlockPos();
         final BlockPos curPos = hitPos.offset(res.sideHit);
-        long left = QBUtil.VOLUMES_1_TO_16.getLong(3);
+        long left = QBUnit.VOLUMES_1_TO_16.getLong(3);
         left -= 天圆地方$applyOnLayeredFluidHost(res.sideHit,curPos,天圆地方$randomizeAmount(left));
         left -= 天圆地方$applyOnLayeredFluidHostSide(res.sideHit,hitPos,天圆地方$randomizeAmount(left),4);
         final byte[] directions = MathUtil.randomizeByteArray(new byte[]{0,1,2,3},world.rand);
@@ -94,7 +94,7 @@ public abstract class EntityPotionMixin extends EntityThrowable {
                 if(left <= 0L) break;
             }
         }
-        final int quantaLeft = QBUtil.toQuanta(left);
+        final int quantaLeft = QBUnit.toQuanta(left);
         if(quantaLeft >0 && FluidPhysicsSystem.isFluidToBePhysical(FluidRegistry.WATER) && FluidPhysicsMode.getCurrentMode() == FluidPhysicsMode.FINITE){
             final FiniteBlockLiquidWrapper wrapper = new FiniteBlockLiquidWrapper(FiniteFlowings.WATER_FLOW,world,curPos);
             wrapper.fill(new FluidStack(FluidRegistry.WATER,quantaLeft* FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME),true);
@@ -103,14 +103,14 @@ public abstract class EntityPotionMixin extends EntityThrowable {
 
     @Unique
     private long 天圆地方$randomizeAmount(final long qb){
-        return qb > QBUtil.QUANTA_VOLUME*2? QBUtil.QUANTA_VOLUME*(world.rand.nextInt(2)+1):qb;
+        return qb > QBUnit.QUANTA_VOLUME*2? QBUnit.QUANTA_VOLUME*(world.rand.nextInt(2)+1):qb;
     }
 
     @Unique
     private long 天圆地方$applyOnLayeredFluidHostSide(final @Nonnull EnumFacing side, final @Nonnull BlockPos pos, final long left ,final int iter){
         final IBlockState state = world.getBlockState(pos);
         final Block block = state.getBlock();
-        if(block instanceof ILayeredFluidHost){
+        if(block instanceof ILaminarifer){
             return 天圆地方$applyOnLayeredFluidHost(side,pos,state,left);
         }else if(iter > 0 && block.isPassable(world,pos)){
             return 天圆地方$applyOnLayeredFluidHostSide(EnumFacing.UP,pos.down(),left,iter - 1);
@@ -127,8 +127,8 @@ public abstract class EntityPotionMixin extends EntityThrowable {
     @Unique
     private long 天圆地方$applyOnLayeredFluidHost(final @Nonnull EnumFacing side, final @Nonnull BlockPos pos,final @Nonnull IBlockState state, final long left){
         final Block block = state.getBlock();
-        if(block instanceof ILayeredFluidHost){
-            final ILayeredFluidHost host = (ILayeredFluidHost) block;
+        if(block instanceof ILaminarifer){
+            final ILaminarifer host = (ILaminarifer) block;
             if(host.canFill(world,pos,state,FluidRegistry.WATER,side, Blocks.AIR.getDefaultState()))
                 return host.addAmountInQB(world,pos,state, FluidRegistry.WATER, left,true);
         }

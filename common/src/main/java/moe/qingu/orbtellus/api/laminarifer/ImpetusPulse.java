@@ -25,31 +25,37 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.orbtellus.geography.fluidphysics.finite;
-
-import net.minecraft.block.BlockSnow;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import moe.qingu.orbtellus.api.OTCFluids;
-import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
-import moe.qingu.orbtellus.geography.fluidphysics.vanilla.VanillaFlowingVanilla;
+package moe.qingu.orbtellus.api.laminarifer;
 
 /**
- * @author QiguaiAAAA
+ * 流势（Impetus），压强和时间的乘积，属于向量，方向为流体流动的趋向。
+ * 对于抽取的流势，称为去势。对于填充的流势，称为来势。
+ * 压强和时间组成的二元组叫做一个流逝脉冲（Impetus Pulse）
+ * @author QGMoe
  */
-public final class RealitySnowUpdater {
+public final class ImpetusPulse {
 
-    public static boolean isBlocked(World world, BlockPos downPos, IBlockState downState,IBlockState fromState){
-        if(VanillaFlowingVanilla.isBlocked(downState)) return true;
-        if(downState.getBlock() == Blocks.SNOW_LAYER){
-            return downState.getValue(BlockSnow.LAYERS) == 8;
-        }else if(downState.getBlock() instanceof ILaminarifer){
-            ILaminarifer block = (ILaminarifer) downState.getBlock();
-            return !block.canFill(world,downPos,downState, OTCFluids.SNOW, EnumFacing.UP,fromState);
-        }
-        return false;
+    private ImpetusPulse(){}
+
+    /**
+     * 将压强和时长信息打包成一个流势脉冲
+     * @param pressure 压强，单位未定
+     * @param time 时长，单位未定
+     * @return 打包的 long，高 32 位为压强，低 32 位为时间
+     */
+    public static long of(final float pressure, final float time){
+        return (Integer.toUnsignedLong(Float.floatToRawIntBits(pressure))<<32) | Integer.toUnsignedLong(Float.floatToRawIntBits(time));
+    }
+
+    public static float pressure(final long pulse){
+        return Float.intBitsToFloat((int)(pulse>>>32));
+    }
+
+    public static float time(final long pulse){
+        return Float.intBitsToFloat((int)pulse);
+    }
+
+    public static float toImpetus(final long pulse){
+        return pressure(pulse) * time(pulse);
     }
 }

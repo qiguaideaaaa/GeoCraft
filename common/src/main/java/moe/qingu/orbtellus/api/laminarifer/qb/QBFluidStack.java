@@ -25,48 +25,49 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.orbtellus.api.util.math;
+package moe.qingu.orbtellus.api.laminarifer.qb;
 
-import net.minecraft.util.EnumFacing;
-import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-@Deprecated
-public final class OldFlowChoice {
-    public final EnumFacing direction;
-    public final int heightPerQuanta;
-    public final ILaminarifer block;
-    private int quantaOfThisFluid;
+import java.util.Objects;
 
-    /**
-     * 创建一个基本的流动选择,适用十纯单流体的情况
-     * @param rawQuanta 该选择最初的流体量
-     * @param direction 该选择的方向
-     */
-    @Deprecated
-    public OldFlowChoice(int rawQuanta, EnumFacing direction){
-        this(rawQuanta,direction,1);
+import static moe.qingu.orbtellus.api.OrbTellusAPI.LOGGER;
+
+/**
+ * @author QGMoe
+ */
+public class QBFluidStack{ //unfinished todo
+    private final @Nonnull Fluid fluid;
+    public @Nullable NBTTagCompound tag;
+    public long amount;
+
+    public QBFluidStack(final @Nonnull Fluid fluid,final long amount) {
+        if (!FluidRegistry.isFluidRegistered(Objects.requireNonNull(fluid))) {
+            LOGGER.error("Cannot create a QBFluidStack for an unregistered Fluid {} (from {}).",fluid.getName(),fluid.getClass());
+            throw new IllegalArgumentException("Cannot create a QBFluidStack from an unregistered fluid.");
+        }
+        this.fluid = fluid;
+        this.amount = amount;
     }
 
-    /**
-     * 创建一个自定义每量高度的流动选择,一般用于空气
-     * @param rawQuanta 该选择最初的流体量
-     * @param direction 该选择的方向
-     * @param heightPerQuanta 该选择的每量高度
-     */
-    public OldFlowChoice(int rawQuanta, @Nullable EnumFacing direction, int heightPerQuanta){
-        this.quantaOfThisFluid = rawQuanta;
-        this.direction = direction;
-        this.heightPerQuanta = heightPerQuanta;
-        this.block = null;
+    public QBFluidStack(final @Nonnull Fluid fluid,final long amount,final @Nullable NBTTagCompound nbt) {
+        this(fluid, amount);
+
+        if (nbt != null) tag = nbt.copy();
     }
 
-    public int getQuantaOfThisFluid() {
-        return quantaOfThisFluid;
+    @Nonnull
+    public Fluid getFluid() {
+        return fluid;
     }
 
-    public void addQuanta(int i){
-        quantaOfThisFluid +=i;
+    @Nonnull
+    public QBFluidStack copy(){
+        return new QBFluidStack(this.fluid,this.amount,this.tag);
     }
 }

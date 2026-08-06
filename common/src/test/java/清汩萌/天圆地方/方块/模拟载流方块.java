@@ -36,9 +36,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.util.LayeredFluidHostUtil;
-import moe.qingu.orbtellus.api.util.QBUtil;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import 清汩萌.天圆地方.天圆地方测试;
 import 清汩萌.天圆地方.原料.流体原料;
 
@@ -48,7 +48,7 @@ import javax.annotation.Nullable;
 /**
  * @author QiguaiAAAA
  */
-public class 模拟载流方块 extends Block implements ILayeredFluidHost {
+public class 模拟载流方块 extends Block implements ILaminarifer {
     public static final PropertyInteger LAYERS = PropertyInteger.create("layers",1,8);
 
     public 模拟载流方块() {
@@ -85,7 +85,7 @@ public class 模拟载流方块 extends Block implements ILayeredFluidHost {
 
     @Override
     public long getAmountInQBPerLayer(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid) {
-        return isAcceptedFluid(world, pos, state, fluid)? QBUtil.QUANTA_VOLUME:0L;
+        return isAcceptedFluid(world, pos, state, fluid)? QBUnit.QUANTA_VOLUME:0L;
     }
 
     @Override

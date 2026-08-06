@@ -39,11 +39,11 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import moe.qingu.orbtellus.api.OTCFluids;
 import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
-import moe.qingu.orbtellus.api.block.IBlockStateLayeredFluidHost;
+import moe.qingu.orbtellus.api.laminarifer.IBlockStateLaminarifer;
 import moe.qingu.orbtellus.api.util.APIMathUtil;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
 import moe.qingu.orbtellus.api.util.LayeredFluidHostUtil;
-import moe.qingu.orbtellus.api.util.QBUtil;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.FluidPhysicsCoreFinite;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
 
@@ -55,7 +55,7 @@ import static net.minecraft.block.BlockLiquid.LEVEL;
 /**
  * @author QiguaiAAAA
  */
-public interface ILayeredFluidHostFiniteLiquid extends IBlockStateLayeredFluidHost {
+public interface ILaminariferFiniteLiquid extends IBlockStateLaminarifer {
     int HEIGHT_PER_QUANTA = LayeredFluidHostUtil.EIGHTH_HEIGHT;
     @Nonnull
     Fluid 天圆地方$getFluid();
@@ -95,7 +95,7 @@ public interface ILayeredFluidHostFiniteLiquid extends IBlockStateLayeredFluidHo
 
     @Override
     default long getAmountInQBPerLayer(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid){
-        return QBUtil.QUANTA_VOLUME;
+        return QBUnit.QUANTA_VOLUME;
     }
 
     @Override

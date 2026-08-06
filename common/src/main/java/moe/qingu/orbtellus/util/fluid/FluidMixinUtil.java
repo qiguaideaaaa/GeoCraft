@@ -34,7 +34,7 @@ import net.minecraftforge.fluids.BlockFluidBase;
 import net.minecraftforge.fluids.BlockFluidFinite;
 import net.minecraftforge.fluids.Fluid;
 import moe.qingu.orbtellus.api.util.FluidUtil;
-import moe.qingu.orbtellus.api.util.QBUtil;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.mixin.common.block.BlockFluidBaseAccessor;
 
 public final class FluidMixinUtil {
@@ -58,6 +58,6 @@ public final class FluidMixinUtil {
     public static long getQBForBlockFluidBase(IBlockState state){
         int quantaPerBlock = getQuantaPerBlock(state.getBlock());
         int quanta = state.getBlock() instanceof BlockFluidFinite?state.getValue(BlockFluidBase.LEVEL)+1 : quantaPerBlock-state.getValue(BlockFluidBase.LEVEL);
-        return quanta* QBUtil.BUCKET_VOLUME /quantaPerBlock;
+        return quanta* QBUnit.BUCKET_VOLUME /quantaPerBlock;
     }
 }

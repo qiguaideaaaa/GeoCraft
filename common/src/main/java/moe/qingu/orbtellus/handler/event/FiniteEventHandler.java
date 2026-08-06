@@ -63,8 +63,8 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import moe.qingu.orbtellus.api.atmosphere.Atmosphere;
 import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
-import moe.qingu.orbtellus.api.block.IBlockStateLayeredFluidHost;
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
+import moe.qingu.orbtellus.api.laminarifer.IBlockStateLaminarifer;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.configs.value.minecraft.ConfigurableFluid;
 import moe.qingu.orbtellus.api.event.atmosphere.AtmosphereUpdateEvent;
 import moe.qingu.orbtellus.api.event.block.StaticLiquidUpdateEvent;
@@ -73,7 +73,7 @@ import moe.qingu.orbtellus.api.property.TemperatureProperty;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
 import moe.qingu.orbtellus.api.util.FluidUtil;
-import moe.qingu.orbtellus.api.util.QBUtil;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.FluidPhysicsCoreFinite;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
 import moe.qingu.orbtellus.handler.ServerStatusMonitor;
@@ -213,11 +213,11 @@ public final class FiniteEventHandler {
             final FiniteBlockLiquidWrapper wrapper = new FiniteBlockLiquidWrapper(FiniteFlowingVanilla.getFlowingByMaterial(currentState.getMaterial()),world,pos);
             wrapper.setIgnoreCurrentPos(true);
             int quanta = FluidUtil.getFluidQuanta(world, pos,currentState);
-            long QB = QBUtil.toQBFromQuanta(quanta);
+            long QB = QBUnit.toQBFromQuanta(quanta);
             long canFillQB = 0L;
             int curLayer = 0,canFillLayer = 0;
             final Block placeBlock = replacedState.getBlock();
-            ILayeredFluidHost host = null;
+            ILaminarifer host = null;
 
             layeredHost:{
                 switch (source){
@@ -228,8 +228,8 @@ public final class FiniteEventHandler {
                     case FALLING_BLOCK:
                 }
 
-                if(placeBlock instanceof ILayeredFluidHost){
-                    host = (ILayeredFluidHost) placeBlock;
+                if(placeBlock instanceof ILaminarifer){
+                    host = (ILaminarifer) placeBlock;
                 }else break layeredHost;
 
                 canFillQB = host.addAmountInQB(world,pos,replacedState,fluid,QB,false);
@@ -239,10 +239,10 @@ public final class FiniteEventHandler {
                 }
                 curLayer = host.getLayers(world,pos,replacedState,fluid);
                 canFillLayer = (int) (canFillQB/host.getAmountInQBPerLayer(world,pos,replacedState,fluid));
-                if(QB>=canFillQB+QBUtil.QUANTA_VOLUME) break layeredHost; //在最后的时候再处理
+                if(QB>=canFillQB+ QBUnit.QUANTA_VOLUME) break layeredHost; //在最后的时候再处理
                 IBlockState quantaState = null;
                 if(source == PlaceSource.FALLING_BLOCK){
-                    if(!(host instanceof IBlockStateLayeredFluidHost)){
+                    if(!(host instanceof IBlockStateLaminarifer)){
                         canFillQB = 0L;
                         canFillLayer = 0;
                         break layeredHost;
@@ -252,7 +252,7 @@ public final class FiniteEventHandler {
                         canFillLayer = 0;
                         break layeredHost;
                     }
-                    quantaState = ((IBlockStateLayeredFluidHost)host).getLayerState(replacedState,fluid,curLayer+canFillLayer);
+                    quantaState = ((IBlockStateLaminarifer)host).getLayerState(replacedState,fluid,curLayer+canFillLayer);
                     if(quantaState == null){
                         canFillQB = 0L;
                         canFillLayer = 0;
@@ -276,7 +276,7 @@ public final class FiniteEventHandler {
                 return true;
             }
 
-            quanta = QBUtil.toQuanta(QB-canFillQB);
+            quanta = QBUnit.toQuanta(QB-canFillQB);
 
             final int amount = quanta*FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
             final @Nonnull FluidStack stack = new FluidStack(fluid,amount);
@@ -292,7 +292,7 @@ public final class FiniteEventHandler {
                         break;
                     case FALLING_BLOCK:
                         if(sourceEntity == null) break;
-                        IBlockState quantaState = ((IBlockStateLayeredFluidHost)host).getLayerState(replacedState,fluid,curLayer+canFillLayer);
+                        IBlockState quantaState = ((IBlockStateLaminarifer)host).getLayerState(replacedState,fluid,curLayer+canFillLayer);
                         if(quantaState == null) break;
                         ((EntityFallingBlockAccessor)sourceEntity).setFallTile(quantaState);
                         break;

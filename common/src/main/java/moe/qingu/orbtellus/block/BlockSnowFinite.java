@@ -44,12 +44,12 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import moe.qingu.orbtellus.api.OTCFluids;
 import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
-import moe.qingu.orbtellus.api.block.IBlockStateLayeredFluidHost;
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
+import moe.qingu.orbtellus.api.laminarifer.IBlockStateLaminarifer;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.util.APIMathUtil;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
 import moe.qingu.orbtellus.api.util.LayeredFluidHostUtil;
-import moe.qingu.orbtellus.api.util.QBUtil;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.RealitySnowUpdater;
 import moe.qingu.orbtellus.util.MiscUtil;
 import moe.qingu.orbtellus.util.fluid.FluidOperationUtil;
@@ -64,7 +64,7 @@ import static moe.qingu.orbtellus.api.block.BlockProperties.MIXTURE;
  * @since 0.2.0-beta.2
  * @author QiguaiAAAA
  */
-public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLayeredFluidHost {
+public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLaminarifer {
     @Override
     public int tickRate(final @Nonnull World worldIn) {
         return 5;
@@ -158,8 +158,8 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLay
                 }
             }
         }
-        else if(downBlock instanceof ILayeredFluidHost){ //雪和其他方块
-            ILayeredFluidHost host = (ILayeredFluidHost) downState.getBlock();
+        else if(downBlock instanceof ILaminarifer){ //雪和其他方块
+            ILaminarifer host = (ILaminarifer) downState.getBlock();
             final int curLayers_F = getLayers(world,pos,state,null); //这里的 layer为雪的载流方块单位
             long curAmountSnow = getAmountInQB(world,pos,state, OTCFluids.SNOW);
             if (isMixture) {
@@ -170,7 +170,7 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLay
 
                     final boolean melting, doMelted;
                     if (hasHalfQuanta) {
-                        curAmountWater += QBUtil.HALF_QUANTA_VOLUME; //将另外半层雪融化，补充成整数层layer
+                        curAmountWater += QBUnit.HALF_QUANTA_VOLUME; //将另外半层雪融化，补充成整数层layer
                         melting = true;
                     } else melting = false;
                     boolean changed;
@@ -180,27 +180,27 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLay
                     curAmountWater -= filledAmountWater; //减去已经填充的量
                     changed = filledAmountWater > 0;
                     //现在，若剩余的量大于等于刚才融化以补充成整数层的量，说明没有用到融化的部分，因此不需要融化一部分雪以补充水。但若小于，则直接当成融化，并扣除相应热量。
-                    doMelted = melting && curAmountWater < QBUtil.HALF_QUANTA_VOLUME;
+                    doMelted = melting && curAmountWater < QBUnit.HALF_QUANTA_VOLUME;
 
                     if (melting && !doMelted) {
-                        curAmountWater -= QBUtil.HALF_QUANTA_VOLUME; //没有用到，所以扣掉
+                        curAmountWater -= QBUnit.HALF_QUANTA_VOLUME; //没有用到，所以扣掉
                     } else if (doMelted){
-                        curAmountSnow -= QBUtil.HALF_QUANTA_VOLUME; //如果上面真的融化，雪需要扣除相应的量
+                        curAmountSnow -= QBUnit.HALF_QUANTA_VOLUME; //如果上面真的融化，雪需要扣除相应的量
                         if (accessor != null)
                             accessor.drainHeatFromUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA * 0.5);//真的融化掉
                     }
 
                     if (changed){
                         downState = world.getBlockState(downPos); //更新状态，因为下面的状态可能改变
-                        if ((downBlock = downState.getBlock()) instanceof ILayeredFluidHost)
-                            host = (ILayeredFluidHost) downBlock;
+                        if ((downBlock = downState.getBlock()) instanceof ILaminarifer)
+                            host = (ILaminarifer) downBlock;
                         else host = null;
                     }
 
                     if (host != null) {
                         final boolean freezing, doFreeze;
-                        if (curAmountWater >= QBUtil.HALF_QUANTA_VOLUME && hasHalfQuanta) { //若有足够的水，则将半层水冻结成雪。这里水一定不会小于1/16 B
-                            curAmountSnow += QBUtil.HALF_QUANTA_VOLUME;
+                        if (curAmountWater >= QBUnit.HALF_QUANTA_VOLUME && hasHalfQuanta) { //若有足够的水，则将半层水冻结成雪。这里水一定不会小于1/16 B
+                            curAmountSnow += QBUnit.HALF_QUANTA_VOLUME;
                             freezing = true;
                         } else freezing = false;
 
@@ -208,12 +208,12 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLay
                         final long filledAmountSnow = host.addAmountInQB(world, downPos, downState, OTCFluids.SNOW, curAmountSnow, true);
                         curAmountSnow -= filledAmountSnow;
                         changed |= filledAmountSnow > 0;
-                        doFreeze = freezing && curAmountSnow < QBUtil.HALF_QUANTA_VOLUME;
+                        doFreeze = freezing && curAmountSnow < QBUnit.HALF_QUANTA_VOLUME;
 
                         if (freezing && !doFreeze) {
-                            curAmountSnow -= QBUtil.HALF_QUANTA_VOLUME;//没用到，还回去
+                            curAmountSnow -= QBUnit.HALF_QUANTA_VOLUME;//没用到，还回去
                         } else if (doFreeze) {
-                            curAmountWater -= QBUtil.HALF_QUANTA_VOLUME;
+                            curAmountWater -= QBUnit.HALF_QUANTA_VOLUME;
                             if (accessor != null)
                                 accessor.putHeatToUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA * 0.5);
                         }
@@ -221,15 +221,15 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLay
 
                     if (!changed) return false;
 
-                    if (curAmountSnow + curAmountWater < QBUtil.QUANTA_VOLUME) { //小于最小的可存储单位
+                    if (curAmountSnow + curAmountWater < QBUnit.QUANTA_VOLUME) { //小于最小的可存储单位
                         world.setBlockToAir(pos);
                     } else {
                         final long totalAmount = curAmountSnow + curAmountWater;
-                        final int totalLayers = QBUtil.toQuanta(totalAmount);
+                        final int totalLayers = QBUnit.toQuanta(totalAmount);
                         if (curAmountWater > curAmountSnow) {
                             turnIntoWater(world, pos, accessor, totalLayers);
                             if (accessor != null)
-                                accessor.drainHeatFromUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA * QBUtil.toPreciseQuanta(curAmountSnow));
+                                accessor.drainHeatFromUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA * QBUnit.toPreciseQuanta(curAmountSnow));
                         } else if (curAmountSnow == curAmountWater) {
                             world.setBlockState(pos, state.withProperty(LAYERS, totalLayers)
                                     .withProperty(MIXTURE, true));
@@ -237,7 +237,7 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLay
                             world.setBlockState(pos, state.withProperty(LAYERS, totalLayers)
                                     .withProperty(MIXTURE, false));
                             if (accessor != null)
-                                accessor.putHeatToUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA * QBUtil.toPreciseQuanta(curAmountWater));
+                                accessor.putHeatToUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA * QBUnit.toPreciseQuanta(curAmountWater));
                         }
                     }
                 }
@@ -248,7 +248,7 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLay
                 curAmountSnow = curAmountSnow-filledAmountSnow;
                 if(curAmountSnow<=0) world.setBlockToAir(pos);
                 else {
-                    final int quanta = Math.min(QBUtil.toQuanta(curAmountSnow),8);
+                    final int quanta = Math.min(QBUnit.toQuanta(curAmountSnow),8);
                     world.setBlockState(pos,state.withProperty(LAYERS,quanta));
                 }
             }
@@ -312,7 +312,7 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLay
 
     @Override
     public long getAmountInQBPerLayer(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid) {
-        return QBUtil.HALF_QUANTA_VOLUME;
+        return QBUnit.HALF_QUANTA_VOLUME;
     }
 
     @Override
@@ -399,7 +399,7 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLay
     @Override
     public int addLayer(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid, int layer, @Nullable NBTTagCompound nbt, int disabledBlockFlags, int enabledBlockFlags, boolean doAdd) {
         layer = (layer>>1)<<1;
-        return IBlockStateLayeredFluidHost.super.addLayer(world, pos, state, fluid, layer, nbt, disabledBlockFlags, enabledBlockFlags, doAdd);
+        return IBlockStateLaminarifer.super.addLayer(world, pos, state, fluid, layer, nbt, disabledBlockFlags, enabledBlockFlags, doAdd);
     }
 
     @Override

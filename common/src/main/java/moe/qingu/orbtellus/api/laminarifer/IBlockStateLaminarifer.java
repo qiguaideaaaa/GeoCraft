@@ -25,7 +25,7 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.orbtellus.api.block;
+package moe.qingu.orbtellus.api.laminarifer;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
@@ -42,7 +42,7 @@ import javax.annotation.Nullable;
 /**
  * @author QiguaiAAAA
  */
-public interface IBlockStateLayeredFluidHost extends ILayeredFluidHost{
+public interface IBlockStateLaminarifer extends ILaminarifer {
     /**
      * 获取指定流体下指定层数时的方块状态
      * @param state 查询的方块状态

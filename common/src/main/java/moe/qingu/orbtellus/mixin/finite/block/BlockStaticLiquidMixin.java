@@ -49,7 +49,7 @@ import moe.qingu.orbtellus.api.event.EventFactory;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.orbtellus.configs.FluidPhysicsConfig;
 import moe.qingu.orbtellus.geography.fluidphysics.pressure.FluidPressureSearchManager;
-import moe.qingu.orbtellus.block.finite.ILayeredFluidHostFiniteLiquid;
+import moe.qingu.orbtellus.block.finite.ILaminariferFiniteLiquid;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.pressure.FinitePressureTasks;
 import moe.qingu.orbtellus.handler.ServerStatusMonitor;
@@ -61,7 +61,7 @@ import javax.annotation.Nullable;
 import java.util.Random;
 
 @Mixin(value = BlockStaticLiquid.class)
-public class BlockStaticLiquidMixin extends BlockLiquid implements ILayeredFluidHostFiniteLiquid {
+public class BlockStaticLiquidMixin extends BlockLiquid implements ILaminariferFiniteLiquid {
 //    @Unique
 //    private static final boolean 天圆地方$debug = false;
     @Unique private FiniteFlowingVanilla 天圆地方$FINITE$flowingHandler;

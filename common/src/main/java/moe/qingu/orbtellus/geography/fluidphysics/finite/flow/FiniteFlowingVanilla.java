@@ -39,14 +39,14 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.IFluidBlock;
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.util.FluidUtil;
-import moe.qingu.orbtellus.api.util.QBUtil;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.api.util.annotation.ThreadOnly;
 import moe.qingu.orbtellus.api.util.annotation.ThreadType;
 import moe.qingu.orbtellus.api.util.math.FlowChoice;
 import moe.qingu.orbtellus.api.util.math.vec.MBlockPos;
-import moe.qingu.orbtellus.block.finite.ILayeredFluidHostFiniteLiquid;
+import moe.qingu.orbtellus.block.finite.ILaminariferFiniteLiquid;
 import moe.qingu.orbtellus.configs.FluidPhysicsConfig;
 import moe.qingu.orbtellus.geography.fluidphysics.pressure.FluidPressureSearchManager;
 import moe.qingu.orbtellus.geography.fluidphysics.pressure.task.IFluidPressureSearchTaskResult;
@@ -107,9 +107,9 @@ public final class FiniteFlowingVanilla extends VanillaFlowingVanilla {
                 continue;
 
             final Block block = facingState.getBlock();
-            final ILayeredFluidHost permeableBlock = (block instanceof ILayeredFluidHost)?(ILayeredFluidHost) block:null;
+            final ILaminarifer permeableBlock = (block instanceof ILaminarifer)?(ILaminarifer) block:null;
 
-            int facingHeight,facingQuanta,facingHeightPerLayer = ILayeredFluidHostFiniteLiquid.HEIGHT_PER_QUANTA;
+            int facingHeight,facingQuanta,facingHeightPerLayer = ILaminariferFiniteLiquid.HEIGHT_PER_QUANTA;
             if(permeableBlock != null){
                 facingHeight = permeableBlock.getHeight(worldIn,mutablePos,facingState,fluid);
                 facingQuanta = permeableBlock.getLayers(worldIn,mutablePos,facingState,fluid);
@@ -117,24 +117,24 @@ public final class FiniteFlowingVanilla extends VanillaFlowingVanilla {
                 int facingMeta = getDepth(facingState);
                 if(facingMeta <0 || facingMeta>7) facingMeta = 8;
                 facingQuanta = 8-facingMeta;
-                facingHeight = facingQuanta* ILayeredFluidHostFiniteLiquid.HEIGHT_PER_QUANTA;
+                facingHeight = facingQuanta* ILaminariferFiniteLiquid.HEIGHT_PER_QUANTA;
             }
 
-            if(facingHeight+facingHeightPerLayer<=(liquidQuanta-1)* ILayeredFluidHostFiniteLiquid.HEIGHT_PER_QUANTA){
+            if(facingHeight+facingHeightPerLayer<=(liquidQuanta-1)* ILaminariferFiniteLiquid.HEIGHT_PER_QUANTA){
                 averageModeFlowDirections.add(permeableBlock == null?
                         new FlowChoice(facing,facingQuanta):
                         new FlowChoice(worldIn,mutablePos,facingState,permeableBlock,facing,fluid));
             }
 
             if(!canFlowInto2RegardlessPermeable(facingState)) continue;
-            if(slopeModeFlowDirections != null && facingHeight<liquidQuanta* ILayeredFluidHostFiniteLiquid.HEIGHT_PER_QUANTA) slopeModeFlowDirections.add(facing);
+            if(slopeModeFlowDirections != null && facingHeight<liquidQuanta* ILaminariferFiniteLiquid.HEIGHT_PER_QUANTA) slopeModeFlowDirections.add(facing);
         }
     }
 
     public boolean canFlowIntoRegardedPermeable(@Nonnull World world,@Nonnull BlockPos pos,@Nonnull IBlockState state,@Nonnull IBlockState fromState,@Nonnull EnumFacing from){
         if(canFlowInto(state)) return true;
-        if(state.getBlock() instanceof ILayeredFluidHost){
-            final ILayeredFluidHost block = (ILayeredFluidHost) state.getBlock();
+        if(state.getBlock() instanceof ILaminarifer){
+            final ILaminarifer block = (ILaminarifer) state.getBlock();
             return block.canFill(world, pos, state, fluid,from,fromState);
         }
         return false;
@@ -162,8 +162,8 @@ public final class FiniteFlowingVanilla extends VanillaFlowingVanilla {
 
     public boolean canFlowIntoWhenSnowLayer(@Nonnull World world,@Nonnull BlockPos pos,@Nonnull IBlockState state,int quanta){
         if(state.getBlock() != Blocks.SNOW_LAYER) return true;
-        if(((ILayeredFluidHost)Blocks.SNOW_LAYER).isFull(world,pos,state,FluidRegistry.WATER)) return false;
-        return ((ILayeredFluidHost)Blocks.SNOW_LAYER).getHeight(world,pos,state, FluidRegistry.WATER)<(quanta-1)* ILayeredFluidHostFiniteLiquid.HEIGHT_PER_QUANTA;
+        if(((ILaminarifer)Blocks.SNOW_LAYER).isFull(world,pos,state,FluidRegistry.WATER)) return false;
+        return ((ILaminarifer)Blocks.SNOW_LAYER).getHeight(world,pos,state, FluidRegistry.WATER)<(quanta-1)* ILaminariferFiniteLiquid.HEIGHT_PER_QUANTA;
     }
 
     public boolean canFlow(@Nonnull final World worldIn,
@@ -256,10 +256,10 @@ public final class FiniteFlowingVanilla extends VanillaFlowingVanilla {
                                  final int curQuanta,
                                  @Nonnull final IBlockState fromState){
         if(canFlowDownTo(downState)) return true;
-        if(downState.getBlock() instanceof ILayeredFluidHost){
-            final @Nonnull ILayeredFluidHost host = (ILayeredFluidHost) downState.getBlock();
+        if(downState.getBlock() instanceof ILaminarifer){
+            final @Nonnull ILaminarifer host = (ILaminarifer) downState.getBlock();
             if(!host.canFill(world,downPos,downState, fluid,EnumFacing.UP,fromState)) return false;
-            return host.addAmountInQB(world,downPos,downState,fluid, QBUtil.toQBFromQuanta(curQuanta),false)>0;
+            return host.addAmountInQB(world,downPos,downState,fluid, QBUnit.toQBFromQuanta(curQuanta),false)>0;
         }
         return false;
     }

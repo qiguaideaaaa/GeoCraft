@@ -33,23 +33,13 @@ import it.unimi.dsi.fastutil.ints.IntLists;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.fluids.Fluid;
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
-import moe.qingu.orbtellus.api.util.math.FlowChoice;
-
-import javax.annotation.Nonnull;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.ToIntFunction;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 
 /**
  * @since 0.2.0
  * @author QiguaiAAAA
  */
+@Deprecated
 public final class LayeredFluidHostUtil {
     /**
      * 默认最大的水位高度,控制着其他方块的同种液体是否能够流入此方块<br/>
@@ -92,76 +82,13 @@ public final class LayeredFluidHostUtil {
             ,FIFTEENTH_HEIGHT
             ,SIXTEENTH_HEIGHT}));
 
-    private static final ThreadLocal<Set<FlowChoice>> FULL_FLOW_CHOICES = ThreadLocal.withInitial(HashSet::new);
-    private static final ToIntFunction<FlowChoice> SORT_BY_NEXT_HEIGHT = FlowChoice::getNextLayerHeight;
-
-    public static boolean isFluidAccepted(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state,@Nonnull Fluid fluid, boolean allowAir) {
-        Block block = state.getBlock();
-
-        if(block instanceof ILayeredFluidHost){
-            return ((ILayeredFluidHost)block).isAcceptedFluid(world,pos,state,fluid);
-        }
-
-        if(allowAir){
-            Fluid curFluid = FluidUtil.getFluid(state);
-            return curFluid == null || curFluid == fluid;
-        }
-        return false;
-    }
-
-    public static int getFluidLayers(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid, boolean allowAir){
-        if(state.getBlock() instanceof ILayeredFluidHost){
-            return ((ILayeredFluidHost)state.getBlock()).getLayers(worldIn,pos,state,fluid);
-        }
-        return allowAir? FluidUtil.getFluidQuanta(worldIn, pos, state):0;
-    }
-
-    /**
-     * 自中心向四周进行平均流动
-     * @param centralLayers 中心层数
-     * @param heightPerLayer 中心每层高度
-     * @param QBPerLayer 中心每层液体量，单位QB
-     * @param minLayers 中心最低层数
-     * @param choices 四周的流动选择
-     * @return 中心剩下的层数
-     */
-    public static int averageFlow(int centralLayers,int heightPerLayer, long QBPerLayer,int minLayers, @Nonnull List<FlowChoice> choices) {
-        final Set<FlowChoice> fullChoices = FULL_FLOW_CHOICES.get();
-        fullChoices.clear();
-        if (choices.isEmpty()) return centralLayers;
-        if(centralLayers <= minLayers) return centralLayers;
-        final int oldCentralLayers = centralLayers;
-
-        choices.sort(Comparator.comparingInt(SORT_BY_NEXT_HEIGHT));
-
-        int centralHeight = centralLayers*heightPerLayer;
-        FlowChoice choice;
-        while ((choice = choices.get(0)).getNextLayerHeight() <= centralHeight-heightPerLayer) { //向四周分配流量
-            if (choice.isFull()) {
-                fullChoices.add(choices.remove(0));
-                if (choices.isEmpty()) break;
-                continue;
-            }
-            choice.addAmountInQB(QBPerLayer);
-            centralLayers--;
-            centralHeight -= heightPerLayer;
-            if (centralLayers <= minLayers) break;
-            choices.sort(Comparator.comparingInt(SORT_BY_NEXT_HEIGHT));
-        }
-        if (centralLayers == oldCentralLayers) return centralLayers;
-
-        choices.addAll(fullChoices);
-        fullChoices.clear();
-        return centralLayers;
-    }
-
     /**
      * 指定方块状态是否是一个载流方块的方块状态
      * @param state 需要检查的方块状态
      * @return 若该方块状态是一个载流方块的方块状态,则返回true.否则返回false
      */
     public static boolean isLayeredFluidHost(final IBlockState state){
-        return state.getBlock() instanceof ILayeredFluidHost;
+        return state.getBlock() instanceof ILaminarifer;
     }
 
     /**
@@ -170,7 +97,7 @@ public final class LayeredFluidHostUtil {
      * @return 若是,则返回true,否则返回false
      */
     public static boolean isLayeredFluidHost(final Block block){
-        return block instanceof ILayeredFluidHost;
+        return block instanceof ILaminarifer;
     }
 
     public static class Sources{

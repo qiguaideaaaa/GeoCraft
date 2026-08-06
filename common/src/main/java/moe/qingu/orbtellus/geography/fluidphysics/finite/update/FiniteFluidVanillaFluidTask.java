@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.geography.fluidphysics.finite.update;
 
+import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.world.tick.scheduler.BlockTickScheduler;
 import moe.qingu.orbtellus.geography.fluidphysics.AbstractFluidTask;
 import net.minecraft.block.Block;
@@ -38,16 +39,15 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.ForgeEventFactory;
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.util.APIMathUtil;
 import moe.qingu.orbtellus.api.util.FluidUtil;
-import moe.qingu.orbtellus.api.util.LayeredFluidHostUtil;
-import moe.qingu.orbtellus.api.util.QBUtil;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.api.util.annotation.ThreadOnly;
 import moe.qingu.orbtellus.api.util.annotation.ThreadType;
 import moe.qingu.orbtellus.api.util.math.FlowChoice;
 import moe.qingu.orbtellus.api.util.math.vec.MBlockPos;
-import moe.qingu.orbtellus.block.finite.ILayeredFluidHostFiniteLiquid;
+import moe.qingu.orbtellus.block.finite.ILaminariferFiniteLiquid;
 import moe.qingu.orbtellus.configs.FluidPhysicsConfig;
 import moe.qingu.orbtellus.geography.fluidphysics.pressure.FluidPressureSearchManager;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
@@ -127,11 +127,11 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
                 }
                 world.setBlockState(downPos, ForgeEventFactory.fireFluidPlaceBlockEvent(world, downPos, pos, Blocks.STONE.getDefaultState()));
                 FluidOperationUtil.triggerFluidMixEffects(world,downPos);
-            }else if(blockBelow instanceof ILayeredFluidHost){
-                final @Nonnull ILayeredFluidHost host = (ILayeredFluidHost) blockBelow;
-                final long qbToFill = QBUtil.toQBFromQuanta(liquidQuanta);
+            }else if(blockBelow instanceof ILaminarifer){
+                final @Nonnull ILaminarifer host = (ILaminarifer) blockBelow;
+                final long qbToFill = QBUnit.toQBFromQuanta(liquidQuanta);
                 final long qbFilled = host.addAmountInQB(world,downPos,stateBelow,fluid,qbToFill,true);
-                liquidQuanta = QBUtil.toQuanta(APIMathUtil.clamp(qbToFill-qbFilled,0,qbToFill));
+                liquidQuanta = QBUnit.toQuanta(APIMathUtil.clamp(qbToFill-qbFilled,0,qbToFill));
                 liquidMeta = 8 -liquidQuanta;
                 if(liquidQuanta <=0) world.setBlockState(pos,AIR_DEFAULT_STATE,updateFlag); //先更新自身状态
                 else {
@@ -197,9 +197,9 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
             // *******************
             //  Average Flow
             // *******************
-            int newLiquidQuanta = LayeredFluidHostUtil.averageFlow(liquidQuanta,
-                    ILayeredFluidHostFiniteLiquid.HEIGHT_PER_QUANTA,
-                    QBUtil.QUANTA_VOLUME,
+            int newLiquidQuanta = Laminarifers.averageFlow(liquidQuanta,
+                    ILaminariferFiniteLiquid.HEIGHT_PER_QUANTA,
+                    QBUnit.QUANTA_VOLUME,
                     0,
                     averageFlowChoices);
 
@@ -228,7 +228,7 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
                     left += choice.apply(world,facingPos$mut,world.getBlockState(facingPos$mut),fluid);
                 }
             }
-            newLiquidQuanta += QBUtil.toQuanta(left);
+            newLiquidQuanta += QBUnit.toQuanta(left);
 
             liquidMeta = 8 - newLiquidQuanta;
             if (newLiquidQuanta<=0) world.setBlockState(pos,AIR_DEFAULT_STATE,updateFlag); //先更新自身状态

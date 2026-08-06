@@ -48,7 +48,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsSystem;
-import moe.qingu.orbtellus.block.finite.ILayeredFluidHostFiniteLiquid;
+import moe.qingu.orbtellus.block.finite.ILaminariferFiniteLiquid;
 import moe.qingu.orbtellus.configs.FluidPhysicsConfig;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
 import moe.qingu.orbtellus.util.MiscUtil;
@@ -57,7 +57,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 
 @Mixin(value = BlockDynamicLiquid.class)
-public class BlockDynamicLiquidMixin extends BlockLiquid implements ILayeredFluidHostFiniteLiquid, IFluidTaskResponder {
+public class BlockDynamicLiquidMixin extends BlockLiquid implements ILaminariferFiniteLiquid, IFluidTaskResponder {
     @Unique private FiniteFlowingVanilla 天圆地方$FINITE$flowingHandler;
     @Unique private IFluidTask 天圆地方$FINITE$task;
     @Unique private boolean 天圆地方$FINITE$physical = true;

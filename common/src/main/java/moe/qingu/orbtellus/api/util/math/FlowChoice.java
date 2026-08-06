@@ -32,9 +32,9 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.util.LayeredFluidHostUtil;
-import moe.qingu.orbtellus.api.util.QBUtil;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 
 import javax.annotation.Nonnull;
 
@@ -45,7 +45,7 @@ public class FlowChoice {
     public final EnumFacing direction;
     public final int heightPerLayer, emptyHeight,currentLayers,maxLayers;
     public final long QBPerLayer;
-    public final ILayeredFluidHost host;
+    public final ILaminarifer host;
 
     protected long addedAmountInQB;
     protected int addedLayers;
@@ -59,7 +59,7 @@ public class FlowChoice {
      * @param direction 方向
      * @param fluid 流体
      */
-    public FlowChoice(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state ,@Nonnull ILayeredFluidHost host, @Nonnull EnumFacing direction, @Nonnull Fluid fluid) {
+    public FlowChoice(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state , @Nonnull ILaminarifer host, @Nonnull EnumFacing direction, @Nonnull Fluid fluid) {
         this.direction = direction;
         this.heightPerLayer = host.getHeightPerLayer(world, pos, state);
         this.emptyHeight = host.getEmptyHeight(world,pos,state,fluid);
@@ -80,7 +80,7 @@ public class FlowChoice {
         this.emptyHeight = 0;
         this.currentLayers = currentLayers;
         this.maxLayers = 8;
-        this.QBPerLayer = QBUtil.QUANTA_VOLUME;
+        this.QBPerLayer = QBUnit.QUANTA_VOLUME;
         this.host = null;
     }
 

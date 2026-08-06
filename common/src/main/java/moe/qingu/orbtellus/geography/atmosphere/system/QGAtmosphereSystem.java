@@ -44,12 +44,12 @@ import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
 import moe.qingu.orbtellus.api.atmosphere.gen.IAtmosphereDataProvider;
 import moe.qingu.orbtellus.api.atmosphere.storage.AtmosphereData;
 import moe.qingu.orbtellus.api.atmosphere.system.BaseAtmosphereSystem;
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.event.EventFactory;
 import moe.qingu.orbtellus.api.property.TemperatureProperty;
 import moe.qingu.orbtellus.api.setting.GeoAtmosphereSetting;
 import moe.qingu.orbtellus.api.util.FluidUtil;
-import moe.qingu.orbtellus.api.util.QBUtil;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.geography.atmosphere.QiguaiAtmosphere;
 import moe.qingu.orbtellus.api.atmosphere.config.CommonAtmosphereSystemInfo;
 import moe.qingu.orbtellus.util.BaseUtil;
@@ -169,16 +169,16 @@ public abstract class QGAtmosphereSystem extends BaseAtmosphereSystem {
         double rainPossibility = isRaining? WaterUtil.getRainPossibility(accessor):0;
         boolean doRain = BaseUtil.getRandomResult(world.rand,rainPossibility);
 
-        if(doRain && state.getBlock() instanceof ILayeredFluidHost){
+        if(doRain && state.getBlock() instanceof ILaminarifer){
             long filled = 0;
-            ILayeredFluidHost block = (ILayeredFluidHost) state.getBlock();
+            ILaminarifer block = (ILaminarifer) state.getBlock();
             Fluid fluidToFill = FluidRegistry.WATER;
             if(accessor.getTemperature(false)<= TemperatureProperty.ICE_POINT) fluidToFill = OTCFluids.SNOW;
             if(block.canFill(world,pos,state, fluidToFill, EnumFacing.UP,Blocks.AIR.getDefaultState())){
                 final int drained = atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,pos,false); //mB
                 if(drained>=FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME){
                     atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,pos,true);
-                    filled = block.addAmountInQB(world,pos,state,fluidToFill, QBUtil.toQBFromMB(drained),true);
+                    filled = block.addAmountInQB(world,pos,state,fluidToFill, QBUnit.toQBFromMB(drained),true);
                 }
             }
             if(filled>0){

@@ -34,7 +34,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.*;
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
 import moe.qingu.orbtellus.api.util.exception.UnsupportedFluidException;
 
@@ -103,8 +103,8 @@ public final class FluidUtil {
     public static boolean isFluidPlaceablePermeable(@Nonnull World world,@Nonnull BlockPos pos,@Nonnull Fluid fluid,boolean allowAir){
         IBlockState state = world.getBlockState(pos);
         Block block = state.getBlock();
-        if(block instanceof ILayeredFluidHost){
-            return  ((ILayeredFluidHost)block).isAcceptedFluid(world,pos,state,fluid);
+        if(block instanceof ILaminarifer){
+            return  ((ILaminarifer)block).isAcceptedFluid(world,pos,state,fluid);
         }
         return allowAir && isFluidPlaceable(world, pos, fluid);
     }

@@ -27,7 +27,7 @@
 
 package moe.qingu.orbtellus.geography.fluidphysics.finite.update;
 
-import moe.qingu.orbtellus.api.util.LayeredFluidHostUtil;
+import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.world.tick.scheduler.BlockTickScheduler;
 import moe.qingu.orbtellus.geography.fluidphysics.AbstractFluidTask;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowings;
@@ -159,7 +159,7 @@ public class FiniteFluidClassicFluidTask extends AbstractFluidTask {
         flowing.gatherFlowChoices(world,pos,averageFlowChoices,slopeModeFlowDirections,quanta);
 
         /// To DO: Change To New Average Flow Algorithm
-        /// @see LayeredFluidHostUtil#averageFlow(int, int, long, int, List)
+        /// @see Laminarifers#averageFlow(int, int, long, int, List)
         if(!averageFlowChoices.isEmpty()){
             // *******************
             //  Average Flow

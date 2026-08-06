@@ -42,7 +42,7 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fml.common.IWorldGenerator;
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.event.EventFactory;
 import moe.qingu.orbtellus.api.setting.GeoSoilSetting;
 import moe.qingu.orbtellus.api.util.FluidUtil;
@@ -131,8 +131,8 @@ public class OrbTellusPostPopulatingGenerator implements IWorldGenerator {
             return soil.getLayerState(state,FluidRegistry.WATER,
                     (int)MathHelper.clamp(4*biome.getRainfall()+1,0,soil.getMaxStableHumidity(state)));
         }
-        if(block instanceof ILayeredFluidHost){ //之前已经处理过本身为流体的可能性，这里一定不会是流体
-            ILayeredFluidHost permeable = (ILayeredFluidHost) block;
+        if(block instanceof ILaminarifer){ //之前已经处理过本身为流体的可能性，这里一定不会是流体
+            ILaminarifer permeable = (ILaminarifer) block;
             int maxQuanta = permeable.getMaxLayers(world,pos,state,FluidRegistry.WATER);
             if(waterFlag){
                 permeable.addLayer(world,pos,state,FluidRegistry.WATER,maxQuanta, Constants.BlockFlags.DEFAULT_AND_RERENDER,Constants.BlockFlags.NO_OBSERVERS | Constants.BlockFlags.NO_RERENDER);

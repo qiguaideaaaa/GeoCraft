@@ -27,6 +27,8 @@
 
 package moe.qingu.orbtellus.block.soil;
 
+import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.api.util.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCauldron;
@@ -55,8 +57,8 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import moe.qingu.orbtellus.api.atmosphere.AtmosphereSystemManager;
 import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
-import moe.qingu.orbtellus.api.block.IBlockStateLayeredFluidHost;
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
+import moe.qingu.orbtellus.api.laminarifer.IBlockStateLaminarifer;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
 import moe.qingu.orbtellus.api.fluid.StateOfMatter;
 import moe.qingu.orbtellus.api.util.annotation.MultiThread;
@@ -79,7 +81,7 @@ import static moe.qingu.orbtellus.api.block.BlockProperties.HUMIDITY;
 import static moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode.getCurrentMode;
 import static moe.qingu.orbtellus.configs.FluidPhysicsConfig.FLUID_PHYSICS_MODE;
 
-public interface IBlockSoil extends IBlockStateLayeredFluidHost {
+public interface IBlockSoil extends IBlockStateLaminarifer {
     ThreadLocal<List<FlowChoice>> averageModeFlowChoices = ThreadLocal.withInitial(ArrayList::new);
 
     /**
@@ -94,10 +96,10 @@ public interface IBlockSoil extends IBlockStateLayeredFluidHost {
                 worldIn.setBlockState(down, Blocks.FLOWING_WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,7), BlockFlags.DEFAULT);
             return -1;
         }else if(LayeredFluidHostUtil.isLayeredFluidHost(downState)){
-            ILayeredFluidHost host = (ILayeredFluidHost) downState.getBlock();
+            ILaminarifer host = (ILaminarifer) downState.getBlock();
             final boolean canFill = host.canFill(worldIn,down,downState,FluidRegistry.WATER,EnumFacing.UP,state);
             if(!canFill) return 0;
-            final long filled = host.addAmountInQB(worldIn,down,downState,FluidRegistry.WATER, QBUtil.QUANTA_VOLUME,true);
+            final long filled = host.addAmountInQB(worldIn,down,downState,FluidRegistry.WATER, QBUnit.QUANTA_VOLUME,true);
             return filled>0?-1:0;
         }else if(FiniteFlowings.WATER_FLOW.canFlowDownTo(downState)){
             if(getCurrentMode() == FluidPhysicsMode.FINITE) {
@@ -135,7 +137,7 @@ public interface IBlockSoil extends IBlockStateLayeredFluidHost {
                 averageModeFlowDirections.add(new FlowChoice(facing));
                 continue;
             }
-            final ILayeredFluidHost host = (ILayeredFluidHost)facingState.getBlock();
+            final ILaminarifer host = (ILaminarifer)facingState.getBlock();
             int facingHeight = host.getHeight(worldIn,facingPos,facingState,FluidRegistry.WATER);
             int facingHeightPerLayer = host.getHeightPerLayer(worldIn,facingPos,facingState);
             if(facingHeight+facingHeightPerLayer<=(humidity-1)*getHeightPerLayer(worldIn,pos,state)){
@@ -143,7 +145,7 @@ public interface IBlockSoil extends IBlockStateLayeredFluidHost {
             }
         }
 
-        final int newHumidity = LayeredFluidHostUtil.averageFlow(humidity,getHeightPerLayer(worldIn,pos,state), this.getAmountInQBPerLayer(worldIn,pos,state,FluidRegistry.WATER),
+        final int newHumidity = Laminarifers.averageFlow(humidity,getHeightPerLayer(worldIn,pos,state), this.getAmountInQBPerLayer(worldIn,pos,state,FluidRegistry.WATER),
                 getMaxStableHumidity(state),averageModeFlowDirections);
 
         if(newHumidity != humidity){
@@ -162,7 +164,7 @@ public interface IBlockSoil extends IBlockStateLayeredFluidHost {
                 IBlockState facingState = worldIn.getBlockState(facingPos);
                 left += choice.apply(worldIn,facingPos,facingState,FluidRegistry.WATER);
             }
-            setLayer(worldIn,pos,state,FluidRegistry.WATER,newHumidity+QBUtil.toQuanta(left));
+            setLayer(worldIn,pos,state,FluidRegistry.WATER,newHumidity+ QBUnit.toQuanta(left));
         }
 
         averageModeFlowDirections.clear();
@@ -175,8 +177,8 @@ public interface IBlockSoil extends IBlockStateLayeredFluidHost {
     default int drainUpWater(World worldIn, BlockPos pos,IBlockState state){
         BlockPos upPos = pos.up();
         IBlockState upState = worldIn.getBlockState(upPos);
-        if(upState.getBlock() instanceof ILayeredFluidHost){
-            ILayeredFluidHost block = (ILayeredFluidHost) upState.getBlock();
+        if(upState.getBlock() instanceof ILaminarifer){
+            ILaminarifer block = (ILaminarifer) upState.getBlock();
             if(!block.canDrain(worldIn,upPos,upState,FluidRegistry.WATER,EnumFacing.DOWN,state)) return 0;
             int drained = block.drainLayer(worldIn,upPos,upState,FluidRegistry.WATER,1,false);
             if(drained < 1) return 0;
@@ -288,8 +290,8 @@ public interface IBlockSoil extends IBlockStateLayeredFluidHost {
     default boolean canFlowInto(@Nonnull World world,@Nonnull BlockPos pos,@Nonnull IBlockState state,@Nonnull EnumFacing fromFacing,@Nonnull IBlockState source){
         if(state.getMaterial() == Material.AIR) return true;
         Block block = state.getBlock();
-        if(block instanceof ILayeredFluidHost){
-            ILayeredFluidHost permeableBlock = (ILayeredFluidHost) block;
+        if(block instanceof ILaminarifer){
+            ILaminarifer permeableBlock = (ILaminarifer) block;
             return permeableBlock.canFill(world,pos,state,FluidRegistry.WATER,fromFacing,source);
         }
         return false;
@@ -354,7 +356,7 @@ public interface IBlockSoil extends IBlockStateLayeredFluidHost {
 
     @Override
     default long getAmountInQBPerLayer(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid){
-        return QBUtil.QUANTA_VOLUME;
+        return QBUnit.QUANTA_VOLUME;
     }
 
     @Override

@@ -25,31 +25,10 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.orbtellus.geography.fluidphysics.finite;
-
-import net.minecraft.block.BlockSnow;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import moe.qingu.orbtellus.api.OTCFluids;
-import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
-import moe.qingu.orbtellus.geography.fluidphysics.vanilla.VanillaFlowingVanilla;
+package moe.qingu.orbtellus.api.laminarifer.source;
 
 /**
- * @author QiguaiAAAA
+ * @author QGMoe
  */
-public final class RealitySnowUpdater {
-
-    public static boolean isBlocked(World world, BlockPos downPos, IBlockState downState,IBlockState fromState){
-        if(VanillaFlowingVanilla.isBlocked(downState)) return true;
-        if(downState.getBlock() == Blocks.SNOW_LAYER){
-            return downState.getValue(BlockSnow.LAYERS) == 8;
-        }else if(downState.getBlock() instanceof ILaminarifer){
-            ILaminarifer block = (ILaminarifer) downState.getBlock();
-            return !block.canFill(world,downPos,downState, OTCFluids.SNOW, EnumFacing.UP,fromState);
-        }
-        return false;
-    }
+public interface IFlowSource {
 }

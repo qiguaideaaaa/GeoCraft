@@ -25,7 +25,7 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.orbtellus.api.block;
+package moe.qingu.orbtellus.api.laminarifer;
 
 import git.jbredwards.fluidlogged_api.api.block.IFluidloggable;
 import git.jbredwards.fluidlogged_api.api.util.FluidState;
@@ -42,7 +42,7 @@ import net.minecraftforge.fluids.BlockFluidFinite;
 import net.minecraftforge.fluids.Fluid;
 import moe.qingu.orbtellus.api.util.APIMathUtil;
 import moe.qingu.orbtellus.api.util.LayeredFluidHostUtil;
-import moe.qingu.orbtellus.api.util.QBUtil;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,7 +52,7 @@ import javax.annotation.Nullable;
  * 一个让含水方块和载流方块兼容的接口，为含水方块实现了载流方块的默认行为。
  * @author QiguaiAAAA
  */
-public interface IFluidloggableLayeredFluidHost extends IFluidloggable, ILayeredFluidHost {
+public interface IFluidloggableLaminarifer extends IFluidloggable, ILaminarifer {
     int DEFAULT_QUANTA_PER_BLOCK = 8;
 
     @Override
@@ -97,9 +97,9 @@ public interface IFluidloggableLayeredFluidHost extends IFluidloggable, ILayered
     @Override
     default long getAmountInQBPerLayer(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid){
         final FluidState fluidState = FluidState.get(world,pos);
-        if(fluidState.isEmpty()) return QBUtil.QUANTA_VOLUME;
+        if(fluidState.isEmpty()) return QBUnit.QUANTA_VOLUME;
         if(fluid != fluidState.getFluid()) return 0;
-        return QBUtil.VOLUMES_1_TO_16.get(fluidState.getQuantaPerBlock());
+        return QBUnit.VOLUMES_1_TO_16.get(fluidState.getQuantaPerBlock());
     }
 
     @Override

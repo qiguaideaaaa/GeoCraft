@@ -27,15 +27,15 @@
 
 package 清汩萌.天圆地方.测试;
 
+import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
-import moe.qingu.orbtellus.api.util.LayeredFluidHostUtil;
-import moe.qingu.orbtellus.api.util.QBUtil;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.api.util.math.FlowChoice;
 import 清汩萌.天圆地方.天圆地方测试;
 import 清汩萌.天圆地方.原料.流体原料;
@@ -59,14 +59,14 @@ public class 载流方块测试 extends 天圆地方测试 {
 
     @SuppressWarnings("unused")
     public static void testQB_Inner(){
-        final @Nonnull ILayeredFluidHost host = FLUID_HOST_COMMON;
+        final @Nonnull ILaminarifer host = FLUID_HOST_COMMON;
         final @Nonnull IBlockState defaultState = FLUID_HOST_COMMON.getDefaultState();
-        long filled = host.addAmountInQB(null,BlockPos.ORIGIN,defaultState.withProperty(LAYERS,7), 流体原料.SNOW,QBUtil.QUANTA_VOLUME,false);
-        Assertions.assertEquals(QBUtil.QUANTA_VOLUME,filled);
-        filled = host.addAmountInQB(null,BlockPos.ORIGIN,defaultState.withProperty(LAYERS,3), 流体原料.SNOW,QBUtil.BUCKET_VOLUME,false);
-        Assertions.assertEquals(QBUtil.BUCKET_VOLUME-3*QBUtil.QUANTA_VOLUME,filled);
-        filled = host.addAmountInQB(null,BlockPos.ORIGIN,defaultState.withProperty(LAYERS,1), 流体原料.SNOW,QBUtil.BUCKET_VOLUME,true);
-        Assertions.assertEquals(QBUtil.BUCKET_VOLUME-QBUtil.QUANTA_VOLUME,filled);
+        long filled = host.addAmountInQB(null,BlockPos.ORIGIN,defaultState.withProperty(LAYERS,7), 流体原料.SNOW, QBUnit.QUANTA_VOLUME,false);
+        Assertions.assertEquals(QBUnit.QUANTA_VOLUME,filled);
+        filled = host.addAmountInQB(null,BlockPos.ORIGIN,defaultState.withProperty(LAYERS,3), 流体原料.SNOW, QBUnit.BUCKET_VOLUME,false);
+        Assertions.assertEquals(QBUnit.BUCKET_VOLUME-3* QBUnit.QUANTA_VOLUME,filled);
+        filled = host.addAmountInQB(null,BlockPos.ORIGIN,defaultState.withProperty(LAYERS,1), 流体原料.SNOW, QBUnit.BUCKET_VOLUME,true);
+        Assertions.assertEquals(QBUnit.BUCKET_VOLUME- QBUnit.QUANTA_VOLUME,filled);
     }
 
     @Test
@@ -94,7 +94,7 @@ public class 载流方块测试 extends 天圆地方测试 {
 
             final int centralLayers = random.nextInt(8)+1;
             LOGGER.debug("Central layers is {}",centralLayers);
-            final int left = LayeredFluidHostUtil.averageFlow(centralLayers,
+            final int left = Laminarifers.averageFlow(centralLayers,
                     FLUID_HOST_COMMON.getHeightPerLayer(null,null,null),
                     FLUID_HOST_COMMON.getAmountInQBPerLayer(null,null,null, 流体原料.SNOW),
                     0,

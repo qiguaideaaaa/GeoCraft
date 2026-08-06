@@ -48,7 +48,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.util.FluidUtil;
 
 import javax.annotation.Nonnull;
@@ -152,7 +152,7 @@ public abstract class BlockLiquidMixin extends Block{
         }
         IBlockState downState = worldIn.getBlockState(down);
         if(!downState.isTopSolid()) return;
-        final int rndNext =  downState.getBlock() instanceof ILayeredFluidHost ?10:100;
+        final int rndNext =  downState.getBlock() instanceof ILaminarifer ?10:100;
         if (rand.nextInt(rndNext) == 0) {
             Material material = worldIn.getBlockState(pos.down(2)).getMaterial();
 

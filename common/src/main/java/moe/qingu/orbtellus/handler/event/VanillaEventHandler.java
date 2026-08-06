@@ -44,8 +44,8 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import moe.qingu.orbtellus.api.atmosphere.Atmosphere;
-import moe.qingu.orbtellus.api.block.IBlockStateLayeredFluidHost;
-import moe.qingu.orbtellus.api.block.ILayeredFluidHost;
+import moe.qingu.orbtellus.api.laminarifer.IBlockStateLaminarifer;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.event.atmosphere.AtmosphereUpdateEvent;
 import moe.qingu.orbtellus.api.event.block.StaticLiquidUpdateEvent;
 import moe.qingu.orbtellus.api.util.FluidUtil;
@@ -110,7 +110,7 @@ public final class VanillaEventHandler {
             int quanta = FluidUtil.getFluidQuanta(world, pos,currentState);
             int curQuanta,canFillQuanta;
             Block placeBlock = replacedState.getBlock();
-            ILayeredFluidHost permeable;
+            ILaminarifer permeable;
 
             permeable:{
                 switch (source){
@@ -121,8 +121,8 @@ public final class VanillaEventHandler {
                     case FALLING_BLOCK:
                 }
 
-                if(placeBlock instanceof ILayeredFluidHost){
-                    permeable = (ILayeredFluidHost) placeBlock;
+                if(placeBlock instanceof ILaminarifer){
+                    permeable = (ILaminarifer) placeBlock;
                 }else break permeable;
 
                 curQuanta = permeable.getLayers(world,pos,replacedState,fluid);
@@ -132,13 +132,13 @@ public final class VanillaEventHandler {
                 }
                 IBlockState quantaState = null;
                 if(source == FiniteEventHandler.PlaceSource.FALLING_BLOCK){
-                    if(!(permeable instanceof IBlockStateLayeredFluidHost)){
+                    if(!(permeable instanceof IBlockStateLaminarifer)){
                         break permeable;
                     }
                     if(!(sourceEntity instanceof EntityFallingBlock)){
                         break permeable;
                     }
-                    quantaState = ((IBlockStateLayeredFluidHost)permeable).getLayerState(replacedState,fluid,curQuanta+canFillQuanta);
+                    quantaState = ((IBlockStateLaminarifer)permeable).getLayerState(replacedState,fluid,curQuanta+canFillQuanta);
                     if(quantaState == null){
                         break permeable;
                     }
@@ -161,7 +161,7 @@ public final class VanillaEventHandler {
             long amount = FluidMixinUtil.getQBForBlockFluidBase(currentState);
             long canFillAmount;
             Block placeBlock = replacedState.getBlock();
-            ILayeredFluidHost permeable;
+            ILaminarifer permeable;
 
             permeable:{
                 switch (source){
@@ -173,8 +173,8 @@ public final class VanillaEventHandler {
 
                 }
 
-                if(placeBlock instanceof ILayeredFluidHost){
-                    permeable = (ILayeredFluidHost) placeBlock;
+                if(placeBlock instanceof ILaminarifer){
+                    permeable = (ILaminarifer) placeBlock;
                 }else break permeable;
 
                 canFillAmount = permeable.addAmountInQB(world,pos,replacedState,fluid,amount,false);
