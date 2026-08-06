@@ -37,16 +37,18 @@ import javax.annotation.Nullable;
  * 只有天圆地方自己的模拟模式
  */
 public enum FluidPhysicsMode {
-    VANILLA("原版","原版模式"),
-    CLASSIC("VANILLA_LIKE","VANILLA LIKE","经典","经典模式","經典","經典模式"),
-    FINITE("MORE_REALITY","MORE REALITY","有限","有限模式");
+    VANILLA(FluidPhysicsDesign.CLASSIC,"原版","原版模式"),
+    CLASSIC(FluidPhysicsDesign.CLASSIC,"VANILLA_LIKE","VANILLA LIKE","经典","经典模式","經典","經典模式"),
+    FINITE(FluidPhysicsDesign.FINITE,"MORE_REALITY","MORE REALITY","有限","有限模式");
     private static final FluidPhysicsMode[] MODES = values();
     private static FluidPhysicsMode CURRENT_MODE = FINITE;
 
+    public final FluidPhysicsDesign design;
     private final String[] alias;
     private IFluidOperationChecker checker;
 
-    FluidPhysicsMode(final @Nonnull String... alias){
+    FluidPhysicsMode(final @Nonnull FluidPhysicsDesign design, final @Nonnull String... alias){
+        this.design = design;
         this.alias = alias;
     }
 

@@ -43,26 +43,26 @@ public final class BlockFlagModifier {
      * @return 一个用 long 表示的修改器
      */
     public static long of(final int blockFlags){
-        return ((long) blockFlags<<32) | ~blockFlags;
+        return (Integer.toUnsignedLong(blockFlags)<<32) | Integer.toUnsignedLong(~blockFlags);
     }
 
     public static long build(final int enabledFlags){
-        return (long) enabledFlags << 32;
+        return Integer.toUnsignedLong(enabledFlags) << 32;
     }
 
     public static long build(final int enabledFlags,final int disabledFlags){
-        return ((long)enabledFlags << 32) | disabledFlags;
+        return (Integer.toUnsignedLong(enabledFlags) << 32) | Integer.toUnsignedLong(disabledFlags);
     }
 
     public static long enableFor(final long modifier, final int enabledFlags){
-        return modifier | ((long) enabledFlags <<32);
+        return modifier | (Integer.toUnsignedLong(enabledFlags) <<32);
     }
 
     public static long disableFor(final long modifier, final int disabledFlags){
-        return modifier | disabledFlags;
+        return modifier | Integer.toUnsignedLong(disabledFlags);
     }
 
     public static int modify(final int flags, final long modifier){
-        return (int)((flags | (modifier>>>32)) & ~(modifier&DISABLED_FLAGS_MASK));
+        return (int)((Integer.toUnsignedLong(flags) | (modifier>>>32)) & ~(modifier&DISABLED_FLAGS_MASK));
     }
 }

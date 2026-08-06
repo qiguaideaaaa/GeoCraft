@@ -33,6 +33,7 @@ import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
 import moe.qingu.orbtellus.api.util.math.FlowChoice;
 import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifier;
 import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifiers;
+import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
@@ -99,6 +100,72 @@ public final class Laminarifers {
         return centralLayers;
     }
 
+    /**
+     * 指定方块状态是否是一个载流方块的方块状态
+     * @param state 需要检查的方块状态
+     * @return 若该方块状态是一个载流方块的方块状态,则返回 true.否则返回 false
+     */
+    public static boolean isLaminarifer(final @Nonnull IBlockState state){
+        return state.getBlock() instanceof ILaminarifer;
+    }
+
+    /**
+     * 指定方块是否是一个载流方块
+     * @param block 需要检查的方块
+     * @return 若该方块是一个载流方块,则返回 true.否则返回 false
+     */
+    public static boolean isLaminarifer(final @Nullable Block block){
+        return block instanceof ILaminarifer;
+    }
+
+
+    /* =========================================
+                    基本状态查询
+       ========================================= */
+
+
+    /**
+     * 在指定位置，以给定的方块状态，该载流方块的指定流体是否已经装满
+     * @since API-0.3.5
+     * @param world 所在世界
+     * @param pos   方块位置
+     * @param state 给定的方块状态，必须要满足与该位置实际的方块状态一致
+     * @param fluid 查询的流体
+     * @param nbt   流体的附加 NBT
+     * @return 若不支持含有该流体或当前流体已满，则返回true，否则为false
+     */
+    public static boolean isFull(@Nonnull final ILaminarifer laminarifer,
+                                 @Nonnull final World world,
+                                 @Nonnull final BlockPos pos,
+                                 @Nonnull final IBlockState state,
+                                 @Nonnull final Fluid fluid,
+                                 @Nullable final NBTTagCompound nbt) {
+        return laminarifer.getLayers(world, pos, state, fluid, nbt) >= laminarifer.getMaxLayers(world, pos, state, fluid, nbt);
+    }
+
+    /**
+     * 在指定位置，以给定的方块状态，该载流方块指定流体是否是空的，且还有空间存入该流体
+     * @since API-0.3.5
+     * @param world 所在世界
+     * @param pos   方块位置
+     * @param state 给定的方块状态，必须要满足与该位置实际的方块状态一致
+     * @param fluid 查询的流体
+     * @param nbt   流体的附加 NBT
+     * @return 若指定流体是空的，且还有空间存入该流体，则返回 true，否则返回 false
+     */
+    public static boolean isEmpty(@Nonnull final ILaminarifer laminarifer,
+                                  @Nonnull final World world,
+                                  @Nonnull final BlockPos pos,
+                                  @Nonnull final IBlockState state,
+                                  @Nonnull final Fluid fluid,
+                                  @Nullable final NBTTagCompound nbt) {
+        if (isFull(laminarifer,world, pos, state, fluid, nbt)) return false;
+        return laminarifer.getLayers(world, pos, state, fluid, nbt) <= 0L;
+    }
+
+    /* =========================================
+                      流体储存语义
+       ========================================= */
 
     /**
      * 查询在指定位置的方块状态是给定的属于该载流方块的方块状态时，该方块承载指定流体的量，以 QB 为单位
@@ -166,7 +233,7 @@ public final class Laminarifers {
         final long curAmount = getAmountInQB(laminarifer, world, pos, state, fluid, nbt);
         final long amountInFact = Math.min(amount, laminarifer.getMaxAmountInQB(world, pos, state, fluid, nbt)-curAmount);
         if(amountInFact <= 0L) return 0L;
-        return laminarifer.addLayer(world,pos,state,fluid,nbt,(int)(amount/amountPerLayer),doOperate,pulse,source,blockFlagsModifier)*amountPerLayer;
+        return laminarifer.addLayer(world,pos,state,fluid,nbt,amount/amountPerLayer,doOperate,pulse,source,blockFlagsModifier)*amountPerLayer;
     }
 
 
@@ -367,7 +434,7 @@ public final class Laminarifers {
         final long curAmount = getAmountInQB(laminarifer, world, pos, state, fluid, nbt);
         final long drainedInFact = Math.min(amount,curAmount);
         if(drainedInFact <= 0) return 0;
-        return laminarifer.drainLayer(world,pos,state,fluid,nbt,(int) (amount/amountPerLayer),doOperate,pulse,drainer,blockFlagsModifier)*amountPerLayer;
+        return laminarifer.drainLayer(world,pos,state,fluid,nbt,amount/amountPerLayer,doOperate,pulse,drainer,blockFlagsModifier)*amountPerLayer;
     }
 
     /**
@@ -531,5 +598,97 @@ public final class Laminarifers {
                                        final boolean doOperate,
                                        final long pulse){
         return drainAmountInQB(laminarifer, world, pos, state, stack.getFluid(), stack.tag, stack.amount, doOperate, pulse, null, BlockFlagModifiers.KEEP);
+    }
+
+    /**
+     * @see ILaminarifer#drainStackInQB
+     */
+    @Nullable
+    public static QBFluidStack drainStackInQB(@Nonnull final ILaminarifer laminarifer,
+                                              @Nonnull final World world,
+                                              @Nonnull final BlockPos pos,
+                                              @Nonnull final IBlockState state,
+                                              @Nullable final Fluid fluid,
+                                              long amount,
+                                              final boolean doOperate,
+                                              final long pulse,
+                                              @Nullable final IFlowDrainer drainer){
+        return laminarifer.drainStackInQB(world, pos, state, fluid, amount, doOperate, pulse, drainer, BlockFlagModifiers.KEEP);
+    }
+
+    /**
+     * @see ILaminarifer#drainStackInQB
+     */
+    @Nullable
+    public static QBFluidStack drainStackInQB(@Nonnull final ILaminarifer laminarifer,
+                                              @Nonnull final World world,
+                                              @Nonnull final BlockPos pos,
+                                              @Nonnull final IBlockState state,
+                                              @Nullable final Fluid fluid,
+                                              long amount,
+                                              final boolean doOperate,
+                                              final long pulse,
+                                              final long blockFlagsModifier){
+        return laminarifer.drainStackInQB(world, pos, state, fluid, amount, doOperate, pulse, null, blockFlagsModifier);
+    }
+
+    /**
+     * @see ILaminarifer#drainStackInQB
+     */
+    @Nullable
+    public static QBFluidStack drainStackInQB(@Nonnull final ILaminarifer laminarifer,
+                                              @Nonnull final World world,
+                                              @Nonnull final BlockPos pos,
+                                              @Nonnull final IBlockState state,
+                                              @Nullable final Fluid fluid,
+                                              long amount,
+                                              final boolean doOperate,
+                                              final long pulse){
+        return laminarifer.drainStackInQB(world, pos, state, fluid, amount, doOperate, pulse, null, BlockFlagModifiers.KEEP);
+    }
+
+    /**
+     * @see ILaminarifer#drainStackInQB
+     */
+    @Nullable
+    public static QBFluidStack drainStackInQB(@Nonnull final ILaminarifer laminarifer,
+                                              @Nonnull final World world,
+                                              @Nonnull final BlockPos pos,
+                                              @Nonnull final IBlockState state,
+                                              long amount,
+                                              final boolean doOperate,
+                                              final long pulse,
+                                              @Nullable final IFlowDrainer drainer,
+                                              final long blockFlagsModifier){
+        return laminarifer.drainStackInQB(world, pos, state, null, amount, doOperate, pulse, drainer, blockFlagsModifier);
+    }
+
+    /**
+     * @see ILaminarifer#drainStackInQB
+     */
+    @Nullable
+    public static QBFluidStack drainStackInQB(@Nonnull final ILaminarifer laminarifer,
+                                              @Nonnull final World world,
+                                              @Nonnull final BlockPos pos,
+                                              @Nonnull final IBlockState state,
+                                              long amount,
+                                              final boolean doOperate,
+                                              final long pulse,
+                                              final long blockFlagsModifier){
+        return laminarifer.drainStackInQB(world, pos, state, null, amount, doOperate, pulse, null, blockFlagsModifier);
+    }
+
+    /**
+     * @see ILaminarifer#drainStackInQB
+     */
+    @Nullable
+    public static QBFluidStack drainStackInQB(@Nonnull final ILaminarifer laminarifer,
+                                              @Nonnull final World world,
+                                              @Nonnull final BlockPos pos,
+                                              @Nonnull final IBlockState state,
+                                              long amount,
+                                              final boolean doOperate,
+                                              final long pulse){
+        return laminarifer.drainStackInQB(world, pos, state, null, amount, doOperate, pulse, null, BlockFlagModifiers.KEEP);
     }
 }

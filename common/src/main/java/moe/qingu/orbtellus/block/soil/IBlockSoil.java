@@ -27,9 +27,32 @@
 
 package moe.qingu.orbtellus.block.soil;
 
+import moe.qingu.orbtellus.api.atmosphere.AtmosphereSystemManager;
+import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
+import moe.qingu.orbtellus.api.fluid.StateOfMatter;
+import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsDesign;
+import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
+import moe.qingu.orbtellus.api.laminarifer.IBlockStateLaminarifer;
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
-import moe.qingu.orbtellus.api.util.*;
+import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
+import moe.qingu.orbtellus.api.util.APIMathUtil;
+import moe.qingu.orbtellus.api.util.AtmosphereUtil;
+import moe.qingu.orbtellus.api.util.FluidUtil;
+import moe.qingu.orbtellus.api.util.LayeredFluidHostUtil;
+import moe.qingu.orbtellus.api.util.annotation.MultiThread;
+import moe.qingu.orbtellus.api.util.annotation.ThreadOnly;
+import moe.qingu.orbtellus.api.util.annotation.ThreadType;
+import moe.qingu.orbtellus.api.util.math.FlowChoice;
+import moe.qingu.orbtellus.api.util.math.vec.MBlockPos;
+import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowings;
+import moe.qingu.orbtellus.geography.soil.BlockSoilType;
+import moe.qingu.orbtellus.util.BaseUtil;
+import moe.qingu.orbtellus.util.ChunkUtil;
+import moe.qingu.orbtellus.util.WaterUtil;
+import moe.qingu.orbtellus.util.fluid.FluidOperationUtil;
+import moe.qingu.orbtellus.util.laminarifer.FillLaminariferRequest;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCauldron;
 import net.minecraft.block.BlockLiquid;
@@ -55,21 +78,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants.BlockFlags;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
-import moe.qingu.orbtellus.api.atmosphere.AtmosphereSystemManager;
-import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
-import moe.qingu.orbtellus.api.laminarifer.IBlockStateLaminarifer;
-import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
-import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
-import moe.qingu.orbtellus.api.fluid.StateOfMatter;
-import moe.qingu.orbtellus.api.util.annotation.MultiThread;
-import moe.qingu.orbtellus.api.util.annotation.ThreadType;
-import moe.qingu.orbtellus.api.util.math.FlowChoice;
-import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowings;
-import moe.qingu.orbtellus.geography.soil.BlockSoilType;
-import moe.qingu.orbtellus.util.BaseUtil;
-import moe.qingu.orbtellus.util.ChunkUtil;
-import moe.qingu.orbtellus.util.WaterUtil;
-import moe.qingu.orbtellus.util.fluid.FluidOperationUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -81,34 +89,47 @@ import static moe.qingu.orbtellus.api.block.BlockProperties.HUMIDITY;
 import static moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode.getCurrentMode;
 import static moe.qingu.orbtellus.configs.FluidPhysicsConfig.FLUID_PHYSICS_MODE;
 
-public interface IBlockSoil extends IBlockStateLaminarifer {
-    ThreadLocal<List<FlowChoice>> averageModeFlowChoices = ThreadLocal.withInitial(ArrayList::new);
+public interface IBlockSoil extends IBlockStateLaminarifer, IFlowSource {
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER) FillLaminariferRequest fillRequest = new FillLaminariferRequest();
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER) List<FlowChoice> averageModeFlowChoices = new ArrayList<>();
+
+    @Nonnull
+    static FillLaminariferRequest getFillRequest(){
+        if(fillRequest.isUsing()) return new FillLaminariferRequest(); //一般情况下不应该using的
+        else return fillRequest;
+    }
 
     /**
      * 土壤将自身水掉下去的能力
      * @return 湿度变化
      */
-    default int dropWaterDown(World worldIn, BlockPos pos,IBlockState state){
+    static int dropWaterDown(@Nonnull final IBlockSoil soil,
+                             @Nonnull final World worldIn,
+                             @Nonnull final BlockPos pos,
+                             @Nonnull final IBlockState state){
         final BlockPos down = pos.down();
         final IBlockState downState = worldIn.getBlockState(down);
         if(downState.getMaterial() == Material.AIR){
-            if(getCurrentMode() == FluidPhysicsMode.FINITE)
+            if(getCurrentMode().design == FluidPhysicsDesign.FINITE)
                 worldIn.setBlockState(down, Blocks.FLOWING_WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,7), BlockFlags.DEFAULT);
             return -1;
-        }else if(LayeredFluidHostUtil.isLayeredFluidHost(downState)){
-            ILaminarifer host = (ILaminarifer) downState.getBlock();
-            final boolean canFill = host.canFill(worldIn,down,downState,FluidRegistry.WATER,EnumFacing.UP,state);
-            if(!canFill) return 0;
-            final long filled = host.addAmountInQB(worldIn,down,downState,FluidRegistry.WATER, QBUnit.QUANTA_VOLUME,true);
-            return filled>0?-1:0;
+        }else if(Laminarifers.isLaminarifer(downState)){
+            try (final FillLaminariferRequest request = getFillRequest().open()){
+                return request.target((ILaminarifer) downState.getBlock())
+                        .at(worldIn,down,downState).side(EnumFacing.UP)
+                        .withContent(FluidRegistry.WATER,QBUnit.QUANTA_VOLUME)
+                        .withSource(soil)
+                        .fill(true)>0L?-1:0;
+
+            }
         }else if(FiniteFlowings.WATER_FLOW.canFlowDownTo(downState)){
-            if(getCurrentMode() == FluidPhysicsMode.FINITE) {
+            if(getCurrentMode().design == FluidPhysicsDesign.FINITE) {
                 FluidOperationUtil.triggerDestroyBlockEffectByFluid(worldIn,down,downState,FluidRegistry.WATER);
                 worldIn.setBlockState(down, Blocks.FLOWING_WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,7), BlockFlags.DEFAULT);
             }
             return -1;
         }else if(downState.getBlock() == Blocks.CAULDRON){
-            if(getCurrentMode() == FluidPhysicsMode.VANILLA){
+            if(getCurrentMode().design == FluidPhysicsDesign.CLASSIC){
                 if(!BaseUtil.getRandomResult(worldIn.rand,0.3)) return 0;
                 if(downState.getValue(BlockCauldron.LEVEL) <3){
                     worldIn.setBlockState(pos, downState.cycleProperty(BlockCauldron.LEVEL), BlockFlags.SEND_TO_CLIENTS);
@@ -123,39 +144,43 @@ public interface IBlockSoil extends IBlockStateLaminarifer {
      * 土壤水向四周流动的能力
      * @param humidity 当前湿度
      */
-    default void flowWaterHorizontally(World worldIn,BlockPos pos,IBlockState state,int humidity){
+    static void flowWaterHorizontally(final @Nonnull IBlockSoil soil,
+                                      final @Nonnull World worldIn,
+                                      final @Nonnull BlockPos pos,
+                                      final @Nonnull IBlockState state,
+                                      final int humidity){
         if (!worldIn.isAreaLoaded(pos, 1)) return;
         //可流动方向检查
-        final List<FlowChoice> averageModeFlowDirections = averageModeFlowChoices.get();
-        averageModeFlowDirections.clear();
+        averageModeFlowChoices.clear();
 
-        for(EnumFacing facing:EnumFacing.Plane.HORIZONTAL){
-            BlockPos facingPos = pos.offset(facing);
-            IBlockState facingState = worldIn.getBlockState(facingPos);
-            if(!canFlowInto(worldIn,facingPos,facingState,facing,state)) continue;
+        final MBlockPos facingPos = new MBlockPos();
+        for(final @Nonnull EnumFacing facing:EnumFacing.Plane.HORIZONTAL){
+            facingPos.setPos(pos).offsetM(facing);
+            final IBlockState facingState = worldIn.getBlockState(facingPos);
+            if(!canFlowInto(worldIn,facingPos,facingState,facing,soil)) continue;
             if(facingState.getMaterial() == Material.AIR){
-                averageModeFlowDirections.add(new FlowChoice(facing));
+                averageModeFlowChoices.add(new FlowChoice(facing));
                 continue;
             }
-            final ILaminarifer host = (ILaminarifer)facingState.getBlock();
-            int facingHeight = host.getHeight(worldIn,facingPos,facingState,FluidRegistry.WATER);
-            int facingHeightPerLayer = host.getHeightPerLayer(worldIn,facingPos,facingState);
-            if(facingHeight+facingHeightPerLayer<=(humidity-1)*getHeightPerLayer(worldIn,pos,state)){
-                averageModeFlowDirections.add(new FlowChoice(worldIn,facingPos,facingState,host,facing,FluidRegistry.WATER));
+            final ILaminarifer laminarifer = (ILaminarifer) facingState.getBlock();
+            final long facingHeight = laminarifer.getHeight(worldIn,facingPos,facingState,FluidRegistry.WATER,null);
+            final long facingHeightPerLayer = laminarifer.getHeightPerLayer(worldIn,facingPos,facingState,FluidRegistry.WATER,null);
+            if(facingHeight+facingHeightPerLayer<=(humidity-1)*soil.getHeightPerLayer(worldIn,pos,state)){
+                averageModeFlowChoices.add(new FlowChoice(worldIn,facingPos,facingState,laminarifer,facing,FluidRegistry.WATER));
             }
         }
 
-        final int newHumidity = Laminarifers.averageFlow(humidity,getHeightPerLayer(worldIn,pos,state), this.getAmountInQBPerLayer(worldIn,pos,state,FluidRegistry.WATER),
-                getMaxStableHumidity(state),averageModeFlowDirections);
+        final int newHumidity = Laminarifers.averageFlow(humidity,soil.getHeightPerLayer(worldIn,pos,state), soil.getAmountInQBPerLayer(worldIn,pos,state,FluidRegistry.WATER),
+                soil.getMaxStableHumidity(state),averageModeFlowChoices);
 
         if(newHumidity != humidity){
             long left = 0;
-            for(@Nonnull FlowChoice choice:averageModeFlowDirections){ //向四周流动
+            for(@Nonnull FlowChoice choice:averageModeFlowChoices){ //向四周流动
                 if(choice.getAddedLayers() == 0){
                     left += choice.getAddedAmountInQB();
                     continue;
                 }
-                BlockPos facingPos = pos.offset(choice.direction);
+                facingPos.setPos(pos).offsetM(choice.direction);
                 if(choice.isAir()){
                     if(FLUID_PHYSICS_MODE.getValue() != FluidPhysicsMode.FINITE) continue;
                     worldIn.setBlockState(facingPos,Blocks.FLOWING_WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,8-choice.getNewLayers()));
@@ -164,10 +189,10 @@ public interface IBlockSoil extends IBlockStateLaminarifer {
                 IBlockState facingState = worldIn.getBlockState(facingPos);
                 left += choice.apply(worldIn,facingPos,facingState,FluidRegistry.WATER);
             }
-            setLayer(worldIn,pos,state,FluidRegistry.WATER,newHumidity+ QBUnit.toQuanta(left));
+            soil.setLayer(worldIn,pos,state,FluidRegistry.WATER,newHumidity + QBUnit.toQuanta(left));
         }
 
-        averageModeFlowDirections.clear();
+        averageModeFlowChoices.clear();
     }
 
     /**
@@ -287,12 +312,16 @@ public interface IBlockSoil extends IBlockStateLaminarifer {
      * @param state 目标方块状态
      * @return 能，则true，否，则反之
      */
-    default boolean canFlowInto(@Nonnull World world,@Nonnull BlockPos pos,@Nonnull IBlockState state,@Nonnull EnumFacing fromFacing,@Nonnull IBlockState source){
+    static boolean canFlowInto(@Nonnull final World world,
+                               @Nonnull final BlockPos pos,
+                               @Nonnull final IBlockState state,
+                               @Nonnull final EnumFacing fromFacing,
+                               @Nonnull final IBlockSoil source){
         if(state.getMaterial() == Material.AIR) return true;
-        Block block = state.getBlock();
-        if(block instanceof ILaminarifer){
-            ILaminarifer permeableBlock = (ILaminarifer) block;
-            return permeableBlock.canFill(world,pos,state,FluidRegistry.WATER,fromFacing,source);
+        final Block block = state.getBlock();
+        if(Laminarifers.isLaminarifer(block)){
+            final ILaminarifer laminarifer = (ILaminarifer) block;
+            return laminarifer.canFill(world,pos,state,fromFacing,FluidRegistry.WATER,null,source);
         }
         return false;
     }

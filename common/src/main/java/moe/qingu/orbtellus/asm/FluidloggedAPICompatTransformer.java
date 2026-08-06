@@ -40,7 +40,7 @@ import javax.annotation.Nullable;
 @SuppressWarnings("unused")
 public final class FluidloggedAPICompatTransformer implements IClassTransformer {
     static final String IFluidloggableClass = "git/jbredwards/fluidlogged_api/api/block/IFluidloggable";
-    static final String IFluidloggableLayeredHostClass = "moe/qingu/orbtellus/api/block/IFluidloggableLayeredFluidHost";
+    static final String IFluidloggableLayeredHostClass = "moe/qingu/orbtellus/api/laminarifer/IFluidloggableLaminarifer";
 
     @Override
     @Nullable

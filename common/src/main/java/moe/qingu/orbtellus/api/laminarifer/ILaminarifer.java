@@ -45,7 +45,7 @@ import javax.annotation.Nullable;
  * 载流方块，全称分层流体承载方块，英文名 Laminarifer Block <br/>
  * 注意这和含水方块有本质区别，含水方块是载流方块的子集。例如，泥土不是含水方块，但应该为载流方块。<br/>
  * 一个载流方块可以承载多种流体，每个流体可以视为存在一个虚拟的容器，类似于 {@link net.minecraftforge.fluids.capability.IFluidHandler} 之于 {@link net.minecraftforge.fluids.IFluidTank} 的关系
- * @author QiguaiAAAA
+ * @author QGMoe
  * @since API-0.3.5
  */
 public interface ILaminarifer{
@@ -90,7 +90,7 @@ public interface ILaminarifer{
                             @Nonnull final Fluid fluid,
                             @Nullable final NBTTagCompound nbt,
                             @Nullable final IFlowSource source) {
-        return !isFull(world, pos, state, fluid, nbt);
+        return isAcceptedFluid(world, pos, state, fluid, nbt) && !Laminarifers.isFull(this, world, pos, state, fluid, nbt);
     }
 
     /**
@@ -115,50 +115,46 @@ public interface ILaminarifer{
     }
 
     /* =========================================
-                    基本状态查询
-       ========================================= */
-
-    /**
-     * 在指定位置，以给定的方块状态，该载流方块的指定流体是否已经装满
-     * @since API-0.3.5
-     * @param world 所在世界
-     * @param pos   方块位置
-     * @param state 给定的方块状态，必须要满足与该位置实际的方块状态一致
-     * @param fluid 查询的流体
-     * @param nbt   流体的附加 NBT
-     * @return 若不支持含有该流体或当前流体已满，则返回true，否则为false
-     */
-    default boolean isFull(@Nonnull final World world,
-                           @Nonnull final BlockPos pos,
-                           @Nonnull final IBlockState state,
-                           @Nonnull final Fluid fluid,
-                           @Nullable final NBTTagCompound nbt) {
-        return getLayers(world, pos, state, fluid, nbt) >= getMaxLayers(world, pos, state, fluid, nbt);
-    }
-
-    /**
-     * 在指定位置，以给定的方块状态，该载流方块指定流体是否是空的，且还有空间存入该流体
-     * @since API-0.3.5
-     * @param world 所在世界
-     * @param pos   方块位置
-     * @param state 给定的方块状态，必须要满足与该位置实际的方块状态一致
-     * @param fluid 查询的流体
-     * @param nbt   流体的附加 NBT
-     * @return 若指定流体是空的，且还有空间存入该流体，则返回 true，否则返回 false
-     */
-    default boolean isEmpty(@Nonnull final World world,
-                            @Nonnull final BlockPos pos,
-                            @Nonnull final IBlockState state,
-                            @Nonnull final Fluid fluid,
-                            @Nullable final NBTTagCompound nbt) {
-        if (isFull(world, pos, state, fluid, nbt)) return false;
-        return getLayers(world, pos, state, fluid, nbt) <= 0;
-    }
-
-
-    /* =========================================
                    分层流体承载方块模型
        ========================================= */
+
+    /// 层状结构的定义
+
+    /**
+     * 查询在指定位置的方块状态是给定的属于该载流方块的方块状态时，该方块指定流体的最大层数。
+     *
+     * @param world 所在世界
+     * @param pos   方块位置
+     * @param state 给定的方块状态，必须要满足与该位置实际的方块状态一致
+     * @param fluid 查询的流体
+     * @param nbt   流体的附加 NBT
+     * @return 在给定条件下，对应流体的层数最大值
+     * @since GeoCraftAPI 0.3.1
+     */
+    long getMaxLayers(@Nonnull final World world,
+                      @Nonnull final BlockPos pos,
+                      @Nonnull final IBlockState state,
+                      @Nonnull final Fluid fluid,
+                      @Nullable final NBTTagCompound nbt);
+
+    /// 层状结构的查询
+
+    /**
+     * 查询在指定位置的方块状态是给定的属于该载流方块的方块状态时，该方块承载指定流体的层数
+     *
+     * @param world 所在世界
+     * @param pos   方块位置
+     * @param state 给定的方块状态，必须要满足与该位置实际的方块状态一致
+     * @param fluid 查询的流体
+     * @param nbt   流体的附加 NBT
+     * @return 在给定条件下，方块承载指定流体的层数
+     * @since API-0.3.5
+     */
+    long getLayers(@Nonnull final World world,
+                   @Nonnull final BlockPos pos,
+                   @Nonnull final IBlockState state,
+                   @Nonnull final Fluid fluid,
+                   @Nullable final NBTTagCompound nbt);
 
     /// 空间高度的定义
 
@@ -180,6 +176,22 @@ public interface ILaminarifer{
                        @Nullable final NBTTagCompound nbt);
 
     /**
+     * 查询在指定位置的方块状态是给定的属于该载流方块的方块状态时，该方块每层流体的高度
+     *
+     * @param world 所在世界
+     * @param pos   方块位置
+     * @param state 给定的方块状态，必须要满足与该位置实际的方块状态一致
+     * @return 在给定条件下，该方块每层流体的高度，单位为 AH。
+     * @implSpec 返回的值必须是 {@link #getMaxHeight} - {@link #getEmptyHeight} 的因数
+     * @since API-0.3.5
+     */
+    long getHeightPerLayer(@Nonnull final World world,
+                           @Nonnull final BlockPos pos,
+                           @Nonnull final IBlockState state,
+                           @Nonnull final Fluid fluid,
+                           @Nullable final NBTTagCompound nbt);
+
+    /**
      * 查询在指定位置的方块状态是给定的属于该载流方块的方块状态时，该方块指定流体能够有的最高表面高度
      *
      * @param world 所在世界
@@ -191,11 +203,13 @@ public interface ILaminarifer{
      * @apiNote 反重力流体在考虑时不用反转，仍然当成普通流体看待。
      * @since API-0.3.5
      */
-    long getMaxHeight(@Nonnull final World world,
+    default long getMaxHeight(@Nonnull final World world,
                      @Nonnull final BlockPos pos,
                      @Nonnull final IBlockState state,
                      @Nonnull final Fluid fluid,
-                     @Nullable final NBTTagCompound nbt);
+                     @Nullable final NBTTagCompound nbt){
+        return getEmptyHeight(world, pos, state, fluid, nbt) + getMaxLayers(world, pos, state, fluid, nbt) * getHeightPerLayer(world, pos, state, fluid, nbt);
+    }
 
     /// 空间高度的查询
 
@@ -212,66 +226,16 @@ public interface ILaminarifer{
      * @since API-0.3.5
      */
     default long getHeight(@Nonnull final World world,
-                          @Nonnull final BlockPos pos,
-                          @Nonnull final IBlockState state,
-                          @Nonnull final Fluid fluid,
-                          @Nullable final NBTTagCompound nbt) {
-        return getEmptyHeight(world, pos, state, fluid, nbt) + getLayers(world, pos, state, fluid, nbt) * getHeightPerLayer(world, pos, state);
+                           @Nonnull final BlockPos pos,
+                           @Nonnull final IBlockState state,
+                           @Nonnull final Fluid fluid,
+                           @Nullable final NBTTagCompound nbt) {
+        return getEmptyHeight(world, pos, state, fluid, nbt) + getLayers(world, pos, state, fluid, nbt) * getHeightPerLayer(world, pos, state, fluid, nbt);
     }
 
-    /// 层状结构的定义
-
-    /**
-     * 查询在指定位置的方块状态是给定的属于该载流方块的方块状态时，该方块每层流体的高度
-     *
-     * @param world 所在世界
-     * @param pos   方块位置
-     * @param state 给定的方块状态，必须要满足与该位置实际的方块状态一致
-     * @return 在给定条件下，方块承载指定流体的量，以 QB 为单位
-     * @implSpec 返回的值必须是 {@link #getMaxHeight} - {@link #getEmptyHeight} 的因数
-     * @since API-0.3.5
-     */
-    long getHeightPerLayer(@Nonnull final World world,
-                          @Nonnull final BlockPos pos,
-                          @Nonnull final IBlockState state);
-
-    /**
-     * 查询在指定位置的方块状态是给定的属于该载流方块的方块状态时，该方块指定流体的最大层数。
-     *
-     * @param world 所在世界
-     * @param pos   方块位置
-     * @param state 给定的方块状态，必须要满足与该位置实际的方块状态一致
-     * @param fluid 查询的流体
-     * @param nbt   流体的附加 NBT
-     * @return 在给定条件下，对应流体的层数最大值
-     * @since GeoCraftAPI 0.3.1
-     */
-    default int getMaxLayers(@Nonnull final World world,
-                             @Nonnull final BlockPos pos,
-                             @Nonnull final IBlockState state,
-                             @Nonnull final Fluid fluid,
-                             @Nullable final NBTTagCompound nbt) {
-        return (int) ((getMaxHeight(world, pos, state, fluid, nbt) - getEmptyHeight(world, pos, state, fluid, nbt)) / getHeightPerLayer(world, pos, state));
-    }
-
-    /// 层状结构的交互操作
-
-    /**
-     * 查询在指定位置的方块状态是给定的属于该载流方块的方块状态时，该方块承载指定流体的层数
-     *
-     * @param world 所在世界
-     * @param pos   方块位置
-     * @param state 给定的方块状态，必须要满足与该位置实际的方块状态一致
-     * @param fluid 查询的流体
-     * @param nbt   流体的附加 NBT
-     * @return 在给定条件下，方块承载指定流体的层数
-     * @since API-0.3.5
-     */
-    int getLayers(@Nonnull final World world,
-                  @Nonnull final BlockPos pos,
-                  @Nonnull final IBlockState state,
-                  @Nonnull final Fluid fluid,
-                  @Nullable final NBTTagCompound nbt);
+    /* =========================================
+                   方块间流体交互
+       ========================================= */
 
     /**
      * 在指定位置，以给定的方块状态，将指定流体的层数设置为指定层数。
@@ -293,7 +257,7 @@ public interface ILaminarifer{
                      @Nonnull final IBlockState state,
                      @Nonnull final Fluid fluid,
                      @Nullable final NBTTagCompound nbt,
-                     final int newLayer,
+                     final long newLayer,
                      final long blockFlagsModifier);
 
     /**
@@ -313,22 +277,22 @@ public interface ILaminarifer{
      * @return 在给定条件下，实际添加的层数
      * @since API-0.3.5
      */
-    default int addLayer(@Nonnull final World world,
+    default long addLayer(@Nonnull final World world,
                          @Nonnull final BlockPos pos,
                          @Nonnull final IBlockState state,
                          @Nonnull final Fluid fluid,
                          @Nullable final NBTTagCompound nbt,
-                         final int layer,
+                         final long layer,
                          final boolean doOperate,
                          final long pulse,
                          @Nullable final IFlowSource source,
                          final long blockFlagsModifier) {
         if (layer <= 0) return 0;
-        final int curLayer = getLayers(world, pos, state, fluid, nbt);
-        final int addedInFact = Math.min(layer, getMaxLayers(world, pos, state, fluid, nbt) - curLayer);
+        final long curLayer = getLayers(world, pos, state, fluid, nbt);
+        final long addedInFact = Math.min(layer, getMaxLayers(world, pos, state, fluid, nbt) - curLayer);
         if (addedInFact <= 0) return 0;
         if (doOperate) {
-            final int newLayer = curLayer + addedInFact;
+            final long newLayer = curLayer + addedInFact;
             this.setLayer(world, pos, state, fluid, nbt, newLayer, blockFlagsModifier);
         }
         return addedInFact;
@@ -351,22 +315,22 @@ public interface ILaminarifer{
      * @param blockFlagsModifier 方块更新操作的修改器，用一个 long 表示，可通过 {@link BlockFlagModifier} 构建
      * @return 在给定条件下，实际抽取的流体层数
      */
-    default int drainLayer(@Nonnull final World world,
+    default long drainLayer(@Nonnull final World world,
                            @Nonnull final BlockPos pos,
                            @Nonnull final IBlockState state,
                            @Nonnull final Fluid fluid,
                            @Nullable final NBTTagCompound nbt,
-                           final int layer,
+                           final long layer,
                            final boolean doOperate,
                            final long pulse,
                            @Nullable final IFlowDrainer drainer,
                            final long blockFlagsModifier){
         if(layer <= 0) return 0;
-        final int curLayer = getLayers(world,pos,state,fluid,nbt);
-        final int drainedInFact = Math.min(layer, curLayer);
+        final long curLayer = getLayers(world,pos,state,fluid,nbt);
+        final long drainedInFact = Math.min(layer, curLayer);
         if(drainedInFact <= 0) return 0;
         if(doOperate){
-            final int newLayer = curLayer - drainedInFact;
+            final long newLayer = curLayer - drainedInFact;
             this.setLayer(world,pos,state,fluid,nbt,newLayer,blockFlagsModifier);
         }
         return drainedInFact;
@@ -430,13 +394,13 @@ public interface ILaminarifer{
      * @return 在给定条件下，实际添加的流体量，单位为 QB
      */
     @Nullable
-    QBFluidStack drainAmountInQB(@Nonnull final World world,
-                                 @Nonnull final BlockPos pos,
-                                 @Nonnull final IBlockState state,
-                                 @Nullable final Fluid fluid,
-                                 long amount,
-                                 final boolean doOperate,
-                                 final long pulse,
-                                 @Nullable final IFlowDrainer drainer,
-                                 final long blockFlagsModifier);
+    QBFluidStack drainStackInQB(@Nonnull final World world,
+                                @Nonnull final BlockPos pos,
+                                @Nonnull final IBlockState state,
+                                @Nullable final Fluid fluid,
+                                long amount,
+                                final boolean doOperate,
+                                final long pulse,
+                                @Nullable final IFlowDrainer drainer,
+                                final long blockFlagsModifier);
 }

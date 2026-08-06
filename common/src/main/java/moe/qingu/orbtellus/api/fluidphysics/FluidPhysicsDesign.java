@@ -25,37 +25,13 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.orbtellus.api.laminarifer;
+package moe.qingu.orbtellus.api.fluidphysics;
 
 /**
- * 流势（Impetus），压强和时间的乘积，属于向量，方向为流体流动的趋向。
- * 对于抽取的流势，称为去势。对于填充的流势，称为来势。
- * 压强和时间组成的二元组叫做一个流势脉冲（Impetus Pulse）
+ * 流体物理的设计
  * @author QGMoe
  */
-public final class ImpetusPulse {
-
-    private ImpetusPulse(){}
-
-    /**
-     * 将压强和时长信息打包成一个流势脉冲
-     * @param pressure 压强，单位未定
-     * @param time 时长，单位未定
-     * @return 打包的 long，高 32 位为压强，低 32 位为时间
-     */
-    public static long of(final float pressure, final float time){
-        return (Integer.toUnsignedLong(Float.floatToRawIntBits(pressure))<<32) | Integer.toUnsignedLong(Float.floatToRawIntBits(time));
-    }
-
-    public static float pressure(final long pulse){
-        return Float.intBitsToFloat((int)(pulse>>>32));
-    }
-
-    public static float time(final long pulse){
-        return Float.intBitsToFloat((int)pulse);
-    }
-
-    public static float toImpetus(final long pulse){
-        return pressure(pulse) * time(pulse);
-    }
+public enum FluidPhysicsDesign {
+    CLASSIC,
+    FINITE
 }
