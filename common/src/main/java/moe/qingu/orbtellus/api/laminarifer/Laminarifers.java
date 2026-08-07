@@ -66,10 +66,10 @@ public final class Laminarifers {
      * @param choices 四周的流动选择
      * @return 中心剩下的层数
      */
-    public static int averageFlow(int centralLayers,
-                                  final int heightPerLayer,
+    public static int averageFlow(long centralLayers,
+                                  final long heightPerLayer,
                                   final long QBPerLayer,
-                                  final int minLayers,
+                                  final long minLayers,
                                   final @Nonnull List<FlowChoice> choices) {
         final Set<FlowChoice> fullChoices = FULL_FLOW_CHOICES.get();
         fullChoices.clear();
@@ -141,6 +141,16 @@ public final class Laminarifers {
                                  @Nonnull final Fluid fluid,
                                  @Nullable final NBTTagCompound nbt) {
         return laminarifer.getLayers(world, pos, state, fluid, nbt) >= laminarifer.getMaxLayers(world, pos, state, fluid, nbt);
+    }
+
+    /**
+     * @see #isFull(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound)
+     */
+    public static boolean isFull(@Nonnull final IBlockStateLaminarifer laminarifer,
+                                 @Nonnull final IBlockState state,
+                                 @Nonnull final Fluid fluid,
+                                 @Nullable final NBTTagCompound nbt) {
+        return laminarifer.getLayers(state, fluid, nbt) >= laminarifer.getMaxLayers(state, fluid, nbt);
     }
 
     /**

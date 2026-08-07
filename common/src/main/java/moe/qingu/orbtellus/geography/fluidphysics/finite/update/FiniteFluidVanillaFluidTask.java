@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.geography.fluidphysics.finite.update;
 
+import moe.qingu.orbtellus.api.laminarifer.AHUnit;
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.world.tick.scheduler.BlockTickScheduler;
 import moe.qingu.orbtellus.geography.fluidphysics.AbstractFluidTask;
@@ -47,7 +48,6 @@ import moe.qingu.orbtellus.api.util.annotation.ThreadOnly;
 import moe.qingu.orbtellus.api.util.annotation.ThreadType;
 import moe.qingu.orbtellus.api.util.math.FlowChoice;
 import moe.qingu.orbtellus.api.util.math.vec.MBlockPos;
-import moe.qingu.orbtellus.block.finite.ILaminariferFiniteLiquid;
 import moe.qingu.orbtellus.configs.FluidPhysicsConfig;
 import moe.qingu.orbtellus.geography.fluidphysics.pressure.FluidPressureSearchManager;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
@@ -198,7 +198,7 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
             //  Average Flow
             // *******************
             int newLiquidQuanta = Laminarifers.averageFlow(liquidQuanta,
-                    ILaminariferFiniteLiquid.HEIGHT_PER_QUANTA,
+                    AHUnit.EIGHTH_FLUID,
                     QBUnit.QUANTA_VOLUME,
                     0,
                     averageFlowChoices);

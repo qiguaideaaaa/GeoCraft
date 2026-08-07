@@ -32,7 +32,7 @@ package moe.qingu.orbtellus.api.util;
  * @author QiguaiAAAA
  */
 public final class APIMathUtil {
-    public static long clamp(long num, long min, long max) {
+    public static long clamp(final long num,final long min,final long max) {
         if (num < min) {
             return min;
         } else {
@@ -40,6 +40,7 @@ public final class APIMathUtil {
         }
     }
 
+    @Deprecated
     public static int getModifiedFlag(int flag,int disabled,int enabled){
         return (flag | enabled) & ~disabled;
     }

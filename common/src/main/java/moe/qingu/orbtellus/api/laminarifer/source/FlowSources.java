@@ -28,8 +28,10 @@
 package moe.qingu.orbtellus.api.laminarifer.source;
 
 import moe.qingu.orbtellus.api.atmosphere.system.IAtmosphereSystem;
+import moe.qingu.orbtellus.api.util.FluidUtil;
+import net.minecraft.block.Block;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author QGMoe
@@ -38,7 +40,12 @@ public final class FlowSources {
 
     private FlowSources(){}
 
-    public static boolean isAtmosphere(final @Nonnull IFlowSource source){
+    public static boolean isAtmosphere(final @Nullable IFlowSource source){
         return source instanceof IAtmosphereSystem;
+    }
+
+    public static boolean isRunoff(final @Nullable IFlowSource source){
+        if(source instanceof Block) return FluidUtil.isFluid((Block) source);
+        return false;
     }
 }

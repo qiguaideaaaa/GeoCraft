@@ -27,12 +27,17 @@
 
 package moe.qingu.orbtellus.block.finite;
 
+import moe.qingu.orbtellus.api.laminarifer.AHUnit;
+import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
+import moe.qingu.orbtellus.api.laminarifer.drainer.IFlowDrainer;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBFluidStack;
+import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
+import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifier;
 import net.minecraft.block.BlockStaticLiquid;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.Fluid;
@@ -42,7 +47,6 @@ import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
 import moe.qingu.orbtellus.api.laminarifer.IBlockStateLaminarifer;
 import moe.qingu.orbtellus.api.util.APIMathUtil;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
-import moe.qingu.orbtellus.api.util.LayeredFluidHostUtil;
 import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.FluidPhysicsCoreFinite;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
@@ -56,100 +60,132 @@ import static net.minecraft.block.BlockLiquid.LEVEL;
  * @author QiguaiAAAA
  */
 public interface ILaminariferFiniteLiquid extends IBlockStateLaminarifer {
-    int HEIGHT_PER_QUANTA = LayeredFluidHostUtil.EIGHTH_HEIGHT;
+
     @Nonnull
     Fluid 天圆地方$getFluid();
 
     @Override
-    default boolean isAcceptedFluid(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid){
-        return fluid == 天圆地方$getFluid();
+    default boolean isAcceptedFluid(@Nonnull final IBlockState state,
+                                    @Nonnull final Fluid fluid,
+                                    @Nullable final NBTTagCompound nbt){
+        return fluid == 天圆地方$getFluid() || fluid == OTCFluids.SNOW;
     }
 
     @Override
-    default int getLayers(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nullable Fluid fluid){
-        if(fluid == 天圆地方$getFluid() || fluid == null) return Math.max(8-state.getValue(LEVEL),1);
+    default long getMaxLayers(@Nonnull final IBlockState state,
+                              @Nonnull final Fluid fluid,
+                              @Nullable final NBTTagCompound nbt){
+        final Fluid current = 天圆地方$getFluid();
+        if(fluid == OTCFluids.SNOW && current == FluidRegistry.WATER) return 8L - getLayers(state,FluidRegistry.WATER,null);
+        if(current == fluid) return 8L;
+        return 0L;
+    }
+
+    @Override
+    default long getLayers(@Nonnull final IBlockState state,
+                           @Nonnull final Fluid fluid,
+                           @Nullable final NBTTagCompound nbt){
+        if(fluid == 天圆地方$getFluid()) return Math.max(8-state.getValue(LEVEL),1);
         return 0;
     }
 
     @Override
-    default int getMaxLayers(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nullable Fluid fluid) {
+    default long getEmptyHeight(@Nonnull final IBlockState state,
+                                @Nonnull final Fluid fluid,
+                                @Nullable final NBTTagCompound nbt){
         if(天圆地方$getFluid() == FluidRegistry.WATER && fluid == OTCFluids.SNOW){
-            return 8- getLayers(world,pos,state,FluidRegistry.WATER);
+            return getHeight(state,FluidRegistry.WATER,null);
         }
-        if(fluid == 天圆地方$getFluid() || fluid == null) return 8;
-        return 0;
+        return 0L;
     }
 
     @Override
-    default int getEmptyHeight(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nullable Fluid fluid){
-        if(天圆地方$getFluid() == FluidRegistry.WATER && fluid == OTCFluids.SNOW){
-            return getHeight(world,pos,state,FluidRegistry.WATER);
-        }
-        return LayeredFluidHostUtil.EMPTY_HEIGHT;
+    default long getHeightPerLayer(@Nonnull final IBlockState state,
+                                   @Nonnull final Fluid fluid,
+                                   @Nullable final NBTTagCompound nbt){
+        return AHUnit.EIGHTH_FLUID;
     }
 
     @Override
-    default int getHeightPerLayer(@Nullable World world,@Nullable BlockPos pos,@Nonnull IBlockState state){
-        return LayeredFluidHostUtil.EIGHTH_HEIGHT;
-    }
-
-    @Override
-    default long getAmountInQBPerLayer(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid){
+    default long getAmountInQBPerLayer(@Nonnull final IBlockState state,
+                                       @Nonnull final Fluid fluid,
+                                       @Nullable final NBTTagCompound nbt){
         return QBUnit.QUANTA_VOLUME;
     }
 
     @Override
-    default void addLayer(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid , int layer, @Nullable NBTTagCompound nbt, final int disabledBlockFlags, final int enabledBlockFlags){
-        if(fluid == OTCFluids.SNOW && 天圆地方$getFluid() == FluidRegistry.WATER){
-            int quantaWater = getLayers(world,pos,state,FluidRegistry.WATER);
-            layer = MathHelper.clamp(layer,0,8- getLayers(world,pos,state,FluidRegistry.WATER));
-            if(layer == 0) return;
-            try(@Nullable IAtmosphereAccessor accessor = AtmosphereUtil.getLightedAtmosphereAccessor(world,pos,true)) {
-                final int flags = APIMathUtil.getModifiedFlag(Constants.BlockFlags.DEFAULT,disabledBlockFlags,enabledBlockFlags);
-                FluidPhysicsCoreFinite.mixSnowWithWater(world,pos,accessor,quantaWater,layer,flags);
-            }
-            return;
-        }
-        if(fluid != 天圆地方$getFluid()) return;
-        if(layer == 0) return;
-        int newQuanta = getLayers(world, pos, state, fluid)+ layer;
-        setLayer(world,pos,state,fluid,newQuanta,disabledBlockFlags | Constants.BlockFlags.NOTIFY_NEIGHBORS,enabledBlockFlags);
+    default boolean setLayer(@Nonnull final World world,
+                             @Nonnull final BlockPos pos,
+                             @Nonnull final IBlockState state,
+                             @Nonnull final Fluid fluid,
+                             @Nullable final NBTTagCompound nbt,
+                             final long newLayer,
+                             final long blockFlagsModifier) {
+        return IBlockStateLaminarifer.super.setLayer(world, pos, state, fluid, nbt, newLayer, blockFlagsModifier);
     }
 
     @Override
-    default boolean setLayer(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid , int newLayer,@Nullable NBTTagCompound nbt,final int disabledBlockFlags,final int enabledBlockFlags){
-        if(fluid == OTCFluids.SNOW && 天圆地方$getFluid() == FluidRegistry.WATER){ //雪水混合
-            final int waterQuanta = Math.max(8-state.getValue(LEVEL),0);
-            final int snowQuanta = MathHelper.clamp(newLayer,0,8-waterQuanta);
-            return FluidPhysicsCoreFinite.mixSnowWithWater(world,pos,null,waterQuanta,snowQuanta,APIMathUtil.getModifiedFlag(Constants.BlockFlags.DEFAULT,disabledBlockFlags,enabledBlockFlags));
+    default long addLayer(@Nonnull final World world,
+                          @Nonnull final BlockPos pos,
+                          @Nonnull final IBlockState state,
+                          @Nonnull final Fluid fluid,
+                          @Nullable final NBTTagCompound nbt,
+                          final long layer,
+                          final boolean doOperate,
+                          final long pulse,
+                          @Nullable final IFlowSource source,
+                          final long blockFlagsModifier) {
+        final Fluid current = 天圆地方$getFluid();
+        if(fluid == OTCFluids.SNOW && current == FluidRegistry.WATER){
+            final int quantaWater = (int) getLayers(state,FluidRegistry.WATER,null);
+            final int actualLayer = (int) APIMathUtil.clamp(layer,0L,8L - quantaWater);
+            if(actualLayer == 0L) return 0L;
+            try(@Nullable final IAtmosphereAccessor accessor = AtmosphereUtil.getLightedAtmosphereAccessor(world,pos,true)) {
+                final int flags = BlockFlagModifier.modify(Constants.BlockFlags.DEFAULT,blockFlagsModifier);
+                FluidPhysicsCoreFinite.mixSnowWithWater(world,pos,accessor,quantaWater,actualLayer,flags);
+            }
+            return actualLayer;
         }
-        if(fluid != 天圆地方$getFluid()) return false;
-        newLayer = Math.min(newLayer,8);
-        final int flags = APIMathUtil.getModifiedFlag(Constants.BlockFlags.DEFAULT,disabledBlockFlags,enabledBlockFlags);
-        if(newLayer <= 0) {
-            return world.setBlockState(pos,Blocks.AIR.getDefaultState(),flags);
+        if(fluid != current) return 0L;
+        final int currentQuanta = (int) getLayers(state,current,null);
+        final int actualLayer = (int) APIMathUtil.clamp(layer,0L,8L-currentQuanta);
+        if(actualLayer == 0L) return 0L;
+        final int flags = BlockFlagModifier.modify(Constants.BlockFlags.DEFAULT,blockFlagsModifier);
+        world.setBlockState(pos, FiniteFlowingVanilla.getFlowingByMaterial(state.getMaterial()).dynamic.getDefaultState().withProperty(LEVEL,8 - currentQuanta - actualLayer), flags);
+        return actualLayer;
+    }
+
+    @Override
+    default IBlockState getLayerState(@Nonnull final IBlockState state,
+                                      @Nonnull final Fluid fluid,
+                                      @Nullable final NBTTagCompound nbt,
+                                      final long layer){
+        final Fluid current = 天圆地方$getFluid();
+        if(fluid == OTCFluids.SNOW && current == FluidRegistry.WATER){ //雪水混合
+            final long quantaWater = getLayers(state, FluidRegistry.WATER, null);
+            if(layer < 0L || layer + quantaWater > 8L) return null;
+            return FluidPhysicsCoreFinite.getSnowWaterMixState((int) layer,(int) quantaWater,state.getBlock() instanceof BlockStaticLiquid);
         }
-        return world.setBlockState(pos, FiniteFlowingVanilla.getFlowingByMaterial(state.getMaterial()).dynamic.getDefaultState().withProperty(LEVEL,8- newLayer), flags);
+        if(fluid != current) return null;
+        if(layer< 0L || layer > 8L) return null;
+        if(layer == 0L) return Blocks.AIR.getDefaultState();
+        return state.withProperty(LEVEL, Math.max( 8- (int) layer, 0));
     }
 
     @Nullable
     @Override
-    default IBlockState getLayerState(@Nonnull IBlockState state, @Nonnull Fluid fluid, int layer){
-        if(fluid == OTCFluids.SNOW && 天圆地方$getFluid() == FluidRegistry.WATER){ //雪水混合
-            int quantaWater = Math.max(8-state.getValue(LEVEL),1);
-            if(layer <0 || layer + quantaWater>8) return null;
-            return FluidPhysicsCoreFinite.getSnowWaterMixState(layer,quantaWater,state.getBlock() instanceof BlockStaticLiquid);
-        }
-        if(fluid != 天圆地方$getFluid()) return null;
-        if(layer<0) return null;
-        if(layer == 0) return Blocks.AIR.getDefaultState();
-        return state.withProperty(LEVEL,Math.max(8- layer,0));
-    }
-
-    @Override
-    default boolean isFull(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nullable Fluid fluid) {
-        if(fluid == OTCFluids.SNOW && 天圆地方$getFluid() == FluidRegistry.WATER) return state.getValue(LEVEL) == 0;
-        if(fluid != null && fluid != 天圆地方$getFluid()) return true;
-        return state.getValue(LEVEL) == 0;
+    default QBFluidStack drainStackInQB(@Nonnull final World world,
+                                        @Nonnull final BlockPos pos,
+                                        @Nonnull final IBlockState state,
+                                        @Nullable final Fluid fluid,
+                                        long amount,
+                                        final boolean doOperate,
+                                        final long pulse,
+                                        @Nullable final IFlowDrainer drainer,
+                                        final long blockFlagsModifier){
+        final Fluid current = 天圆地方$getFluid();
+        if(fluid != null && fluid != current) return null;
+        final long qb = Laminarifers.drainAmountInQB(this,world,pos,state,current,amount,doOperate,pulse,drainer,blockFlagsModifier);
+        return new QBFluidStack(current,qb);
     }
 }

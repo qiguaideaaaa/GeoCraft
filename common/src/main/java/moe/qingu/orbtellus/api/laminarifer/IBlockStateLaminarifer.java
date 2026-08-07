@@ -63,7 +63,8 @@ public interface IBlockStateLaminarifer extends ILaminarifer {
                             @Nonnull final Fluid fluid,
                             @Nullable final NBTTagCompound nbt);
 
-    default boolean canFill(@Nonnull final IBlockState state,
+    default boolean canFill(@Nonnull final World world,
+                            @Nonnull final IBlockState state,
                             @Nullable final EnumFacing side,
                             @Nonnull final Fluid fluid,
                             @Nullable final NBTTagCompound nbt,
@@ -71,7 +72,8 @@ public interface IBlockStateLaminarifer extends ILaminarifer {
         return isAcceptedFluid(state, fluid, nbt) && getLayers(state, fluid, nbt) < getMaxLayers(state, fluid, nbt);
     }
 
-    default boolean canDrain(@Nonnull final IBlockState state,
+    default boolean canDrain(@Nonnull final World world,
+                             @Nonnull final IBlockState state,
                              @Nullable final EnumFacing side,
                              @Nonnull final Fluid fluid,
                              @Nullable final NBTTagCompound nbt,
