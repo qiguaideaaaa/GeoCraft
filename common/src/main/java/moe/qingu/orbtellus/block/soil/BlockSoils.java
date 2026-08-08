@@ -37,9 +37,10 @@ import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
 import moe.qingu.orbtellus.api.util.FluidUtil;
+import moe.qingu.orbtellus.api.util.annotation.MultiThread;
 import moe.qingu.orbtellus.api.util.annotation.ThreadOnly;
 import moe.qingu.orbtellus.api.util.annotation.ThreadType;
-import moe.qingu.orbtellus.api.util.math.FlowChoice;
+import moe.qingu.orbtellus.api.laminarifer.flow.FlowChoice;
 import moe.qingu.orbtellus.api.util.math.vec.MBlockPos;
 import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifiers;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowings;
@@ -47,15 +48,22 @@ import moe.qingu.orbtellus.util.BaseUtil;
 import moe.qingu.orbtellus.util.ChunkUtil;
 import moe.qingu.orbtellus.util.WaterUtil;
 import moe.qingu.orbtellus.util.fluid.FluidOperationUtil;
-import moe.qingu.orbtellus.util.laminarifer.FillLaminariferRequest;
+import moe.qingu.orbtellus.api.laminarifer.request.FillLaminariferRequest;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCauldron;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.init.Items;
+import net.minecraft.init.PotionTypes;
+import net.minecraft.init.SoundEvents;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.potion.PotionUtils;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
@@ -349,5 +357,64 @@ public final class BlockSoils { //unfinished todo
             return laminarifer.canFill(world,$流入位置,$流入位置状态,$流入来向,FluidRegistry.WATER,null,$土壤);
         }
         return false;
+    }
+
+
+    /**
+     * 当玩家右键土壤添加水分的操作
+     * @see BlockCauldron#onBlockActivated(World, BlockPos, IBlockState, EntityPlayer, EnumHand, EnumFacing, float, float, float)
+     */
+    @MultiThread({ThreadType.MINECRAFT_CLIENT,ThreadType.MINECRAFT_SERVER})
+    static boolean onPlayerUseBottle(final @Nonnull IBlockSoil $土壤,
+                                     final @Nonnull World worldIn,
+                                     final @Nonnull BlockPos pos,
+                                     final @Nonnull IBlockState state,
+                                     final @Nonnull EntityPlayer playerIn,
+                                     final @Nonnull EnumHand hand,
+                                     final @Nonnull EnumFacing facing,
+                                     final float hitX,
+                                     final float hitY,
+                                     final float hitZ){
+        final ItemStack stack = playerIn.getHeldItem(hand);
+        if(stack.isEmpty()) return false;
+        final int moisture = (int) $土壤.getLayers(state,FluidRegistry.WATER,null);
+        final Item item = stack.getItem();
+        if(moisture >2) return false;
+        if (item == Items.POTIONITEM && PotionUtils.getPotionFromItem(stack) == PotionTypes.WATER) {
+            if (!playerIn.capabilities.isCreativeMode) {
+                ItemStack bottleStack = new ItemStack(Items.GLASS_BOTTLE);
+                playerIn.setHeldItem(hand, bottleStack);
+
+                if (playerIn instanceof EntityPlayerMP) {
+                    ((EntityPlayerMP)playerIn).sendContainerToPlayer(playerIn.inventoryContainer);
+                }
+            }
+
+            worldIn.playSound(null, pos, SoundEvents.ITEM_BOTTLE_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
+            $土壤.addLayer(worldIn,pos,state,FluidRegistry.WATER,null,2L,true,0L,$土壤,BlockFlagModifiers.KEEP);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 土壤在破坏时掉水的能力
+     */
+    static void dropWaterWhenBroken(final @Nonnull IBlockSoil $土壤,
+                                    final @Nonnull World world,
+                                    final @Nonnull BlockPos pos,
+                                    final @Nonnull IBlockState state){
+        final int humidity = (int) $土壤.getLayers(state,FluidRegistry.WATER,null);
+        if(humidity == 0) return;
+        switch (getCurrentMode().design){
+            case FINITE:{
+                world.setBlockState(pos, Blocks.FLOWING_WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,8-humidity), Constants.BlockFlags.DEFAULT);
+                break;
+            }
+            case CLASSIC: world.spawnParticle(EnumParticleTypes.BLOCK_CRACK,
+                    pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5,
+                    0, 0, 0, Block.getStateId(Blocks.WATER.getDefaultState()));
+            default: break;
+        }
     }
 }

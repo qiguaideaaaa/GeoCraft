@@ -178,8 +178,8 @@ public interface IFluidloggableLaminarifer extends IFluidloggable, ILaminarifer 
                              final long newLayer,
                              final long blockFlagsModifier){
         if(newLayer == 0L){
-            return FluidloggedUtils.setFluidState(world, pos, state,
-                    FluidState.EMPTY,false, BlockFlagModifier.modify(Constants.BlockFlags.DEFAULT,blockFlagsModifier));
+            FluidloggedUtils.setFluidState(world, pos, state, FluidState.EMPTY,false, BlockFlagModifier.modify(Constants.BlockFlags.DEFAULT,blockFlagsModifier));
+            return true;
         } else if(newLayer < 0L) return false;
         else {
             final int quantaPerBlock;
@@ -190,7 +190,8 @@ public interface IFluidloggableLaminarifer extends IFluidloggable, ILaminarifer 
             if(newLayer > quantaPerBlock) return false;
             final boolean isFinite = block instanceof BlockFluidFinite;
             final @Nonnull FluidState newState = isFinite?FluidState.of(fluid).withLevel((int) (newLayer-1)):FluidState.of(fluid).withLevel((int) (quantaPerBlock-newLayer));
-            return FluidloggedUtils.setFluidState(world,pos,state,newState,false, BlockFlagModifier.modify(Constants.BlockFlags.DEFAULT,blockFlagsModifier));
+            FluidloggedUtils.setFluidState(world,pos,state,newState,false, BlockFlagModifier.modify(Constants.BlockFlags.DEFAULT,blockFlagsModifier));
+            return true;
         }
     }
 

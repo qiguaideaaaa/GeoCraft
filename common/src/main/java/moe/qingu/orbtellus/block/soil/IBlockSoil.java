@@ -27,39 +27,24 @@
 
 package moe.qingu.orbtellus.block.soil;
 
-import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
 import moe.qingu.orbtellus.api.laminarifer.AHUnit;
 import moe.qingu.orbtellus.api.laminarifer.IBlockStateLaminarifer;
+import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.laminarifer.drainer.IFlowDrainer;
+import moe.qingu.orbtellus.api.laminarifer.qb.QBFluidStack;
 import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.api.laminarifer.source.FlowSources;
 import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
-import moe.qingu.orbtellus.api.util.annotation.MultiThread;
-import moe.qingu.orbtellus.api.util.annotation.ThreadType;
+import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifier;
 import moe.qingu.orbtellus.geography.soil.BlockSoilType;
 import moe.qingu.orbtellus.util.BaseUtil;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockCauldron;
-import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.init.PotionTypes;
-import net.minecraft.init.SoundEvents;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.potion.PotionUtils;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.Constants.BlockFlags;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 
@@ -67,69 +52,26 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import static moe.qingu.orbtellus.api.block.BlockProperties.HUMIDITY;
-import static moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode.getCurrentMode;
 
 public interface IBlockSoil extends IBlockStateLaminarifer, IFlowSource {
-    /**
-     * 土壤在破坏时掉水的能力
-     */
-    default void dropWaterWhenBroken(World world, BlockPos pos, IBlockState state){
-        int humidity = getLayers(world,pos,state,FluidRegistry.WATER);
-        if(humidity == 0) return;
-        if(getCurrentMode() != FluidPhysicsMode.FINITE){
-            world.spawnParticle(EnumParticleTypes.BLOCK_CRACK,
-                    pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5,
-                    0, 0, 0, Block.getStateId(Blocks.WATER.getDefaultState()));
-            return;
-        }
-        world.setBlockState(pos, Blocks.FLOWING_WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,8-humidity),BlockFlags.DEFAULT);
-    }
-
-    /**
-     * 当玩家右键土壤添加水分的操作
-     * @see BlockCauldron#onBlockActivated(World, BlockPos, IBlockState, EntityPlayer, EnumHand, EnumFacing, float, float, float)
-     */
-    @MultiThread({ThreadType.MINECRAFT_CLIENT,ThreadType.MINECRAFT_SERVER})
-    default boolean onPlayerUseBottle(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ){
-        final ItemStack stack = playerIn.getHeldItem(hand);
-        if(stack.isEmpty()) return false;
-        int moisture = getLayers(worldIn,pos,state,FluidRegistry.WATER);
-        final Item item = stack.getItem();
-        if(moisture >2) return false;
-        if (item == Items.POTIONITEM && PotionUtils.getPotionFromItem(stack) == PotionTypes.WATER) {
-            if (!playerIn.capabilities.isCreativeMode) {
-                ItemStack bottleStack = new ItemStack(Items.GLASS_BOTTLE);
-                playerIn.setHeldItem(hand, bottleStack);
-
-                if (playerIn instanceof EntityPlayerMP) {
-                    ((EntityPlayerMP)playerIn).sendContainerToPlayer(playerIn.inventoryContainer);
-                }
-            }
-
-            worldIn.playSound(null, pos, SoundEvents.ITEM_BOTTLE_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
-            this.addLayer(worldIn,pos,state,FluidRegistry.WATER,2);
-            return true;
-        }
-        return false;
-    }
 
     @Nonnull
-    BlockSoilType getType(@Nonnull IBlockState state);
+    BlockSoilType getType(@Nonnull final IBlockState state);
 
-    default int getMaxStableHumidity(@Nonnull IBlockState state){
+    default int getMaxStableHumidity(@Nonnull final IBlockState state){
         return getType(state).getMaxStableHumidity();
     }
 
-    default double getFlowInPossibility(@Nonnull IBlockState state){
+    default double getFlowInPossibility(@Nonnull final IBlockState state){
         return getType(state).getFlowInPossibility();
     }
 
-    default double getRainInPossibility(@Nonnull IBlockState state){
+    default double getRainInPossibility(@Nonnull final IBlockState state){
         return getType(state).getRainInPossibility();
     }
 
     //******************
-    // ILayeredFluidHost
+    // ILaminarifer
     //******************
 
 
@@ -164,6 +106,20 @@ public interface IBlockSoil extends IBlockStateLaminarifer, IFlowSource {
                              @Nullable final IFlowDrainer drainer) {
         if(fluid != FluidRegistry.WATER) return false;
         return getLayers(state,fluid,nbt)>getMaxStableHumidity(state);
+    }
+
+    @Override
+    default void describeModel(@Nonnull final IBlockState state,
+                               @Nonnull final Fluid fluid,
+                               @Nullable final NBTTagCompound nbt,
+                               @Nonnull final LaminariferModelBuffer buffer) {
+        if(fluid == FluidRegistry.WATER){
+            buffer.maxLayers = 4L;
+            buffer.currentLayers = getLayers(state, fluid, nbt);
+        }
+        buffer.heightPerLayer = AHUnit.FIFTH_FLUID;
+        buffer.emptyHeight = 0L;
+        buffer.amountInQBPerLayer = QBUnit.QUANTA_VOLUME;
     }
 
     @Override
@@ -205,9 +161,40 @@ public interface IBlockSoil extends IBlockStateLaminarifer, IFlowSource {
     }
 
     @Override
+    default boolean setLayer(@Nonnull final World world,
+                             @Nonnull final BlockPos pos,
+                             @Nonnull final IBlockState state,
+                             @Nonnull final Fluid fluid,
+                             @Nullable final NBTTagCompound nbt,
+                             final long newLayer,
+                             final long blockFlagsModifier) {
+        if(fluid != FluidRegistry.WATER) return false;
+        if(newLayer < 0L || newLayer > 4L) return false;
+        world.setBlockState(pos,state.withProperty(HUMIDITY, (int) newLayer), BlockFlagModifier.modify(Constants.BlockFlags.SEND_TO_CLIENTS,blockFlagsModifier));
+        return true;
+    }
+
+    @Override
     default IBlockState getLayerState(@Nonnull final IBlockState state, @Nonnull final Fluid fluid, @Nullable final NBTTagCompound nbt, final long layer){
         if(fluid != FluidRegistry.WATER) return null;
         if(layer < 0L || layer> 4L) return null;
         return state.withProperty(HUMIDITY, (int) layer);
+    }
+
+    @Nullable
+    @Override
+    default QBFluidStack drainStackInQB(@Nonnull final World world,
+                                        @Nonnull final BlockPos pos,
+                                        @Nonnull final IBlockState state,
+                                        @Nullable final Fluid fluid,
+                                        final long amount,
+                                        final boolean doOperate,
+                                        final long pulse,
+                                        @Nullable final IFlowDrainer drainer,
+                                        final long blockFlagsModifier){
+        if(fluid == null || fluid == FluidRegistry.WATER){
+            final long actually = Laminarifers.drainAmountInQB(this,world,pos,state,FluidRegistry.WATER,null,amount,doOperate,pulse,drainer,blockFlagsModifier);
+            return new QBFluidStack(FluidRegistry.WATER,actually);
+        }else return null;
     }
 }

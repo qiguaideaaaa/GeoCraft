@@ -57,12 +57,12 @@ public class BlockSoilGravel extends BlockSoilExtends.Gravel implements IBlockSo
 
     @Override
     public void randomTick(final @Nonnull World worldIn,final @Nonnull BlockPos pos,final @Nonnull IBlockState state,final @Nonnull Random random) {
-        this.onRandomTick(worldIn, pos, state, random);
+        BlockSoils.onSoilTick(this,worldIn, pos, state, random);
     }
 
     @Override
     public void onPlayerDestroy(final @Nonnull World worldIn,final @Nonnull BlockPos pos,final @Nonnull IBlockState state) {
-        dropWaterWhenBroken(worldIn, pos, state);
+        BlockSoils.dropWaterWhenBroken(this,worldIn, pos, state);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class BlockSoilGravel extends BlockSoilExtends.Gravel implements IBlockSo
                                     final float hitX,
                                     final float hitY,
                                     final float hitZ) {
-        return onPlayerUseBottle(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+        return BlockSoils.onPlayerUseBottle(this,worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
     }
 
     //********************

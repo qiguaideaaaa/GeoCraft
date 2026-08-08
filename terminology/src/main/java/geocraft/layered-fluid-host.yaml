@@ -61,7 +61,7 @@
   定义: "平均流动中记录一个可流入方向载流方块元数据的对象。"
   出处:
     - 链: "https://www.mcmod.cn/item/919288.html"
-    - 类: moe.qingu.orbtellus.api.util.math.FlowChoice
+    - 类: moe.qingu.orbtellus.api.laminarifer.flow.FlowChoice
 
 - 中文: "雪"
   英文: "Snow"

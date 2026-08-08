@@ -46,7 +46,7 @@ import moe.qingu.orbtellus.api.util.FluidUtil;
 import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.api.util.annotation.ThreadOnly;
 import moe.qingu.orbtellus.api.util.annotation.ThreadType;
-import moe.qingu.orbtellus.api.util.math.FlowChoice;
+import moe.qingu.orbtellus.api.laminarifer.flow.FlowChoice;
 import moe.qingu.orbtellus.api.util.math.vec.MBlockPos;
 import moe.qingu.orbtellus.configs.FluidPhysicsConfig;
 import moe.qingu.orbtellus.geography.fluidphysics.pressure.FluidPressureSearchManager;

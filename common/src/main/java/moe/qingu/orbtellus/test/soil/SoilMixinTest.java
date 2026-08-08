@@ -68,7 +68,7 @@ public final class SoilMixinTest extends GeoTestItem {
             injectionClsMap.put(Blocks.CLAY, BlockSoilClay.class);
             injectionClsMap.put(Blocks.GRAVEL, BlockSoilGravel.class);
             injectionClsMap.put(Blocks.GRASS_PATH, BlockSoilGrassPath.class);
-            injectionClsMap.put(Blocks.FARMLAND, FluidPhysicsMode.getCurrentMode() == FluidPhysicsMode.FINITE ? BlockSoilFarmland.MoreReality.class: BlockSoilFarmland.class);
+            injectionClsMap.put(Blocks.FARMLAND, FluidPhysicsMode.getCurrentMode() == FluidPhysicsMode.FINITE ? BlockSoilFarmland.Finite.class: BlockSoilFarmland.class);
         }else {
             injectionClsMap.put(Blocks.DIRT, BlockSoilExtends.Dirt.class);
             injectionClsMap.put(Blocks.GRASS, BlockSoilExtends.Grass.class);

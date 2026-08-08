@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.geography.soil;
 
+import moe.qingu.orbtellus.api.util.annotation.EarlyLoaded;
 import moe.qingu.orbtellus.configs.SoilConfig;
 
 import javax.annotation.Nonnull;
@@ -35,7 +36,8 @@ import javax.annotation.Nullable;
 /**
  * @author QiguaiAAAA
  */
-public enum BlockSoilType {
+@EarlyLoaded
+public enum BlockSoilType{
     DIRT("dirt"),
     COARSE_DIRT("coarse_dirt"),
     PODZOL("podzol"),
@@ -45,11 +47,14 @@ public enum BlockSoilType {
     GRAVEL("gravel"),
     FARMLAND("farmland"),
     CLAY("clay");
+
     public final String configName;
+
     private int stableHumidity;
+
     private double flowInP,rainInP;
 
-    BlockSoilType(String configName) {
+    BlockSoilType(final @Nonnull String configName) {
         this.configName = configName;
     }
 

@@ -96,13 +96,13 @@ public class BlockSoilGrass extends BlockSoilExtends.Grass implements IBlockSoil
     public void randomTick(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random random) {
         isRandomTick.set(Boolean.TRUE);
         super.randomTick(worldIn, pos, state, random);
-        this.onRandomTick(worldIn, pos, state, random);
+        BlockSoils.onSoilTick(this,worldIn, pos, state, random);
         isRandomTick.set(Boolean.FALSE);
     }
 
     @Override
     public void onPlayerDestroy(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state) {
-        dropWaterWhenBroken(worldIn, pos, state);
+        BlockSoils.dropWaterWhenBroken(this,worldIn, pos, state);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class BlockSoilGrass extends BlockSoilExtends.Grass implements IBlockSoil
 
     @Override
     public boolean onBlockActivated(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull EntityPlayer playerIn, @Nonnull EnumHand hand, @Nonnull EnumFacing facing, float hitX, float hitY, float hitZ) {
-        return onPlayerUseBottle(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+        return BlockSoils.onPlayerUseBottle(this,worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
     }
 
     //********************

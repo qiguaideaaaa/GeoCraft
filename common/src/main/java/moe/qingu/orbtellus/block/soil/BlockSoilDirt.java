@@ -62,7 +62,7 @@ public class BlockSoilDirt extends BlockSoilExtends.Dirt implements IBlockSoil, 
                            final @Nonnull BlockPos pos,
                            final @Nonnull IBlockState state,
                            final @Nonnull Random random) {
-        this.onRandomTick(worldIn, pos, state, random);
+        BlockSoils.onSoilTick(this,worldIn, pos, state, random);
     }
 
     @Override
@@ -73,7 +73,7 @@ public class BlockSoilDirt extends BlockSoilExtends.Dirt implements IBlockSoil, 
 
     @Override
     public void onPlayerDestroy(final @Nonnull World worldIn,final @Nonnull BlockPos pos,final @Nonnull IBlockState state) {
-        dropWaterWhenBroken(worldIn, pos, state);
+        BlockSoils.dropWaterWhenBroken(this,worldIn, pos, state);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class BlockSoilDirt extends BlockSoilExtends.Dirt implements IBlockSoil, 
                                     final float hitX,
                                     final float hitY,
                                     final float hitZ) {
-        return onPlayerUseBottle(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+        return BlockSoils.onPlayerUseBottle(this,worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
     }
 
     @Override

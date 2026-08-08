@@ -28,6 +28,7 @@
 package moe.qingu.orbtellus.block.finite;
 
 import moe.qingu.orbtellus.api.laminarifer.AHUnit;
+import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.laminarifer.drainer.IFlowDrainer;
 import moe.qingu.orbtellus.api.laminarifer.qb.QBFluidStack;
@@ -69,6 +70,27 @@ public interface ILaminariferFiniteLiquid extends IBlockStateLaminarifer {
                                     @Nonnull final Fluid fluid,
                                     @Nullable final NBTTagCompound nbt){
         return fluid == 天圆地方$getFluid() || fluid == OTCFluids.SNOW;
+    }
+
+    @Override
+    default void describeModel(@Nonnull final IBlockState state,
+                               @Nonnull final Fluid fluid,
+                               @Nullable final NBTTagCompound nbt,
+                               @Nonnull final LaminariferModelBuffer buffer) {
+        final Fluid current = 天圆地方$getFluid();
+        if(fluid == OTCFluids.SNOW && current == FluidRegistry.WATER){
+            buffer.maxLayers = 8 - Math.max(8-state.getValue(LEVEL),1);
+            buffer.currentLayers = 0L;
+        }else if(current == fluid){
+            buffer.maxLayers = 8L;
+            buffer.currentLayers = Math.max(8-state.getValue(LEVEL),1);
+        }else {
+            buffer.maxLayers = 0L;
+            buffer.currentLayers = 0L;
+        }
+        buffer.heightPerLayer = AHUnit.EIGHTH_FLUID;
+        buffer.amountInQBPerLayer = QBUnit.QUANTA_VOLUME;
+        buffer.emptyHeight = 0L;
     }
 
     @Override

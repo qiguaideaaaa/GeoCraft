@@ -25,98 +25,90 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.orbtellus.api.util.math;
+package moe.qingu.orbtellus.api.laminarifer.flow;
 
+import moe.qingu.orbtellus.api.laminarifer.AHUnit;
+import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
-import moe.qingu.orbtellus.api.util.LayeredFluidHostUtil;
 import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author QiguaiAAAA
  */
 public class FlowChoice {
-    public final EnumFacing direction;
-    public final int heightPerLayer, emptyHeight,currentLayers,maxLayers;
-    public final long QBPerLayer;
-    public final ILaminarifer host;
+    public EnumFacing direction;
+    public ILaminarifer laminarifer;
+
+    /// 载流方块模型
+    public LaminariferModelBuffer model;
 
     protected long addedAmountInQB;
-    protected int addedLayers;
+    protected long addedLayers;
 
     /**
-     * 创建一个基于载流方块的流动选择
+     * 变成一个基于载流方块的流动选择
      * @param world 世界
      * @param pos 目标位置
      * @param state 目标方块状态
-     * @param host 目标载流方块
+     * @param laminarifer 目标载流方块
      * @param direction 方向
      * @param fluid 流体
      */
-    public FlowChoice(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state , @Nonnull ILaminarifer host, @Nonnull EnumFacing direction, @Nonnull Fluid fluid) {
+    @Nonnull
+    public final FlowChoice of(@Nonnull final World world,
+                         @Nonnull final BlockPos pos,
+                         @Nonnull final IBlockState state ,
+                         @Nonnull final EnumFacing direction,
+                         @Nonnull final ILaminarifer laminarifer,
+                         @Nonnull final Fluid fluid,
+                         @Nullable final NBTTagCompound nbt) {
         this.direction = direction;
-        this.heightPerLayer = host.getHeightPerLayer(world, pos, state);
-        this.emptyHeight = host.getEmptyHeight(world,pos,state,fluid);
-        this.currentLayers = host.getLayers(world, pos, state, fluid);
-        this.maxLayers = host.getMaxLayers(world, pos, state, fluid);
-        this.QBPerLayer = host.getAmountInQBPerLayer(world, pos, state, fluid);
-        this.host = host;
+        this.laminarifer = laminarifer;
+
+        laminarifer.describeModel(world,pos,state,fluid,nbt,model);
+
+        this.addedAmountInQB = 0L;
+        this.addedLayers = 0L;
+        return this;
     }
 
     /**
-     * 创建一个常见(quantaPerBlock = 8)的流体流入空气或相同流体时的流动选择
+     * 变成一个常见最大层数为 8 的流体流入空气或相同流体时的流动选择
      * @param direction 方向
      * @param currentLayers 当前层数
      */
-    public FlowChoice(@Nonnull EnumFacing direction,int currentLayers){
+    @Nonnull
+    public final FlowChoice of(@Nonnull final EnumFacing direction,final long currentLayers) {
         this.direction = direction;
-        this.heightPerLayer = LayeredFluidHostUtil.EIGHTH_HEIGHT;
-        this.emptyHeight = 0;
-        this.currentLayers = currentLayers;
-        this.maxLayers = 8;
-        this.QBPerLayer = QBUnit.QUANTA_VOLUME;
-        this.host = null;
+        this.laminarifer = null;
+
+        this.model.maxLayers = 8L;
+        this.model.currentLayers = currentLayers;
+        this.model.heightPerLayer = AHUnit.EIGHTH_FLUID;
+        this.model.emptyHeight = 0L;
+        this.model.amountInQBPerLayer = QBUnit.QUANTA_VOLUME;
+
+        this.addedAmountInQB = 0L;
+        this.addedLayers = 0L;
+        return this;
     }
 
     /**
-     * 创建一个流体流入空气或相同流体时的流动选择
-     * @param direction 方向
-     * @param currentLayers 当前层数
-     * @param maxLayers 最大层数
-     * @param QBPerLayer 每层流体量,单位QMU
-     */
-    public FlowChoice(@Nonnull EnumFacing direction,int currentLayers,int maxLayers,long QBPerLayer){
-        this.direction = direction;
-        this.heightPerLayer = LayeredFluidHostUtil.DEFAULT_MAX_HEIGHT/maxLayers;
-        this.emptyHeight = 0;
-        this.currentLayers = currentLayers;
-        this.maxLayers = maxLayers;
-        this.QBPerLayer = QBPerLayer;
-        this.host = null;
-    }
-
-    /**
-     * 创建一个流体流入空气时的流动选择
-     * @param direction 方向
-     * @param maxLayers 最大层数
-     * @param QBPerLayer 每层流体量，单位QMU
-     */
-    public FlowChoice(@Nonnull EnumFacing direction,int maxLayers,long QBPerLayer){
-        this(direction,0,maxLayers, QBPerLayer);
-    }
-
-    /**
-     * 创建一个常见的向空气的流动选择
+     * 变成一个常见最大层数为 8 的流体流入空气的流动选择
      * @param direction 方向
      */
-    public FlowChoice(@Nonnull EnumFacing direction){
-        this(direction,0);
+    @Nonnull
+    public final FlowChoice of(@Nonnull final EnumFacing direction){
+        return of(direction,0L);
     }
 
     /**
@@ -127,7 +119,10 @@ public class FlowChoice {
      * @param fluid 流体
      * @return 剩余未应用的流体量，单位为QB
      */
-    public long apply(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid){
+    public long apply(@Nonnull final World world,
+                      @Nonnull final BlockPos pos,
+                      @Nonnull final IBlockState state,
+                      @Nonnull final Fluid fluid){
         return Math.max(addedAmountInQB-Math.max(host.addAmountInQB(world,pos,state,fluid,addedAmountInQB,true),0),0);
     }
 

@@ -25,7 +25,7 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.orbtellus.util.laminarifer;
+package moe.qingu.orbtellus.api.laminarifer.request;
 
 import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.laminarifer.ImpetusPulse;

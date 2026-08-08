@@ -81,6 +81,17 @@ public interface IBlockStateLaminarifer extends ILaminarifer {
         return getLayers(state, fluid, nbt) != 0;
     }
 
+    default void describeModel(@Nonnull final IBlockState state,
+                               @Nonnull final Fluid fluid,
+                               @Nullable final NBTTagCompound nbt,
+                               @Nonnull final LaminariferModelBuffer buffer){
+        buffer.maxLayers = this.getMaxLayers(state, fluid, nbt);
+        buffer.currentLayers = this.getLayers(state, fluid, nbt);
+        buffer.heightPerLayer = this.getHeightPerLayer(state, fluid, nbt);
+        buffer.emptyHeight = this.getEmptyHeight(state, fluid, nbt);
+        buffer.amountInQBPerLayer = this.getAmountInQBPerLayer(state, fluid, nbt);
+    }
+
     long getMaxLayers(@Nonnull final IBlockState state,
                       @Nonnull final Fluid fluid,
                       @Nullable final NBTTagCompound nbt);
@@ -140,7 +151,7 @@ public interface IBlockStateLaminarifer extends ILaminarifer {
                             @Nonnull final Fluid fluid,
                             @Nullable final NBTTagCompound nbt,
                             @Nullable final IFlowSource source) {
-        return canFill(state, side, fluid, nbt, source);
+        return canFill(world,state, side, fluid, nbt, source);
     }
 
     @Override
@@ -151,7 +162,12 @@ public interface IBlockStateLaminarifer extends ILaminarifer {
                              @Nonnull final Fluid fluid,
                              @Nullable final NBTTagCompound nbt,
                              @Nullable final IFlowDrainer drainer) {
-        return canDrain(state, side, fluid, nbt, drainer);
+        return canDrain(world,state, side, fluid, nbt, drainer);
+    }
+
+    @Override
+    default void describeModel(@Nonnull final World world, @Nonnull final BlockPos pos, @Nonnull final IBlockState state, @Nonnull final Fluid fluid, @Nullable final NBTTagCompound nbt, @Nonnull final LaminariferModelBuffer buffer) {
+        this.describeModel(state, fluid, nbt, buffer);
     }
 
     @Override
@@ -218,7 +234,8 @@ public interface IBlockStateLaminarifer extends ILaminarifer {
                              final long blockFlagsModifier){
         final @Nullable IBlockState newState = getLayerState(state, fluid, nbt, newLayer);
         if(newState == null) return false;
-        return world.setBlockState(pos,newState, BlockFlagModifier.modify(Constants.BlockFlags.DEFAULT,blockFlagsModifier));
+        world.setBlockState(pos,newState, BlockFlagModifier.modify(Constants.BlockFlags.DEFAULT,blockFlagsModifier));
+        return true;
     }
 
     @Override

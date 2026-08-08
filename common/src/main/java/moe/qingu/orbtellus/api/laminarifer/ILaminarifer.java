@@ -118,6 +118,28 @@ public interface ILaminarifer{
                    分层流体承载方块模型
        ========================================= */
 
+    /**
+     * 查询在指定位置的方块状态是给定的属于该载流方块的方块状态时，该方块指定流体的载流方块模型。
+     * @param world  所在世界
+     * @param pos    方块位置
+     * @param state  给定的方块状态，必须要满足与该位置实际的方块状态一致
+     * @param fluid  查询的流体
+     * @param nbt    流体的附加 NBT
+     * @param buffer 载流方块模型输出
+     */
+    default void describeModel(@Nonnull final World world,
+                               @Nonnull final BlockPos pos,
+                               @Nonnull final IBlockState state,
+                               @Nonnull final Fluid fluid,
+                               @Nullable final NBTTagCompound nbt,
+                               final @Nonnull LaminariferModelBuffer buffer){
+        buffer.maxLayers = this.getMaxLayers(world, pos, state, fluid, nbt);
+        buffer.currentLayers = this.getLayers(world, pos, state, fluid, nbt);
+        buffer.heightPerLayer = this.getHeightPerLayer(world, pos, state, fluid, nbt);
+        buffer.emptyHeight = this.getEmptyHeight(world, pos, state, fluid, nbt);
+        buffer.amountInQBPerLayer = this.getAmountInQBPerLayer(world, pos, state, fluid, nbt);
+    }
+
     /// 层状结构的定义
 
     /**
@@ -398,7 +420,7 @@ public interface ILaminarifer{
                                 @Nonnull final BlockPos pos,
                                 @Nonnull final IBlockState state,
                                 @Nullable final Fluid fluid,
-                                long amount,
+                                final long amount,
                                 final boolean doOperate,
                                 final long pulse,
                                 @Nullable final IFlowDrainer drainer,

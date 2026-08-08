@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.block.soil;
 
+import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifier;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFarmland;
 import net.minecraft.block.SoundType;
@@ -37,7 +38,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.FarmlandWaterManager;
 import net.minecraftforge.common.IPlantable;
@@ -45,7 +45,6 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import moe.qingu.orbtellus.api.block.IBlockFalling;
-import moe.qingu.orbtellus.api.util.APIMathUtil;
 import moe.qingu.orbtellus.geography.soil.BlockSoilType;
 
 import javax.annotation.Nonnull;
@@ -70,14 +69,14 @@ public class BlockSoilFarmland extends BlockFarmland implements IBlockSoil, IBlo
     @Override
     public void randomTick(final @Nonnull World worldIn, final @Nonnull BlockPos pos, final @Nonnull IBlockState state, final @Nonnull Random random) {
         isRandomTick.set(Boolean.TRUE);
-        this.onRandomTick(worldIn, pos, state, random);
+        BlockSoils.onSoilTick(this,worldIn, pos, state, random);
         super.randomTick(worldIn, pos, state, random);
         isRandomTick.set(Boolean.FALSE);
     }
 
     @Override
     public void onPlayerDestroy(final @Nonnull World worldIn,final @Nonnull BlockPos pos,final @Nonnull IBlockState state) {
-        dropWaterWhenBroken(worldIn, pos, state);
+        BlockSoils.dropWaterWhenBroken(this,worldIn, pos, state);
     }
 
     @Override
@@ -86,7 +85,7 @@ public class BlockSoilFarmland extends BlockFarmland implements IBlockSoil, IBlo
             updateTickOnRandom(worldIn, pos, state, rand);
             return;
         }
-        if(getLayers(worldIn,pos,state,FluidRegistry.WATER) <= getMaxStableHumidity(state)) return;
+        if(getLayers(state,FluidRegistry.WATER,null) <= getMaxStableHumidity(state)) return;
         if (!worldIn.isRemote) {
             this.checkAndFall(worldIn, pos);
         }
@@ -97,7 +96,7 @@ public class BlockSoilFarmland extends BlockFarmland implements IBlockSoil, IBlo
         super.neighborChanged(state, worldIn, pos, blockIn, fromPos);
         state = worldIn.getBlockState(pos);
         if(state.getBlock() != this) return;
-        if(getLayers(worldIn,pos,state, FluidRegistry.WATER) <= getMaxStableHumidity(state)) return;
+        if(getLayers(state, FluidRegistry.WATER, null) <= getMaxStableHumidity(state)) return;
         worldIn.scheduleUpdate(pos, this, this.tickRate(worldIn));
     }
 
@@ -116,7 +115,7 @@ public class BlockSoilFarmland extends BlockFarmland implements IBlockSoil, IBlo
                                     final float hitX,
                                     final float hitY,
                                     final float hitZ) {
-        return onPlayerUseBottle(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+        return BlockSoils.onPlayerUseBottle(this,worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
     }
 
     /**
@@ -159,49 +158,50 @@ public class BlockSoilFarmland extends BlockFarmland implements IBlockSoil, IBlo
     }
 
     //***********
-    // ILayeredHostBlock
+    // ILaminarifer
     //***********
 
+
     @Override
-    public int getLayers(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nullable Fluid fluid) {
-        if(fluid != null && fluid != FluidRegistry.WATER) return 0;
-        int moisture = state.getValue(MOISTURE);
+    public long getLayers(@Nonnull IBlockState state, @Nonnull Fluid fluid, @Nullable NBTTagCompound nbt) {
+        if(fluid != FluidRegistry.WATER) return 0L;
+        final int moisture = state.getValue(MOISTURE);
         return (moisture+1)>>1;
     }
 
     @Override
-    public int getHeight(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nullable Fluid fluid) {
-        if(fluid == FluidRegistry.WATER || fluid == null) return getHeightPerLayer(world,pos,state)* getLayers(world,pos,state,fluid);
-        return 0;
-    }
-
-    @Override
-    public boolean setLayer(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid, int newLayer, @Nullable NBTTagCompound nbt, final int disabledBlockFlags, final int enabledBlockFlags) {
+    public boolean setLayer(@Nonnull final World world,
+                            @Nonnull final BlockPos pos,
+                            @Nonnull final IBlockState state,
+                            @Nonnull final Fluid fluid,
+                            @Nullable final NBTTagCompound nbt,
+                            final long newLayer,
+                            final long blockFlagsModifier) {
         if(fluid != FluidRegistry.WATER) return false;
-        newLayer = MathHelper.clamp(newLayer,0,4);
-        int moisture = newLayer == 0?0: newLayer *2-1;
-        return world.setBlockState(pos,state.withProperty(MOISTURE,moisture), APIMathUtil.getModifiedFlag(Constants.BlockFlags.DEFAULT,disabledBlockFlags,enabledBlockFlags));
+        if(newLayer <0L || newLayer>4L) return false;
+        final int moisture = (int) (newLayer == 0L ? 0L: (newLayer<<1)-1L);
+        world.setBlockState(pos,state.withProperty(MOISTURE,moisture), BlockFlagModifier.modify(Constants.BlockFlags.DEFAULT,blockFlagsModifier));
+        return true;
     }
 
-    @Nullable
     @Override
-    public IBlockState getLayerState(@Nonnull IBlockState state, @Nonnull Fluid fluid, int layer) {
+    public IBlockState getLayerState(@Nonnull final IBlockState state,
+                                     @Nonnull final Fluid fluid,
+                                     @Nullable final NBTTagCompound nbt,
+                                     final long layer) {
         if(fluid != FluidRegistry.WATER) return null;
-        if(layer <0 || layer >4) return null;
-        int moisture = layer == 0?0: layer *2-1;
+        if(layer <0L || layer > 4L) return null;
+        final int moisture = (int) (layer == 0L?0L: (layer<<1)-1L);
         return state.withProperty(MOISTURE,moisture);
     }
 
-    @Override
-    public boolean isFull(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nullable Fluid fluid) {
-        if(fluid != FluidRegistry.WATER) return true;
-        return state.getValue(MOISTURE) >= 7;
-    }
-
-    public static class MoreReality extends BlockSoilFarmland{
+    public static class Finite extends BlockSoilFarmland{
 
         @Override
-        protected void updateTickOnRandom(@Nonnull World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random random) {
+        protected void updateTickOnRandom(@Nonnull final World worldIn,
+                                          @Nonnull final BlockPos pos,
+                                          @Nonnull final IBlockState state,
+                                          @Nonnull final Random random) {
             int moisture = state.getValue(MOISTURE);
 
             if(moisture>0) return;

@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Test;
 
 import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
-import moe.qingu.orbtellus.api.util.math.FlowChoice;
+import moe.qingu.orbtellus.api.laminarifer.flow.FlowChoice;
 import 清汩萌.天圆地方.天圆地方测试;
 import 清汩萌.天圆地方.原料.流体原料;
 

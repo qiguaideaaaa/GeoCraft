@@ -51,7 +51,7 @@ public final class BlockSoilExtends {
 
         @Nonnull
         @Override
-        public IBlockState getStateFromMeta(final int meta) {
+        public final IBlockState getStateFromMeta(final int meta) {
             if(meta>=5) return this.getDefaultState();
             return this.getDefaultState().withProperty(HUMIDITY,meta);
         }
@@ -63,7 +63,7 @@ public final class BlockSoilExtends {
 
         @Nonnull
         @Override
-        protected BlockStateContainer createBlockState() {
+        protected final BlockStateContainer createBlockState() {
             return new BlockStateContainer(this,HUMIDITY);
         }
     }
@@ -84,7 +84,7 @@ public final class BlockSoilExtends {
 
         @Nonnull
         @Override
-        public IBlockState getStateFromMeta(final int meta) {
+        public final IBlockState getStateFromMeta(final int meta) {
             return this.getDefaultState()
                     .withProperty(VARIANT, BlockDirt.DirtType.byMetadata(meta%3))
                     .withProperty(HUMIDITY,Math.min(meta/3,4));
@@ -92,7 +92,7 @@ public final class BlockSoilExtends {
 
         @Nonnull
         @Override
-        protected BlockStateContainer createBlockState() {
+        protected final BlockStateContainer createBlockState() {
             return new BlockStateContainer(this, VARIANT, SNOWY, HUMIDITY);
         }
     }
@@ -108,14 +108,14 @@ public final class BlockSoilExtends {
 
         @Nonnull
         @Override
-        public IBlockState getStateFromMeta(int meta) {
+        public final IBlockState getStateFromMeta(int meta) {
             if(meta>4) return this.getDefaultState();
             return this.getDefaultState().withProperty(HUMIDITY,meta);
         }
 
         @Nonnull
         @Override
-        protected BlockStateContainer createBlockState() {
+        protected final BlockStateContainer createBlockState() {
             return new BlockStateContainer(this, SNOWY, HUMIDITY);
         }
     }
@@ -130,7 +130,7 @@ public final class BlockSoilExtends {
 
         @Nonnull
         @Override
-        public IBlockState getStateFromMeta(final int meta) {
+        public final IBlockState getStateFromMeta(final int meta) {
             if(meta>4) return getDefaultState();
             return this.getDefaultState().withProperty(HUMIDITY,meta);
         }
@@ -142,7 +142,7 @@ public final class BlockSoilExtends {
 
         @Nonnull
         @Override
-        protected BlockStateContainer createBlockState() {
+        protected final BlockStateContainer createBlockState() {
             return new BlockStateContainer(this,HUMIDITY);
         }
     }
@@ -156,7 +156,7 @@ public final class BlockSoilExtends {
 
         @Nonnull
         @Override
-        public IBlockState getStateFromMeta(final int meta) {
+        public final IBlockState getStateFromMeta(final int meta) {
             if(meta>=5) return this.getDefaultState();
             return this.getDefaultState().withProperty(HUMIDITY,meta);
         }
@@ -168,7 +168,7 @@ public final class BlockSoilExtends {
 
         @Nonnull
         @Override
-        protected BlockStateContainer createBlockState() {
+        protected final BlockStateContainer createBlockState() {
             return new BlockStateContainer(this,HUMIDITY);
         }
     }
@@ -182,14 +182,14 @@ public final class BlockSoilExtends {
 
         @Nonnull
         @Override
-        public IBlockState getStateFromMeta(int meta) {
+        public final IBlockState getStateFromMeta(int meta) {
             if(meta>=10) return this.getDefaultState();
             return this.getDefaultState().withProperty(VARIANT,BlockSand.EnumType.byMetadata(meta%2)).withProperty(HUMIDITY,meta/2);
         }
 
         @Nonnull
         @Override
-        protected BlockStateContainer createBlockState() {
+        protected final BlockStateContainer createBlockState() {
             return new BlockStateContainer(this, VARIANT,HUMIDITY);
         }
     }
