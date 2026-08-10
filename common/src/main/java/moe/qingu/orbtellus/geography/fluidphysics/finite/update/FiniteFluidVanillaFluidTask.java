@@ -29,6 +29,7 @@ package moe.qingu.orbtellus.geography.fluidphysics.finite.update;
 
 import moe.qingu.orbtellus.api.laminarifer.AHUnit;
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
+import moe.qingu.orbtellus.api.laminarifer.flow.AverageFlow;
 import moe.qingu.orbtellus.api.world.tick.scheduler.BlockTickScheduler;
 import moe.qingu.orbtellus.geography.fluidphysics.AbstractFluidTask;
 import net.minecraft.block.Block;
@@ -81,8 +82,16 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
     private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) EnumFacing[] bestFlowDirectionsArr = new EnumFacing[4];
     private static final @Nonnull IBlockState AIR_DEFAULT_STATE = Blocks.AIR.getDefaultState();
     private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) MBlockPos facingPos$mut = new MBlockPos();
+    private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) AverageFlow averageFlow = new AverageFlow();
     public final @Nonnull Fluid fluid;
     public final @Nonnull FiniteFlowingVanilla flowing;
+
+    static {
+        averageFlow.centralModel.amountInQBPerLayer = QBUnit.QUANTA_VOLUME;
+        averageFlow.centralModel.heightPerLayer = AHUnit.EIGHTH_FLUID;
+        averageFlow.centralModel.maxLayers = 8L;
+        averageFlow.centralModel.emptyHeight = 0L;
+    }
 
     public FiniteFluidVanillaFluidTask(@Nonnull final FiniteFlowingVanilla flowing) {
         this.flowing = flowing;
@@ -195,7 +204,7 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
 
         if(!averageFlowChoices.isEmpty()){
             // *******************
-            //  Average Flow
+            //  Average Flow  // todo: Update here
             // *******************
             int newLiquidQuanta = Laminarifers.averageFlow(liquidQuanta,
                     AHUnit.EIGHTH_FLUID,

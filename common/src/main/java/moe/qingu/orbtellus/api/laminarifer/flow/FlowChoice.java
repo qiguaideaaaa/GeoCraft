@@ -29,6 +29,7 @@ package moe.qingu.orbtellus.api.laminarifer.flow;
 
 import moe.qingu.orbtellus.api.laminarifer.AHUnit;
 import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
+import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
@@ -42,11 +43,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * @author QiguaiAAAA
+ * 一个流动选择，用于平均流动 {@link AverageFlow}
+ * @author QGMoe
  */
 public class FlowChoice {
     public EnumFacing direction;
     public ILaminarifer laminarifer;
+    public IBlockState state;
 
     /// 载流方块模型
     public LaminariferModelBuffer model;
@@ -76,6 +79,7 @@ public class FlowChoice {
 
         laminarifer.describeModel(world,pos,state,fluid,nbt,model);
 
+        this.state = state;
         this.extraAmountInQB = this.addedLayers = 0L;
         return this;
     }
@@ -89,6 +93,7 @@ public class FlowChoice {
     public final FlowChoice of(@Nonnull final EnumFacing direction,final long currentLayers) {
         this.direction = direction;
         this.laminarifer = null;
+        this.state = null;
 
         this.model.maxLayers = 8L;
         this.model.currentLayers = currentLayers;
@@ -113,30 +118,33 @@ public class FlowChoice {
      * 将该流动选择应用到具体世界中
      * @param world 所在世界
      * @param pos 应用的位置
-     * @param state 对应的方块状态
      * @param fluid 流体
      * @return 剩余未应用的流体量，单位为QB
      */
-    public long apply(@Nonnull final World world,
+    public final long apply(@Nonnull final World world,
                       @Nonnull final BlockPos pos,
-                      @Nonnull final IBlockState state,
-                      @Nonnull final Fluid fluid){
-        return Math.max(getAddedAmountInQB()-Math.max(host.addAmountInQB(world,pos,state,fluid,addedAmountInQB,true),0),0); //todo: 迁移旧代码
+                      @Nonnull final Fluid fluid,
+                      @Nullable final NBTTagCompound tag,
+                      final long pulse,
+                      @Nullable final IFlowSource source,
+                      final long blockFlagModifier){
+        if(extraAmountInQB > 0L && world.rand.nextDouble() < (double) extraAmountInQB/model.amountInQBPerLayer) this.addedLayers++;
+        return laminarifer.addLayer(world, pos, state, fluid, tag, addedLayers, true, pulse, source, blockFlagModifier)* model.amountInQBPerLayer;
     }
 
-    public boolean isAir(){
+    public final boolean isAir(){
         return laminarifer == null;
     }
 
-    public long getAddedAmountInQB() {
+    public final long getAddedAmountInQB() {
         return addedLayers*model.amountInQBPerLayer;
     }
 
-    public long getNewLayers(){
+    public final long getNewLayers(){
         return addedLayers+model.currentLayers;
     }
 
-    public long getNewHeight(){
+    public final long getNewHeight(){
         return model.getHeight()+model.heightPerLayer*addedLayers;
     }
 }

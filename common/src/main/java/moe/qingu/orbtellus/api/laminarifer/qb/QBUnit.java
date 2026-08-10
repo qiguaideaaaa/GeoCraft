@@ -32,6 +32,9 @@ import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongLists;
 import net.minecraftforge.fluids.Fluid;
 
+import javax.annotation.Nonnull;
+import java.util.Random;
+
 /**
  * @since 0.2.0
  * @author QiguaiAAAA
@@ -56,8 +59,15 @@ public final class QBUnit {
         return (int) (QB/MB_VOLUME);
     }
 
-    public static int toQuanta(long QB){
+    public static int toQuanta(final long QB){
         return (int) (QB/QUANTA_VOLUME);
+    }
+
+    public static int toAverageQuanta(final long QB, final @Nonnull Random rand){
+        final int quanta = (int) (QB/QUANTA_VOLUME);
+        final long extra = QB % QUANTA_VOLUME;
+        if (extra > 0L && rand.nextDouble() < (double) extra / QUANTA_VOLUME) return quanta+1;
+        return quanta;
     }
 
     public static double toPreciseQuanta(long QB){

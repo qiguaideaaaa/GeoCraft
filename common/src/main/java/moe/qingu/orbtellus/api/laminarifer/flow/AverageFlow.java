@@ -27,24 +27,87 @@
 
 package moe.qingu.orbtellus.api.laminarifer.flow;
 
+import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
+import moe.qingu.orbtellus.api.laminarifer.ImpetusPulse;
 import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
+import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
 import moe.qingu.orbtellus.api.util.APIMathUtil;
+import moe.qingu.orbtellus.api.util.math.vec.MBlockPos;
+import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifiers;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.minecraftforge.fluids.Fluid;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * @author QGMoe
  */
-public class AverageFlow {
+public class AverageFlow implements AutoCloseable, Iterator<FlowChoice> {
     static final long _多余流体量分配给粗粒度流动选择忍受度_ = 2L; //todo: 改成可配置项
+    protected final MBlockPos mPos = new MBlockPos();
     public LaminariferModelBuffer centralModel;
 
+    protected World world;
+    protected BlockPos pos;
+    protected Fluid fluid;
+    protected @Nullable NBTTagCompound fluidTag;
+    protected long pulse;
+    protected IFlowSource source;
+    protected long blockFlagModifier;
+
     protected long minLayers;
-    protected FlowChoice[] choices = new FlowChoice[4];
+    protected FlowChoice[] choices = new FlowChoice[]{new FlowChoice(),new FlowChoice(),new FlowChoice(),new FlowChoice()};
     protected int choicesCot;
+    protected int iteratorIndex;
 
     public long finalLayers;
     public long extraAmountInQB;
+
+    @Nonnull
+    public final AverageFlow at(final @Nonnull World world,final @Nonnull BlockPos pos){
+        this.world = world;
+        this.pos = pos;
+        return this;
+    }
+
+    @Nonnull
+    public final AverageFlow fluid(final @Nonnull Fluid fluid){
+        this.fluid = fluid;
+        this.fluidTag = null;
+        return this;
+    }
+
+    @Nonnull
+    public final AverageFlow fluid(final @Nonnull Fluid fluid,final @Nullable NBTTagCompound tag){
+        this.fluid = fluid;
+        this.fluidTag = tag;
+        return this;
+    }
+
+    @Nonnull
+    public final AverageFlow impetus(final float pressure, final float time){
+        this.pulse = ImpetusPulse.of(pressure, time);
+        return this;
+    }
+
+    @Nonnull
+    public final AverageFlow source(final @Nullable IFlowSource source){
+        this.source = source;
+        return this;
+    }
+
+    @Nonnull
+    public final AverageFlow blockFlagModifier(final long blockFlagModifier){
+        this.blockFlagModifier = blockFlagModifier;
+        return this;
+    }
 
     @Nonnull
     public final AverageFlow minLayers(final long min){
@@ -52,7 +115,93 @@ public class AverageFlow {
         return this;
     }
 
-    //todo: 需要外部传入参数的方法
+    /**
+     * 新增一个基于载流方块的流动选择
+     * @param side 方向
+     * @param stateAtThisSide 该方向对应的方块状态
+     * @param laminariferAtThisSide 该方向对应的载流方块
+     * @return 新增的流动选择
+     */
+    @Nonnull
+    public final FlowChoice addChoice(final @Nonnull EnumFacing side,
+                                       final @Nonnull IBlockState stateAtThisSide,
+                                       final @Nonnull ILaminarifer laminariferAtThisSide){
+        return choices[choicesCot++].of(world,mPos.setPos(pos).offsetM(side),stateAtThisSide,side,laminariferAtThisSide,fluid,fluidTag);
+    }
+
+    /**
+     * 新增一个基于载流方块的流动选择
+     * @param side 方向
+     * @param stateAtThisSide 该方向对应的方块状态
+     * @return 新增的流动选择
+     */
+    @Nonnull
+    public final FlowChoice addChoice(final @Nonnull EnumFacing side, final @Nonnull IBlockState stateAtThisSide){
+        return choices[choicesCot++].of(world,mPos.setPos(pos).offsetM(side),stateAtThisSide,side,(ILaminarifer) stateAtThisSide.getBlock(),fluid,fluidTag);
+    }
+
+    /**
+     * 新增一个空气的流动选择
+     * @param side 方向
+     * @return 新增的流动选择
+     */
+    @Nonnull
+    public final FlowChoice addAirChoice(final @Nonnull EnumFacing side){
+        return choices[choicesCot++].of(side);
+    }
+
+    public final boolean isLastChoiceAvailable(){
+        final FlowChoice choice = choices[choicesCot-1];
+        try {
+            if(choice.model.isFull()) return false;
+            if(!choice.laminarifer.canFill(world,mPos.setPos(pos).offsetM(choice.direction), choice.state, choice.direction, fluid, fluidTag, source)) return false;
+            choice.addedLayers = 1L;
+            return choice.getNewHeight() <= centralModel.getHeight() - centralModel.heightPerLayer;
+        }finally {
+            choice.addedLayers = 0L;
+        }
+    }
+
+    @Nonnull
+    public final FlowChoice removeLastChoice(){
+        return choices[choicesCot--];
+    }
+
+    // ------- AutoClosable 重置状态 -------
+
+    @Override
+    public final void close(){
+        this.world = null;
+        this.pos = null;
+        this.fluid = null;
+        this.fluidTag = null;
+        this.pulse = 0L;
+        this.source = null;
+        this.blockFlagModifier = BlockFlagModifiers.KEEP;
+        this.choicesCot = 0;
+        this.iteratorIndex = 0;
+    }
+
+    // 迭代器 Iterator
+
+    @Override
+    public final boolean hasNext() {
+        return iteratorIndex < choicesCot;
+    }
+
+    @Override
+    @Nonnull
+    public final FlowChoice next() {
+        if(!hasNext()) throw new NoSuchElementException();
+        return choices[iteratorIndex++];
+    }
+
+    public final long applyCurrentChoice(){
+        final FlowChoice choice = choices[iteratorIndex-1];
+        return choice.apply(world,mPos.setPos(pos).offsetM(choice.direction),fluid,fluidTag,pulse,source,blockFlagModifier);
+    }
+
+    // 核心求解算法
 
     public final void resolve() {
         if (minLayers >= centralModel.currentLayers || choicesCot <= 0) { // 没有任何需要计算的东西
@@ -61,6 +210,23 @@ public class AverageFlow {
         }
 
         // 先进行最基础的扫描，用于之后分流判断
+        final long $最大搬运次数 = 计算最大搬运次数();
+
+        // 根据规模大小分流，小规模用朴素算法更快
+        final long $消耗流体量;
+        if ($最大搬运次数 <= 32L) $消耗流体量 = 逐层分配算法();
+        else $消耗流体量 = 双二分分配算法();
+
+        final long $中心剩余流体量 = centralModel.getAmountInQB() - $消耗流体量;
+        this.finalLayers = $中心剩余流体量 / centralModel.amountInQBPerLayer;
+        long $多余流体量 = $中心剩余流体量 % centralModel.amountInQBPerLayer;
+
+        // 尝试将多余流体量概率性地分配出去
+        if ($多余流体量 > 0L) $多余流体量 = 分配多余流体量($多余流体量);
+        extraAmountInQB = $多余流体量; //分配不出去的多余量记在中心
+    }
+
+    protected final long 计算最大搬运次数() {
         long $假设一层一层搬抬高邻居需要的次数上限 = 0L;
         long $邻居最小每层流体量 = Long.MAX_VALUE;
         for (int i=0;i<choicesCot;i++) {
@@ -73,23 +239,9 @@ public class AverageFlow {
             $邻居最小每层流体量 = Math.min($邻居最小每层流体量, $邻居模型.amountInQBPerLayer);
         }
 
-        // 根据规模大小分流，小规模用朴素算法更快
         final long $中心最大可消费层数 = centralModel.currentLayers - minLayers;
-        final long $最大搬运次数 = Math.min($假设一层一层搬抬高邻居需要的次数上限, 
-                $中心最大可消费层数 * centralModel.amountInQBPerLayer / $邻居最小每层流体量); //将中心全部分配到每层流体量最小的流动选择这种最坏情况下要抬多少次 
-
-        final long $消耗流体量;
-        if ($最大搬运次数 <= 32L) $消耗流体量 = 逐层分配算法();
-        else $消耗流体量 = 双二分分配算法();
-
-
-        final long $中心剩余流体量 = centralModel.getAmountInQB() - $消耗流体量;
-        this.finalLayers = $中心剩余流体量 / centralModel.amountInQBPerLayer;
-        long $多余流体量 = $中心剩余流体量 % centralModel.amountInQBPerLayer;
-
-        // 尝试将多余流体量概率性地分配出去
-        if ($多余流体量 > 0L) $多余流体量 = 分配多余流体量($多余流体量);
-        extraAmountInQB = $多余流体量; //分配不出去的多余量记在中心
+        return Math.min($假设一层一层搬抬高邻居需要的次数上限,
+                $中心最大可消费层数 * centralModel.amountInQBPerLayer / $邻居最小每层流体量); //将中心全部分配到每层流体量最小的流动选择这种最坏情况下要抬多少次
     }
 
     /**
@@ -105,7 +257,7 @@ public class AverageFlow {
             final FlowChoice $流动选择 = choices[i];
             final LaminariferModelBuffer model = $流动选择.model;
             if ($流动选择.getNewLayers() >= model.maxLayers) continue;
-            if ($流动选择.getNewHeight() + model.maxLayers > finalLayers * centralModel.heightPerLayer + centralModel.emptyHeight)
+            if ($流动选择.getNewHeight() + model.heightPerLayer > finalLayers * centralModel.heightPerLayer + centralModel.emptyHeight)
                 continue; //保证分配出去的概率层高度也不超过中心最终高度
             if (model.amountInQBPerLayer <= $多余流体量) continue; //每层流体量过小，概率会大于 1。由于一些复杂的数学因素，单次分配后可能出现这种非最佳分配。
             if (model.amountInQBPerLayer > _多余流体量分配给粗粒度流动选择忍受度_ * centralModel.amountInQBPerLayer) continue; //避免每层流体量过大，导致流体流动过程中系统总流体量震动方差变大
@@ -164,7 +316,7 @@ public class AverageFlow {
      * 对于后者，进行进一步二分高度，批量分配，并在无法批量分配的时候退回朴素算法
      * @return 中心消耗的流体量
      */
-    protected long 双二分分配算法() {
+    protected final long 双二分分配算法() {
         final long $需求恰大于等于预算的层数 = 计算需求恰大于等于预算的终态中心层数();
         final long $预算恰大于等于需求候选的中心高度 = centralModel.emptyHeight + ($需求恰大于等于预算的层数 - 1L) * centralModel.heightPerLayer;
         final long $预算恰大于等于需求候选的实际消耗流体量 = $需求恰大于等于预算的层数 - 1L < minLayers ? Long.MIN_VALUE : 计算在指定高度限制下邻居的总需求流体量($预算恰大于等于需求候选的中心高度);

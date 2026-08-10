@@ -66,6 +66,7 @@ public final class Laminarifers {
      * @param choices 四周的流动选择
      * @return 中心剩下的层数
      */
+    @Deprecated
     public static int averageFlow(long centralLayers,
                                   final long heightPerLayer,
                                   final long QBPerLayer,

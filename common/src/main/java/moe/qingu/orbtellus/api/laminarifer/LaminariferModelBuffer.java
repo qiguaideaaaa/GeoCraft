@@ -39,6 +39,10 @@ public class LaminariferModelBuffer {
 
     public long amountInQBPerLayer;
 
+    public final boolean isFull(){
+        return currentLayers >= maxLayers;
+    }
+
     public final long getMaxHeight(){
         return emptyHeight + maxLayers * heightPerLayer;
     }
