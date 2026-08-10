@@ -51,8 +51,8 @@ public class FlowChoice {
     /// 载流方块模型
     public LaminariferModelBuffer model;
 
-    protected long addedAmountInQB;
     protected long addedLayers;
+    protected long extraAmountInQB;
 
     /**
      * 变成一个基于载流方块的流动选择
@@ -76,8 +76,7 @@ public class FlowChoice {
 
         laminarifer.describeModel(world,pos,state,fluid,nbt,model);
 
-        this.addedAmountInQB = 0L;
-        this.addedLayers = 0L;
+        this.extraAmountInQB = this.addedLayers = 0L;
         return this;
     }
 
@@ -97,8 +96,7 @@ public class FlowChoice {
         this.model.emptyHeight = 0L;
         this.model.amountInQBPerLayer = QBUnit.QUANTA_VOLUME;
 
-        this.addedAmountInQB = 0L;
-        this.addedLayers = 0L;
+        this.extraAmountInQB = this.addedLayers = 0L;
         return this;
     }
 
@@ -123,39 +121,22 @@ public class FlowChoice {
                       @Nonnull final BlockPos pos,
                       @Nonnull final IBlockState state,
                       @Nonnull final Fluid fluid){
-        return Math.max(addedAmountInQB-Math.max(host.addAmountInQB(world,pos,state,fluid,addedAmountInQB,true),0),0);
-    }
-
-    public void addAmountInQB(long amount){
-        addedAmountInQB += amount;
-        addedLayers = (int) (addedAmountInQB / QBPerLayer);
-    }
-
-    public boolean isFull(){
-        return currentLayers + addedLayers >= maxLayers;
+        return Math.max(getAddedAmountInQB()-Math.max(host.addAmountInQB(world,pos,state,fluid,addedAmountInQB,true),0),0); //todo: 迁移旧代码
     }
 
     public boolean isAir(){
-        return host == null;
-    }
-
-    public int getAddedLayers() {
-        return addedLayers;
+        return laminarifer == null;
     }
 
     public long getAddedAmountInQB() {
-        return addedAmountInQB;
+        return addedLayers*model.amountInQBPerLayer;
     }
 
-    public int getNewLayers(){
-        return addedLayers+currentLayers;
+    public long getNewLayers(){
+        return addedLayers+model.currentLayers;
     }
 
-    public int getHeight(){
-        return emptyHeight+heightPerLayer*(currentLayers+addedLayers);
-    }
-
-    public int getNextLayerHeight(){
-        return emptyHeight+heightPerLayer*(currentLayers+addedLayers+1);
+    public long getNewHeight(){
+        return model.getHeight()+model.heightPerLayer*addedLayers;
     }
 }
