@@ -27,6 +27,7 @@
 
 package 清汩萌.天圆地方.测试.流体物理.有限;
 
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
@@ -34,7 +35,6 @@ import net.minecraftforge.fluids.FluidStack;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import moe.qingu.orbtellus.api.util.FluidUtil;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
 import moe.qingu.orbtellus.util.wrappers.FiniteBlockLiquidWrapper;
 import 清汩萌.天圆地方.util.网格工具;
@@ -98,7 +98,7 @@ public final class 流体放置 extends 有限模式测试 {
         final @Nonnull FiniteFlowingVanilla flowing = getFlowingByMaterial(state.getMaterial());
         final @Nonnull FiniteBlockLiquidWrapper wrapper = new FiniteBlockLiquidWrapper(flowing,world,placePos);
         final int quanta = 8- state.getValue(BlockLiquid.LEVEL);
-        final int amount = quanta* FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
+        final int amount = quanta* MillibucketUnit.QUANTA_VOLUME_INT;
         final int filledAmount = wrapper.fill(new FluidStack(flowing.fluid,amount),true);
         天圆地方测试.LOGGER.info("Input Amount: {} mB, Filled Amount: {} mB",amount,filledAmount);
         Assertions.assertEquals(expectedAbleToPlace,filledAmount==amount);

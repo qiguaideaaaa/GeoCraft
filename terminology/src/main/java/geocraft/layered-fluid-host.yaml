@@ -34,7 +34,7 @@
   定义: "用于载流方块底层的高精度流体单位，符号 QB，1 B = 72072000 QB。"
   出处:
     - 链: "https://www.mcmod.cn/item/895382.html"
-    - 类: moe.qingu.orbtellus.api.laminarifer.qb.QBUnit
+    - 类: moe.qingu.orbtellus.api.fluid.unit.QBUnit
 
 - 中文: "每方块最大层数"
   英文: "Quanta Per Block"

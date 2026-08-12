@@ -30,14 +30,14 @@ package moe.qingu.orbtellus.block.soil;
 import moe.qingu.orbtellus.api.atmosphere.AtmosphereSystemManager;
 import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
 import moe.qingu.orbtellus.api.fluid.StateOfMatter;
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsDesign;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
 import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.laminarifer.flow.AverageFlow;
-import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
+import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
-import moe.qingu.orbtellus.api.util.FluidUtil;
 import moe.qingu.orbtellus.api.util.annotation.MultiThread;
 import moe.qingu.orbtellus.api.util.annotation.ThreadOnly;
 import moe.qingu.orbtellus.api.util.annotation.ThreadType;
@@ -237,7 +237,8 @@ public final class BlockSoils { //unfinished todo
                 }
             }
             if(!$平均流动.hasNext()) break averageFlow;
-            $平均流动.minLayers($土壤.getMaxStableHumidity(state));
+            $平均流动.minLayers($土壤.getMaxStableHumidity(state))
+                    .resolve();
             if($平均流动.finalLayers == humidity) break averageFlow;
             long left = $平均流动.extraAmountInQB;
             while ($平均流动.hasNext()) {
@@ -248,7 +249,7 @@ public final class BlockSoils { //unfinished todo
                     world.setBlockState(mutablePos,Blocks.FLOWING_WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,8-(int) choice.getNewLayers()));
                 }else left += $平均流动.applyCurrentChoice();
             }
-            $土壤.setLayer(world,pos,state,FluidRegistry.WATER, null, $平均流动.finalLayers + QBUnit.toAverageQuanta(left,world.rand), BlockFlagModifiers.KEEP);
+            $土壤.setLayer(world,pos,state,FluidRegistry.WATER, null, $平均流动.finalLayers + QBUnit.sampleQuantaAsInt(world.rand, left), BlockFlagModifiers.KEEP);
         }
     }
 
@@ -290,7 +291,7 @@ public final class BlockSoils { //unfinished todo
             if(!BaseUtil.getRandomResult(random,basePossibility)) return 0;
 
             accessor.drainHeatFromUnderlying(AtmosphereUtil.Constants.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA);
-            accessor.fillFluidToAtmosphere(FluidRegistry.WATER, FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME, StateOfMatter.GAS,accessor.getTemperature(true),true);
+            accessor.fillFluidToAtmosphere(FluidRegistry.WATER, MillibucketUnit.QUANTA_VOLUME_INT, StateOfMatter.GAS,accessor.getTemperature(true),true);
             return -1;
         }
     }

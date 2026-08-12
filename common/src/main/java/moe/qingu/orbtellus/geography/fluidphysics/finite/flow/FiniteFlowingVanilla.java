@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.geography.fluidphysics.finite.flow;
 
+import moe.qingu.orbtellus.api.fluid.unit.QuantaUnit;
 import moe.qingu.orbtellus.api.world.tick.scheduler.BlockTickScheduler;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
@@ -41,7 +42,6 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.IFluidBlock;
 import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.util.FluidUtil;
-import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.api.util.annotation.ThreadOnly;
 import moe.qingu.orbtellus.api.util.annotation.ThreadType;
 import moe.qingu.orbtellus.api.laminarifer.flow.FlowChoice;
@@ -259,7 +259,7 @@ public final class FiniteFlowingVanilla extends VanillaFlowingVanilla {
         if(downState.getBlock() instanceof ILaminarifer){
             final @Nonnull ILaminarifer host = (ILaminarifer) downState.getBlock();
             if(!host.canFill(world,downPos,downState, fluid,EnumFacing.UP,fromState)) return false;
-            return host.addAmountInQB(world,downPos,downState,fluid, QBUnit.toQBFromQuanta(curQuanta),false)>0;
+            return host.addAmountInQB(world,downPos,downState,fluid, QuantaUnit.toQB(curQuanta),false)>0;
         }
         return false;
     }

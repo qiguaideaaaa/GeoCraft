@@ -37,7 +37,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
-import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
+import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

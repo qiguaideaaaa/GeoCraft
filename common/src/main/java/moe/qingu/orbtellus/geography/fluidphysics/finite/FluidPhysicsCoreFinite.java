@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.geography.fluidphysics.finite;
 
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import net.minecraft.block.BlockSnow;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
@@ -120,7 +121,7 @@ public final class FluidPhysicsCoreFinite {
         if(!BaseUtil.getRandomResult(rand,possibility)){
             return state;
         }
-        if(accessor.fillFluidToAtmosphere(FluidRegistry.WATER,FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME, StateOfMatter.GAS,accessor.getTemperature(true),true) <= 0)
+        if(accessor.fillFluidToAtmosphere(FluidRegistry.WATER, MillibucketUnit.QUANTA_VOLUME_INT, StateOfMatter.GAS,accessor.getTemperature(true),true) <= 0)
             return state;
         accessor.drainHeatFromUnderlying(AtmosphereUtil.Constants.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA);
         spawnEvaporatedParticle(accessor.getWorld(),accessor.getPos());
@@ -214,7 +215,7 @@ public final class FluidPhysicsCoreFinite {
     public static boolean canRainAt(@Nonnull final World world,@Nonnull final BlockPos pos){
         @Nullable final Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world, pos);
         if(atmosphere == null) return false;
-        if(atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,pos,false)<FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME) return false;
+        if(atmosphere.drainWater(MillibucketUnit.QUANTA_VOLUME_INT,pos,false)< MillibucketUnit.QUANTA_VOLUME_INT) return false;
         final float temp = atmosphere.getAtmosphereTemperature(pos);
         if(temp <= TemperatureProperty.UNAVAILABLE) return false;
         if (!(temp < TemperatureProperty.ICE_POINT) && !(temp > TemperatureProperty.BOILED_POINT)) {

@@ -28,6 +28,7 @@
 package moe.qingu.orbtellus.mixin.finite.compat.ic2;
 
 import ic2.core.util.LiquidUtil;
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
@@ -62,11 +63,11 @@ public class LiquidUtilMixin {
             if (block != Blocks.WATER && block != Blocks.FLOWING_WATER) {
                 if (block == Blocks.LAVA || block == Blocks.FLOWING_LAVA) {
                     if(!FluidPhysicsSystem.isFluidToBePhysical(FluidRegistry.LAVA)) return;
-                    fluid = new FluidStack(FluidRegistry.LAVA, FluidUtil.getFluidQuanta(world,pos,state)*FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME);
+                    fluid = new FluidStack(FluidRegistry.LAVA, FluidUtil.getFluidQuanta(world,pos,state)* MillibucketUnit.QUANTA_VOLUME_INT);
                 }
             } else {
                 if(!FluidPhysicsSystem.isFluidToBePhysical(FluidRegistry.WATER)) return;
-                fluid = new FluidStack(FluidRegistry.WATER, FluidUtil.getFluidQuanta(world,pos,state)*FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME);
+                fluid = new FluidStack(FluidRegistry.WATER, FluidUtil.getFluidQuanta(world,pos,state)* MillibucketUnit.QUANTA_VOLUME_INT);
             }
             cir.cancel();
             if(fluid != null && !simulate){

@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.block;
 
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.BlockSnow;
 import net.minecraft.block.SoundType;
@@ -42,7 +43,6 @@ import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
 import moe.qingu.orbtellus.api.fluid.StateOfMatter;
 import moe.qingu.orbtellus.api.property.TemperatureProperty;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
-import moe.qingu.orbtellus.api.util.FluidUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -161,7 +161,7 @@ public class BlockSnowExtended extends BlockSnow {
     protected void turnIntoWater(final @Nonnull World worldIn,final @Nonnull BlockPos pos,final @Nullable IAtmosphereAccessor accessor,final int level) {
         if (worldIn.provider.doesWaterVaporize()) {
             if(accessor != null && accessor.canAccessAtmosphere()){
-                accessor.fillFluidToAtmosphere(FluidRegistry.WATER,(8-level)* FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME, StateOfMatter.GAS,accessor.getTemperature(true),true);
+                accessor.fillFluidToAtmosphere(FluidRegistry.WATER,(8-level)* MillibucketUnit.QUANTA_VOLUME_INT, StateOfMatter.GAS,accessor.getTemperature(true),true);
             }
             worldIn.setBlockToAir(pos);
         } else {

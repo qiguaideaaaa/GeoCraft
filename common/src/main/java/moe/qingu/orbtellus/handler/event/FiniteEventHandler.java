@@ -27,6 +27,8 @@
 
 package moe.qingu.orbtellus.handler.event;
 
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
+import moe.qingu.orbtellus.api.fluid.unit.QuantaUnit;
 import moe.qingu.orbtellus.mixin.finite.block.BlockLiquidMixin;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.block.Block;
@@ -73,7 +75,7 @@ import moe.qingu.orbtellus.api.property.TemperatureProperty;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsSystem;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
 import moe.qingu.orbtellus.api.util.FluidUtil;
-import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
+import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.FluidPhysicsCoreFinite;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
 import moe.qingu.orbtellus.handler.ServerStatusMonitor;
@@ -213,7 +215,7 @@ public final class FiniteEventHandler {
             final FiniteBlockLiquidWrapper wrapper = new FiniteBlockLiquidWrapper(FiniteFlowingVanilla.getFlowingByMaterial(currentState.getMaterial()),world,pos);
             wrapper.setIgnoreCurrentPos(true);
             int quanta = FluidUtil.getFluidQuanta(world, pos,currentState);
-            long QB = QBUnit.toQBFromQuanta(quanta);
+            long QB = QuantaUnit.toQB(quanta);
             long canFillQB = 0L;
             int curLayer = 0,canFillLayer = 0;
             final Block placeBlock = replacedState.getBlock();
@@ -276,9 +278,9 @@ public final class FiniteEventHandler {
                 return true;
             }
 
-            quanta = QBUnit.toQuanta(QB-canFillQB);
+            quanta = QBUnit.toQuantaAsInt(QB-canFillQB);
 
-            final int amount = quanta*FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
+            final int amount = quanta* MillibucketUnit.QUANTA_VOLUME_INT;
             final @Nonnull FluidStack stack = new FluidStack(fluid,amount);
             final int available = wrapper.fill(stack,false);
             if(available < amount){
@@ -345,7 +347,7 @@ public final class FiniteEventHandler {
         if(state.getMaterial() != Material.WATER)
             return;
 
-        final int target = 3*FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
+        final int target = 3* MillibucketUnit.QUANTA_VOLUME_INT;
         FluidStack stack = FluidOperationUtil.tryDrainFluid(worldIn,blockpos,target,bottleFindFluidMaxDistance.getValue(),false);
         if(stack == null || stack.amount<target)
             return;
@@ -394,12 +396,12 @@ public final class FiniteEventHandler {
         World world = event.getWorld();
         BlockPos randPos = event.getRandPos();
         if (WaterUtil.canSnowAt(world,randPos, true)) {
-            atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos,true);
+            atmosphere.drainWater(MillibucketUnit.QUANTA_VOLUME_INT,randPos,true);
             event.setResult(Event.Result.ALLOW);
             event.setSnowy(true);
             event.setState(Blocks.SNOW_LAYER.getDefaultState());
         }else if(FluidPhysicsCoreFinite.canRainAt(world,randPos)){
-            atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos,true);
+            atmosphere.drainWater(MillibucketUnit.QUANTA_VOLUME_INT,randPos,true);
             event.setResult(Event.Result.ALLOW);
             event.setState(Blocks.FLOWING_WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,7));
         }

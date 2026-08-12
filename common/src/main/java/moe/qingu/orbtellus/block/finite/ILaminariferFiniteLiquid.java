@@ -31,7 +31,7 @@ import moe.qingu.orbtellus.api.laminarifer.AHUnit;
 import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.laminarifer.drainer.IFlowDrainer;
-import moe.qingu.orbtellus.api.laminarifer.qb.QBFluidStack;
+import moe.qingu.orbtellus.api.fluid.QBFluidStack;
 import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
 import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifier;
 import net.minecraft.block.BlockStaticLiquid;
@@ -48,7 +48,7 @@ import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
 import moe.qingu.orbtellus.api.laminarifer.IBlockStateLaminarifer;
 import moe.qingu.orbtellus.api.util.APIMathUtil;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
-import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
+import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.FluidPhysicsCoreFinite;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
 

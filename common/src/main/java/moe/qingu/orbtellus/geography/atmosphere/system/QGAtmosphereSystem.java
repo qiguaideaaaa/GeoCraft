@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.geography.atmosphere.system;
 
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
@@ -48,8 +49,6 @@ import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.event.EventFactory;
 import moe.qingu.orbtellus.api.property.TemperatureProperty;
 import moe.qingu.orbtellus.api.setting.GeoAtmosphereSetting;
-import moe.qingu.orbtellus.api.util.FluidUtil;
-import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
 import moe.qingu.orbtellus.geography.atmosphere.QiguaiAtmosphere;
 import moe.qingu.orbtellus.api.atmosphere.config.CommonAtmosphereSystemInfo;
 import moe.qingu.orbtellus.util.BaseUtil;
@@ -175,10 +174,10 @@ public abstract class QGAtmosphereSystem extends BaseAtmosphereSystem {
             Fluid fluidToFill = FluidRegistry.WATER;
             if(accessor.getTemperature(false)<= TemperatureProperty.ICE_POINT) fluidToFill = OTCFluids.SNOW;
             if(block.canFill(world,pos,state, fluidToFill, EnumFacing.UP,Blocks.AIR.getDefaultState())){
-                final int drained = atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,pos,false); //mB
-                if(drained>=FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME){
-                    atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,pos,true);
-                    filled = block.addAmountInQB(world,pos,state,fluidToFill, QBUnit.toQBFromMB(drained),true);
+                final int drained = atmosphere.drainWater(MillibucketUnit.QUANTA_VOLUME_INT,pos,false); //mB
+                if(drained>= MillibucketUnit.QUANTA_VOLUME_INT){
+                    atmosphere.drainWater(MillibucketUnit.QUANTA_VOLUME_INT,pos,true);
+                    filled = block.addAmountInQB(world,pos,state,fluidToFill, MillibucketUnit.toQB(drained),true);
                 }
             }
             if(filled>0){

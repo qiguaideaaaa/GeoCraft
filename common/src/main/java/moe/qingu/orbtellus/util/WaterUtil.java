@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.util;
 
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
@@ -36,7 +37,6 @@ import moe.qingu.orbtellus.api.atmosphere.Atmosphere;
 import moe.qingu.orbtellus.api.atmosphere.AtmosphereSystemManager;
 import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
 import moe.qingu.orbtellus.api.property.TemperatureProperty;
-import moe.qingu.orbtellus.api.util.FluidUtil;
 
 public final class WaterUtil {
     /**
@@ -45,7 +45,7 @@ public final class WaterUtil {
      * @return 一个介于0~1的值，表示概率
      */
     public static double getWaterEvaporatePossibility(IAtmosphereAccessor accessor) {
-        final int 单层水质量 = FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
+        final int 单层水质量 = MillibucketUnit.QUANTA_VOLUME_INT;
         double temp = accessor.getTemperature(true);
         if(temp>= TemperatureProperty.BOILED_POINT) return 1;
         double 期望质量 = getWaterEvaporateAmount(accessor);
@@ -116,7 +116,7 @@ public final class WaterUtil {
     public static boolean canSnowAt(World world,BlockPos pos, boolean checkLight) {
         Atmosphere atmosphere = AtmosphereSystemManager.getAtmosphere(world, pos);
         if(atmosphere == null) return world.canSnowAtBody(pos,checkLight);
-        if(atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,pos,false)< FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME) return false;
+        if(atmosphere.drainWater(MillibucketUnit.QUANTA_VOLUME_INT,pos,false)< MillibucketUnit.QUANTA_VOLUME_INT) return false;
         if (atmosphere.getAtmosphereTemperature(pos) >= TemperatureProperty.ICE_POINT) {
             return false;
         } else if (!checkLight) {

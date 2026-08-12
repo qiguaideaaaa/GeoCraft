@@ -28,6 +28,7 @@
 package moe.qingu.orbtellus.mixin.finite.compat.immersiveengineering;
 
 import blusunrize.immersiveengineering.common.util.Utils;
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import net.minecraft.block.Block;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -40,7 +41,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsSystem;
-import moe.qingu.orbtellus.api.util.FluidUtil;
+
 @Mixin(value = Utils.class,remap = false)
 public class UtilsMixin {
     @Inject(method = "drainFluidBlock",at= @At("HEAD"),cancellable = true,remap = false)
@@ -60,7 +61,7 @@ public class UtilsMixin {
                 int quanta = 8-meta;
                 if(doDrain)
                     world.setBlockToAir(pos);
-                cir.setReturnValue(new FluidStack(f, quanta* FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME));
+                cir.setReturnValue(new FluidStack(f, quanta* MillibucketUnit.QUANTA_VOLUME_INT));
             }
         } else cir.setReturnValue(null);
         cir.cancel();

@@ -29,6 +29,7 @@ package moe.qingu.orbtellus.command;
 
 import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
 import moe.qingu.orbtellus.api.command.node.FluidTaskNode;
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import moe.qingu.orbtellus.api.fluidphysics.task.scheduler.FluidTaskScheduler;
 import moe.qingu.orbtellus.api.fluidphysics.task.FluidTaskRegistry;
 import moe.qingu.orbtellus.api.fluidphysics.task.IFluidTask;
@@ -277,7 +278,7 @@ public final class CommandFluidPhysics {
                 accessor.getWorld().setBlockState(accessor.getPos(),newState);
                 final int quanta = newState == Blocks.AIR.getDefaultState()?Math.max(8-state.getValue(LEVEL),0):(newState.getValue(LEVEL)-state.getValue(LEVEL));
                 ctx.getSender().sendMessage(translation("geocraft.command.fluidphysics.evapration.evaporated")
-                        .arg(quanta*FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,quanta)
+                        .arg(quanta* MillibucketUnit.QUANTA_VOLUME_INT,quanta)
                         .color(quanta <= 0?TextFormatting.GRAY:TextFormatting.GREEN)
                         .done());
                 ctx.getSender().setCommandStat(CommandResultStats.Type.AFFECTED_BLOCKS,quanta==0?0:1);
@@ -331,7 +332,7 @@ public final class CommandFluidPhysics {
 
                 int amount = (int) MathHelper.clamp(WaterUtil.getWaterEvaporateAmount(accessor),0,Fluid.BUCKET_VOLUME);
                 if(amount > 0 && (amount = accessor.fillFluidToAtmosphere(FluidRegistry.WATER,amount, StateOfMatter.GAS,accessor.getTemperature(true),true)) > 0){
-                    accessor.drainHeatFromUnderlying(AtmosphereUtil.Constants.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA*(double)amount/FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME);
+                    accessor.drainHeatFromUnderlying(AtmosphereUtil.Constants.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA*(double)amount/ MillibucketUnit.QUANTA_VOLUME_INT);
                     if(meta == 0 && amount >= Fluid.BUCKET_VOLUME){
                         world.setBlockToAir(pos);
                     }

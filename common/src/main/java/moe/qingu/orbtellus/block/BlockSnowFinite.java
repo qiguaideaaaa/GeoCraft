@@ -49,7 +49,7 @@ import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.util.APIMathUtil;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
 import moe.qingu.orbtellus.api.util.LayeredFluidHostUtil;
-import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
+import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.RealitySnowUpdater;
 import moe.qingu.orbtellus.util.MiscUtil;
 import moe.qingu.orbtellus.util.fluid.FluidOperationUtil;
@@ -225,11 +225,11 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLam
                         world.setBlockToAir(pos);
                     } else {
                         final long totalAmount = curAmountSnow + curAmountWater;
-                        final int totalLayers = QBUnit.toQuanta(totalAmount);
+                        final int totalLayers = QBUnit.toQuantaAsInt(totalAmount);
                         if (curAmountWater > curAmountSnow) {
                             turnIntoWater(world, pos, accessor, totalLayers);
                             if (accessor != null)
-                                accessor.drainHeatFromUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA * QBUnit.toPreciseQuanta(curAmountSnow));
+                                accessor.drainHeatFromUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA * QBUnit.toFractionalQuanta(curAmountSnow));
                         } else if (curAmountSnow == curAmountWater) {
                             world.setBlockState(pos, state.withProperty(LAYERS, totalLayers)
                                     .withProperty(MIXTURE, true));
@@ -237,7 +237,7 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLam
                             world.setBlockState(pos, state.withProperty(LAYERS, totalLayers)
                                     .withProperty(MIXTURE, false));
                             if (accessor != null)
-                                accessor.putHeatToUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA * QBUnit.toPreciseQuanta(curAmountWater));
+                                accessor.putHeatToUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA * QBUnit.toFractionalQuanta(curAmountWater));
                         }
                     }
                 }
@@ -248,7 +248,7 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLam
                 curAmountSnow = curAmountSnow-filledAmountSnow;
                 if(curAmountSnow<=0) world.setBlockToAir(pos);
                 else {
-                    final int quanta = Math.min(QBUnit.toQuanta(curAmountSnow),8);
+                    final int quanta = Math.min(QBUnit.toQuantaAsInt(curAmountSnow),8);
                     world.setBlockState(pos,state.withProperty(LAYERS,quanta));
                 }
             }

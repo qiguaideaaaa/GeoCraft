@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.util.wrappers;
 
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -72,9 +73,9 @@ public class FiniteBlockLiquidWrapper extends BlockLiquidWrapper {
 
     @Override
     public int fill(final @Nonnull FluidStack resource,final boolean doFill) {
-        final int expectedQuanta = Math.min(8,resource.amount/FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME);
+        final int expectedQuanta = Math.min(8,resource.amount/ MillibucketUnit.QUANTA_VOLUME_INT);
         if(expectedQuanta <= 0) return 0;
-        final int expectedAmount = expectedQuanta *FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
+        final int expectedAmount = expectedQuanta * MillibucketUnit.QUANTA_VOLUME_INT;
 
         final @Nonnull Set<PlaceChoice> choices = FluidSearchUtil.findPlaceableLocations(world,blockPos,flowing.fluid,8,ignoreCurrentPos,null);
         if(choices.isEmpty()) return 0;
@@ -84,7 +85,7 @@ public class FiniteBlockLiquidWrapper extends BlockLiquidWrapper {
             if(quantaLeft<=0) break;
         }
         if(quantaLeft <=0) return expectedAmount;
-        return (expectedQuanta-quantaLeft)*FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
+        return (expectedQuanta-quantaLeft)* MillibucketUnit.QUANTA_VOLUME_INT;
     }
 
     public void setIgnoreCurrentPos(final boolean ignoreCurrentPos) {
@@ -131,17 +132,17 @@ public class FiniteBlockLiquidWrapper extends BlockLiquidWrapper {
 
     @Nullable
     private FluidStack drain(final @Nullable Fluid fluid,final int maxDrain,final boolean doDrain) {
-        if (maxDrain < FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME) {
+        if (maxDrain < MillibucketUnit.QUANTA_VOLUME_INT) {
             return null;
         }
 
-        final int maxDrainQuanta = maxDrain / FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
+        final int maxDrainQuanta = maxDrain / MillibucketUnit.QUANTA_VOLUME_INT;
         final @Nonnull IBlockState state = world.getBlockState(blockPos);
         if (state.getBlock() == flowing.dynamic || state.getBlock() == flowing._static) {
             final @Nullable FluidStack stack = getStackByMaxQuanta(state,maxDrainQuanta);
             if (stack != null && (fluid == null || stack.getFluid().equals(fluid))) {
                 if (doDrain) {
-                    final int leftQuanta = getQuantaOf(state) - stack.amount/FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME;
+                    final int leftQuanta = getQuantaOf(state) - stack.amount/ MillibucketUnit.QUANTA_VOLUME_INT;
                     final @Nonnull IBlockState newState = leftQuanta>0?flowing.dynamic.getDefaultState().withProperty(BlockLiquid.LEVEL,8-leftQuanta):Blocks.AIR.getDefaultState();
                     world.setBlockState(blockPos, newState, Constants.BlockFlags.DEFAULT_AND_RERENDER);
                 }
@@ -161,9 +162,9 @@ public class FiniteBlockLiquidWrapper extends BlockLiquidWrapper {
         final @Nonnull Material material = state.getMaterial();
         final int quanta = Math.min(getQuantaOf(state),maxQuanta);
         if (material == Material.WATER) {
-            return new FluidStack(FluidRegistry.WATER, FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME*quanta);
+            return new FluidStack(FluidRegistry.WATER, MillibucketUnit.QUANTA_VOLUME_INT *quanta);
         } else if (material == Material.LAVA) {
-            return new FluidStack(FluidRegistry.LAVA, FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME*quanta);
+            return new FluidStack(FluidRegistry.LAVA, MillibucketUnit.QUANTA_VOLUME_INT *quanta);
         } else return null;
     }
 }

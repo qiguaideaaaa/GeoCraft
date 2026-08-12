@@ -25,49 +25,50 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.orbtellus.api.laminarifer.qb;
-
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
+package moe.qingu.orbtellus.api.fluid.unit;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import java.util.Objects;
-
-import static moe.qingu.orbtellus.api.OrbTellusAPI.LOGGER;
+import java.util.Random;
 
 /**
  * @author QGMoe
  */
-public class QBFluidStack{ //unfinished todo
-    private final @Nonnull Fluid fluid;
-    public @Nullable NBTTagCompound tag;
-    public long amount;
+public final class QuantaUnit {
+    public static final long BUCKET_VOLUME = 8L;
+    public static final int BUCKET_VOLUME_INT = (int) BUCKET_VOLUME;
+    public static final double BUCKET_VOLUME_DOUBLE = (double) BUCKET_VOLUME;
 
-    public QBFluidStack(final @Nonnull Fluid fluid,final long amount) {
-        if (!FluidRegistry.isFluidRegistered(Objects.requireNonNull(fluid))) {
-            LOGGER.error("Cannot create a QBFluidStack for an unregistered Fluid {} (from {}).",fluid.getName(),fluid.getClass());
-            throw new IllegalArgumentException("Cannot create a QBFluidStack from an unregistered fluid.");
-        }
-        this.fluid = fluid;
-        this.amount = amount;
+    private QuantaUnit(){}
+
+    public static long toBucket(final long quanta) {
+        return quanta >> 3;
     }
 
-    public QBFluidStack(final @Nonnull Fluid fluid,final long amount,final @Nullable NBTTagCompound nbt) {
-        this(fluid, amount);
-
-        if (nbt != null) tag = nbt.copy();
+    public static int toBucketAsInt(final long quanta) {
+        return (int) (quanta >> 3);
     }
 
-    @Nonnull
-    public Fluid getFluid() {
-        return fluid;
+    public static long toMillibucket(final long quanta) {
+        return quanta * MillibucketUnit.QUANTA_VOLUME;
     }
 
-    @Nonnull
-    public QBFluidStack copy(){
-        return new QBFluidStack(this.fluid,this.amount,this.tag);
+    public static int toMillibucketAsInt(final long quanta) {
+        return (int) (quanta * MillibucketUnit.QUANTA_VOLUME);
+    }
+
+    public static long toQB(final long quanta){
+        return quanta * QBUnit.QUANTA_VOLUME;
+    }
+
+    public static double toFractionalBucket(final long quanta) {
+        return quanta / BUCKET_VOLUME_DOUBLE;
+    }
+
+    public static long sampleBucket(@Nonnull final Random rand, final long quanta) {
+        return FluidUnit.sample(rand, quanta, BUCKET_VOLUME);
+    }
+
+    public static int sampleBucketAsInt(@Nonnull final Random rand, final long quanta) {
+        return (int) FluidUnit.sample(rand, quanta, BUCKET_VOLUME);
     }
 }

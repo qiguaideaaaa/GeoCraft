@@ -25,38 +25,49 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.orbtellus.api.util;
+package moe.qingu.orbtellus.api.fluid;
+
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 
 import javax.annotation.Nonnull;
-import java.util.Random;
+import javax.annotation.Nullable;
+
+import java.util.Objects;
+
+import static moe.qingu.orbtellus.api.OrbTellusAPI.LOGGER;
 
 /**
- * @since 0.2.0
- * @author QiguaiAAAA
+ * @author QGMoe
  */
-public final class APIMathUtil {
-    public static long clamp(final long num,final long min,final long max) {
-        if (num < min) {
-            return min;
-        } else {
-            return Math.min(num, max);
+public class QBFluidStack{ //unfinished todo
+    private final @Nonnull Fluid fluid;
+    public @Nullable NBTTagCompound tag;
+    public long amount;
+
+    public QBFluidStack(final @Nonnull Fluid fluid,final long amount) {
+        if (!FluidRegistry.isFluidRegistered(Objects.requireNonNull(fluid))) {
+            LOGGER.error("Cannot create a QBFluidStack for an unregistered Fluid {} (from {}).",fluid.getName(),fluid.getClass());
+            throw new IllegalArgumentException("Cannot create a QBFluidStack from an unregistered fluid.");
         }
+        this.fluid = fluid;
+        this.amount = amount;
     }
 
-    @Deprecated
-    public static int getModifiedFlag(int flag,int disabled,int enabled){
-        return (flag | enabled) & ~disabled;
+    public QBFluidStack(final @Nonnull Fluid fluid,final long amount,final @Nullable NBTTagCompound nbt) {
+        this(fluid, amount);
+
+        if (nbt != null) tag = nbt.copy();
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
-    public static long nextLong(final @Nonnull Random rand, final long bound){
-        final long mask = bound - 1L;
-        long res = rand.nextLong();
-        if ((bound & mask) == 0L){
-            res &= mask;
-        } else for (long sample = res >>> 1; // sample 是样本空间中的一个点
-                    sample + mask - (res = sample % bound) < 0L;
-                    sample = rand.nextLong() >>> 1); // sample 无法作为样本，重新采样
-        return res;
+    @Nonnull
+    public Fluid getFluid() {
+        return fluid;
+    }
+
+    @Nonnull
+    public QBFluidStack copy(){
+        return new QBFluidStack(this.fluid,this.amount,this.tag);
     }
 }

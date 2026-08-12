@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.handler.event;
 
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
@@ -76,7 +77,7 @@ public final class VanillaEventHandler {
         World world = event.getWorld();
         BlockPos randPos = event.getRandPos();
         if (WaterUtil.canSnowAt(world,randPos, true)) {
-            atmosphere.drainWater(FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME,randPos,true);
+            atmosphere.drainWater(MillibucketUnit.QUANTA_VOLUME_INT,randPos,true);
             event.setResult(Event.Result.ALLOW);
             event.setSnowy(true);
             event.setState(Blocks.SNOW_LAYER.getDefaultState());

@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.geography.fluidphysics.finite.update;
 
+import moe.qingu.orbtellus.api.fluid.unit.QuantaUnit;
 import moe.qingu.orbtellus.api.laminarifer.AHUnit;
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.laminarifer.flow.AverageFlow;
@@ -44,7 +45,7 @@ import net.minecraftforge.event.ForgeEventFactory;
 import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.util.APIMathUtil;
 import moe.qingu.orbtellus.api.util.FluidUtil;
-import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
+import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
 import moe.qingu.orbtellus.api.util.annotation.ThreadOnly;
 import moe.qingu.orbtellus.api.util.annotation.ThreadType;
 import moe.qingu.orbtellus.api.laminarifer.flow.FlowChoice;
@@ -138,9 +139,9 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
                 FluidOperationUtil.triggerFluidMixEffects(world,downPos);
             }else if(blockBelow instanceof ILaminarifer){
                 final @Nonnull ILaminarifer host = (ILaminarifer) blockBelow;
-                final long qbToFill = QBUnit.toQBFromQuanta(liquidQuanta);
+                final long qbToFill = QuantaUnit.toQB(liquidQuanta);
                 final long qbFilled = host.addAmountInQB(world,downPos,stateBelow,fluid,qbToFill,true);
-                liquidQuanta = QBUnit.toQuanta(APIMathUtil.clamp(qbToFill-qbFilled,0,qbToFill));
+                liquidQuanta = QBUnit.toQuantaAsInt(APIMathUtil.clamp(qbToFill-qbFilled,0,qbToFill));
                 liquidMeta = 8 -liquidQuanta;
                 if(liquidQuanta <=0) world.setBlockState(pos,AIR_DEFAULT_STATE,updateFlag); //先更新自身状态
                 else {
@@ -237,7 +238,7 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
                     left += choice.apply(world,facingPos$mut,world.getBlockState(facingPos$mut),fluid);
                 }
             }
-            newLiquidQuanta += QBUnit.toQuanta(left);
+            newLiquidQuanta += QBUnit.toQuantaAsInt(left);
 
             liquidMeta = 8 - newLiquidQuanta;
             if (newLiquidQuanta<=0) world.setBlockState(pos,AIR_DEFAULT_STATE,updateFlag); //先更新自身状态

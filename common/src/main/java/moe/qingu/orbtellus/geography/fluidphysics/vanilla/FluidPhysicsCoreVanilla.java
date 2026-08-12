@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.geography.fluidphysics.vanilla;
 
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
@@ -39,7 +40,6 @@ import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
 import moe.qingu.orbtellus.api.fluid.StateOfMatter;
 import moe.qingu.orbtellus.api.property.TemperatureProperty;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
-import moe.qingu.orbtellus.api.util.FluidUtil;
 import moe.qingu.orbtellus.util.WaterUtil;
 
 import javax.annotation.Nullable;
@@ -63,7 +63,7 @@ public class FluidPhysicsCoreVanilla {
             if(amount == 0) return state;
 
             if((amount = accessor.fillFluidToAtmosphere(FluidRegistry.WATER,amount, StateOfMatter.GAS,accessor.getTemperature(true),true)) <= 0) return state;
-            accessor.drainHeatFromUnderlying(AtmosphereUtil.Constants.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA*(double)amount/FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME);
+            accessor.drainHeatFromUnderlying(AtmosphereUtil.Constants.WATER_EVAPORATE_LATENT_HEAT_PER_QUANTA*(double)amount/ MillibucketUnit.QUANTA_VOLUME_INT);
             if(meta == 0 && amount >= Fluid.BUCKET_VOLUME){
                 return Blocks.AIR.getDefaultState();
             }

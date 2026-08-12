@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.api.util;
 
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
@@ -48,7 +49,6 @@ import static net.minecraft.block.BlockLiquid.LEVEL;
  * @author QiguaiAAAA
  */
 public final class FluidUtil {
-    public static final int ONE_IN_EIGHT_OF_BUCKET_VOLUME = Fluid.BUCKET_VOLUME/8;
 
     /**
      * 对应方块是否是一个液体
@@ -176,7 +176,7 @@ public final class FluidUtil {
             IFluidBlock fluidBlock = (IFluidBlock) state.getBlock();
             FluidStack fluidStack = fluidBlock.drain(worldIn,pos,false);
             if(fluidStack == null) return 0;
-            return fluidStack.amount/ONE_IN_EIGHT_OF_BUCKET_VOLUME;
+            return fluidStack.amount/ MillibucketUnit.QUANTA_VOLUME_INT;
         }
         int stateValue = state.getValue(BlockLiquid.LEVEL);
         if(stateValue>=8) return 1;
@@ -200,7 +200,7 @@ public final class FluidUtil {
         }
         int stateValue = state.getValue(BlockLiquid.LEVEL);
         if(stateValue>=8) return 0;
-        else return (8-stateValue)*ONE_IN_EIGHT_OF_BUCKET_VOLUME;
+        else return (8-stateValue)* MillibucketUnit.QUANTA_VOLUME_INT;
     }
 
     /**

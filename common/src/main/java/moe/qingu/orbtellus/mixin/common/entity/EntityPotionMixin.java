@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.mixin.common.entity;
 
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.projectile.EntityPotion;
@@ -46,8 +47,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsSystem;
-import moe.qingu.orbtellus.api.util.FluidUtil;
-import moe.qingu.orbtellus.api.laminarifer.qb.QBUnit;
+import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
 import moe.qingu.orbtellus.api.util.math.vec.MBlockPos;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowings;
 import moe.qingu.orbtellus.util.math.MathUtil;
@@ -94,10 +94,10 @@ public abstract class EntityPotionMixin extends EntityThrowable {
                 if(left <= 0L) break;
             }
         }
-        final int quantaLeft = QBUnit.toQuanta(left);
+        final int quantaLeft = QBUnit.toQuantaAsInt(left);
         if(quantaLeft >0 && FluidPhysicsSystem.isFluidToBePhysical(FluidRegistry.WATER) && FluidPhysicsMode.getCurrentMode() == FluidPhysicsMode.FINITE){
             final FiniteBlockLiquidWrapper wrapper = new FiniteBlockLiquidWrapper(FiniteFlowings.WATER_FLOW,world,curPos);
-            wrapper.fill(new FluidStack(FluidRegistry.WATER,quantaLeft* FluidUtil.ONE_IN_EIGHT_OF_BUCKET_VOLUME),true);
+            wrapper.fill(new FluidStack(FluidRegistry.WATER,quantaLeft* MillibucketUnit.QUANTA_VOLUME_INT),true);
         }
     }
 

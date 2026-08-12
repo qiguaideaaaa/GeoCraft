@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.util.fluid;
 
+import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
@@ -90,7 +91,7 @@ public final class FluidOperationUtil {
             Fluid fluid = getFluid(block);
             if(fluid == null) return null;
             int quanta = getFluidQuanta(world,pos,state);
-            FluidStack stack = new FluidStack(fluid,quanta* ONE_IN_EIGHT_OF_BUCKET_VOLUME);
+            FluidStack stack = new FluidStack(fluid,quanta* MillibucketUnit.QUANTA_VOLUME_INT);
             if(doDrain){
                 world.setBlockToAir(pos);
             }
@@ -106,7 +107,7 @@ public final class FluidOperationUtil {
            return ((IFluidBlock) block).place(world,pos,new FluidStack(fluid,amount),doPlace);
        }else if(block instanceof BlockLiquid){
            IBlockState state = block.getDefaultState();
-           if(doPlace) setQuanta(world,pos,state,amount/ ONE_IN_EIGHT_OF_BUCKET_VOLUME);
+           if(doPlace) setQuanta(world,pos,state,amount/ MillibucketUnit.QUANTA_VOLUME_INT);
            return amount;
        }
        return 0;
@@ -220,7 +221,7 @@ public final class FluidOperationUtil {
             blockFluid.place(world,pos,new FluidStack(blockFluid.getFluid(), MathHelper.floor(amountPerQuanta*newQuanta)),true);
         }else if(block instanceof IFluidBlock){
             IFluidBlock fluidBlock = (IFluidBlock) block;
-            fluidBlock.place(world,pos,new FluidStack(fluidBlock.getFluid(), ONE_IN_EIGHT_OF_BUCKET_VOLUME*newQuanta),true);
+            fluidBlock.place(world,pos,new FluidStack(fluidBlock.getFluid(), MillibucketUnit.QUANTA_VOLUME_INT *newQuanta),true);
         }else{
             throw new UnsupportedFluidException(state.getBlock());
         }
@@ -255,7 +256,7 @@ public final class FluidOperationUtil {
             IFluidBlock fluidBlock = (IFluidBlock) block;
             FluidStack stack = fluidBlock.drain(world,pos,true);
             int rawAmount = stack == null?0:stack.amount;
-            fluidBlock.place(world,pos,new FluidStack(fluidBlock.getFluid(), rawAmount+ONE_IN_EIGHT_OF_BUCKET_VOLUME*quanta),true);
+            fluidBlock.place(world,pos,new FluidStack(fluidBlock.getFluid(), rawAmount+ MillibucketUnit.QUANTA_VOLUME_INT *quanta),true);
         }else{
             throw new UnsupportedFluidException(state.getBlock());
         }
