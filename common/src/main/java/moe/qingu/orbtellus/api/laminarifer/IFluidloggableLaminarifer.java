@@ -210,7 +210,7 @@ public interface IFluidloggableLaminarifer extends IFluidloggable, ILaminarifer 
         if(fluidState.isEmpty() || fluidState.getFluid() != fluid) return null;
         return new QBFluidStack(
                 fluidState.getFluid(),
-                Laminarifers.drainAmountInQB(this,world,pos,state,fluidState.getFluid(),null,amount,doOperate,pulse,drainer,blockFlagsModifier)
+                Laminarifers.extractAmountInQB(this,world,pos,state,fluidState.getFluid(),null,amount,doOperate,pulse,drainer,blockFlagsModifier)
         );
     }
 }

@@ -428,17 +428,17 @@ public final class Laminarifers {
      * @param blockFlagsModifier 方块更新操作的修改器，用一个 long 表示，可通过 {@link BlockFlagModifier} 构建
      * @return 在给定条件下，实际添加的流体量，单位为 QB
      */
-    public static long drainAmountInQB(@Nonnull final ILaminarifer laminarifer,
-                                       @Nonnull final World world,
-                                       @Nonnull final BlockPos pos,
-                                       @Nonnull final IBlockState state,
-                                       @Nonnull final Fluid fluid,
-                                       @Nullable final NBTTagCompound nbt,
-                                       long amount,
-                                       final boolean doOperate,
-                                       final long pulse,
-                                       @Nullable final IFlowDrainer drainer,
-                                       final long blockFlagsModifier){
+    public static long extractAmountInQB(@Nonnull final ILaminarifer laminarifer,
+                                         @Nonnull final World world,
+                                         @Nonnull final BlockPos pos,
+                                         @Nonnull final IBlockState state,
+                                         @Nonnull final Fluid fluid,
+                                         @Nullable final NBTTagCompound nbt,
+                                         long amount,
+                                         final boolean doOperate,
+                                         final long pulse,
+                                         @Nullable final IFlowDrainer drainer,
+                                         final long blockFlagsModifier){
         if(amount <= 0L) return 0L;
         final long amountPerLayer = laminarifer.getAmountInQBPerLayer(world, pos, state, fluid, nbt);
         amount += (amountPerLayer-(amount%amountPerLayer));
@@ -449,166 +449,166 @@ public final class Laminarifers {
     }
 
     /**
-     * @see #drainAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
+     * @see #extractAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
      */
-    public static long drainAmountInQB(@Nonnull final ILaminarifer laminarifer,
-                                       @Nonnull final World world,
-                                       @Nonnull final BlockPos pos,
-                                       @Nonnull final IBlockState state,
-                                       @Nonnull final Fluid fluid,
-                                       @Nullable final NBTTagCompound nbt,
-                                       long amount,
-                                       final boolean doOperate,
-                                       final long pulse,
-                                       @Nullable final IFlowDrainer drainer){
-        return drainAmountInQB(laminarifer, world, pos, state, fluid, nbt, amount, doOperate, pulse, drainer, BlockFlagModifiers.KEEP);
+    public static long extractAmountInQB(@Nonnull final ILaminarifer laminarifer,
+                                         @Nonnull final World world,
+                                         @Nonnull final BlockPos pos,
+                                         @Nonnull final IBlockState state,
+                                         @Nonnull final Fluid fluid,
+                                         @Nullable final NBTTagCompound nbt,
+                                         long amount,
+                                         final boolean doOperate,
+                                         final long pulse,
+                                         @Nullable final IFlowDrainer drainer){
+        return extractAmountInQB(laminarifer, world, pos, state, fluid, nbt, amount, doOperate, pulse, drainer, BlockFlagModifiers.KEEP);
     }
 
     /**
-     * @see #drainAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
+     * @see #extractAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
      */
-    public static long drainAmountInQB(@Nonnull final ILaminarifer laminarifer,
-                                       @Nonnull final World world,
-                                       @Nonnull final BlockPos pos,
-                                       @Nonnull final IBlockState state,
-                                       @Nonnull final Fluid fluid,
-                                       @Nullable final NBTTagCompound nbt,
-                                       long amount,
-                                       final boolean doOperate,
-                                       final long pulse,
-                                       final long blockFlagsModifier){
-        return drainAmountInQB(laminarifer, world, pos, state, fluid, nbt, amount, doOperate, pulse, null, blockFlagsModifier);
+    public static long extractAmountInQB(@Nonnull final ILaminarifer laminarifer,
+                                         @Nonnull final World world,
+                                         @Nonnull final BlockPos pos,
+                                         @Nonnull final IBlockState state,
+                                         @Nonnull final Fluid fluid,
+                                         @Nullable final NBTTagCompound nbt,
+                                         long amount,
+                                         final boolean doOperate,
+                                         final long pulse,
+                                         final long blockFlagsModifier){
+        return extractAmountInQB(laminarifer, world, pos, state, fluid, nbt, amount, doOperate, pulse, null, blockFlagsModifier);
     }
 
     /**
-     * @see #drainAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
+     * @see #extractAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
      */
-    public static long drainAmountInQB(@Nonnull final ILaminarifer laminarifer,
-                                       @Nonnull final World world,
-                                       @Nonnull final BlockPos pos,
-                                       @Nonnull final IBlockState state,
-                                       @Nonnull final Fluid fluid,
-                                       @Nullable final NBTTagCompound nbt,
-                                       long amount,
-                                       final boolean doOperate,
-                                       final long pulse){
-        return drainAmountInQB(laminarifer, world, pos, state, fluid, nbt, amount, doOperate, pulse, null, BlockFlagModifiers.KEEP);
+    public static long extractAmountInQB(@Nonnull final ILaminarifer laminarifer,
+                                         @Nonnull final World world,
+                                         @Nonnull final BlockPos pos,
+                                         @Nonnull final IBlockState state,
+                                         @Nonnull final Fluid fluid,
+                                         @Nullable final NBTTagCompound nbt,
+                                         long amount,
+                                         final boolean doOperate,
+                                         final long pulse){
+        return extractAmountInQB(laminarifer, world, pos, state, fluid, nbt, amount, doOperate, pulse, null, BlockFlagModifiers.KEEP);
     }
 
     /**
-     * @see #drainAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
+     * @see #extractAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
      */
-    public static long drainAmountInQB(@Nonnull final ILaminarifer laminarifer,
-                                       @Nonnull final World world,
-                                       @Nonnull final BlockPos pos,
-                                       @Nonnull final IBlockState state,
-                                       @Nonnull final Fluid fluid,
-                                       long amount,
-                                       final boolean doOperate,
-                                       final long pulse,
-                                       @Nullable final IFlowDrainer drainer,
-                                       final long blockFlagsModifier){
-        return drainAmountInQB(laminarifer, world, pos, state, fluid, null, amount, doOperate, pulse, drainer, blockFlagsModifier);
+    public static long extractAmountInQB(@Nonnull final ILaminarifer laminarifer,
+                                         @Nonnull final World world,
+                                         @Nonnull final BlockPos pos,
+                                         @Nonnull final IBlockState state,
+                                         @Nonnull final Fluid fluid,
+                                         long amount,
+                                         final boolean doOperate,
+                                         final long pulse,
+                                         @Nullable final IFlowDrainer drainer,
+                                         final long blockFlagsModifier){
+        return extractAmountInQB(laminarifer, world, pos, state, fluid, null, amount, doOperate, pulse, drainer, blockFlagsModifier);
     }
 
     /**
-     * @see #drainAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
+     * @see #extractAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
      */
-    public static long drainAmountInQB(@Nonnull final ILaminarifer laminarifer,
-                                       @Nonnull final World world,
-                                       @Nonnull final BlockPos pos,
-                                       @Nonnull final IBlockState state,
-                                       @Nonnull final Fluid fluid,
-                                       long amount,
-                                       final boolean doOperate,
-                                       final long pulse,
-                                       @Nullable final IFlowDrainer drainer){
-        return drainAmountInQB(laminarifer, world, pos, state, fluid, null, amount, doOperate, pulse, drainer, BlockFlagModifiers.KEEP);
+    public static long extractAmountInQB(@Nonnull final ILaminarifer laminarifer,
+                                         @Nonnull final World world,
+                                         @Nonnull final BlockPos pos,
+                                         @Nonnull final IBlockState state,
+                                         @Nonnull final Fluid fluid,
+                                         long amount,
+                                         final boolean doOperate,
+                                         final long pulse,
+                                         @Nullable final IFlowDrainer drainer){
+        return extractAmountInQB(laminarifer, world, pos, state, fluid, null, amount, doOperate, pulse, drainer, BlockFlagModifiers.KEEP);
     }
 
     /**
-     * @see #drainAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
+     * @see #extractAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
      */
-    public static long drainAmountInQB(@Nonnull final ILaminarifer laminarifer,
-                                       @Nonnull final World world,
-                                       @Nonnull final BlockPos pos,
-                                       @Nonnull final IBlockState state,
-                                       @Nonnull final Fluid fluid,
-                                       long amount,
-                                       final boolean doOperate,
-                                       final long pulse,
-                                       final long blockFlagsModifier){
-        return drainAmountInQB(laminarifer, world, pos, state, fluid, null, amount, doOperate, pulse, null, blockFlagsModifier);
+    public static long extractAmountInQB(@Nonnull final ILaminarifer laminarifer,
+                                         @Nonnull final World world,
+                                         @Nonnull final BlockPos pos,
+                                         @Nonnull final IBlockState state,
+                                         @Nonnull final Fluid fluid,
+                                         long amount,
+                                         final boolean doOperate,
+                                         final long pulse,
+                                         final long blockFlagsModifier){
+        return extractAmountInQB(laminarifer, world, pos, state, fluid, null, amount, doOperate, pulse, null, blockFlagsModifier);
     }
 
     /**
-     * @see #drainAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
+     * @see #extractAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
      */
-    public static long drainAmountInQB(@Nonnull final ILaminarifer laminarifer,
-                                       @Nonnull final World world,
-                                       @Nonnull final BlockPos pos,
-                                       @Nonnull final IBlockState state,
-                                       @Nonnull final Fluid fluid,
-                                       long amount,
-                                       final boolean doOperate,
-                                       final long pulse){
-        return drainAmountInQB(laminarifer, world, pos, state, fluid, null, amount, doOperate, pulse, null, BlockFlagModifiers.KEEP);
+    public static long extractAmountInQB(@Nonnull final ILaminarifer laminarifer,
+                                         @Nonnull final World world,
+                                         @Nonnull final BlockPos pos,
+                                         @Nonnull final IBlockState state,
+                                         @Nonnull final Fluid fluid,
+                                         long amount,
+                                         final boolean doOperate,
+                                         final long pulse){
+        return extractAmountInQB(laminarifer, world, pos, state, fluid, null, amount, doOperate, pulse, null, BlockFlagModifiers.KEEP);
     }
 
     /**
-     * @see #drainAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
+     * @see #extractAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
      */
-    public static long drainAmountInQB(@Nonnull final ILaminarifer laminarifer,
-                                       @Nonnull final World world,
-                                       @Nonnull final BlockPos pos,
-                                       @Nonnull final IBlockState state,
-                                       @Nonnull final QBFluidStack stack,
-                                       final boolean doOperate,
-                                       final long pulse,
-                                       @Nullable final IFlowDrainer drainer,
-                                       final long blockFlagsModifier){
-        return drainAmountInQB(laminarifer, world, pos, state, stack.getFluid(), stack.tag, stack.amount, doOperate, pulse, drainer, blockFlagsModifier);
+    public static long extractAmountInQB(@Nonnull final ILaminarifer laminarifer,
+                                         @Nonnull final World world,
+                                         @Nonnull final BlockPos pos,
+                                         @Nonnull final IBlockState state,
+                                         @Nonnull final QBFluidStack stack,
+                                         final boolean doOperate,
+                                         final long pulse,
+                                         @Nullable final IFlowDrainer drainer,
+                                         final long blockFlagsModifier){
+        return extractAmountInQB(laminarifer, world, pos, state, stack.getFluid(), stack.tag, stack.amount, doOperate, pulse, drainer, blockFlagsModifier);
     }
 
     /**
-     * @see #drainAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
+     * @see #extractAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
      */
-    public static long drainAmountInQB(@Nonnull final ILaminarifer laminarifer,
-                                       @Nonnull final World world,
-                                       @Nonnull final BlockPos pos,
-                                       @Nonnull final IBlockState state,
-                                       @Nonnull final QBFluidStack stack,
-                                       final boolean doOperate,
-                                       final long pulse,
-                                       @Nullable final IFlowDrainer drainer){
-        return drainAmountInQB(laminarifer, world, pos, state, stack.getFluid(), stack.tag, stack.amount, doOperate, pulse, drainer, BlockFlagModifiers.KEEP);
+    public static long extractAmountInQB(@Nonnull final ILaminarifer laminarifer,
+                                         @Nonnull final World world,
+                                         @Nonnull final BlockPos pos,
+                                         @Nonnull final IBlockState state,
+                                         @Nonnull final QBFluidStack stack,
+                                         final boolean doOperate,
+                                         final long pulse,
+                                         @Nullable final IFlowDrainer drainer){
+        return extractAmountInQB(laminarifer, world, pos, state, stack.getFluid(), stack.tag, stack.amount, doOperate, pulse, drainer, BlockFlagModifiers.KEEP);
     }
 
     /**
-     * @see #drainAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
+     * @see #extractAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
      */
-    public static long drainAmountInQB(@Nonnull final ILaminarifer laminarifer,
-                                       @Nonnull final World world,
-                                       @Nonnull final BlockPos pos,
-                                       @Nonnull final IBlockState state,
-                                       @Nonnull final QBFluidStack stack,
-                                       final boolean doOperate,
-                                       final long pulse,
-                                       final long blockFlagsModifier){
-        return drainAmountInQB(laminarifer, world, pos, state, stack.getFluid(), stack.tag, stack.amount, doOperate, pulse, null, blockFlagsModifier);
+    public static long extractAmountInQB(@Nonnull final ILaminarifer laminarifer,
+                                         @Nonnull final World world,
+                                         @Nonnull final BlockPos pos,
+                                         @Nonnull final IBlockState state,
+                                         @Nonnull final QBFluidStack stack,
+                                         final boolean doOperate,
+                                         final long pulse,
+                                         final long blockFlagsModifier){
+        return extractAmountInQB(laminarifer, world, pos, state, stack.getFluid(), stack.tag, stack.amount, doOperate, pulse, null, blockFlagsModifier);
     }
 
     /**
-     * @see #drainAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
+     * @see #extractAmountInQB(ILaminarifer, World, BlockPos, IBlockState, Fluid, NBTTagCompound, long, boolean, long, IFlowDrainer, long)
      */
-    public static long drainAmountInQB(@Nonnull final ILaminarifer laminarifer,
-                                       @Nonnull final World world,
-                                       @Nonnull final BlockPos pos,
-                                       @Nonnull final IBlockState state,
-                                       @Nonnull final QBFluidStack stack,
-                                       final boolean doOperate,
-                                       final long pulse){
-        return drainAmountInQB(laminarifer, world, pos, state, stack.getFluid(), stack.tag, stack.amount, doOperate, pulse, null, BlockFlagModifiers.KEEP);
+    public static long extractAmountInQB(@Nonnull final ILaminarifer laminarifer,
+                                         @Nonnull final World world,
+                                         @Nonnull final BlockPos pos,
+                                         @Nonnull final IBlockState state,
+                                         @Nonnull final QBFluidStack stack,
+                                         final boolean doOperate,
+                                         final long pulse){
+        return extractAmountInQB(laminarifer, world, pos, state, stack.getFluid(), stack.tag, stack.amount, doOperate, pulse, null, BlockFlagModifiers.KEEP);
     }
 
     /**

@@ -207,7 +207,7 @@ public interface ILaminariferFiniteLiquid extends IBlockStateLaminarifer {
                                         final long blockFlagsModifier){
         final Fluid current = 天圆地方$getFluid();
         if(fluid != null && fluid != current) return null;
-        final long qb = Laminarifers.drainAmountInQB(this,world,pos,state,current,amount,doOperate,pulse,drainer,blockFlagsModifier);
+        final long qb = Laminarifers.extractAmountInQB(this,world,pos,state,current,amount,doOperate,pulse,drainer,blockFlagsModifier);
         return new QBFluidStack(current,qb);
     }
 }

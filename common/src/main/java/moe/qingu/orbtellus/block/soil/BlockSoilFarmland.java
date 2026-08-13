@@ -145,7 +145,7 @@ public class BlockSoilFarmland extends BlockFarmland implements IBlockSoil, IBlo
     @Nonnull
     @Override
     public BlockSoilType getType(@Nonnull final IBlockState state) {
-        return BlockSoilType.GRAVEL;
+        return BlockSoilType.FARMLAND;
     }
 
     //********************

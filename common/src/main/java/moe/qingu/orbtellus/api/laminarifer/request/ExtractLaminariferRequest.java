@@ -28,37 +28,35 @@
 package moe.qingu.orbtellus.api.laminarifer.request;
 
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
-import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
+import moe.qingu.orbtellus.api.laminarifer.drainer.IFlowDrainer;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * @author QGMoe
  */
-@NotThreadSafe
-public final class FillLaminariferRequest extends SpecificLaminariferRequest<FillLaminariferRequest>{
-    private @Nullable IFlowSource fillSource;
+public final class ExtractLaminariferRequest extends SpecificLaminariferRequest<ExtractLaminariferRequest>{
+    private @Nullable IFlowDrainer drainer;
 
     @Nonnull
-    public FillLaminariferRequest source(final @Nullable IFlowSource source){
-        this.fillSource = source;
+    public ExtractLaminariferRequest drainer(final @Nullable IFlowDrainer drainer){
+        this.drainer = drainer;
         return this;
     }
 
-    public long fill(final boolean doOperate){
+    public long extract(final boolean doOperate){
         switch (status){
             case STATUS_REQUESTED: throw new IllegalStateException();
             case STATUS_NONE:{
-                if(laminarifer.canFill(world,pos,state,side,fluid,nbt,fillSource)) this.status = STATUS_ALLOWED; //继续ALLOWED的分支
+                if(laminarifer.canDrain(world,pos,state,side,fluid,nbt,drainer)) this.status = STATUS_ALLOWED; //继续ALLOWED的分支
                 else{
                     this.status = STATUS_REFUSED;
                     return 0L;
                 }
             } case STATUS_ALLOWED: {
                 if(doOperate) this.status = STATUS_REQUESTED;
-                return Laminarifers.addAmountInQB(laminarifer, world, pos, state, fluid, nbt, amount, doOperate, pulse, fillSource, modifier);
+                return Laminarifers.extractAmountInQB(laminarifer, world, pos, state, fluid, nbt, amount, doOperate, pulse, drainer, modifier);
             }
             case STATUS_REFUSED:
             default:return 0L;
@@ -67,7 +65,7 @@ public final class FillLaminariferRequest extends SpecificLaminariferRequest<Fil
 
     @Override
     public void close(){
-        this.fillSource = null;
+        this.drainer = null;
         super.close();
     }
 }

@@ -27,47 +27,56 @@
 
 package moe.qingu.orbtellus.api.laminarifer.request;
 
-import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
-import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
+import moe.qingu.orbtellus.api.fluid.unit.FluidUnit;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.fluids.Fluid;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * @author QGMoe
  */
-@NotThreadSafe
-public final class FillLaminariferRequest extends SpecificLaminariferRequest<FillLaminariferRequest>{
-    private @Nullable IFlowSource fillSource;
+public abstract class SpecificLaminariferRequest<S extends SpecificLaminariferRequest<S>> extends LaminariferRequest<S> {
+    protected Fluid fluid;
+    protected @Nullable NBTTagCompound nbt;
+    protected long amount;
 
     @Nonnull
-    public FillLaminariferRequest source(final @Nullable IFlowSource source){
-        this.fillSource = source;
-        return this;
+    @SuppressWarnings("unchecked")
+    public final S specific(final @Nonnull Fluid fluid){
+        this.fluid = fluid;
+        this.nbt = null;
+        return (S) this;
     }
 
-    public long fill(final boolean doOperate){
-        switch (status){
-            case STATUS_REQUESTED: throw new IllegalStateException();
-            case STATUS_NONE:{
-                if(laminarifer.canFill(world,pos,state,side,fluid,nbt,fillSource)) this.status = STATUS_ALLOWED; //继续ALLOWED的分支
-                else{
-                    this.status = STATUS_REFUSED;
-                    return 0L;
-                }
-            } case STATUS_ALLOWED: {
-                if(doOperate) this.status = STATUS_REQUESTED;
-                return Laminarifers.addAmountInQB(laminarifer, world, pos, state, fluid, nbt, amount, doOperate, pulse, fillSource, modifier);
-            }
-            case STATUS_REFUSED:
-            default:return 0L;
-        }
+    @Nonnull
+    @SuppressWarnings("unchecked")
+    public final S specific(final @Nonnull Fluid fluid,final @Nullable NBTTagCompound tag){
+        this.fluid = fluid;
+        this.nbt = tag;
+        return (S) this;
+    }
+
+    @Nonnull
+    @SuppressWarnings("unchecked")
+    public final S amount(final long amountInQB){
+        this.amount = amountInQB;
+        return (S) this;
+    }
+
+    @Nonnull
+    @SuppressWarnings("unchecked")
+    public final S amount(final long amount, final @Nonnull FluidUnit unit){
+        this.amount = unit.toQB(amount);
+        return (S) this;
     }
 
     @Override
-    public void close(){
-        this.fillSource = null;
+    public void close() {
+        this.fluid = null;
+        this.nbt = null;
+        this.amount = 0L;
         super.close();
     }
 }

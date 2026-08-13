@@ -34,9 +34,11 @@ import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsDesign;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
 import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
+import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.laminarifer.flow.AverageFlow;
 import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
+import moe.qingu.orbtellus.api.laminarifer.request.ExtractLaminariferRequest;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
 import moe.qingu.orbtellus.api.util.annotation.MultiThread;
 import moe.qingu.orbtellus.api.util.annotation.ThreadOnly;
@@ -84,9 +86,11 @@ import static moe.qingu.orbtellus.configs.FluidPhysicsConfig.FLUID_PHYSICS_MODE;
 public final class BlockSoils { //unfinished todo
     @ThreadOnly(ThreadType.MINECRAFT_SERVER) private static final MBlockPos mutablePos = new MBlockPos();
     @ThreadOnly(ThreadType.MINECRAFT_SERVER) private static final FillLaminariferRequest fillRequest = new FillLaminariferRequest();
+    @ThreadOnly(ThreadType.MINECRAFT_SERVER) private static final ExtractLaminariferRequest extractRequest = new ExtractLaminariferRequest();
     @ThreadOnly(ThreadType.MINECRAFT_SERVER) private static final AverageFlow _平均流动_ = new AverageFlow();
 
     static {
+        _平均流动_.centralModel = new LaminariferModelBuffer();
         _平均流动_.centralModel.maxLayers = 4L;
         _平均流动_.centralModel.emptyHeight = 0L;
         _平均流动_.centralModel.amountInQBPerLayer = QBUnit.QUANTA_VOLUME;
@@ -98,6 +102,12 @@ public final class BlockSoils { //unfinished todo
     private static FillLaminariferRequest getFillRequest(){
         if(fillRequest.isUsing()) return new FillLaminariferRequest(); //一般情况下不应该using的
         else return fillRequest;
+    }
+
+    @Nonnull
+    private static ExtractLaminariferRequest getExtractRequest(){
+        if(extractRequest.isUsing()) return new ExtractLaminariferRequest(); //一般情况下不应该using的
+        else return extractRequest;
     }
 
     /**
@@ -149,8 +159,9 @@ public final class BlockSoils { //unfinished todo
                         try (final FillLaminariferRequest request = getFillRequest().open()){
                             return request.target((ILaminarifer) $土壤下方方块状态.getBlock())
                                     .at(world,$土壤下方位置,$土壤下方方块状态).side(EnumFacing.UP)
-                                    .withContent(FluidRegistry.WATER, QBUnit.QUANTA_VOLUME)
-                                    .withSource($土壤)
+                                    .specific(FluidRegistry.WATER)
+                                    .amount(QBUnit.QUANTA_VOLUME)
+                                    .source($土壤)
                                     .fill(true)>0L;
 
                         }
@@ -253,18 +264,18 @@ public final class BlockSoils { //unfinished todo
         }
     }
 
-    static int 壤中流毛细流动(final @Nonnull IBlockSoil $土壤, //todo
-                              final @Nonnull World worldIn,
-                              final @Nonnull BlockPos pos,
-                              final @Nonnull IBlockState state){
-        BlockPos upPos = pos.up();
-        IBlockState upState = worldIn.getBlockState(upPos);
+    static int 壤中流毛细流动(final @Nonnull IBlockSoil $土壤, final @Nonnull World world, final @Nonnull BlockPos pos){ // todo: 之后要实现六个方向的
+        mutablePos.setPos(pos).upM();
+        final IBlockState upState = world.getBlockState(mutablePos);
         if(upState.getBlock() instanceof ILaminarifer){
-            ILaminarifer block = (ILaminarifer) upState.getBlock();
-            if(!block.canDrain(worldIn,upPos,upState,FluidRegistry.WATER,EnumFacing.DOWN,state)) return 0;
-            int drained = block.drainLayer(worldIn,upPos,upState,FluidRegistry.WATER,1,false);
-            if(drained < 1) return 0;
-            return block.drainLayer(worldIn,upPos,upState,FluidRegistry.WATER,1,true);
+            try (final ExtractLaminariferRequest request = getExtractRequest().open()){
+                return QBUnit.sampleQuanta(world.rand,request.target((ILaminarifer) upState.getBlock())
+                        .at(world,mutablePos,upState).side(EnumFacing.DOWN)
+                        .specific(FluidRegistry.WATER)
+                        .amount(QBUnit.QUANTA_VOLUME)
+                        .drainer($土壤)
+                        .extract(true)) > 0L? 1: 0;
+            }
         }
         return 0;
     }
@@ -308,7 +319,7 @@ public final class BlockSoils { //unfinished todo
         switch (rnd){
             case 0: //吸收上面的水
                 if(humidity < 4) {
-                    newHumidity += 壤中流毛细流动($土壤,worldIn,pos,state);
+                    newHumidity += 壤中流毛细流动($土壤,worldIn,pos);
                 }
                 break;
             case 1: //向下掉水

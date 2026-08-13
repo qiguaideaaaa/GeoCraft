@@ -53,7 +53,7 @@ import javax.annotation.Nullable;
 
 import static moe.qingu.orbtellus.api.block.BlockProperties.HUMIDITY;
 
-public interface IBlockSoil extends IBlockStateLaminarifer, IFlowSource {
+public interface IBlockSoil extends IBlockStateLaminarifer, IFlowSource, IFlowDrainer {
 
     @Nonnull
     BlockSoilType getType(@Nonnull final IBlockState state);
@@ -193,7 +193,7 @@ public interface IBlockSoil extends IBlockStateLaminarifer, IFlowSource {
                                         @Nullable final IFlowDrainer drainer,
                                         final long blockFlagsModifier){
         if(fluid == null || fluid == FluidRegistry.WATER){
-            final long actually = Laminarifers.drainAmountInQB(this,world,pos,state,FluidRegistry.WATER,null,amount,doOperate,pulse,drainer,blockFlagsModifier);
+            final long actually = Laminarifers.extractAmountInQB(this,world,pos,state,FluidRegistry.WATER,null,amount,doOperate,pulse,drainer,blockFlagsModifier);
             return new QBFluidStack(FluidRegistry.WATER,actually);
         }else return null;
     }
