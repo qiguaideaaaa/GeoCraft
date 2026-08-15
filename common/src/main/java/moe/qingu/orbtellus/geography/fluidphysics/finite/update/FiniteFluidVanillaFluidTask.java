@@ -29,7 +29,6 @@ package moe.qingu.orbtellus.geography.fluidphysics.finite.update;
 
 import moe.qingu.orbtellus.api.fluid.unit.QuantaUnit;
 import moe.qingu.orbtellus.api.laminarifer.AHUnit;
-import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.laminarifer.flow.AverageFlow;
 import moe.qingu.orbtellus.api.world.tick.scheduler.BlockTickScheduler;
 import moe.qingu.orbtellus.geography.fluidphysics.AbstractFluidTask;
@@ -58,13 +57,12 @@ import moe.qingu.orbtellus.handler.ServerStatusMonitor;
 import moe.qingu.orbtellus.util.MiscUtil;
 import moe.qingu.orbtellus.util.fluid.FluidOperationUtil;
 import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
@@ -76,7 +74,6 @@ import static net.minecraft.block.BlockLiquid.LEVEL;
 @ThreadOnly(ThreadType.MINECRAFT_SERVER)
 @NotThreadSafe
 public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
-    private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) List<FlowChoice> averageFlowChoices = new ArrayList<>();
     private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) Set<EnumFacing> slopeFlowableDirections = EnumSet.noneOf(EnumFacing.class);
     private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) EnumFacing[] slopeFlowDirectionsArr = new EnumFacing[4];
     private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) Set<EnumFacing> bestFlowDirections = EnumSet.noneOf(EnumFacing.class);
@@ -198,97 +195,96 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
         }
 
         //可流动方向检查
-        averageFlowChoices.clear();
-        final @Nullable Set<EnumFacing> slopeModeFlowDirections = FluidPhysicsConfig.slopeModeForVanillaWhenOnLiquidsAndQuantaAbove1.getValue()?
-                slopeFlowableDirections:null;//多层坡度模式可用方向
-        flowing.gatherFlowChoices(world,pos,state,liquidQuanta,averageFlowChoices,slopeModeFlowDirections);
+        try (final AverageFlow flow = averageFlow){
+            flow.at(world,pos)
+                    .fluid(FluidRegistry.WATER)
+                    .source(null)
+                    .centralModel.currentLayers = liquidQuanta;
+            final @Nullable Set<EnumFacing> slopeModeFlowDirections = FluidPhysicsConfig.slopeModeForVanillaWhenOnLiquidsAndQuantaAbove1.getValue()?
+                    slopeFlowableDirections:null;//多层坡度模式可用方向
+            if(slopeModeFlowDirections != null) slopeModeFlowDirections.clear();
+            flowing.gatherFlowChoices(world,pos,flow,slopeModeFlowDirections);
 
-        if(!averageFlowChoices.isEmpty()){
-            // *******************
-            //  Average Flow  // todo: Update here
-            // *******************
-            int newLiquidQuanta = Laminarifers.averageFlow(liquidQuanta,
-                    AHUnit.EIGHTH_FLUID,
-                    QBUnit.QUANTA_VOLUME,
-                    0,
-                    averageFlowChoices);
+            if(flow.hasNext()){
+                // *******************
+                //  Average Flow
+                // *******************
 
-            if(newLiquidQuanta == liquidQuanta){
+                if(!flow.resolve()){
+                    // *******************
+                    //  Pressure Flow
+                    // *******************
+                    this.placeStaticBlock(world,pos,state,FlowingMode.AVERAGE_MODE);
+                    return;
+                }
+
+                long left = flow.extraAmountInQB;
+                while (flow.hasNext()){
+                    final FlowChoice choice = flow.next();
+                    if(choice.isAir()){
+                        choice.sampleExtraAmount(world.rand);
+                        if(choice.getNewLayers() <= 0L) continue;
+                        facingPos$mut.setPos(pos).offsetM(choice.direction,1);
+                        final @Nonnull IBlockState facingState = world.getBlockState(facingPos$mut);
+                        FluidOperationUtil.triggerDestroyBlockEffectByFluid(world,facingPos$mut,facingState,fluid);
+                        world.setBlockState(facingPos$mut,
+                                flowing.dynamic.getDefaultState().withProperty(LEVEL, 8-(int) choice.getNewLayers()),
+                                Constants.BlockFlags.DEFAULT);
+                    }else{
+                        left += flow.applyCurrentChoice();
+                    }
+                }
+
+                final int newLiquidQuanta = (int)(flow.finalLayers + QBUnit.sampleQuanta(world.rand, left));
+
+                liquidMeta = 8 - newLiquidQuanta;
+                if (newLiquidQuanta<=0) world.setBlockState(pos,AIR_DEFAULT_STATE,updateFlag); //先更新自身状态
+                else {
+                    state = state.withProperty(LEVEL,liquidMeta);
+                    world.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
+                    BlockTickScheduler.schedule(world,pos,flowing.dynamic, updateRate);
+                    if(FluidPhysicsConfig.PRESSURE_SYSTEM_FOR_REALITY.getValue() && !FluidPressureSearchManager.isTaskRunning(world,pos)){
+                        // *******************
+                        //  Pressure Flow [Average]
+                        // *******************
+                        createFluidPressureSearchTask(world,pos,state,FlowingMode.AVERAGE_MODE);
+                    }
+                    world.notifyNeighborsOfStateChange(pos,flowing.dynamic, false);
+                }
+            }else if(slopeModeFlowDirections != null && !slopeModeFlowDirections.isEmpty()) {
+                // ********************
+                //  Multi-Quanta Slope Flow
+                // ********************
+                if(!world.isAreaLoaded(pos, flowing.getMultiSlopeFindDistance(world))){
+                    BlockTickScheduler.schedule(world,pos,state.getBlock(),updateRate);
+                    return;
+                }
+                bestFlowDirections.clear();
+                flowing.multiSlopeAlgorithm(world, pos, slopeModeFlowDirections, liquidQuanta,bestFlowDirections);
+                if (bestFlowDirections.isEmpty()) {
+                    this.placeStaticBlock(world, pos, state,FlowingMode.SLOPE_MODE_ON_WATER_2);
+                    return;
+                }
+                int i = 0;
+                for(@Nonnull final EnumFacing dir:bestFlowDirections){
+                    bestFlowDirectionsArr[i++] = dir;
+                }
+                @Nonnull final EnumFacing flowDir = bestFlowDirectionsArr[rand.nextInt(i)];
+                final int newLiquidQuanta = liquidQuanta - 1;
+                final int newLiquidMeta = 8 - newLiquidQuanta;
+                //更新自己
+                state = state.withProperty(LEVEL, newLiquidMeta);
+                world.setBlockState(pos, state, updateFlag);
+                BlockTickScheduler.schedule(world,pos, flowing.dynamic, updateRate);
+                world.notifyNeighborsOfStateChange(pos, flowing.dynamic, false);
+                //移动至新位置
+                flowing.placeDynamicBlock(world, pos.offset(flowDir), liquidMeta);
+            }else {
                 // *******************
                 //  Pressure Flow
                 // *******************
-                this.placeStaticBlock(world,pos,state,FlowingMode.AVERAGE_MODE);
-                return;
+                this.placeStaticBlock(world,pos,state,FlowingMode.NO_MODE);
             }
-
-            long left = 0;
-            for(@Nonnull final FlowChoice choice:averageFlowChoices){ //向四周流动
-                if(choice.getAddedLayers() == 0){
-                    left += choice.getAddedAmountInQB();
-                    continue;
-                }
-                facingPos$mut.setPos(pos).offsetM(choice.direction,1);
-                if(choice.isAir()){
-                    final @Nonnull IBlockState facingState = world.getBlockState(facingPos$mut);
-                    FluidOperationUtil.triggerDestroyBlockEffectByFluid(world,facingPos$mut,facingState,fluid);
-                    world.setBlockState(facingPos$mut,
-                            flowing.dynamic.getDefaultState().withProperty(LEVEL, 8-choice.getNewLayers()),
-                            Constants.BlockFlags.DEFAULT);
-                }else{
-                    left += choice.apply(world,facingPos$mut,world.getBlockState(facingPos$mut),fluid);
-                }
-            }
-            newLiquidQuanta += QBUnit.toQuantaAsInt(left);
-
-            liquidMeta = 8 - newLiquidQuanta;
-            if (newLiquidQuanta<=0) world.setBlockState(pos,AIR_DEFAULT_STATE,updateFlag); //先更新自身状态
-            else {
-                state = state.withProperty(LEVEL,liquidMeta);
-                world.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
-                BlockTickScheduler.schedule(world,pos,flowing.dynamic, updateRate);
-                if(FluidPhysicsConfig.PRESSURE_SYSTEM_FOR_REALITY.getValue() && !FluidPressureSearchManager.isTaskRunning(world,pos)){
-                    // *******************
-                    //  Pressure Flow [Average]
-                    // *******************
-                    createFluidPressureSearchTask(world,pos,state,FlowingMode.AVERAGE_MODE);
-                }
-                world.notifyNeighborsOfStateChange(pos,flowing.dynamic, false);
-            }
-
-            averageFlowChoices.clear();
-        }else if(slopeModeFlowDirections != null && !slopeModeFlowDirections.isEmpty()) {
-            // ********************
-            //  Multi-Quanta Slope Flow
-            // ********************
-            if(!world.isAreaLoaded(pos, flowing.getMultiSlopeFindDistance(world))){
-                BlockTickScheduler.schedule(world,pos,state.getBlock(),updateRate);
-                return;
-            }
-            bestFlowDirections.clear();
-            flowing.multiSlopeAlgorithm(world, pos, slopeModeFlowDirections, liquidQuanta,bestFlowDirections);
-            if (bestFlowDirections.isEmpty()) {
-                this.placeStaticBlock(world, pos, state,FlowingMode.SLOPE_MODE_ON_WATER_2);
-                return;
-            }
-            int i = 0;
-            for(@Nonnull final EnumFacing dir:bestFlowDirections){
-                bestFlowDirectionsArr[i++] = dir;
-            }
-            @Nonnull final EnumFacing flowDir = bestFlowDirectionsArr[rand.nextInt(i)];
-            final int newLiquidQuanta = liquidQuanta - 1;
-            final int newLiquidMeta = 8 - newLiquidQuanta;
-            //更新自己
-            state = state.withProperty(LEVEL, newLiquidMeta);
-            world.setBlockState(pos, state, updateFlag);
-            BlockTickScheduler.schedule(world,pos, flowing.dynamic, updateRate);
-            world.notifyNeighborsOfStateChange(pos, flowing.dynamic, false);
-            //移动至新位置
-            flowing.placeDynamicBlock(world, pos.offset(flowDir), liquidMeta);
-        }else {
-            // *******************
-            //  Pressure Flow
-            // *******************
-            this.placeStaticBlock(world,pos,state,FlowingMode.NO_MODE);
         }
     }
 

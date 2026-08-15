@@ -235,7 +235,7 @@ public final class Laminarifers {
                                      long amount,
                                      final boolean doOperate,
                                      final long pulse,
-                                     @Nullable final IFlowSource source,
+                                     @Nullable final IFlowSource<?> source,
                                      final long blockFlagsModifier){
         if(amount <= 0L) return 0L;
         final long amountPerLayer = laminarifer.getAmountInQBPerLayer(world, pos, state, fluid, nbt);
@@ -260,7 +260,7 @@ public final class Laminarifers {
                                      long amount,
                                      final boolean doOperate,
                                      final long pulse,
-                                     @Nullable final IFlowSource source){
+                                     @Nullable final IFlowSource<?> source){
         return addAmountInQB(laminarifer, world, pos, state, fluid ,nbt, amount, doOperate, pulse, source, BlockFlagModifiers.KEEP);
     }
 
@@ -306,7 +306,7 @@ public final class Laminarifers {
                                      long amount,
                                      final boolean doOperate,
                                      final long pulse,
-                                     @Nullable final IFlowSource source,
+                                     @Nullable final IFlowSource<?> source,
                                      final long blockFlagsModifier){
         return addAmountInQB(laminarifer, world, pos, state, fluid ,null, amount, doOperate, pulse, source, blockFlagsModifier);
     }
@@ -322,7 +322,7 @@ public final class Laminarifers {
                                      long amount,
                                      final boolean doOperate,
                                      final long pulse,
-                                     @Nullable final IFlowSource source){
+                                     @Nullable final IFlowSource<?> source){
         return addAmountInQB(laminarifer, world, pos, state, fluid ,null, amount, doOperate, pulse, source, BlockFlagModifiers.KEEP);
     }
 
@@ -365,7 +365,7 @@ public final class Laminarifers {
                                      @Nonnull final QBFluidStack stack,
                                      final boolean doOperate,
                                      final long pulse,
-                                     @Nullable final IFlowSource source,
+                                     @Nullable final IFlowSource<?> source,
                                      final long blockFlagsModifier){
         return addAmountInQB(laminarifer, world, pos, state, stack.getFluid(), stack.tag, stack.amount, doOperate, pulse, source, blockFlagsModifier);
     }
@@ -380,7 +380,7 @@ public final class Laminarifers {
                                      @Nonnull final QBFluidStack stack,
                                      final boolean doOperate,
                                      final long pulse,
-                                     @Nullable final IFlowSource source){
+                                     @Nullable final IFlowSource<?> source){
         return addAmountInQB(laminarifer, world, pos, state, stack.getFluid(), stack.tag, stack.amount, doOperate, pulse, source, BlockFlagModifiers.KEEP);
     }
 
@@ -437,7 +437,7 @@ public final class Laminarifers {
                                          long amount,
                                          final boolean doOperate,
                                          final long pulse,
-                                         @Nullable final IFlowDrainer drainer,
+                                         @Nullable final IFlowDrainer<?> drainer,
                                          final long blockFlagsModifier){
         if(amount <= 0L) return 0L;
         final long amountPerLayer = laminarifer.getAmountInQBPerLayer(world, pos, state, fluid, nbt);
@@ -460,7 +460,7 @@ public final class Laminarifers {
                                          long amount,
                                          final boolean doOperate,
                                          final long pulse,
-                                         @Nullable final IFlowDrainer drainer){
+                                         @Nullable final IFlowDrainer<?> drainer){
         return extractAmountInQB(laminarifer, world, pos, state, fluid, nbt, amount, doOperate, pulse, drainer, BlockFlagModifiers.KEEP);
     }
 
@@ -506,7 +506,7 @@ public final class Laminarifers {
                                          long amount,
                                          final boolean doOperate,
                                          final long pulse,
-                                         @Nullable final IFlowDrainer drainer,
+                                         @Nullable final IFlowDrainer<?> drainer,
                                          final long blockFlagsModifier){
         return extractAmountInQB(laminarifer, world, pos, state, fluid, null, amount, doOperate, pulse, drainer, blockFlagsModifier);
     }
@@ -522,7 +522,7 @@ public final class Laminarifers {
                                          long amount,
                                          final boolean doOperate,
                                          final long pulse,
-                                         @Nullable final IFlowDrainer drainer){
+                                         @Nullable final IFlowDrainer<?> drainer){
         return extractAmountInQB(laminarifer, world, pos, state, fluid, null, amount, doOperate, pulse, drainer, BlockFlagModifiers.KEEP);
     }
 
@@ -565,7 +565,7 @@ public final class Laminarifers {
                                          @Nonnull final QBFluidStack stack,
                                          final boolean doOperate,
                                          final long pulse,
-                                         @Nullable final IFlowDrainer drainer,
+                                         @Nullable final IFlowDrainer<?> drainer,
                                          final long blockFlagsModifier){
         return extractAmountInQB(laminarifer, world, pos, state, stack.getFluid(), stack.tag, stack.amount, doOperate, pulse, drainer, blockFlagsModifier);
     }
@@ -580,7 +580,7 @@ public final class Laminarifers {
                                          @Nonnull final QBFluidStack stack,
                                          final boolean doOperate,
                                          final long pulse,
-                                         @Nullable final IFlowDrainer drainer){
+                                         @Nullable final IFlowDrainer<?> drainer){
         return extractAmountInQB(laminarifer, world, pos, state, stack.getFluid(), stack.tag, stack.amount, doOperate, pulse, drainer, BlockFlagModifiers.KEEP);
     }
 
@@ -623,7 +623,7 @@ public final class Laminarifers {
                                               long amount,
                                               final boolean doOperate,
                                               final long pulse,
-                                              @Nullable final IFlowDrainer drainer){
+                                              @Nullable final IFlowDrainer<?> drainer){
         return laminarifer.drainStackInQB(world, pos, state, fluid, amount, doOperate, pulse, drainer, BlockFlagModifiers.KEEP);
     }
 
@@ -669,7 +669,7 @@ public final class Laminarifers {
                                               long amount,
                                               final boolean doOperate,
                                               final long pulse,
-                                              @Nullable final IFlowDrainer drainer,
+                                              @Nullable final IFlowDrainer<?> drainer,
                                               final long blockFlagsModifier){
         return laminarifer.drainStackInQB(world, pos, state, null, amount, doOperate, pulse, drainer, blockFlagsModifier);
     }

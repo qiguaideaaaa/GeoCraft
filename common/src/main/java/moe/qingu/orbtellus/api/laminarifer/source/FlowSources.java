@@ -40,11 +40,11 @@ public final class FlowSources {
 
     private FlowSources(){}
 
-    public static boolean isAtmosphere(final @Nullable IFlowSource source){
+    public static boolean isAtmosphere(final @Nullable IFlowSource<?> source){
         return source instanceof IAtmosphereSystem;
     }
 
-    public static boolean isRunoff(final @Nullable IFlowSource source){
+    public static boolean isRunoff(final @Nullable IFlowSource<?> source){
         if(source instanceof Block) return FluidUtil.isFluid((Block) source);
         return false;
     }

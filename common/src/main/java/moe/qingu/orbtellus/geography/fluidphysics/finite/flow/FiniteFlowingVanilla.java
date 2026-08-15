@@ -28,6 +28,7 @@
 package moe.qingu.orbtellus.geography.fluidphysics.finite.flow;
 
 import moe.qingu.orbtellus.api.fluid.unit.QuantaUnit;
+import moe.qingu.orbtellus.api.laminarifer.flow.AverageFlow;
 import moe.qingu.orbtellus.api.world.tick.scheduler.BlockTickScheduler;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
@@ -86,78 +87,43 @@ public final class FiniteFlowingVanilla extends VanillaFlowingVanilla {
 
     /**
      * 检查方块四周可流动的选择
-     * @param worldIn 所在世界
+     * @param world 所在世界
      * @param pos 方块位置
-     * @param liquidQuanta 液体量
-     * @param averageModeFlowDirections 平均流动模式下的选择列表
+     * @param averageFlow 平均流动
      * @param slopeModeFlowDirections Q>1 坡度流动模式下的选择集合
      */
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public void gatherFlowChoices(final @Nonnull World worldIn,
+    public void gatherFlowChoices(final @Nonnull World world,
                                   final @Nonnull BlockPos pos,
-                                  final @Nonnull IBlockState state,
-                                  final int liquidQuanta,
-                                  final @Nonnull List<FlowChoice> averageModeFlowDirections,
+                                  final @Nonnull AverageFlow averageFlow,
                                   final @Nullable Set<EnumFacing> slopeModeFlowDirections){
+        final boolean isSlopeEnabled = slopeModeFlowDirections != null;
+        final int centralQuanta = (int) averageFlow.centralModel.currentLayers;
         for(final @Nonnull EnumFacing facing:EnumFacing.Plane.HORIZONTAL){
-            final IBlockState facingState = worldIn.getBlockState(mutablePos.setPos(pos.getX()+facing.getXOffset(),pos.getY(),pos.getZ()+facing.getZOffset()));
-            if(slopeModeFlowDirections==null?
-                    !canFlowIntoRegardedPermeable(worldIn,mutablePos,facingState,state,facing.getOpposite()): //不启用坡度流动，不用管坡度流动的情况
-                    !canFlowInto2(worldIn,mutablePos,facingState,state,facing.getOpposite())) //启用坡度流动，包含坡度流动的情况
-                continue;
+            final IBlockState facingState = world.getBlockState(mutablePos.setPos(pos.getX()+facing.getXOffset(),pos.getY(),pos.getZ()+facing.getZOffset()));
+            final Block facingBlock = facingState.getBlock();
 
-            final Block block = facingState.getBlock();
-            final ILaminarifer permeableBlock = (block instanceof ILaminarifer)?(ILaminarifer) block:null;
+            final boolean canFlowInto = canFlowInto(facingState);
+            final boolean averageBasicAccept = canFlowInto || facingBlock instanceof ILaminarifer;
+            final boolean slopeBasicAccept = isSlopeEnabled && (canFlowInto || isEqualFluid(facingState));
+            if(!averageBasicAccept && !slopeBasicAccept) continue;
 
-            int facingHeight,facingQuanta,facingHeightPerLayer = ILaminariferFiniteLiquid.HEIGHT_PER_QUANTA;
-            if(permeableBlock != null){
-                facingHeight = permeableBlock.getHeight(worldIn,mutablePos,facingState,fluid);
-                facingQuanta = permeableBlock.getLayers(worldIn,mutablePos,facingState,fluid);
-            }else {
-                int facingMeta = getDepth(facingState);
-                if(facingMeta <0 || facingMeta>7) facingMeta = 8;
-                facingQuanta = 8-facingMeta;
-                facingHeight = facingQuanta* ILaminariferFiniteLiquid.HEIGHT_PER_QUANTA;
+            //平均流动检查
+            if(facingBlock instanceof ILaminarifer){
+                averageFlow.addChoice(facing, facingState, (ILaminarifer) facingBlock);
+                if(!averageFlow.isLastChoiceAvailable()) averageFlow.removeLastChoice();
+            }else averageFlow.addAirChoice(facing);
+
+            //坡度流动检查
+            if(slopeBasicAccept){
+                final int facingMeta = getDepth(facingState);
+                final int facingQuanta;
+                if(facingMeta < 0) facingQuanta = 0;
+                else if(facingMeta >= 7) facingQuanta = 1;
+                else facingQuanta = 8 - facingMeta;
+                if(facingQuanta<centralQuanta) slopeModeFlowDirections.add(facing);
             }
-
-            if(facingHeight+facingHeightPerLayer<=(liquidQuanta-1)* ILaminariferFiniteLiquid.HEIGHT_PER_QUANTA){
-                averageModeFlowDirections.add(permeableBlock == null?
-                        new FlowChoice(facing,facingQuanta):
-                        new FlowChoice(worldIn,mutablePos,facingState,permeableBlock,facing,fluid));
-            }
-
-            if(!canFlowInto2RegardlessPermeable(facingState)) continue;
-            if(slopeModeFlowDirections != null && facingHeight<liquidQuanta* ILaminariferFiniteLiquid.HEIGHT_PER_QUANTA) slopeModeFlowDirections.add(facing);
         }
-    }
-
-    public boolean canFlowIntoRegardedPermeable(@Nonnull World world,@Nonnull BlockPos pos,@Nonnull IBlockState state,@Nonnull IBlockState fromState,@Nonnull EnumFacing from){
-        if(canFlowInto(state)) return true;
-        if(state.getBlock() instanceof ILaminarifer){
-            final ILaminarifer block = (ILaminarifer) state.getBlock();
-            return block.canFill(world, pos, state, fluid,from,fromState);
-        }
-        return false;
-    }
-
-    /**
-     * Q>1 坡度流动模式下检查是否能够流入指定方块
-     * @param state 检测位置方块状态
-     * @return 如果可以，则返回true
-     */
-    public boolean canFlowInto2(@Nonnull World world,@Nonnull BlockPos pos,@Nonnull IBlockState state,@Nonnull IBlockState fromState,@Nonnull EnumFacing from){
-        if(canFlowIntoRegardedPermeable(world,pos,state,fromState,from)) return true;
-        return isEqualFluid(state);
-    }
-
-    /**
-     * Q>1 坡度流动模式下检查是否能够流入指定方块
-     * @param state 检测位置方块状态
-     * @return 如果可以，则返回true
-     */
-    public boolean canFlowInto2RegardlessPermeable(@Nonnull IBlockState state){
-        if(canFlowInto(state)) return true;
-        return isEqualFluid(state);
     }
 
     public boolean canFlowIntoWhenSnowLayer(@Nonnull World world,@Nonnull BlockPos pos,@Nonnull IBlockState state,int quanta){

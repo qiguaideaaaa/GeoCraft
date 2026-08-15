@@ -155,7 +155,7 @@ public interface ILaminariferFiniteLiquid extends IBlockStateLaminarifer {
                           final long layer,
                           final boolean doOperate,
                           final long pulse,
-                          @Nullable final IFlowSource source,
+                          @Nullable final IFlowSource<?> source,
                           final long blockFlagsModifier) {
         final Fluid current = 天圆地方$getFluid();
         if(fluid == OTCFluids.SNOW && current == FluidRegistry.WATER){
@@ -190,6 +190,7 @@ public interface ILaminariferFiniteLiquid extends IBlockStateLaminarifer {
         }
         if(fluid != current) return null;
         if(layer< 0L || layer > 8L) return null;
+        assert Blocks.AIR != null;
         if(layer == 0L) return Blocks.AIR.getDefaultState();
         return state.withProperty(LEVEL, Math.max( 8- (int) layer, 0));
     }
@@ -203,7 +204,7 @@ public interface ILaminariferFiniteLiquid extends IBlockStateLaminarifer {
                                         long amount,
                                         final boolean doOperate,
                                         final long pulse,
-                                        @Nullable final IFlowDrainer drainer,
+                                        @Nullable final IFlowDrainer<?> drainer,
                                         final long blockFlagsModifier){
         final Fluid current = 天圆地方$getFluid();
         if(fluid != null && fluid != current) return null;

@@ -53,7 +53,7 @@ import javax.annotation.Nullable;
 
 import static moe.qingu.orbtellus.api.block.BlockProperties.HUMIDITY;
 
-public interface IBlockSoil extends IBlockStateLaminarifer, IFlowSource, IFlowDrainer {
+public interface IBlockSoil extends IBlockStateLaminarifer, IFlowSource<IBlockSoil>, IFlowDrainer<IBlockSoil> {
 
     @Nonnull
     BlockSoilType getType(@Nonnull final IBlockState state);
@@ -86,7 +86,7 @@ public interface IBlockSoil extends IBlockStateLaminarifer, IFlowSource, IFlowDr
                             @Nullable final EnumFacing side,
                             @Nonnull final Fluid fluid,
                             @Nullable final NBTTagCompound nbt,
-                            @Nullable final IFlowSource source) {
+                            @Nullable final IFlowSource<?> source) {
         if(fluid != FluidRegistry.WATER) return false;
         if(Laminarifers.isFull(this,state,fluid,nbt)) return false;
         if(FlowSources.isAtmosphere(source)){
@@ -103,7 +103,7 @@ public interface IBlockSoil extends IBlockStateLaminarifer, IFlowSource, IFlowDr
                              @Nullable final EnumFacing side,
                              @Nonnull final Fluid fluid,
                              @Nullable final NBTTagCompound nbt,
-                             @Nullable final IFlowDrainer drainer) {
+                             @Nullable final IFlowDrainer<?> drainer) {
         if(fluid != FluidRegistry.WATER) return false;
         return getLayers(state,fluid,nbt)>getMaxStableHumidity(state);
     }
@@ -190,7 +190,7 @@ public interface IBlockSoil extends IBlockStateLaminarifer, IFlowSource, IFlowDr
                                         final long amount,
                                         final boolean doOperate,
                                         final long pulse,
-                                        @Nullable final IFlowDrainer drainer,
+                                        @Nullable final IFlowDrainer<?> drainer,
                                         final long blockFlagsModifier){
         if(fluid == null || fluid == FluidRegistry.WATER){
             final long actually = Laminarifers.extractAmountInQB(this,world,pos,state,FluidRegistry.WATER,null,amount,doOperate,pulse,drainer,blockFlagsModifier);

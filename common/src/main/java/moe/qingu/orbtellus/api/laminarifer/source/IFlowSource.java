@@ -27,8 +27,10 @@
 
 package moe.qingu.orbtellus.api.laminarifer.source;
 
+import moe.qingu.orbtellus.api.util.IMutable;
+
 /**
  * @author QGMoe
  */
-public interface IFlowSource {
+public interface IFlowSource<S extends IFlowSource<S>> extends IMutable<S> {
 }

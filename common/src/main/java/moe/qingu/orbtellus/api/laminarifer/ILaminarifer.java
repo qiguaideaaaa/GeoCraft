@@ -89,7 +89,7 @@ public interface ILaminarifer{
                             @Nullable final EnumFacing side,
                             @Nonnull final Fluid fluid,
                             @Nullable final NBTTagCompound nbt,
-                            @Nullable final IFlowSource source) {
+                            @Nullable final IFlowSource<?> source) {
         return isAcceptedFluid(world, pos, state, fluid, nbt) && !Laminarifers.isFull(this, world, pos, state, fluid, nbt);
     }
 
@@ -110,7 +110,7 @@ public interface ILaminarifer{
                              @Nullable final EnumFacing side,
                              @Nonnull final Fluid fluid,
                              @Nullable final NBTTagCompound nbt,
-                             @Nullable final IFlowDrainer drainer) {
+                             @Nullable final IFlowDrainer<?> drainer) {
         return getLayers(world, pos, state, fluid, nbt) != 0;
     }
 
@@ -307,7 +307,7 @@ public interface ILaminarifer{
                          final long layer,
                          final boolean doOperate,
                          final long pulse,
-                         @Nullable final IFlowSource source,
+                         @Nullable final IFlowSource<?> source,
                          final long blockFlagsModifier) {
         if (layer <= 0) return 0;
         final long curLayer = getLayers(world, pos, state, fluid, nbt);
@@ -345,7 +345,7 @@ public interface ILaminarifer{
                            final long layer,
                            final boolean doOperate,
                            final long pulse,
-                           @Nullable final IFlowDrainer drainer,
+                           @Nullable final IFlowDrainer<?> drainer,
                            final long blockFlagsModifier){
         if(layer <= 0) return 0;
         final long curLayer = getLayers(world,pos,state,fluid,nbt);
@@ -423,6 +423,6 @@ public interface ILaminarifer{
                                 final long amount,
                                 final boolean doOperate,
                                 final long pulse,
-                                @Nullable final IFlowDrainer drainer,
+                                @Nullable final IFlowDrainer<?> drainer,
                                 final long blockFlagsModifier);
 }

@@ -37,10 +37,10 @@ import javax.annotation.Nullable;
  * @author QGMoe
  */
 public final class ExtractLaminariferRequest extends SpecificLaminariferRequest<ExtractLaminariferRequest>{
-    private @Nullable IFlowDrainer drainer;
+    private @Nullable IFlowDrainer<?> drainer;
 
     @Nonnull
-    public ExtractLaminariferRequest drainer(final @Nullable IFlowDrainer drainer){
+    public ExtractLaminariferRequest drainer(final @Nullable IFlowDrainer<?> drainer){
         this.drainer = drainer;
         return this;
     }

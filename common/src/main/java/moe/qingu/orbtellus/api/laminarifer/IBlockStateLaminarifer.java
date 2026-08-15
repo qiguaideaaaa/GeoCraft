@@ -68,7 +68,7 @@ public interface IBlockStateLaminarifer extends ILaminarifer {
                             @Nullable final EnumFacing side,
                             @Nonnull final Fluid fluid,
                             @Nullable final NBTTagCompound nbt,
-                            @Nullable final IFlowSource source) {
+                            @Nullable final IFlowSource<?> source) {
         return isAcceptedFluid(state, fluid, nbt) && getLayers(state, fluid, nbt) < getMaxLayers(state, fluid, nbt);
     }
 
@@ -77,7 +77,7 @@ public interface IBlockStateLaminarifer extends ILaminarifer {
                              @Nullable final EnumFacing side,
                              @Nonnull final Fluid fluid,
                              @Nullable final NBTTagCompound nbt,
-                             @Nullable final IFlowDrainer drainer) {
+                             @Nullable final IFlowDrainer<?> drainer) {
         return getLayers(state, fluid, nbt) != 0;
     }
 
@@ -150,7 +150,7 @@ public interface IBlockStateLaminarifer extends ILaminarifer {
                             @Nullable final EnumFacing side,
                             @Nonnull final Fluid fluid,
                             @Nullable final NBTTagCompound nbt,
-                            @Nullable final IFlowSource source) {
+                            @Nullable final IFlowSource<?> source) {
         return canFill(world,state, side, fluid, nbt, source);
     }
 
@@ -161,7 +161,7 @@ public interface IBlockStateLaminarifer extends ILaminarifer {
                              @Nullable final EnumFacing side,
                              @Nonnull final Fluid fluid,
                              @Nullable final NBTTagCompound nbt,
-                             @Nullable final IFlowDrainer drainer) {
+                             @Nullable final IFlowDrainer<?> drainer) {
         return canDrain(world,state, side, fluid, nbt, drainer);
     }
 

@@ -32,7 +32,6 @@ import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
 import moe.qingu.orbtellus.api.fluid.StateOfMatter;
 import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsDesign;
-import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
 import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
@@ -78,7 +77,6 @@ import javax.annotation.Nullable;
 import java.util.Random;
 
 import static moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode.getCurrentMode;
-import static moe.qingu.orbtellus.configs.FluidPhysicsConfig.FLUID_PHYSICS_MODE;
 
 /**
  * @author QGMoe
@@ -248,15 +246,15 @@ public final class BlockSoils { //unfinished todo
                 }
             }
             if(!$平均流动.hasNext()) break averageFlow;
-            $平均流动.minLayers($土壤.getMaxStableHumidity(state))
-                    .resolve();
-            if($平均流动.finalLayers == humidity) break averageFlow;
+            if(!$平均流动.minLayers($土壤.getMaxStableHumidity(state)).resolve()) break averageFlow;
             long left = $平均流动.extraAmountInQB;
             while ($平均流动.hasNext()) {
                 final @Nonnull FlowChoice choice = $平均流动.next();
                 mutablePos.setPos(pos).offsetM(choice.direction);
                 if(choice.isAir()){
-                    if(FLUID_PHYSICS_MODE.getValue() != FluidPhysicsMode.FINITE) continue;
+                    if(getCurrentMode().design != FluidPhysicsDesign.FINITE) continue;
+                    choice.sampleExtraAmount(world.rand);
+                    if(choice.getNewLayers() <= 0L) continue;
                     world.setBlockState(mutablePos,Blocks.FLOWING_WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,8-(int) choice.getNewLayers()));
                 }else left += $平均流动.applyCurrentChoice();
             }

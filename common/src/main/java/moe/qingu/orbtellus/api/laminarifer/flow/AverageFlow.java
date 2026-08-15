@@ -59,7 +59,7 @@ public class AverageFlow implements AutoCloseable, Iterator<FlowChoice> {
     protected Fluid fluid;
     protected @Nullable NBTTagCompound fluidTag;
     protected long pulse;
-    protected IFlowSource source;
+    protected IFlowSource<?> source;
     protected long blockFlagModifier;
 
     protected long minLayers;
@@ -98,7 +98,7 @@ public class AverageFlow implements AutoCloseable, Iterator<FlowChoice> {
     }
 
     @Nonnull
-    public final AverageFlow source(final @Nullable IFlowSource source){
+    public final AverageFlow source(final @Nullable IFlowSource<?> source){
         this.source = source;
         return this;
     }
@@ -154,7 +154,7 @@ public class AverageFlow implements AutoCloseable, Iterator<FlowChoice> {
         final FlowChoice choice = choices[choicesCot-1];
         try {
             if(choice.model.isFull()) return false;
-            if(!choice.laminarifer.canFill(world,mPos.setPos(pos).offsetM(choice.direction), choice.state, choice.direction, fluid, fluidTag, source)) return false;
+            if(!choice.canFill(world,mPos.setPos(pos).offsetM(choice.direction), fluid, fluidTag, source)) return false;
             choice.addedLayers = 1L;
             return choice.getNewHeight() <= centralModel.getHeight() - centralModel.heightPerLayer;
         }finally {
@@ -203,10 +203,10 @@ public class AverageFlow implements AutoCloseable, Iterator<FlowChoice> {
 
     // 核心求解算法
 
-    public final void resolve() {
+    public final boolean resolve() {
         if (minLayers >= centralModel.currentLayers || choicesCot <= 0) { // 没有任何需要计算的东西
             finalLayers = centralModel.currentLayers;
-            return;
+            return false;
         }
 
         // 先进行最基础的扫描，用于之后分流判断
@@ -224,6 +224,7 @@ public class AverageFlow implements AutoCloseable, Iterator<FlowChoice> {
         // 尝试将多余流体量概率性地分配出去
         if ($多余流体量 > 0L) $多余流体量 = 分配多余流体量($多余流体量);
         extraAmountInQB = $多余流体量; //分配不出去的多余量记在中心
+        return this.finalLayers < centralModel.currentLayers;
     }
 
     protected final long 计算最大搬运次数() {

@@ -77,7 +77,7 @@ public interface IFluidloggableLaminarifer extends IFluidloggable, ILaminarifer 
                             @Nullable final EnumFacing side,
                             @Nonnull final Fluid fluid,
                             @Nullable final NBTTagCompound nbt,
-                            @Nullable final IFlowSource source) {
+                            @Nullable final IFlowSource<?> source) {
         if(!isFluidValid(state,world, pos, fluid)) return false;
         if(Laminarifers.isFull(this, world, pos, state, fluid, null)) return false;
         if(side == null){
@@ -93,7 +93,7 @@ public interface IFluidloggableLaminarifer extends IFluidloggable, ILaminarifer 
                              @Nullable final EnumFacing side,
                              @Nonnull final Fluid fluid,
                              @Nullable final NBTTagCompound nbt,
-                             @Nullable final IFlowDrainer drainer) {
+                             @Nullable final IFlowDrainer<?> drainer) {
         final @Nonnull FluidState fluidState = FluidState.get(world,pos);
         if(fluidState.getFluid() != fluid) return false;
         if(side == null){
@@ -204,7 +204,7 @@ public interface IFluidloggableLaminarifer extends IFluidloggable, ILaminarifer 
                                         long amount,
                                         final boolean doOperate,
                                         final long pulse,
-                                        @Nullable final IFlowDrainer drainer,
+                                        @Nullable final IFlowDrainer<?> drainer,
                                         final long blockFlagsModifier){
         final @Nonnull FluidState fluidState = FluidState.get(world,pos);
         if(fluidState.isEmpty() || fluidState.getFluid() != fluid) return null;

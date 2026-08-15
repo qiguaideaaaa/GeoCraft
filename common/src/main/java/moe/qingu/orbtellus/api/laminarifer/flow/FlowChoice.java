@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.api.laminarifer.flow;
 
+import moe.qingu.orbtellus.api.fluid.unit.FluidUnit;
 import moe.qingu.orbtellus.api.laminarifer.AHUnit;
 import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
 import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
@@ -41,6 +42,7 @@ import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Random;
 
 /**
  * 一个流动选择，用于平均流动 {@link AverageFlow}
@@ -48,11 +50,11 @@ import javax.annotation.Nullable;
  */
 public class FlowChoice {
     public EnumFacing direction;
-    public ILaminarifer laminarifer;
-    public IBlockState state;
+    public @Nullable ILaminarifer laminarifer;
+    public @Nullable IBlockState state;
 
     /// 载流方块模型
-    public LaminariferModelBuffer model;
+    public @Nonnull LaminariferModelBuffer model = new LaminariferModelBuffer();
 
     protected long addedLayers;
     protected long extraAmountInQB;
@@ -114,6 +116,13 @@ public class FlowChoice {
         return of(direction,0L);
     }
 
+    public final boolean sampleExtraAmount(final @Nonnull Random rand){
+        final long sampled;
+        this.addedLayers += (sampled = FluidUnit.sample(rand, extraAmountInQB, model.amountInQBPerLayer));
+        this.extraAmountInQB = 0L;
+        return sampled > 0L;
+    }
+
     /**
      * 将该流动选择应用到具体世界中
      * @param world 所在世界
@@ -126,14 +135,26 @@ public class FlowChoice {
                       @Nonnull final Fluid fluid,
                       @Nullable final NBTTagCompound tag,
                       final long pulse,
-                      @Nullable final IFlowSource source,
+                      @Nullable final IFlowSource<?> source,
                       final long blockFlagModifier){
-        if(extraAmountInQB > 0L && world.rand.nextDouble() < (double) extraAmountInQB/model.amountInQBPerLayer) this.addedLayers++;
-        return laminarifer.addLayer(world, pos, state, fluid, tag, addedLayers, true, pulse, source, blockFlagModifier)* model.amountInQBPerLayer;
+        sampleExtraAmount(world.rand);
+        assert laminarifer != null && state != null;
+        return (addedLayers - laminarifer.addLayer(world, pos, state, fluid, tag, addedLayers, true, pulse, source, blockFlagModifier)) * model.amountInQBPerLayer;
     }
 
     public final boolean isAir(){
         return laminarifer == null;
+    }
+
+    public final boolean canFill(@Nonnull final World world,
+                                 @Nonnull final BlockPos pos,
+                                 @Nonnull final Fluid fluid,
+                                 @Nullable final NBTTagCompound nbt,
+                                 @Nullable final IFlowSource<?> source) {
+        if(laminarifer != null){
+            assert state != null;
+            return laminarifer.canFill(world,pos,state,direction,fluid,nbt,source);
+        }else return true;
     }
 
     public final long getAddedAmountInQB() {

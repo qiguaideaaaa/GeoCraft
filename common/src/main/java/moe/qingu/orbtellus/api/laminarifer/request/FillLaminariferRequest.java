@@ -39,10 +39,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class FillLaminariferRequest extends SpecificLaminariferRequest<FillLaminariferRequest>{
-    private @Nullable IFlowSource fillSource;
+    private @Nullable IFlowSource<?> fillSource;
 
     @Nonnull
-    public FillLaminariferRequest source(final @Nullable IFlowSource source){
+    public FillLaminariferRequest source(final @Nullable IFlowSource<?> source){
         this.fillSource = source;
         return this;
     }

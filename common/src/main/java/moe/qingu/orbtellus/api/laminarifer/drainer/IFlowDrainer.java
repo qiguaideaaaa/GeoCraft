@@ -27,8 +27,10 @@
 
 package moe.qingu.orbtellus.api.laminarifer.drainer;
 
+import moe.qingu.orbtellus.api.util.IMutable;
+
 /**
  * @author QGMoe
  */
-public interface IFlowDrainer {
+public interface IFlowDrainer<D extends IFlowDrainer<D>> extends IMutable<D> {
 }
