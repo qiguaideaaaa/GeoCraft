@@ -72,7 +72,7 @@ public final class 方块原料 {
     public static final 闰土方块 _闰土_ = new 闰土方块();
 
     public static final class LayeredFluidHosts{
-        public static 模拟载流方块 FLUID_HOST_COMMON = new 模拟载流方块();
+        public static 模拟载流方块 $有限流体模型 = new 模拟载流方块();
     }
 
     @SuppressWarnings("unused")

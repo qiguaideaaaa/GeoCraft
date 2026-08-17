@@ -56,8 +56,8 @@ public class FlowChoice {
     /// 载流方块模型
     public @Nonnull LaminariferModelBuffer model = new LaminariferModelBuffer();
 
-    protected long addedLayers;
-    protected long extraAmountInQB;
+    public long addedLayers;
+    public long extraAmountInQB;
 
     /**
      * 变成一个基于载流方块的流动选择

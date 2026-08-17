@@ -27,6 +27,10 @@
 
 package 清汩萌.天圆地方.方块;
 
+import moe.qingu.orbtellus.api.fluid.QBFluidStack;
+import moe.qingu.orbtellus.api.laminarifer.AHUnit;
+import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
+import moe.qingu.orbtellus.api.laminarifer.drainer.IFlowDrainer;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyInteger;
@@ -37,7 +41,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
-import moe.qingu.orbtellus.api.util.LayeredFluidHostUtil;
 import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
 import 清汩萌.天圆地方.天圆地方测试;
 import 清汩萌.天圆地方.原料.流体原料;
@@ -54,7 +57,7 @@ public class 模拟载流方块 extends Block implements ILaminarifer {
     public 模拟载流方块() {
         super(Material.WATER);
         this.setDefaultState(this.getDefaultState().withProperty(LAYERS,1));
-        this.setRegistryName(天圆地方测试.MODID,"common_fluid_host");
+        this.setRegistryName(天圆地方测试.MODID,"finite_laminarifer");
     }
 
     @Override
@@ -64,32 +67,79 @@ public class 模拟载流方块 extends Block implements ILaminarifer {
     }
 
     @Override
-    public boolean isAcceptedFluid(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid) {
+    public boolean isAcceptedFluid(@Nonnull final World world,
+                                   @Nonnull final BlockPos pos,
+                                   @Nonnull final IBlockState state,
+                                   @Nonnull final Fluid fluid,
+                                   @Nullable final NBTTagCompound nbt) {
         return fluid == 流体原料.SNOW;
     }
 
     @Override
-    public int getLayers(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nullable Fluid fluid) {
-        return fluid == null || isAcceptedFluid(world, pos, state, fluid)?state.getValue(LAYERS):0;
+    public long getMaxLayers(@Nonnull final World world,
+                             @Nonnull final BlockPos pos,
+                             @Nonnull final IBlockState state,
+                             @Nonnull final Fluid fluid,
+                             @Nullable final NBTTagCompound nbt) {
+        return 8L;
     }
 
     @Override
-    public int getEmptyHeight(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nullable Fluid fluid) {
-        return LayeredFluidHostUtil.EMPTY_HEIGHT;
+    public long getLayers(@Nonnull final World world,
+                          @Nonnull final BlockPos pos,
+                          @Nonnull final IBlockState state,
+                          @Nonnull final Fluid fluid,
+                          @Nullable final NBTTagCompound nbt) {
+        return isAcceptedFluid(world, pos, state, fluid, nbt) ? state.getValue(LAYERS):0L;
     }
 
     @Override
-    public int getHeightPerLayer(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state) {
-        return LayeredFluidHostUtil.EIGHTH_HEIGHT;
+    public long getEmptyHeight(@Nonnull final World world,
+                               @Nonnull final BlockPos pos,
+                               @Nonnull final IBlockState state,
+                               @Nonnull final Fluid fluid,
+                               @Nullable final NBTTagCompound nbt) {
+        return 0L;
     }
 
     @Override
-    public long getAmountInQBPerLayer(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid) {
-        return isAcceptedFluid(world, pos, state, fluid)? QBUnit.QUANTA_VOLUME:0L;
+    public long getHeightPerLayer(@Nonnull final World world,
+                                  @Nonnull final BlockPos pos,
+                                  @Nonnull final IBlockState state,
+                                  @Nonnull final Fluid fluid,
+                                  @Nullable final NBTTagCompound nbt) {
+        return AHUnit.EIGHTH_FLUID;
     }
 
     @Override
-    public boolean setLayer(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid, int newLayer, @Nullable NBTTagCompound nbt, int disabledBlockFlags, int enabledBlockFlags) {
+    public boolean setLayer(@Nonnull final World world,
+                            @Nonnull final BlockPos pos,
+                            @Nonnull final IBlockState state,
+                            @Nonnull final Fluid fluid,
+                            @Nullable final NBTTagCompound nbt,
+                            final long newLayer,
+                            final long blockFlagsModifier) {
         return true;
+    }
+
+    @Override
+    public long getAmountInQBPerLayer(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid, @Nullable NBTTagCompound nbt) {
+        return QBUnit.QUANTA_VOLUME;
+    }
+
+    @Nullable
+    @Override
+    public QBFluidStack drainStackInQB(@Nonnull final World world,
+                                       @Nonnull final BlockPos pos,
+                                       @Nonnull final IBlockState state,
+                                       @Nullable final Fluid fluid,
+                                       final long amount,
+                                       final boolean doOperate,
+                                       final long pulse,
+                                       @Nullable final IFlowDrainer<?> drainer,
+                                       final long blockFlagsModifier) {
+        if(fluid == 流体原料.SNOW) return new QBFluidStack(fluid,
+                Laminarifers.extractAmountInQB(this, world, pos, state, fluid, null, amount, doOperate, pulse, drainer, blockFlagsModifier));
+        else return null;
     }
 }

@@ -27,7 +27,9 @@
 
 package 清汩萌.天圆地方.测试;
 
-import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
+import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
+import moe.qingu.orbtellus.api.laminarifer.flow.AverageFlow;
+import moe.qingu.orbtellus.api.laminarifer.request.FillLaminariferRequest;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -37,14 +39,17 @@ import org.junit.jupiter.api.Test;
 import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
 import moe.qingu.orbtellus.api.laminarifer.flow.FlowChoice;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import 清汩萌.天圆地方.天圆地方测试;
 import 清汩萌.天圆地方.原料.流体原料;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.stream.Stream;
 
-import static 清汩萌.天圆地方.原料.方块原料.LayeredFluidHosts.FLUID_HOST_COMMON;
+import static 清汩萌.天圆地方.原料.方块原料.LayeredFluidHosts.$有限流体模型;
 import static 清汩萌.天圆地方.方块.模拟载流方块.LAYERS;
 
 /**
@@ -52,21 +57,45 @@ import static 清汩萌.天圆地方.方块.模拟载流方块.LAYERS;
  */
 public class 载流方块测试 extends 天圆地方测试 {
 
-    @Test
-    public void testQB() throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-        test();
+    @ParameterizedTest
+    @MethodSource("prepareCasesForTestQB")
+    public void testQB(final @Nonnull TestQBCase c) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        test(new Object[]{c.layers,c.amount,c.expected});
     }
 
-    @SuppressWarnings("unused")
-    public static void testQB_Inner(){
-        final @Nonnull ILaminarifer host = FLUID_HOST_COMMON;
-        final @Nonnull IBlockState defaultState = FLUID_HOST_COMMON.getDefaultState();
-        long filled = host.addAmountInQB(null,BlockPos.ORIGIN,defaultState.withProperty(LAYERS,7), 流体原料.SNOW, QBUnit.QUANTA_VOLUME,false);
-        Assertions.assertEquals(QBUnit.QUANTA_VOLUME,filled);
-        filled = host.addAmountInQB(null,BlockPos.ORIGIN,defaultState.withProperty(LAYERS,3), 流体原料.SNOW, QBUnit.BUCKET_VOLUME,false);
-        Assertions.assertEquals(QBUnit.BUCKET_VOLUME-3* QBUnit.QUANTA_VOLUME,filled);
-        filled = host.addAmountInQB(null,BlockPos.ORIGIN,defaultState.withProperty(LAYERS,1), 流体原料.SNOW, QBUnit.BUCKET_VOLUME,true);
-        Assertions.assertEquals(QBUnit.BUCKET_VOLUME- QBUnit.QUANTA_VOLUME,filled);
+    public static final class TestQBCase {
+        final int layers;
+        final long amount;
+        final long expected;
+
+        TestQBCase(final int layers, final long amount, final long expected) {
+            this.layers = layers;
+            this.amount = amount;
+            this.expected = expected;
+        }
+    }
+
+    @Nonnull
+    public static Stream<TestQBCase> prepareCasesForTestQB(){
+        return Arrays.stream(new long[][]{
+                new long[]{7,QBUnit.QUANTA_VOLUME,QBUnit.QUANTA_VOLUME},
+                new long[]{3,QBUnit.BUCKET_VOLUME,QBUnit.BUCKET_VOLUME - 3 * QBUnit.QUANTA_VOLUME},
+                new long[]{1,QBUnit.BUCKET_VOLUME,QBUnit.BUCKET_VOLUME - QBUnit.QUANTA_VOLUME}
+        }).map(c -> new TestQBCase(Math.toIntExact(c[0]),c[1],c[2]));
+    }
+
+    @SuppressWarnings({"unused", "DataFlowIssue"})
+    public static void testQB_Inner(final int layers,final long amount,final long expected){
+        final @Nonnull ILaminarifer laminarifer = $有限流体模型;
+        final @Nonnull IBlockState defaultState = $有限流体模型.getDefaultState();
+        try (final FillLaminariferRequest request = new FillLaminariferRequest().open()){
+            final long filled = request.to(null,BlockPos.ORIGIN,defaultState.withProperty(LAYERS,layers))
+                    .specific(流体原料.SNOW)
+                    .amount(amount)
+                    .side(EnumFacing.UP)
+                    .fill(true);
+            Assertions.assertEquals(expected,filled);
+        }
     }
 
     @Test
@@ -74,38 +103,42 @@ public class 载流方块测试 extends 天圆地方测试 {
         test();
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "DataFlowIssue"})
     public static void 平均流动测试_Inner(){
         int T = 5000;
+        final  AverageFlow averageFlow = new AverageFlow(LaminariferModelBuffer.createFiniteVanillaLiquidModel());
         while (T-->0){
-            LOGGER.debug("Test {} begin!",T+1);
-            final @Nonnull Map<EnumFacing,IBlockState> facingState = new HashMap<>();
             final @Nonnull Random random = new Random(System.nanoTime());
-            for(@Nonnull final EnumFacing facing:EnumFacing.HORIZONTALS){
-                if(random.nextDouble()<0.2) continue;
-                final @Nonnull IBlockState state = FLUID_HOST_COMMON.getDefaultState().withProperty(LAYERS,random.nextInt(8)+1);
-                facingState.put(facing,state);
-                LOGGER.debug("Dir {} is state {}",facing,state);
-            }
+            try (final AverageFlow flow = averageFlow){
+                LOGGER.trace("Test {} begin!",T+1);
 
-            final @Nonnull List<FlowChoice> averageModeFlowDirections = new ArrayList<>();
-            facingState.forEach((facing, state) -> averageModeFlowDirections.add(
-                    new FlowChoice(null,BlockPos.ORIGIN,state,FLUID_HOST_COMMON,facing, 流体原料.SNOW)));
+                flow.at(null,null).fluid(流体原料.SNOW).centralModel.currentLayers = random.nextInt(8)+1;
+                final long centralAmount = flow.centralModel.getAmountInQB();
+                LOGGER.debug("Central is {} QB", centralAmount);
 
-            final int centralLayers = random.nextInt(8)+1;
-            LOGGER.debug("Central layers is {}",centralLayers);
-            final int left = Laminarifers.averageFlow(centralLayers,
-                    FLUID_HOST_COMMON.getHeightPerLayer(null,null,null),
-                    FLUID_HOST_COMMON.getAmountInQBPerLayer(null,null,null, 流体原料.SNOW),
-                    0,
-                    averageModeFlowDirections
-            );
+                for(@Nonnull final EnumFacing facing:EnumFacing.HORIZONTALS){
+                    if(random.nextDouble()<0.2) continue;
+                    final @Nonnull IBlockState state = $有限流体模型.getDefaultState().withProperty(LAYERS,random.nextInt(8)+1);
+                    flow.addChoice(facing, state);
+                    if(!flow.isLastChoiceAvailable()) flow.removeLastChoice();
+                    LOGGER.debug("Dir {} is state {}",facing,state);
+                }
 
-            LOGGER.debug("Central left : {}",left);
+                flow.resolve();
 
-            for(final @Nonnull FlowChoice choice:averageModeFlowDirections){
-                Assertions.assertNotNull(choice);
-                Assertions.assertEquals(0,choice.apply(null,BlockPos.ORIGIN,facingState.get(choice.direction), 流体原料.SNOW));
+                final long left = flow.finalLayers * flow.centralModel.amountInQBPerLayer + flow.extraAmountInQB;
+
+                LOGGER.debug("Central left : {} QB",left);
+
+                long nearby = 0L;
+                while (flow.hasNext()){
+                    final FlowChoice choice = flow.next();
+                    Assertions.assertNotNull(choice);
+                    nearby += choice.getAddedAmountInQB() + choice.extraAmountInQB;
+                    Assertions.assertEquals(0L, choice.extraAmountInQB);
+                }
+
+                Assertions.assertEquals(centralAmount, left + nearby);
             }
         }
     }

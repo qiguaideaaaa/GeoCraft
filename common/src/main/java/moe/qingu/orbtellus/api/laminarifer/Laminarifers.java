@@ -30,7 +30,6 @@ package moe.qingu.orbtellus.api.laminarifer;
 import moe.qingu.orbtellus.api.laminarifer.drainer.IFlowDrainer;
 import moe.qingu.orbtellus.api.fluid.QBFluidStack;
 import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
-import moe.qingu.orbtellus.api.laminarifer.flow.FlowChoice;
 import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifier;
 import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifiers;
 import net.minecraft.block.Block;
@@ -42,64 +41,12 @@ import net.minecraftforge.fluids.Fluid;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.ToIntFunction;
 
 /**
  * @author QGMoe
  */
 public final class Laminarifers {
-    private static final ThreadLocal<Set<FlowChoice>> FULL_FLOW_CHOICES = ThreadLocal.withInitial(HashSet::new);
-    private static final ToIntFunction<FlowChoice> SORT_BY_NEXT_HEIGHT = FlowChoice::getNextLayerHeight;
-
     private Laminarifers(){}
-
-    /**
-     * 自中心向四周进行平均流动
-     * @param centralLayers 中心层数
-     * @param heightPerLayer 中心每层高度
-     * @param QBPerLayer 中心每层液体量，单位QB
-     * @param minLayers 中心最低层数
-     * @param choices 四周的流动选择
-     * @return 中心剩下的层数
-     */
-    @Deprecated
-    public static int averageFlow(long centralLayers,
-                                  final long heightPerLayer,
-                                  final long QBPerLayer,
-                                  final long minLayers,
-                                  final @Nonnull List<FlowChoice> choices) {
-        final Set<FlowChoice> fullChoices = FULL_FLOW_CHOICES.get();
-        fullChoices.clear();
-        if (choices.isEmpty()) return centralLayers;
-        if(centralLayers <= minLayers) return centralLayers;
-        final int oldCentralLayers = centralLayers;
-
-        choices.sort(Comparator.comparingInt(SORT_BY_NEXT_HEIGHT));
-
-        int centralHeight = centralLayers*heightPerLayer;
-        FlowChoice choice;
-        while ((choice = choices.get(0)).getNextLayerHeight() <= centralHeight-heightPerLayer) { //向四周分配流量
-            if (choice.isFull()) {
-                fullChoices.add(choices.remove(0));
-                if (choices.isEmpty()) break;
-                continue;
-            }
-            choice.addAmountInQB(QBPerLayer);
-            centralLayers--;
-            centralHeight -= heightPerLayer;
-            if (centralLayers <= minLayers) break;
-            choices.sort(Comparator.comparingInt(SORT_BY_NEXT_HEIGHT));
-        }
-        if (centralLayers == oldCentralLayers) return centralLayers;
-
-        choices.addAll(fullChoices);
-        fullChoices.clear();
-        return centralLayers;
-    }
 
     /**
      * 指定方块状态是否是一个载流方块的方块状态
