@@ -28,8 +28,10 @@
 package moe.qingu.orbtellus.geography.fluidphysics.finite.update;
 
 import moe.qingu.orbtellus.api.fluid.unit.QuantaUnit;
-import moe.qingu.orbtellus.api.laminarifer.AHUnit;
+import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
+import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.laminarifer.flow.AverageFlow;
+import moe.qingu.orbtellus.api.laminarifer.request.FillLaminariferRequest;
 import moe.qingu.orbtellus.api.world.tick.scheduler.BlockTickScheduler;
 import moe.qingu.orbtellus.geography.fluidphysics.AbstractFluidTask;
 import net.minecraft.block.Block;
@@ -80,16 +82,10 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
     private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) EnumFacing[] bestFlowDirectionsArr = new EnumFacing[4];
     private static final @Nonnull IBlockState AIR_DEFAULT_STATE = Blocks.AIR.getDefaultState();
     private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) MBlockPos facingPos$mut = new MBlockPos();
-    private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) AverageFlow averageFlow = new AverageFlow();
+    private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) AverageFlow averageFlow = new AverageFlow(LaminariferModelBuffer.createFiniteVanillaLiquidModel());
+    private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) FillLaminariferRequest fillRequest = new FillLaminariferRequest();
     public final @Nonnull Fluid fluid;
     public final @Nonnull FiniteFlowingVanilla flowing;
-
-    static {
-        averageFlow.centralModel.amountInQBPerLayer = QBUnit.QUANTA_VOLUME;
-        averageFlow.centralModel.heightPerLayer = AHUnit.EIGHTH_FLUID;
-        averageFlow.centralModel.maxLayers = 8L;
-        averageFlow.centralModel.emptyHeight = 0L;
-    }
 
     public FiniteFluidVanillaFluidTask(@Nonnull final FiniteFlowingVanilla flowing) {
         this.flowing = flowing;
@@ -111,45 +107,52 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
             flowing.placeStaticBlock(world,pos,state);
             return;
         }
-        int liquidQuanta = 8-liquidMeta;
+        final int liquidQuanta = 8-liquidMeta;
         final int updateFlag = ServerStatusMonitor.getRecommendedBlockFlags();
 
         final @Nonnull BlockPos downPos = pos.down();
         final @Nonnull IBlockState stateBelow = world.getBlockState(downPos);
         final @Nonnull Block blockBelow = stateBelow.getBlock();
-        final boolean canMoveDown = flowing.canFlowDownTo(world,downPos,stateBelow,liquidQuanta,state);
 
-        if(canMoveDown){ //向下流动
+        verticalFlow:
+        if(Laminarifers.isLaminarifer(stateBelow) || flowing.canFlowDownTo(stateBelow)){ //向下流动
+            final int newLiquidQuanta;
+            final int newLiquidMeta;
             if(flowing.isEqualFluid(stateBelow)){
                 flowing.flowDown(world,pos,stateBelow,liquidQuanta,updateRate);
             }else if(blockBelow == Blocks.WATER || blockBelow == Blocks.FLOWING_WATER){ // 岩浆碰到水,消耗岩浆
-                liquidQuanta--;
-                liquidMeta = 8-liquidQuanta;
-                if (liquidQuanta<=0) world.setBlockState(pos,AIR_DEFAULT_STATE,updateFlag); //先更新自身状态
+                newLiquidQuanta = liquidQuanta - 1;
+                newLiquidMeta = 8 - newLiquidQuanta;
+                if (newLiquidQuanta<=0) world.setBlockState(pos,AIR_DEFAULT_STATE,updateFlag); //先更新自身状态
                 else {
-                    state = state.withProperty(LEVEL,liquidMeta);
+                    state = state.withProperty(LEVEL,newLiquidMeta);
                     world.setBlockState(pos, state, Constants.BlockFlags.SEND_TO_CLIENTS);
                     BlockTickScheduler.schedule(world,pos,flowing.dynamic, updateRate);
                     world.notifyNeighborsOfStateChange(pos,flowing.dynamic, false);
                 }
+                assert Blocks.STONE != null;
                 world.setBlockState(downPos, ForgeEventFactory.fireFluidPlaceBlockEvent(world, downPos, pos, Blocks.STONE.getDefaultState()));
                 FluidOperationUtil.triggerFluidMixEffects(world,downPos);
-            }else if(blockBelow instanceof ILaminarifer){
-                final @Nonnull ILaminarifer host = (ILaminarifer) blockBelow;
-                final long qbToFill = QuantaUnit.toQB(liquidQuanta);
-                final long qbFilled = host.addAmountInQB(world,downPos,stateBelow,fluid,qbToFill,true);
-                liquidQuanta = QBUnit.toQuantaAsInt(APIMathUtil.clamp(qbToFill-qbFilled,0,qbToFill));
-                liquidMeta = 8 -liquidQuanta;
-                if(liquidQuanta <=0) world.setBlockState(pos,AIR_DEFAULT_STATE,updateFlag); //先更新自身状态
+            }else if(Laminarifers.isLaminarifer(blockBelow)){
+                try (final FillLaminariferRequest request = fillRequest.open()){
+                    final long qbToFill = QuantaUnit.toQB(liquidQuanta);
+                    final long qbFilled = request.to(world,downPos,stateBelow).side(EnumFacing.UP)
+                            .target((ILaminarifer) blockBelow)
+                            .specific(FluidRegistry.WATER).amount(qbToFill)
+                            .source(null)
+                            .fill(true);
+                    newLiquidQuanta = QBUnit.sampleQuantaAsInt(rand,APIMathUtil.clamp(qbToFill - qbFilled,0L,qbToFill));
+                    if(newLiquidQuanta == liquidQuanta) break verticalFlow;
+                    newLiquidMeta = 8 - newLiquidQuanta;
+                }
+                if(newLiquidQuanta <= 0) world.setBlockState(pos,AIR_DEFAULT_STATE,updateFlag); //先更新自身状态
                 else {
-                    state = state.withProperty(LEVEL,liquidMeta);
+                    state = state.withProperty(LEVEL,newLiquidMeta);
                     world.setBlockState(pos,state, Constants.BlockFlags.SEND_TO_CLIENTS);
                     BlockTickScheduler.schedule(world,pos,flowing.dynamic,updateRate);
                     world.notifyNeighborsOfStateChange(pos,flowing.dynamic,false);
                 }
-            }else{
-                FluidOperationUtil.moveFluid(world,pos,downPos);
-            }
+            }else FluidOperationUtil.moveFluid(world,pos,downPos);
             return;
         }
 
@@ -162,7 +165,7 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
         }
 
         if ((state.getMaterial() == Material.LAVA) && rand.nextInt(4) != 0){ //岩浆速度处理
-            updateRate *= 4;
+            updateRate <<= 2;
         }
 
         if(liquidMeta == 7){
@@ -203,7 +206,7 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
             final @Nullable Set<EnumFacing> slopeModeFlowDirections = FluidPhysicsConfig.slopeModeForVanillaWhenOnLiquidsAndQuantaAbove1.getValue()?
                     slopeFlowableDirections:null;//多层坡度模式可用方向
             if(slopeModeFlowDirections != null) slopeModeFlowDirections.clear();
-            flowing.gatherFlowChoices(world,pos,flow,slopeModeFlowDirections);
+            flowing.gatherFlowChoices(flow,slopeModeFlowDirections);
 
             if(flow.hasNext()){
                 // *******************
@@ -222,7 +225,7 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
                 while (flow.hasNext()){
                     final FlowChoice choice = flow.next();
                     if(choice.isAir()){
-                        choice.sampleExtraAmount(world.rand);
+                        choice.sampleExtraAmount(rand);
                         if(choice.getNewLayers() <= 0L) continue;
                         facingPos$mut.setPos(pos).offsetM(choice.direction,1);
                         final @Nonnull IBlockState facingState = world.getBlockState(facingPos$mut);
@@ -235,7 +238,7 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
                     }
                 }
 
-                final int newLiquidQuanta = (int)(flow.finalLayers + QBUnit.sampleQuanta(world.rand, left));
+                final int newLiquidQuanta = (int)(flow.finalLayers + QBUnit.sampleQuanta(rand, left));
 
                 liquidMeta = 8 - newLiquidQuanta;
                 if (newLiquidQuanta<=0) world.setBlockState(pos,AIR_DEFAULT_STATE,updateFlag); //先更新自身状态

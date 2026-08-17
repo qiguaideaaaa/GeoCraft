@@ -52,7 +52,7 @@ import java.util.NoSuchElementException;
 public class AverageFlow implements AutoCloseable, Iterator<FlowChoice> {
     static final long _多余流体量分配给粗粒度流动选择忍受度_ = 2L; //todo: 改成可配置项
     protected final MBlockPos mPos = new MBlockPos();
-    public LaminariferModelBuffer centralModel;
+    public @Nonnull LaminariferModelBuffer centralModel;
 
     protected World world;
     protected BlockPos pos;
@@ -69,6 +69,14 @@ public class AverageFlow implements AutoCloseable, Iterator<FlowChoice> {
 
     public long finalLayers;
     public long extraAmountInQB;
+
+    public AverageFlow(){
+        this.centralModel = new LaminariferModelBuffer();
+    }
+
+    public AverageFlow(final @Nonnull LaminariferModelBuffer model){
+        this.centralModel = model;
+    }
 
     @Nonnull
     public final AverageFlow at(final @Nonnull World world,final @Nonnull BlockPos pos){
@@ -502,5 +510,15 @@ public class AverageFlow implements AutoCloseable, Iterator<FlowChoice> {
                 Math.floorDiv($高度限制 - model.emptyHeight, model.heightPerLayer) - model.currentLayers, //按高度限制计算层数
                 0L,
                 model.maxLayers - model.currentLayers); //按最大层数限制计算层数
+    }
+
+    // Getter
+
+    public final World getWorld() {
+        return world;
+    }
+
+    public final BlockPos getPosition() {
+        return pos;
     }
 }

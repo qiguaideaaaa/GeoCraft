@@ -27,7 +27,7 @@
 
 package moe.qingu.orbtellus.geography.fluidphysics.finite.flow;
 
-import moe.qingu.orbtellus.api.fluid.unit.QuantaUnit;
+import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
 import moe.qingu.orbtellus.api.laminarifer.flow.AverageFlow;
 import moe.qingu.orbtellus.api.world.tick.scheduler.BlockTickScheduler;
 import net.minecraft.block.*;
@@ -45,9 +45,7 @@ import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.util.FluidUtil;
 import moe.qingu.orbtellus.api.util.annotation.ThreadOnly;
 import moe.qingu.orbtellus.api.util.annotation.ThreadType;
-import moe.qingu.orbtellus.api.laminarifer.flow.FlowChoice;
 import moe.qingu.orbtellus.api.util.math.vec.MBlockPos;
-import moe.qingu.orbtellus.block.finite.ILaminariferFiniteLiquid;
 import moe.qingu.orbtellus.configs.FluidPhysicsConfig;
 import moe.qingu.orbtellus.geography.fluidphysics.pressure.FluidPressureSearchManager;
 import moe.qingu.orbtellus.geography.fluidphysics.pressure.task.IFluidPressureSearchTaskResult;
@@ -66,7 +64,7 @@ import static net.minecraft.block.BlockLiquid.LEVEL;
  */
 public final class FiniteFlowingVanilla extends VanillaFlowingVanilla {
     private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) Set<EnumFacing> slopeFlowableDirections = EnumSet.noneOf(EnumFacing.class);
-    private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) List<FlowChoice> averageFlowChoices = new ArrayList<>();
+    private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) AverageFlow averageFlow = new AverageFlow(LaminariferModelBuffer.createFiniteVanillaLiquidModel());
     private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) Set<EnumFacing> bestFlowDirections = EnumSet.noneOf(EnumFacing.class);
     private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) MBlockPos facingPos$最外层$mut = new MBlockPos();
     private static final @ThreadOnly(ThreadType.MINECRAFT_SERVER) MBlockPos downPos$mutable = new MBlockPos();
@@ -87,16 +85,14 @@ public final class FiniteFlowingVanilla extends VanillaFlowingVanilla {
 
     /**
      * 检查方块四周可流动的选择
-     * @param world 所在世界
-     * @param pos 方块位置
      * @param averageFlow 平均流动
      * @param slopeModeFlowDirections Q>1 坡度流动模式下的选择集合
      */
     @ThreadOnly(ThreadType.MINECRAFT_SERVER)
-    public void gatherFlowChoices(final @Nonnull World world,
-                                  final @Nonnull BlockPos pos,
-                                  final @Nonnull AverageFlow averageFlow,
+    public void gatherFlowChoices(final @Nonnull AverageFlow averageFlow,
                                   final @Nullable Set<EnumFacing> slopeModeFlowDirections){
+        final World world = averageFlow.getWorld();
+        final BlockPos pos = averageFlow.getPosition();
         final boolean isSlopeEnabled = slopeModeFlowDirections != null;
         final int centralQuanta = (int) averageFlow.centralModel.currentLayers;
         for(final @Nonnull EnumFacing facing:EnumFacing.Plane.HORIZONTAL){
@@ -126,16 +122,10 @@ public final class FiniteFlowingVanilla extends VanillaFlowingVanilla {
         }
     }
 
-    public boolean canFlowIntoWhenSnowLayer(@Nonnull World world,@Nonnull BlockPos pos,@Nonnull IBlockState state,int quanta){
-        if(state.getBlock() != Blocks.SNOW_LAYER) return true;
-        if(((ILaminarifer)Blocks.SNOW_LAYER).isFull(world,pos,state,FluidRegistry.WATER)) return false;
-        return ((ILaminarifer)Blocks.SNOW_LAYER).getHeight(world,pos,state, FluidRegistry.WATER)<(quanta-1)* ILaminariferFiniteLiquid.HEIGHT_PER_QUANTA;
-    }
-
     public boolean canFlow(@Nonnull final World worldIn,
                            @Nonnull final BlockPos pos,
                            @Nonnull final IBlockState state){
-        if (!worldIn.isAreaLoaded(pos, this.getSingleSlopeFindDistance(worldIn))){
+        if (!worldIn.isAreaLoaded(pos, Math.max(this.getSingleSlopeFindDistance(worldIn),1))){
             return false;
         }
 
@@ -146,28 +136,32 @@ public final class FiniteFlowingVanilla extends VanillaFlowingVanilla {
         final int liquidQuanta = 8-liquidMeta;
 
         final @Nonnull IBlockState stateBelow = worldIn.getBlockState(downPos$mutable.setPos(pos).offsetM(EnumFacing.DOWN,1));
-        if(canFlowDownTo(stateBelow)) return true;
+        if(canFlowDownTo(stateBelow)) return true; //竖直流动,无载流方块交互
 
-        //坡度流动模式
+        //单层坡度流动
         if(liquidMeta == 7){
             if(!FluidPhysicsConfig.slopeModeForVanillaWhenOnLiquidsAndQuantaIs1.getValue() && isEqualFluid(stateBelow)) return false;
             slopeFlowableDirections.clear();
             singleSlopeAlgorithm(worldIn, pos, slopeFlowableDirections);
             return !slopeFlowableDirections.isEmpty();
         }
-        //可流动方向检查
-        averageFlowChoices.clear();
-        final @Nullable Set<EnumFacing> slopeModeFlowDirections = FluidPhysicsConfig.slopeModeForVanillaWhenOnLiquidsAndQuantaAbove1.getValue()?
-                slopeFlowableDirections :null;//非Q=1坡度模式可用方向
-        gatherFlowChoices(worldIn,pos,state,liquidQuanta, averageFlowChoices,slopeModeFlowDirections);
-
-        if(!averageFlowChoices.isEmpty()){ //平均流动模式
-            return true;
-        }else if(slopeModeFlowDirections != null && !slopeModeFlowDirections.isEmpty()){ //Q>1坡度模式
-            if(!worldIn.isAreaLoaded(pos, getMultiSlopeFindDistance(worldIn))) return false;
-            bestFlowDirections.clear();
-            multiSlopeAlgorithm(worldIn,pos,slopeModeFlowDirections,liquidQuanta, bestFlowDirections);
-            return !bestFlowDirections.isEmpty();
+        //平均流动 & 多层坡度流动
+        try (final AverageFlow flow = averageFlow){
+            flow.at(worldIn,pos)
+                    .fluid(FluidRegistry.WATER)
+                    .source(null)
+                    .centralModel.currentLayers = liquidQuanta;
+            final @Nullable Set<EnumFacing> slopeModeFlowDirections = FluidPhysicsConfig.slopeModeForVanillaWhenOnLiquidsAndQuantaAbove1.getValue()?
+                    slopeFlowableDirections :null;//非Q=1坡度模式可用方向
+            if(slopeModeFlowDirections != null) slopeModeFlowDirections.clear();
+            gatherFlowChoices(flow,slopeModeFlowDirections);
+            if(averageFlow.hasNext()) return true;
+            else if(slopeModeFlowDirections != null && !slopeModeFlowDirections.isEmpty()){
+                if(!worldIn.isAreaLoaded(pos, getMultiSlopeFindDistance(worldIn))) return false;
+                bestFlowDirections.clear();
+                multiSlopeAlgorithm(worldIn,pos,slopeModeFlowDirections,liquidQuanta, bestFlowDirections);
+                return !bestFlowDirections.isEmpty();
+            }
         }
         return false;
     }
@@ -204,30 +198,6 @@ public final class FiniteFlowingVanilla extends VanillaFlowingVanilla {
             BlockTickScheduler.schedule(world,currentPos,dynamic,tickRate);
             this.placeDynamicBlock(world,downPos$mutable,0);
         }
-    }
-
-    /**
-     * 液体是否可以往下流动，会检查载流方块
-     * TODO: 与下面的重载合并
-     * @param world 世界
-     * @param downPos 下方位置
-     * @param curQuanta 当前量
-     * @param fromState 当前状态
-     * @param downState 下方方块状态
-     * @return 如果可以往下流动，则返回true
-     */
-    public boolean canFlowDownTo(@Nonnull final World world,
-                                 @Nonnull final BlockPos downPos,
-                                 @Nonnull final IBlockState downState,
-                                 final int curQuanta,
-                                 @Nonnull final IBlockState fromState){
-        if(canFlowDownTo(downState)) return true;
-        if(downState.getBlock() instanceof ILaminarifer){
-            final @Nonnull ILaminarifer host = (ILaminarifer) downState.getBlock();
-            if(!host.canFill(world,downPos,downState, fluid,EnumFacing.UP,fromState)) return false;
-            return host.addAmountInQB(world,downPos,downState,fluid, QuantaUnit.toQB(curQuanta),false)>0;
-        }
-        return false;
     }
 
     /**
@@ -402,7 +372,7 @@ public final class FiniteFlowingVanilla extends VanillaFlowingVanilla {
             final int quantaDiffer = getQuantaDiffer(state,thisQuanta);
             final boolean isFluid = FluidUtil.isFluid(state);
             final boolean isAir = state.getMaterial() == Material.AIR;
-            if (VanillaFlowingVanilla.isBlocked(state) || !canFlowIntoWhenSnowLayer(worldIn,facingPos$迭代用$mut,state,thisQuanta) || (isFluid && quantaDiffer <1)) {
+            if (VanillaFlowingVanilla.isBlocked(state) || state.getBlock() == Blocks.SNOW_LAYER || (isFluid && quantaDiffer <1)) {
                 continue;
             }
             if(isAir){

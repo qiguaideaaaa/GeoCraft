@@ -27,6 +27,10 @@
 
 package moe.qingu.orbtellus.api.laminarifer;
 
+import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
+
+import javax.annotation.Nonnull;
+
 /**
  * @author QGMoe
  */
@@ -57,5 +61,15 @@ public class LaminariferModelBuffer {
 
     public final long getAmountInQB() {
         return currentLayers * amountInQBPerLayer;
+    }
+
+    @Nonnull
+    public static LaminariferModelBuffer createFiniteVanillaLiquidModel(){
+        final LaminariferModelBuffer model = new LaminariferModelBuffer();
+        model.maxLayers = 8L;
+        model.heightPerLayer = AHUnit.EIGHTH_FLUID;
+        model.emptyHeight = 0L;
+        model.amountInQBPerLayer = QBUnit.QUANTA_VOLUME;
+        return model;
     }
 }
