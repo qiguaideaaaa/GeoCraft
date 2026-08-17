@@ -28,7 +28,7 @@
 package moe.qingu.orbtellus.api.laminarifer.request;
 
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
-import moe.qingu.orbtellus.api.laminarifer.drainer.IFlowDrainer;
+import moe.qingu.orbtellus.api.laminarifer.flow.drainer.IFlowDrainer;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

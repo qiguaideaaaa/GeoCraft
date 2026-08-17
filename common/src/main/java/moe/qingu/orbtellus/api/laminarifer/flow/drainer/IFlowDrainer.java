@@ -25,27 +25,12 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.orbtellus.api.laminarifer.source;
+package moe.qingu.orbtellus.api.laminarifer.flow.drainer;
 
-import moe.qingu.orbtellus.api.atmosphere.system.IAtmosphereSystem;
-import moe.qingu.orbtellus.api.util.FluidUtil;
-import net.minecraft.block.Block;
-
-import javax.annotation.Nullable;
+import moe.qingu.orbtellus.api.util.IMutable;
 
 /**
  * @author QGMoe
  */
-public final class FlowSources {
-
-    private FlowSources(){}
-
-    public static boolean isAtmosphere(final @Nullable IFlowSource<?> source){
-        return source instanceof IAtmosphereSystem;
-    }
-
-    public static boolean isRunoff(final @Nullable IFlowSource<?> source){
-        if(source instanceof Block) return FluidUtil.isFluid((Block) source);
-        return false;
-    }
+public interface IFlowDrainer<D extends IFlowDrainer<D>> extends IMutable<D> {
 }

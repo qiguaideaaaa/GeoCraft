@@ -27,9 +27,9 @@
 
 package moe.qingu.orbtellus.api.laminarifer;
 
-import moe.qingu.orbtellus.api.laminarifer.drainer.IFlowDrainer;
+import moe.qingu.orbtellus.api.laminarifer.flow.drainer.IFlowDrainer;
 import moe.qingu.orbtellus.api.fluid.QBFluidStack;
-import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
+import moe.qingu.orbtellus.api.laminarifer.flow.source.IFlowSource;
 import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifier;
 import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifiers;
 import net.minecraft.block.Block;

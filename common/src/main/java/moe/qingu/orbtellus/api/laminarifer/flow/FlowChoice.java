@@ -30,7 +30,7 @@ package moe.qingu.orbtellus.api.laminarifer.flow;
 import moe.qingu.orbtellus.api.fluid.unit.FluidUnit;
 import moe.qingu.orbtellus.api.laminarifer.AHUnit;
 import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
-import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
+import moe.qingu.orbtellus.api.laminarifer.flow.source.IFlowSource;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;

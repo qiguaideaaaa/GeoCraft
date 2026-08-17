@@ -27,14 +27,15 @@
 
 package moe.qingu.orbtellus.geography.atmosphere.system;
 
+import moe.qingu.orbtellus.api.atmosphere.AtmosphereFlowSource;
 import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
+import moe.qingu.orbtellus.api.laminarifer.request.FillLaminariferRequest;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import moe.qingu.orbtellus.OrbTellusCraft;
 import moe.qingu.orbtellus.api.OTCFluids;
@@ -61,7 +62,8 @@ import java.util.Iterator;
 
 import static moe.qingu.orbtellus.api.util.AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA;
 
-public abstract class QGAtmosphereSystem extends BaseAtmosphereSystem {
+public abstract class QGAtmosphereSystem extends BaseAtmosphereSystem{
+    private static final FillLaminariferRequest fillRequest = new FillLaminariferRequest();
     protected final WorldServer world;
     public QGAtmosphereSystem(WorldServer server, AtmosphereInfo info, CommonAtmosphereSystemInfo systemInfo, IAtmosphereDataProvider provider) {
         super(info, provider);
@@ -169,22 +171,25 @@ public abstract class QGAtmosphereSystem extends BaseAtmosphereSystem {
         boolean doRain = BaseUtil.getRandomResult(world.rand,rainPossibility);
 
         if(doRain && state.getBlock() instanceof ILaminarifer){
-            long filled = 0;
-            ILaminarifer block = (ILaminarifer) state.getBlock();
-            Fluid fluidToFill = FluidRegistry.WATER;
-            if(accessor.getTemperature(false)<= TemperatureProperty.ICE_POINT) fluidToFill = OTCFluids.SNOW;
-            if(block.canFill(world,pos,state, fluidToFill, EnumFacing.UP,Blocks.AIR.getDefaultState())){
-                final int drained = atmosphere.drainWater(MillibucketUnit.QUANTA_VOLUME_INT,pos,false); //mB
-                if(drained>= MillibucketUnit.QUANTA_VOLUME_INT){
-                    atmosphere.drainWater(MillibucketUnit.QUANTA_VOLUME_INT,pos,true);
-                    filled = block.addAmountInQB(world,pos,state,fluidToFill, MillibucketUnit.toQB(drained),true);
+            try (final FillLaminariferRequest request = fillRequest.open()){
+                long filled = 0L;
+                if(request.to(world,pos,state)
+                        .target((ILaminarifer) state.getBlock())
+                        .source(AtmosphereFlowSource.SOURCE)
+                        .side(EnumFacing.UP)
+                        .specific(accessor.getTemperature(false) <= TemperatureProperty.ICE_POINT? OTCFluids.SNOW : FluidRegistry.WATER)
+                        .test()){
+                    final int drained = atmosphere.drainWater(MillibucketUnit.QUANTA_VOLUME_INT,pos,false); //mB
+                    if(drained>= MillibucketUnit.QUANTA_VOLUME_INT){
+                        filled = request.amount(MillibucketUnit.toQB(atmosphere.drainWater(MillibucketUnit.QUANTA_VOLUME_INT,pos,true)))
+                                .fill(true);
+                    }
                 }
-            }
-            if(filled>0){
-                if(fluidToFill == OTCFluids.SNOW){
-                    accessor.putHeatToAtmosphere(WATER_MELT_LATENT_HEAT_PER_QUANTA);
+
+                if(filled>0){
+                    if(request.getFluid() == OTCFluids.SNOW) accessor.putHeatToAtmosphere(WATER_MELT_LATENT_HEAT_PER_QUANTA);
+                    return;
                 }
-                return;
             }
         }
 

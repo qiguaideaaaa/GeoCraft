@@ -27,12 +27,13 @@
 
 package moe.qingu.orbtellus.mixin.common.entity;
 
+import moe.qingu.orbtellus.api.atmosphere.AtmosphereFlowSource;
 import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
+import moe.qingu.orbtellus.api.laminarifer.request.FillLaminariferRequest;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.projectile.EntityPotion;
 import net.minecraft.entity.projectile.EntityThrowable;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
@@ -60,11 +61,14 @@ import javax.annotation.Nonnull;
  */
 @Mixin(EntityPotion.class)
 public abstract class EntityPotionMixin extends EntityThrowable {
+    @Unique
+    private static final FillLaminariferRequest 天圆地方$fillRequest = new FillLaminariferRequest();
+
     public EntityPotionMixin(final @Nonnull World worldIn) {
         super(worldIn);
     }
 
-    @Inject(method = "Lnet/minecraft/entity/projectile/EntityPotion;onImpact(Lnet/minecraft/util/math/RayTraceResult;)V",
+    @Inject(method = "onImpact(Lnet/minecraft/util/math/RayTraceResult;)V",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/entity/projectile/EntityPotion;extinguishFires(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)V",
                     ordinal = 0))
@@ -128,9 +132,15 @@ public abstract class EntityPotionMixin extends EntityThrowable {
     private long 天圆地方$applyOnLayeredFluidHost(final @Nonnull EnumFacing side, final @Nonnull BlockPos pos,final @Nonnull IBlockState state, final long left){
         final Block block = state.getBlock();
         if(block instanceof ILaminarifer){
-            final ILaminarifer host = (ILaminarifer) block;
-            if(host.canFill(world,pos,state,FluidRegistry.WATER,side, Blocks.AIR.getDefaultState()))
-                return host.addAmountInQB(world,pos,state, FluidRegistry.WATER, left,true);
+            try (final FillLaminariferRequest request = 天圆地方$fillRequest.open()){
+                return request.to(world,pos,state)
+                        .target((ILaminarifer) block)
+                        .specific(FluidRegistry.WATER)
+                        .amount(left)
+                        .side(side)
+                        .source(AtmosphereFlowSource.SOURCE)
+                        .fill(true);
+            }
         }
         return 0L;
     }

@@ -28,7 +28,7 @@
 package moe.qingu.orbtellus.api.laminarifer.request;
 
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
-import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
+import moe.qingu.orbtellus.api.laminarifer.flow.source.IFlowSource;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,6 +45,23 @@ public final class FillLaminariferRequest extends SpecificLaminariferRequest<Fil
     public FillLaminariferRequest source(final @Nullable IFlowSource<?> source){
         this.fillSource = source;
         return this;
+    }
+
+    public boolean test(){
+        switch (status){
+            case STATUS_NONE:{
+                if(laminarifer.canFill(world,pos,state,side,fluid,nbt,fillSource)){
+                    this.status = STATUS_ALLOWED;
+                    return true;
+                }
+                else{
+                    this.status = STATUS_REFUSED;
+                    return false;
+                }
+            }case STATUS_REFUSED: return false;
+            case STATUS_ALLOWED: return true;
+            default: throw new IllegalStateException();
+        }
     }
 
     public long fill(final boolean doOperate){

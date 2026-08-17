@@ -31,11 +31,12 @@ import moe.qingu.orbtellus.api.laminarifer.AHUnit;
 import moe.qingu.orbtellus.api.laminarifer.IBlockStateLaminarifer;
 import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
-import moe.qingu.orbtellus.api.laminarifer.drainer.IFlowDrainer;
+import moe.qingu.orbtellus.api.laminarifer.flow.IFlowInitiator;
+import moe.qingu.orbtellus.api.laminarifer.flow.drainer.IFlowDrainer;
 import moe.qingu.orbtellus.api.fluid.QBFluidStack;
 import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
-import moe.qingu.orbtellus.api.laminarifer.source.FlowSources;
-import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
+import moe.qingu.orbtellus.api.laminarifer.flow.source.FlowSources;
+import moe.qingu.orbtellus.api.laminarifer.flow.source.IFlowSource;
 import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifier;
 import moe.qingu.orbtellus.geography.soil.BlockSoilType;
 import moe.qingu.orbtellus.util.BaseUtil;
@@ -53,7 +54,7 @@ import javax.annotation.Nullable;
 
 import static moe.qingu.orbtellus.api.block.BlockProperties.HUMIDITY;
 
-public interface IBlockSoil extends IBlockStateLaminarifer, IFlowSource<IBlockSoil>, IFlowDrainer<IBlockSoil> {
+public interface IBlockSoil extends IBlockStateLaminarifer, IFlowInitiator<IBlockSoil> {
 
     @Nonnull
     BlockSoilType getType(@Nonnull final IBlockState state);

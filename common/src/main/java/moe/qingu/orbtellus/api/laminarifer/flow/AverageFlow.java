@@ -30,7 +30,7 @@ package moe.qingu.orbtellus.api.laminarifer.flow;
 import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.laminarifer.ImpetusPulse;
 import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
-import moe.qingu.orbtellus.api.laminarifer.source.IFlowSource;
+import moe.qingu.orbtellus.api.laminarifer.flow.source.IFlowSource;
 import moe.qingu.orbtellus.api.util.APIMathUtil;
 import moe.qingu.orbtellus.api.util.math.vec.MBlockPos;
 import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifiers;

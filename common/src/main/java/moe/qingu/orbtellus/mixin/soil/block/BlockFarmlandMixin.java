@@ -63,10 +63,10 @@ public abstract class BlockFarmlandMixin extends Block {
         final IBlockState state = world.getBlockState(pos);
         if(!(state.getBlock() instanceof IBlockSoil)) return;
         ci.cancel();
-        int quanta = ((IBlockSoil)state.getBlock()).getLayers(world,pos,state,FluidRegistry.WATER);
+        final int quanta = (int) ((IBlockSoil)state.getBlock()).getLayers(state,FluidRegistry.WATER,null);
         world.setBlockState(pos, Blocks.DIRT.getDefaultState().withProperty(HUMIDITY,quanta));
 
-        AxisAlignedBB emptyAABBAbove = field_194405_c.offset(pos);
+        final AxisAlignedBB emptyAABBAbove = field_194405_c.offset(pos);
 
         for (Entity entity : world.getEntitiesWithinAABBExcludingEntity(null, emptyAABBAbove)) {
             double d0 = Math.min(emptyAABBAbove.maxY - emptyAABBAbove.minY, emptyAABBAbove.maxY - entity.getEntityBoundingBox().minY);

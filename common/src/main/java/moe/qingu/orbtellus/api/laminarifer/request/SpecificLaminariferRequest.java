@@ -79,4 +79,13 @@ public abstract class SpecificLaminariferRequest<S extends SpecificLaminariferRe
         this.amount = 0L;
         super.close();
     }
+
+    public final Fluid getFluid() {
+        return fluid;
+    }
+
+    @Nullable
+    public final NBTTagCompound getTag() {
+        return nbt;
+    }
 }

@@ -31,6 +31,7 @@ import moe.qingu.orbtellus.api.fluid.unit.QuantaUnit;
 import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
 import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.laminarifer.flow.AverageFlow;
+import moe.qingu.orbtellus.api.laminarifer.flow.source.FlowSources;
 import moe.qingu.orbtellus.api.laminarifer.request.FillLaminariferRequest;
 import moe.qingu.orbtellus.api.world.tick.scheduler.BlockTickScheduler;
 import moe.qingu.orbtellus.geography.fluidphysics.AbstractFluidTask;
@@ -139,7 +140,7 @@ public final class FiniteFluidVanillaFluidTask extends AbstractFluidTask {
                     final long qbFilled = request.to(world,downPos,stateBelow).side(EnumFacing.UP)
                             .target((ILaminarifer) blockBelow)
                             .specific(FluidRegistry.WATER).amount(qbToFill)
-                            .source(null)
+                            .source(FlowSources.RUNOFF)
                             .fill(true);
                     newLiquidQuanta = QBUnit.sampleQuantaAsInt(rand,APIMathUtil.clamp(qbToFill - qbFilled,0L,qbToFill));
                     if(newLiquidQuanta == liquidQuanta) break verticalFlow;

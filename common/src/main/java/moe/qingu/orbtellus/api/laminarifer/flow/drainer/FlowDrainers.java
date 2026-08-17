@@ -25,12 +25,20 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.orbtellus.api.laminarifer.drainer;
+package moe.qingu.orbtellus.api.laminarifer.flow.drainer;
 
-import moe.qingu.orbtellus.api.util.IMutable;
+import moe.qingu.orbtellus.api.atmosphere.system.IAtmosphereSystem;
+
+import javax.annotation.Nonnull;
 
 /**
  * @author QGMoe
  */
-public interface IFlowDrainer<D extends IFlowDrainer<D>> extends IMutable<D> {
+public final class FlowDrainers {
+
+    private FlowDrainers(){}
+
+    public static boolean isAtmosphere(final @Nonnull IFlowDrainer<?> drainer){
+        return drainer instanceof IAtmosphereSystem;
+    }
 }
