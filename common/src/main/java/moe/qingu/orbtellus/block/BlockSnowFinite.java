@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.block;
 
+import moe.qingu.orbtellus.api.laminarifer.AHUnit;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.BlockSnow;
@@ -48,7 +49,6 @@ import moe.qingu.orbtellus.api.laminarifer.IBlockStateLaminarifer;
 import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.api.util.APIMathUtil;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
-import moe.qingu.orbtellus.api.util.LayeredFluidHostUtil;
 import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.RealitySnowUpdater;
 import moe.qingu.orbtellus.util.MiscUtil;
@@ -73,7 +73,7 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLam
     @Override
     public boolean canPlaceBlockAt(final @Nonnull World worldIn,final @Nonnull BlockPos pos) {
         final BlockPos down = pos.down();
-        IBlockState state = worldIn.getBlockState(down);
+        final IBlockState state = worldIn.getBlockState(down);
         return canBePlacedOn(worldIn,down,state);
     }
 
@@ -264,54 +264,44 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLam
     }
 
     //**********
-    // ILayeredFluidHost Block
+    // 载流方块
     // 注意，雪的载流方块的层数为 16，单层为 62.5 mB ，这和雪本身的Layers属性有不同
     //**********
 
+
     @Override
-    public boolean isAcceptedFluid(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid) {
+    public final boolean isAcceptedFluid(@Nonnull final IBlockState state,
+                                   @Nonnull final Fluid fluid,
+                                   @Nullable final NBTTagCompound nbt) {
         return fluid == FluidRegistry.WATER || fluid == OTCFluids.SNOW;
     }
 
     @Override
-    public int getLayers(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nullable Fluid fluid) {
-        if(fluid == FluidRegistry.WATER){
-            return state.getValue(MIXTURE)?state.getValue(LAYERS):0;
-        }else if(fluid == OTCFluids.SNOW){
-            return state.getValue(MIXTURE)?state.getValue(LAYERS):state.getValue(LAYERS)<<1;
-        }else if(fluid == null){
-            return state.getValue(LAYERS)<<1;
-        }
-        return 0;
+    public final long getMaxLayers(@Nonnull final IBlockState state,
+                             @Nonnull final Fluid fluid,
+                             @Nullable final NBTTagCompound nbt) {
+        return ((SnowBlockState)state).getMaxAmount(fluid);
     }
 
     @Override
-    public int getMaxLayers(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nullable Fluid fluid) {
-        if(fluid == null) return 16;
-        if(!isAcceptedFluid(world, pos, state, fluid)) return 0;
-        final boolean mixture = state.getValue(MIXTURE);
-        final int layer = state.getValue(LAYERS);
-        if(mixture) return 16-layer;
-        return fluid == OTCFluids.SNOW?16:16-2*layer; //不是混合物
+    public final long getLayers(@Nonnull final IBlockState state,
+                          @Nonnull final Fluid fluid,
+                          @Nullable final NBTTagCompound nbt) {
+        return ((SnowBlockState)state).getAmount(fluid);
     }
 
     @Override
-    public int getEmptyHeight(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nullable Fluid fluid) {
-        if(fluid == FluidRegistry.WATER){
-            return 0;
-        }else if(fluid == OTCFluids.SNOW){
-            return state.getValue(MIXTURE)?state.getValue(LAYERS)* getHeightPerLayer(world,pos,state):0;
-        }
-        return 0;
+    public long getEmptyHeight(@Nonnull final IBlockState state, @Nonnull final Fluid fluid, @Nullable final NBTTagCompound nbt) {
+        return ((SnowBlockState)state).getEmptyHeight(fluid);
     }
 
     @Override
-    public int getHeightPerLayer(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state) {
-        return LayeredFluidHostUtil.SIXTEENTH_HEIGHT;
+    public long getHeightPerLayer(@Nonnull final IBlockState state, @Nonnull final Fluid fluid, @Nullable final NBTTagCompound nbt) {
+        return AHUnit.SIXTEENTH_BLOCK;
     }
 
     @Override
-    public long getAmountInQBPerLayer(@Nullable World world, @Nullable BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid) {
+    public long getAmountInQBPerLayer(@Nonnull final IBlockState state, @Nonnull final Fluid fluid, @Nullable final NBTTagCompound nbt) {
         return QBUnit.HALF_QUANTA_VOLUME;
     }
 
@@ -394,12 +384,6 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLam
                 }
             }
         }
-    }
-
-    @Override
-    public int addLayer(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Fluid fluid, int layer, @Nullable NBTTagCompound nbt, int disabledBlockFlags, int enabledBlockFlags, boolean doAdd) {
-        layer = (layer>>1)<<1;
-        return IBlockStateLaminarifer.super.addLayer(world, pos, state, fluid, layer, nbt, disabledBlockFlags, enabledBlockFlags, doAdd);
     }
 
     @Override

@@ -27,16 +27,23 @@
 
 package moe.qingu.orbtellus.block;
 
+import com.google.common.collect.ImmutableMap;
+import moe.qingu.orbtellus.api.OTCFluids;
 import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
+import moe.qingu.orbtellus.api.laminarifer.AHUnit;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.BlockSnow;
 import net.minecraft.block.SoundType;
+import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
+import net.minecraftforge.common.property.IUnlistedProperty;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
@@ -46,6 +53,7 @@ import moe.qingu.orbtellus.api.util.AtmosphereUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.Random;
 
 import static moe.qingu.orbtellus.api.block.BlockProperties.MIXTURE;
@@ -76,21 +84,21 @@ public class BlockSnowExtended extends BlockSnow {
 
     @Nonnull
     @Override
-    public IBlockState getStateFromMeta(final int meta) {
+    public final IBlockState getStateFromMeta(final int meta) {
         return this.getDefaultState()
                 .withProperty(LAYERS,(meta&7)+1)
                 .withProperty(MIXTURE,(meta&8) != 0);
     }
 
     @Override
-    public int getMetaFromState(final @Nonnull IBlockState state) {
+    public final int getMetaFromState(final @Nonnull IBlockState state) {
         return (state.getValue(LAYERS)-1)|(state.getValue(MIXTURE)?8:0);
     }
 
     @Nonnull
     @Override
-    protected BlockStateContainer createBlockState() {
-        return new BlockStateContainer(this,LAYERS,MIXTURE);
+    protected final BlockStateContainer createBlockState() {
+        return new SnowBlockStateContainer(this,LAYERS,MIXTURE);
     }
 
     /**
@@ -171,6 +179,65 @@ public class BlockSnowExtended extends BlockSnow {
             }
             worldIn.setBlockState(pos, Blocks.WATER.getDefaultState().withProperty(BlockLiquid.LEVEL,level));
             worldIn.neighborChanged(pos, Blocks.WATER, pos);
+        }
+    }
+
+    protected static final class SnowBlockStateContainer extends BlockStateContainer{
+
+        SnowBlockStateContainer(final @Nonnull Block blockIn,
+                                final @Nonnull IProperty<?>... properties) {
+            super(blockIn, properties);
+        }
+
+        @Override
+        @Nonnull
+        protected StateImplementation createState(final @Nonnull Block block,
+                                                  final @Nonnull ImmutableMap<IProperty<?>, Comparable<?>> properties,
+                                                  final @Nullable ImmutableMap<IUnlistedProperty<?>, Optional<?>> unlistedProperties) {
+            return new SnowBlockState(block,properties);
+        }
+    }
+
+    protected static final class SnowBlockState extends BlockStateContainer.StateImplementation{
+
+        public final int amountData;
+        public final long snowEmptyHeight;
+
+        SnowBlockState(final @Nonnull Block blockIn,
+                       final @Nonnull ImmutableMap<IProperty<?>, Comparable<?>> propertiesIn) {
+            super(blockIn, propertiesIn);
+
+            if((Boolean)(propertiesIn.get(MIXTURE))){
+                final int amount = (Integer) propertiesIn.get(LAYERS);
+                final int maxAmount = 16 - amount;
+                this.amountData = (maxAmount << 12) | (maxAmount << 8) | (amount << 4) | amount;
+                this.snowEmptyHeight = amount * AHUnit.SIXTEENTH_BLOCK;
+            } else{
+                final int waterAmount = 0;
+                final int snowAmount = 2 * (Integer) propertiesIn.get(LAYERS);
+                final int snowMaxAmount = 16;
+                final int waterMaxAmount = 16 - 2 * snowAmount;
+
+                this.amountData = (snowMaxAmount << 12) | (waterMaxAmount << 8) | (snowAmount << 4) | waterAmount;
+                this.snowEmptyHeight = 0L;
+            }
+        }
+
+        public int getAmount(final @Nonnull Fluid fluid){
+            if(fluid == FluidRegistry.WATER) return this.amountData & 0xF;
+            else if (fluid == OTCFluids.SNOW) return (this.amountData >>> 4) & 0xF;
+            return 0;
+        }
+
+        public int getMaxAmount(final @Nonnull Fluid fluid){
+            if(fluid == FluidRegistry.WATER) return (this.amountData >>> 8) & 0xF;
+            else if (fluid == OTCFluids.SNOW) return (this.amountData >>> 12) & 0xF;
+            return 0;
+        }
+
+        public long getEmptyHeight(final @Nonnull Fluid fluid){
+            if(fluid == OTCFluids.SNOW) return this.snowEmptyHeight;
+            else return 0L;
         }
     }
 }
