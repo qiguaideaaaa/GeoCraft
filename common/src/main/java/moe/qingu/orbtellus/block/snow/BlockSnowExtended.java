@@ -25,7 +25,7 @@
  * 中文译文来自开放原子开源基金会，非官方译文，如有疑议请以英文原文为准
  */
 
-package moe.qingu.orbtellus.block;
+package moe.qingu.orbtellus.block.snow;
 
 import com.google.common.collect.ImmutableMap;
 import moe.qingu.orbtellus.api.OTCFluids;

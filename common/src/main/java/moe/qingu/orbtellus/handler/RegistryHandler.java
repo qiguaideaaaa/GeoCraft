@@ -45,8 +45,8 @@ import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
 import moe.qingu.orbtellus.api.event.EventFactory;
 import moe.qingu.orbtellus.api.property.IGeographyProperty;
 import moe.qingu.orbtellus.api.soil.SoilSystem;
-import moe.qingu.orbtellus.block.BlockSnowExtended;
-import moe.qingu.orbtellus.block.BlockSnowFinite;
+import moe.qingu.orbtellus.block.snow.BlockSnowExtended;
+import moe.qingu.orbtellus.block.snow.BlockSnowFinite;
 import moe.qingu.orbtellus.configs.FluidPhysicsConfig;
 
 import javax.annotation.Nonnull;

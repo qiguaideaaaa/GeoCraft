@@ -68,7 +68,7 @@
   定义: "由松散固态水冰晶组成的方块，本模组拓展其方块状态与机制。"
   出处:
     - 链: "https://www.mcmod.cn/item/894816.html"
-    - 类: moe.qingu.orbtellus.block.BlockSnowFinite
+    - 类: moe.qingu.orbtellus.block.snow.BlockSnowFinite
 
 - 中文: "流体雪"
   英文: null

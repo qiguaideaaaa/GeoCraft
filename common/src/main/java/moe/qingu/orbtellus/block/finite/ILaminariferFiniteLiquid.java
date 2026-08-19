@@ -27,13 +27,11 @@
 
 package moe.qingu.orbtellus.block.finite;
 
-import moe.qingu.orbtellus.api.laminarifer.AHUnit;
-import moe.qingu.orbtellus.api.laminarifer.LaminariferModelBuffer;
-import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
+import moe.qingu.orbtellus.api.laminarifer.*;
 import moe.qingu.orbtellus.api.laminarifer.flow.drainer.IFlowDrainer;
 import moe.qingu.orbtellus.api.fluid.QBFluidStack;
-import moe.qingu.orbtellus.api.laminarifer.flow.source.IFlowSource;
 import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifier;
+import moe.qingu.orbtellus.geography.snow.SnowFlowing;
 import net.minecraft.block.BlockStaticLiquid;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
@@ -45,11 +43,9 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import moe.qingu.orbtellus.api.OTCFluids;
 import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
-import moe.qingu.orbtellus.api.laminarifer.IBlockStateLaminarifer;
 import moe.qingu.orbtellus.api.util.APIMathUtil;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
 import moe.qingu.orbtellus.api.fluid.unit.QBUnit;
-import moe.qingu.orbtellus.geography.fluidphysics.finite.FluidPhysicsCoreFinite;
 import moe.qingu.orbtellus.geography.fluidphysics.finite.flow.FiniteFlowingVanilla;
 
 import javax.annotation.Nonnull;
@@ -60,7 +56,7 @@ import static net.minecraft.block.BlockLiquid.LEVEL;
 /**
  * @author QiguaiAAAA
  */
-public interface ILaminariferFiniteLiquid extends IBlockStateLaminarifer {
+public interface ILaminariferFiniteLiquid extends IBlockStateLaminarifer, IOperateLayerLaminarifer {
 
     @Nonnull
     Fluid 天圆地方$getFluid();
@@ -147,16 +143,15 @@ public interface ILaminariferFiniteLiquid extends IBlockStateLaminarifer {
     }
 
     @Override
-    default long addLayer(@Nonnull final World world,
-                          @Nonnull final BlockPos pos,
-                          @Nonnull final IBlockState state,
-                          @Nonnull final Fluid fluid,
-                          @Nullable final NBTTagCompound nbt,
-                          final long layer,
-                          final boolean doOperate,
-                          final long pulse,
-                          @Nullable final IFlowSource<?> source,
-                          final long blockFlagsModifier) {
+    default long operateLayer(@Nonnull final World world,
+                              @Nonnull final BlockPos pos,
+                              @Nonnull final IBlockState state,
+                              @Nonnull final Fluid fluid,
+                              @Nullable final NBTTagCompound nbt,
+                              final long layer,
+                              final boolean doOperate,
+                              final long pulse,
+                              final long blockFlagsModifier){
         final Fluid current = 天圆地方$getFluid();
         if(fluid == OTCFluids.SNOW && current == FluidRegistry.WATER){
             final int quantaWater = (int) getLayers(state,FluidRegistry.WATER,null);
@@ -164,16 +159,19 @@ public interface ILaminariferFiniteLiquid extends IBlockStateLaminarifer {
             if(actualLayer == 0L) return 0L;
             try(@Nullable final IAtmosphereAccessor accessor = AtmosphereUtil.getLightedAtmosphereAccessor(world,pos,true)) {
                 final int flags = BlockFlagModifier.modify(Constants.BlockFlags.DEFAULT,blockFlagsModifier);
-                FluidPhysicsCoreFinite.mixSnowWithWater(world,pos,accessor,quantaWater,actualLayer,flags);
+                SnowFlowing.mixSnowWithWater(world,pos,accessor,quantaWater,actualLayer,flags);
             }
             return actualLayer;
         }
         if(fluid != current) return 0L;
         final int currentQuanta = (int) getLayers(state,current,null);
-        final int actualLayer = (int) APIMathUtil.clamp(layer,0L,8L-currentQuanta);
+        final int actualLayer = (int) APIMathUtil.clamp(layer,-currentQuanta,8L-currentQuanta);
         if(actualLayer == 0L) return 0L;
         final int flags = BlockFlagModifier.modify(Constants.BlockFlags.DEFAULT,blockFlagsModifier);
-        world.setBlockState(pos, FiniteFlowingVanilla.getFlowingByMaterial(state.getMaterial()).dynamic.getDefaultState().withProperty(LEVEL,8 - currentQuanta - actualLayer), flags);
+        final int newQuanta = currentQuanta + actualLayer;
+        assert Blocks.AIR != null;
+        if(newQuanta == 0L) world.setBlockState(pos, Blocks.AIR.getDefaultState(), flags);
+        else world.setBlockState(pos, FiniteFlowingVanilla.getFlowingByMaterial(state.getMaterial()).dynamic.getDefaultState().withProperty(LEVEL,8 - newQuanta), flags);
         return actualLayer;
     }
 
@@ -186,7 +184,7 @@ public interface ILaminariferFiniteLiquid extends IBlockStateLaminarifer {
         if(fluid == OTCFluids.SNOW && current == FluidRegistry.WATER){ //雪水混合
             final long quantaWater = getLayers(state, FluidRegistry.WATER, null);
             if(layer < 0L || layer + quantaWater > 8L) return null;
-            return FluidPhysicsCoreFinite.getSnowWaterMixState((int) layer,(int) quantaWater,state.getBlock() instanceof BlockStaticLiquid);
+            return SnowFlowing.getSnowWaterMixState((int) layer,(int) quantaWater,state.getBlock() instanceof BlockStaticLiquid);
         }
         if(fluid != current) return null;
         if(layer< 0L || layer > 8L) return null;

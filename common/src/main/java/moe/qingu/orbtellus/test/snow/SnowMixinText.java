@@ -36,8 +36,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import moe.qingu.orbtellus.OrbTellusCraft;
 import moe.qingu.orbtellus.api.fluidphysics.FluidPhysicsMode;
-import moe.qingu.orbtellus.block.BlockSnowExtended;
-import moe.qingu.orbtellus.block.BlockSnowFinite;
+import moe.qingu.orbtellus.block.snow.BlockSnowExtended;
+import moe.qingu.orbtellus.block.snow.BlockSnowFinite;
 import moe.qingu.orbtellus.test.GeoTestItem;
 import moe.qingu.orbtellus.test.soil.SoilMixinTest;
 

@@ -43,11 +43,6 @@ public final class APIMathUtil {
         }
     }
 
-    @Deprecated
-    public static int getModifiedFlag(int flag,int disabled,int enabled){
-        return (flag | enabled) & ~disabled;
-    }
-
     @SuppressWarnings("StatementWithEmptyBody")
     public static long nextLong(final @Nonnull Random rand, final long bound){
         final long mask = bound - 1L;
