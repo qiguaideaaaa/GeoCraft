@@ -29,15 +29,13 @@ package moe.qingu.orbtellus.geography.snow;
 
 import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
 import moe.qingu.orbtellus.api.block.BlockProperties;
+import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
 import net.minecraft.block.BlockSnow;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import moe.qingu.orbtellus.api.OTCFluids;
-import moe.qingu.orbtellus.api.laminarifer.ILaminarifer;
 import moe.qingu.orbtellus.geography.fluidphysics.vanilla.VanillaFlowingVanilla;
 import org.apache.commons.lang3.Validate;
 
@@ -71,8 +69,8 @@ public final class SnowFlowing {
                     continue;
                 }
                 final int sum = water+snow;
-                final int costWater = snow*2; //雪全化成水的代价
-                final int costSnow = water*2; //水全冻成雪的代价
+                final int costWater = snow * 2; //雪全化成水的代价
+                final int costSnow = water * 2; //水全冻成雪的代价
                 final int costMixture = Math.abs(water-snow); //变成混雪的代价
                 if(costMixture < costWater && costMixture < costSnow){
                     WATER_SNOW_MIX_TABLE_DYNAMIC[water][snow]=WATER_SNOW_MIX_TABLE_STATIC[water][snow]=
@@ -92,15 +90,11 @@ public final class SnowFlowing {
         }
     }
 
-    public static boolean isBlocked(World world, BlockPos downPos, IBlockState downState,IBlockState fromState){
+    public static boolean isBlocked(final @Nonnull IBlockState downState){
         if(VanillaFlowingVanilla.isBlocked(downState)) return true;
         if(downState.getBlock() == Blocks.SNOW_LAYER){
-            return downState.getValue(BlockSnow.LAYERS) == 8;
-        }else if(downState.getBlock() instanceof ILaminarifer){
-            ILaminarifer block = (ILaminarifer) downState.getBlock();
-            return !block.canFill(world,downPos,downState, OTCFluids.SNOW, EnumFacing.UP,fromState);
-        }
-        return false;
+            return downState.getValue(BlockSnow.LAYERS) >= 8;
+        }else return Laminarifers.isLaminarifer(downState);
     }
 
     /* -----------------------------
@@ -115,14 +109,15 @@ public final class SnowFlowing {
      * @param quantaWater 该位置的水量，单位 {@link moe.qingu.orbtellus.api.fluid.unit.FluidUnit#QUANTA}
      * @param quantaSnow 该位置的雪量，单位 {@link moe.qingu.orbtellus.api.fluid.unit.FluidUnit#QUANTA}
      * @param flags 放置方块的 flags
+     * @return 混合状态
      */
-    public static void mixSnowWithWater(@Nonnull final World world,
+    @Nonnull
+    public static IBlockState mixSnowWithWater(@Nonnull final World world,
                                            @Nonnull final BlockPos pos,
                                            @Nullable final IAtmosphereAccessor accessor,
                                            final int quantaWater,
                                            final int quantaSnow,
                                            final int flags){
-        if(quantaWater+quantaSnow == 0) return; //不可能
         final @Nonnull IBlockState mixState = getSnowWaterMixStateDynamic(quantaSnow,quantaWater);
         world.setBlockState(pos,mixState,flags);
         if(accessor != null){
@@ -130,6 +125,7 @@ public final class SnowFlowing {
             if(heatChange>0) accessor.drainHeatFromUnderlying(heatChange);
             else if(heatChange<0) accessor.putHeatToUnderlying(-heatChange);
         }
+        return mixState;
     }
 
     /**

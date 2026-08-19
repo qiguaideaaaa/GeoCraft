@@ -29,9 +29,13 @@ package moe.qingu.orbtellus.block.snow;
 
 import moe.qingu.orbtellus.api.fluid.QBFluidStack;
 import moe.qingu.orbtellus.api.fluid.unit.FluidUnit;
+import moe.qingu.orbtellus.api.fluid.unit.QuantaUnit;
 import moe.qingu.orbtellus.api.laminarifer.*;
 import moe.qingu.orbtellus.api.laminarifer.flow.drainer.IFlowDrainer;
+import moe.qingu.orbtellus.api.laminarifer.flow.source.IFlowSource;
+import moe.qingu.orbtellus.api.laminarifer.request.FillLaminariferRequest;
 import moe.qingu.orbtellus.api.util.APIMathUtil;
+import moe.qingu.orbtellus.api.util.math.vec.MBlockPos;
 import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifier;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockSnow;
@@ -65,7 +69,11 @@ import static moe.qingu.orbtellus.api.block.BlockProperties.MIXTURE;
  * @since 0.2.0-beta.2
  * @author QiguaiAAAA
  */
-public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLaminarifer, IOperateLayerLaminarifer {
+public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLaminarifer, IOperateLayerLaminarifer, IFlowSource<BlockSnowFinite> {
+    protected static final Fluid[] fillOrder = {FluidRegistry.WATER, OTCFluids.SNOW};
+    protected static final MBlockPos mPos = new MBlockPos();
+    protected static final FillLaminariferRequest fillRequest = new FillLaminariferRequest();
+
     @Override
     public int tickRate(final @Nonnull World worldIn) {
         return 5;
@@ -116,152 +124,130 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLam
         return shape == BlockFaceShape.SOLID || block.isLeaves(downState, world, downPos) || block == this && downState.getValue(BlockSnow.LAYERS) == 8;
     }
 
-    protected boolean tryFallDown(final @Nonnull World world,final @Nonnull BlockPos pos,final @Nonnull IBlockState state){
+    //**********
+    // 雪的下落
+    //**********
+
+    protected final boolean tryFallDown(final @Nonnull World world,final @Nonnull BlockPos pos,final @Nonnull IBlockState state){
         if(world.isRemote) return false;
-        final BlockPos downPos = pos.down();
-        IBlockState downState = world.getBlockState(downPos);
-        if(SnowFlowing.isBlocked(world,downPos,downState,state)){
+        final BlockPos downPos = mPos.setPos(pos).downM();
+        final IBlockState downState = world.getBlockState(downPos);
+        if(SnowFlowing.isBlocked(downState)){
 //            if(!canBePlacedOn(world,downPos,downState)){
 //                world.setBlockToAir(pos);
 //            }
             return false;
         }
-        final boolean isMixture = state.getValue(MIXTURE);
-        Block downBlock = downState.getBlock();
-        if(downBlock == Blocks.SNOW_LAYER){ //雪和雪
-            boolean isDownMixture = downState.getValue(MIXTURE);
-            final int newLayers = state.getValue(BlockSnow.LAYERS) + downState.getValue(BlockSnow.LAYERS);
-            if(isMixture == isDownMixture){ //类型相同，直接合并
-                if(newLayers<=8){
-                    world.setBlockToAir(pos);
-                    world.setBlockState(downPos,downState.withProperty(BlockSnow.LAYERS,newLayers));
-                }else{
-                    world.setBlockState(pos,state.withProperty(BlockSnow.LAYERS,newLayers-8));
-                    world.setBlockState(downPos,downState.withProperty(BlockSnow.LAYERS,8));
-                }
-            }else{ //否则，将多余的水冻结成冰
-                final int totalWater = isMixture? getLayers(world,pos,state, FluidRegistry.WATER): getLayers(world,downPos,downState,FluidRegistry.WATER);
-                if(newLayers<=8){
-                    world.setBlockToAir(pos);
-                    world.setBlockState(downPos,downState
-                            .withProperty(BlockSnow.LAYERS,newLayers)
-                            .withProperty(MIXTURE,false));
-                }else{
-                    world.setBlockState(pos,state.withProperty(BlockSnow.LAYERS,newLayers-8)
-                            .withProperty(MIXTURE,false));
-                    world.setBlockState(downPos,downState.withProperty(BlockSnow.LAYERS,8)
-                            .withProperty(MIXTURE,false));
-                }
-                try(@Nullable IAtmosphereAccessor accessor = AtmosphereUtil.getLightedAtmosphereAccessor(world,pos,true)){
-                    if(accessor == null) return true;
-
-                    accessor.putHeatToUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA*totalWater/2d);
-                }
-            }
-        }
-        else if(downBlock instanceof ILaminarifer){ //雪和其他方块
-            ILaminarifer host = (ILaminarifer) downState.getBlock();
-            final int curLayers_F = getLayers(world,pos,state,null); //这里的 layer为雪的载流方块单位
-            long curAmountSnow = getAmountInQB(world,pos,state, OTCFluids.SNOW);
-            if (isMixture) {
-                final boolean hasHalfQuanta = (curLayers_F >> 1 & 1) != 0;
-
-                try (final @Nullable IAtmosphereAccessor accessor = AtmosphereUtil.getLightedAtmosphereAccessor(world, pos, true)) {
-                    long curAmountWater = getAmountInQB(world, pos, state, FluidRegistry.WATER);
-
-                    final boolean melting, doMelted;
-                    if (hasHalfQuanta) {
-                        curAmountWater += QBUnit.HALF_QUANTA_VOLUME; //将另外半层雪融化，补充成整数层layer
-                        melting = true;
-                    } else melting = false;
-                    boolean changed;
-
-                    assert curAmountWater > 0;
-                    final long filledAmountWater = host.addAmountInQB(world, downPos, downState, FluidRegistry.WATER, curAmountWater, true);
-                    curAmountWater -= filledAmountWater; //减去已经填充的量
-                    changed = filledAmountWater > 0;
-                    //现在，若剩余的量大于等于刚才融化以补充成整数层的量，说明没有用到融化的部分，因此不需要融化一部分雪以补充水。但若小于，则直接当成融化，并扣除相应热量。
-                    doMelted = melting && curAmountWater < QBUnit.HALF_QUANTA_VOLUME;
-
-                    if (melting && !doMelted) {
-                        curAmountWater -= QBUnit.HALF_QUANTA_VOLUME; //没有用到，所以扣掉
-                    } else if (doMelted){
-                        curAmountSnow -= QBUnit.HALF_QUANTA_VOLUME; //如果上面真的融化，雪需要扣除相应的量
-                        if (accessor != null)
-                            accessor.drainHeatFromUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA * 0.5);//真的融化掉
-                    }
-
-                    if (changed){
-                        downState = world.getBlockState(downPos); //更新状态，因为下面的状态可能改变
-                        if ((downBlock = downState.getBlock()) instanceof ILaminarifer)
-                            host = (ILaminarifer) downBlock;
-                        else host = null;
-                    }
-
-                    if (host != null) {
-                        final boolean freezing, doFreeze;
-                        if (curAmountWater >= QBUnit.HALF_QUANTA_VOLUME && hasHalfQuanta) { //若有足够的水，则将半层水冻结成雪。这里水一定不会小于1/16 B
-                            curAmountSnow += QBUnit.HALF_QUANTA_VOLUME;
-                            freezing = true;
-                        } else freezing = false;
-
-                        assert curAmountSnow > 0;
-                        final long filledAmountSnow = host.addAmountInQB(world, downPos, downState, OTCFluids.SNOW, curAmountSnow, true);
-                        curAmountSnow -= filledAmountSnow;
-                        changed |= filledAmountSnow > 0;
-                        doFreeze = freezing && curAmountSnow < QBUnit.HALF_QUANTA_VOLUME;
-
-                        if (freezing && !doFreeze) {
-                            curAmountSnow -= QBUnit.HALF_QUANTA_VOLUME;//没用到，还回去
-                        } else if (doFreeze) {
-                            curAmountWater -= QBUnit.HALF_QUANTA_VOLUME;
-                            if (accessor != null)
-                                accessor.putHeatToUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA * 0.5);
-                        }
-                    }
-
-                    if (!changed) return false;
-
-                    if (curAmountSnow + curAmountWater < QBUnit.QUANTA_VOLUME) { //小于最小的可存储单位
-                        world.setBlockToAir(pos);
-                    } else {
-                        final long totalAmount = curAmountSnow + curAmountWater;
-                        final int totalLayers = QBUnit.toQuantaAsInt(totalAmount);
-                        if (curAmountWater > curAmountSnow) {
-                            turnIntoWater(world, pos, accessor, totalLayers);
-                            if (accessor != null)
-                                accessor.drainHeatFromUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA * QBUnit.toFractionalQuanta(curAmountSnow));
-                        } else if (curAmountSnow == curAmountWater) {
-                            world.setBlockState(pos, state.withProperty(LAYERS, totalLayers)
-                                    .withProperty(MIXTURE, true));
-                        } else {
-                            world.setBlockState(pos, state.withProperty(LAYERS, totalLayers)
-                                    .withProperty(MIXTURE, false));
-                            if (accessor != null)
-                                accessor.putHeatToUnderlying(AtmosphereUtil.Constants.WATER_MELT_LATENT_HEAT_PER_QUANTA * QBUnit.toFractionalQuanta(curAmountWater));
-                        }
-                    }
-                }
-
-                return true;
-            }else { //非混合物，很简单，直接像普通流体一样流入即可
-                final long filledAmountSnow = host.addAmountInQB(world,downPos,downState, OTCFluids.SNOW,curAmountSnow,true);
-                curAmountSnow = curAmountSnow-filledAmountSnow;
-                if(curAmountSnow<=0) world.setBlockToAir(pos);
-                else {
-                    final int quanta = Math.min(QBUnit.toQuantaAsInt(curAmountSnow),8);
-                    world.setBlockState(pos,state.withProperty(LAYERS,quanta));
-                }
-            }
-            return true;
-        }
-        else{
+        final Block downBlock = downState.getBlock();
+        if(downBlock == Blocks.SNOW_LAYER) return tryFallUponSnow(world, pos, state, downState);
+        else if(Laminarifers.isLaminarifer(downBlock)) return tryFallUponLaminarifer(world, pos, state, downState);
+        else { //直接下落
             FluidOperationUtil.triggerDestroyBlockEffectByFluid(world,downPos,downState, OTCFluids.SNOW);
             world.setBlockToAir(pos);
             world.setBlockState(downPos,state);
             MiscUtil.scheduleFluidBlockUpdate(world,downPos,this,tickRate(world));
+            return true;
+        }
+    }
+
+    protected final boolean tryFallUponSnow(final @Nonnull World world,
+                                            final @Nonnull BlockPos pos,
+                                            final @Nonnull IBlockState state,
+                                            final @Nonnull IBlockState downState){
+        final BlockPos downPos = mPos.setPos(pos).downM();
+        final int $总层数_存储层 = state.getValue(BlockSnow.LAYERS) + downState.getValue(BlockSnow.LAYERS);
+        if(state.getValue(MIXTURE) == downState.getValue(MIXTURE)){ //类型相同，直接合并
+            if($总层数_存储层<=8){
+                world.setBlockToAir(pos);
+                world.setBlockState(downPos,downState.withProperty(BlockSnow.LAYERS,$总层数_存储层));
+            }else{
+                world.setBlockState(pos,state.withProperty(BlockSnow.LAYERS,$总层数_存储层-8));
+                world.setBlockState(downPos,downState.withProperty(BlockSnow.LAYERS,8));
+            }
+        }else{ //否则，用统一的水雪混合逻辑
+            final long $总水量_载流层 = getLayers(state,FluidRegistry.WATER,null) + getLayers(downState,FluidRegistry.WATER,null);
+            final long $总雪量_载流层 = getLayers(state,OTCFluids.SNOW,null) + getLayers(downState,OTCFluids.SNOW,null);
+            final Random rand = world.rand;
+            try(final @Nullable IAtmosphereAccessor accessor = AtmosphereUtil.getLightedAtmosphereAccessor(world,pos,true)){
+                if($总层数_存储层<=8){
+                    world.setBlockState(pos, Blocks.AIR.getDefaultState(), Constants.BlockFlags.NO_OBSERVERS);
+                    final long $总层数_载流层 = $总水量_载流层 + $总雪量_载流层;
+                    final int $采样总量_存储层 = (int) FluidUnit.sample(rand,$总层数_载流层,2L);
+                    final int $采样水量_存储层 = $采样总量_存储层 <= 0? 0 : (int) FluidUnit.sample(rand,$采样总量_存储层 * $总水量_载流层 , $总层数_载流层);
+                    final IBlockState mixState = SnowFlowing.mixSnowWithWater(world,pos,accessor,
+                            $采样水量_存储层,$采样总量_存储层 - $采样水量_存储层, Constants.BlockFlags.NO_OBSERVERS);
+                    world.notifyNeighborsRespectDebug(downPos, mixState.getBlock(), true);
+                    world.notifyNeighborsRespectDebug(pos, Blocks.AIR, true);
+                }else{
+                    final int $总水量_存储层 = (int) FluidUnit.sample(rand, $总水量_载流层, 2L);
+                    final int $下方水量_存储层 = (int) FluidUnit.sample(rand, 8L * $总水量_存储层, $总层数_存储层); // 总水量 * ( 8 / 总层数 )
+                    final int $上方水量_存储层 = $总水量_存储层 - $下方水量_存储层;
+                    final IBlockState newUpState = SnowFlowing.mixSnowWithWater(world, pos, accessor,
+                            $上方水量_存储层, $总层数_存储层 - 8 - $上方水量_存储层, Constants.BlockFlags.NO_OBSERVERS);
+                    final IBlockState newDownState = SnowFlowing.mixSnowWithWater(world, pos, accessor,
+                            $下方水量_存储层, 8 - $下方水量_存储层, Constants.BlockFlags.NO_OBSERVERS);
+                    world.notifyNeighborsRespectDebug(pos, newDownState.getBlock() ,true);
+                    world.notifyNeighborsRespectDebug(pos, newUpState.getBlock(), true);
+                }
+            }
         }
         return true;
+    }
+
+    protected final boolean tryFallUponLaminarifer(final @Nonnull World world,
+                                                   final @Nonnull BlockPos pos,
+                                                   final @Nonnull IBlockState state,
+                                                   final @Nonnull IBlockState downState){
+        final BlockPos downPos = mPos.setPos(pos).downM();
+        final long $当前水量_载流层 = getLayers(state,FluidRegistry.WATER,null);
+        final long $当前雪量_载流层 = getLayers(state,OTCFluids.SNOW,null);
+        final Random rand = world.rand;
+
+        final long $总量_存储层 = ($当前水量_载流层 + $当前雪量_载流层) >> 1;
+        final long $填充水量_存储层 = FluidUnit.sample(rand,$当前水量_载流层,2L);
+
+        final long initState = (QuantaUnit.toQB($填充水量_存储层) & 0xFFFF_FFFFL) | (QuantaUnit.toQB($总量_存储层 - $填充水量_存储层) << 32); // 32 位宽足够
+        final long finalState = fillDownByOrder(world,downPos,downState, initState);
+        if(initState == finalState) return false;
+
+        try(final @Nullable IAtmosphereAccessor accessor = AtmosphereUtil.getLightedAtmosphereAccessor(world,pos,true)){
+            final long $剩余水量_QB = finalState & 0xFFFF_FFFFL;
+            final long $剩余总量_QB = (finalState >>> 32) + $剩余水量_QB;
+            final int $采样总量_存储层 = QBUnit.sampleQuantaAsInt(rand, $剩余总量_QB);
+            final int $采样水量_存储层 = $采样总量_存储层 <= 0? 0 : (int) FluidUnit.sample(rand,$采样总量_存储层 * $剩余水量_QB , $剩余总量_QB);
+            SnowFlowing.mixSnowWithWater(world,pos,accessor, $采样水量_存储层,$采样总量_存储层 - $采样水量_存储层, Constants.BlockFlags.DEFAULT);
+        }
+        return true;
+    }
+
+    protected final long fillDownByOrder(final @Nonnull World world,
+                                            final @Nonnull BlockPos downPos,
+                                            @Nonnull IBlockState downState,
+                                            long left){
+        final long initLeft = left;
+        for(int i = 0; i< fillOrder.length; i++){
+            final int offset = i<<5;
+            final long qb = (left >>> offset) & 0xFFFF_FFFFL;
+            if(qb == 0L) continue;
+            final Block downBlock = downState.getBlock();
+            if(!Laminarifers.isLaminarifer(downBlock)) break;
+            try (final FillLaminariferRequest request = fillRequest){
+                final long filled = request.to(world, downPos, downState)
+                        .side(EnumFacing.UP)
+                        .specific(fillOrder[i])
+                        .amount(qb)
+                        .source(this)
+                        .disableFlags(Constants.BlockFlags.NOTIFY_NEIGHBORS)
+                        .enableFlags(Constants.BlockFlags.NO_OBSERVERS)
+                        .fill(true);
+                if(filled <= 0L) continue;
+                left &= ~(0xFFFF_FFFFL << offset);
+                left |= (Math.max(0L, qb - filled) << offset);
+                downState = world.getBlockState(downPos);
+            }
+        }
+        if(initLeft != left) world.notifyNeighborsRespectDebug(downPos, downState.getBlock(), true);
+        return left;
     }
 
     //**********
@@ -292,17 +278,17 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLam
     }
 
     @Override
-    public long getEmptyHeight(@Nonnull final IBlockState state, @Nonnull final Fluid fluid, @Nullable final NBTTagCompound nbt) {
+    public final long getEmptyHeight(@Nonnull final IBlockState state, @Nonnull final Fluid fluid, @Nullable final NBTTagCompound nbt) {
         return ((SnowBlockState)state).getEmptyHeight(fluid);
     }
 
     @Override
-    public long getHeightPerLayer(@Nonnull final IBlockState state, @Nonnull final Fluid fluid, @Nullable final NBTTagCompound nbt) {
+    public final long getHeightPerLayer(@Nonnull final IBlockState state, @Nonnull final Fluid fluid, @Nullable final NBTTagCompound nbt) {
         return AHUnit.SIXTEENTH_BLOCK;
     }
 
     @Override
-    public long getAmountInQBPerLayer(@Nonnull final IBlockState state, @Nonnull final Fluid fluid, @Nullable final NBTTagCompound nbt) {
+    public final long getAmountInQBPerLayer(@Nonnull final IBlockState state, @Nonnull final Fluid fluid, @Nullable final NBTTagCompound nbt) {
         return QBUnit.HALF_QUANTA_VOLUME;
     }
 
@@ -327,10 +313,17 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLam
         final long $新雪层_载流层 = getLayers(state,OTCFluids.SNOW,null) + (fluid == OTCFluids.SNOW? $实际变化层数_载流层 : 0L);
         final long $新水层_载流层 = getLayers(state,FluidRegistry.WATER,null) + (fluid == FluidRegistry.WATER? $实际变化层数_载流层 : 0L);
 
-        final int $新雪层_存储层 = (int) FluidUnit.sample(world.rand, $新雪层_载流层, 2L);
-        final int $新水层_存储层 = (int) FluidUnit.sample(world.rand, $新水层_载流层, 2L);
+        final long $总层数_载流层 = $新雪层_载流层 + $新水层_载流层;
+        final int $新雪层_存储层;
+        final int $新水层_存储层;
 
-        try(final @Nullable IAtmosphereAccessor accessor = AtmosphereUtil.getLightedAtmosphereAccessor(world,pos,true)){
+        if($总层数_载流层 > 0L){
+            final long $总层数_存储层 = FluidUnit.sample(world.rand, $总层数_载流层, 2L);
+            $新雪层_存储层 = (int) FluidUnit.sample(world.rand, $总层数_存储层 * $新雪层_载流层, $总层数_载流层);
+            $新水层_存储层 = (int) $总层数_存储层 - $新雪层_存储层;
+        }else $新雪层_存储层 = $新水层_存储层 = 0;
+
+        try (final @Nullable IAtmosphereAccessor accessor = AtmosphereUtil.getLightedAtmosphereAccessor(world,pos,true)){
             SnowFlowing.mixSnowWithWater(world, pos, accessor, $新水层_存储层, $新雪层_存储层, flags);
         }
 
@@ -338,18 +331,26 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLam
     }
 
     @Override
-    public IBlockState getLayerState(@Nonnull final IBlockState state,
+    public final IBlockState getLayerState(@Nonnull final IBlockState state,
                                      @Nonnull final Fluid fluid,
                                      @Nullable final NBTTagCompound nbt,
                                      final long $新层数_载流层) {
         if(!isAcceptedFluid(state,fluid,nbt)) return null;
         if($新层数_载流层 < 0L || $新层数_载流层 > 16L) return null;
+        if(getLayers(state,fluid,nbt) == $新层数_载流层) return state;
         final long $当前水层_载流层 = fluid == FluidRegistry.WATER? $新层数_载流层 : getLayers(state,FluidRegistry.WATER,null);
         final long $当前雪层_载流层 = fluid == OTCFluids.SNOW? $新层数_载流层: getLayers(state,OTCFluids.SNOW,null);
-        if($当前水层_载流层 + $当前雪层_载流层> 16L) return null;
-        final Random rnd = ThreadLocalRandom.current();
-        final int $当前水层_存储层 = (int) FluidUnit.sample(rnd,$当前水层_载流层,2L);
-        final int $当前雪层_存储层 = (int) FluidUnit.sample(rnd,$当前雪层_载流层,2L);
+        final long $总层数_载流层 = $当前水层_载流层 + $当前雪层_载流层;
+        if($总层数_载流层 > 16L) return null;
+        final int $当前水层_存储层;
+        final int $当前雪层_存储层;
+        if($总层数_载流层 > 0L){
+            final Random rnd = ThreadLocalRandom.current();
+            final long $总层数_存储层 = FluidUnit.sample(rnd, $总层数_载流层, 2L);
+            $当前水层_存储层 = (int) FluidUnit.sample(rnd, $总层数_存储层 * $当前水层_载流层, $总层数_载流层);
+            $当前雪层_存储层 = (int) $总层数_存储层 - $当前水层_存储层;
+        }else $当前水层_存储层 = $当前雪层_存储层 = 0;
+
         return SnowFlowing.getSnowWaterMixStateDynamic($当前雪层_存储层,$当前水层_存储层);
     }
 
