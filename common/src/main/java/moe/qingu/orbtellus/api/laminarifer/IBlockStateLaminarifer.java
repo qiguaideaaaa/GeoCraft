@@ -63,24 +63,6 @@ public interface IBlockStateLaminarifer extends ILaminarifer {
                             @Nonnull final Fluid fluid,
                             @Nullable final NBTTagCompound nbt);
 
-    default boolean canFill(@Nonnull final World world,
-                            @Nonnull final IBlockState state,
-                            @Nullable final EnumFacing side,
-                            @Nonnull final Fluid fluid,
-                            @Nullable final NBTTagCompound nbt,
-                            @Nullable final IFlowSource<?> source) {
-        return isAcceptedFluid(state, fluid, nbt) && getLayers(state, fluid, nbt) < getMaxLayers(state, fluid, nbt);
-    }
-
-    default boolean canDrain(@Nonnull final World world,
-                             @Nonnull final IBlockState state,
-                             @Nullable final EnumFacing side,
-                             @Nonnull final Fluid fluid,
-                             @Nullable final NBTTagCompound nbt,
-                             @Nullable final IFlowDrainer<?> drainer) {
-        return getLayers(state, fluid, nbt) != 0;
-    }
-
     default void describeModel(@Nonnull final IBlockState state,
                                @Nonnull final Fluid fluid,
                                @Nullable final NBTTagCompound nbt,
@@ -151,7 +133,7 @@ public interface IBlockStateLaminarifer extends ILaminarifer {
                             @Nonnull final Fluid fluid,
                             @Nullable final NBTTagCompound nbt,
                             @Nullable final IFlowSource<?> source) {
-        return canFill(world,state, side, fluid, nbt, source);
+        return isAcceptedFluid(state, fluid, nbt) && getLayers(state, fluid, nbt) < getMaxLayers(state, fluid, nbt);
     }
 
     @Override
@@ -162,7 +144,7 @@ public interface IBlockStateLaminarifer extends ILaminarifer {
                              @Nonnull final Fluid fluid,
                              @Nullable final NBTTagCompound nbt,
                              @Nullable final IFlowDrainer<?> drainer) {
-        return canDrain(world,state, side, fluid, nbt, drainer);
+        return getLayers(state, fluid, nbt) != 0;
     }
 
     @Override

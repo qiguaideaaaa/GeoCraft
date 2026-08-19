@@ -83,6 +83,7 @@ public interface IBlockSoil extends IBlockStateLaminarifer, IFlowInitiator<IBloc
 
     @Override
     default boolean canFill(@Nonnull final World world,
+                            @Nonnull final BlockPos pos,
                             @Nonnull final IBlockState state,
                             @Nullable final EnumFacing side,
                             @Nonnull final Fluid fluid,
@@ -100,6 +101,7 @@ public interface IBlockSoil extends IBlockStateLaminarifer, IFlowInitiator<IBloc
 
     @Override
     default boolean canDrain(@Nonnull final World world,
+                             @Nonnull final BlockPos pos,
                              @Nonnull final IBlockState state,
                              @Nullable final EnumFacing side,
                              @Nonnull final Fluid fluid,

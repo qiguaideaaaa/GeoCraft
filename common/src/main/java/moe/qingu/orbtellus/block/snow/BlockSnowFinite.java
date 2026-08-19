@@ -174,9 +174,8 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLam
                     final long $总层数_载流层 = $总水量_载流层 + $总雪量_载流层;
                     final int $采样总量_存储层 = (int) FluidUnit.sample(rand,$总层数_载流层,2L);
                     final int $采样水量_存储层 = $采样总量_存储层 <= 0? 0 : (int) FluidUnit.sample(rand,$采样总量_存储层 * $总水量_载流层 , $总层数_载流层);
-                    final IBlockState mixState = SnowFlowing.mixSnowWithWater(world,pos,accessor,
-                            $采样水量_存储层,$采样总量_存储层 - $采样水量_存储层, Constants.BlockFlags.NO_OBSERVERS);
-                    world.notifyNeighborsRespectDebug(downPos, mixState.getBlock(), true);
+                    SnowFlowing.mixSnowWithWater(world,downPos,accessor,
+                            $采样水量_存储层,$采样总量_存储层 - $采样水量_存储层, Constants.BlockFlags.DEFAULT);
                     world.notifyNeighborsRespectDebug(pos, Blocks.AIR, true);
                 }else{
                     final int $总水量_存储层 = (int) FluidUnit.sample(rand, $总水量_载流层, 2L);
@@ -184,9 +183,7 @@ public class BlockSnowFinite extends BlockSnowExtended implements IBlockStateLam
                     final int $上方水量_存储层 = $总水量_存储层 - $下方水量_存储层;
                     final IBlockState newUpState = SnowFlowing.mixSnowWithWater(world, pos, accessor,
                             $上方水量_存储层, $总层数_存储层 - 8 - $上方水量_存储层, Constants.BlockFlags.NO_OBSERVERS);
-                    final IBlockState newDownState = SnowFlowing.mixSnowWithWater(world, pos, accessor,
-                            $下方水量_存储层, 8 - $下方水量_存储层, Constants.BlockFlags.NO_OBSERVERS);
-                    world.notifyNeighborsRespectDebug(pos, newDownState.getBlock() ,true);
+                    SnowFlowing.mixSnowWithWater(world, downPos, accessor, $下方水量_存储层, 8 - $下方水量_存储层, Constants.BlockFlags.DEFAULT);
                     world.notifyNeighborsRespectDebug(pos, newUpState.getBlock(), true);
                 }
             }

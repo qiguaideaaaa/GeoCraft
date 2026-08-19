@@ -78,6 +78,10 @@ public final class FiniteFlowingVanilla extends VanillaFlowingVanilla {
         super(dynamic,_static ,fluid);
     }
 
+    public static int getQuanta(@Nonnull final IBlockState state){
+        return Math.max(1, 8 - state.getValue(LEVEL));
+    }
+
     @Nonnull
     public static FiniteFlowingVanilla getFlowingByMaterial(@Nonnull final Material material){
         return material == Material.WATER? FiniteFlowings.WATER_FLOW : FiniteFlowings.LAVA_FLOW;

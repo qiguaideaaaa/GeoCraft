@@ -29,7 +29,6 @@ package moe.qingu.orbtellus.geography.snow;
 
 import moe.qingu.orbtellus.api.atmosphere.accessor.IAtmosphereAccessor;
 import moe.qingu.orbtellus.api.block.BlockProperties;
-import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
 import moe.qingu.orbtellus.api.util.AtmosphereUtil;
 import net.minecraft.block.BlockSnow;
 import net.minecraft.block.state.IBlockState;
@@ -94,7 +93,7 @@ public final class SnowFlowing {
         if(VanillaFlowingVanilla.isBlocked(downState)) return true;
         if(downState.getBlock() == Blocks.SNOW_LAYER){
             return downState.getValue(BlockSnow.LAYERS) >= 8;
-        }else return Laminarifers.isLaminarifer(downState);
+        }else return false;
     }
 
     /* -----------------------------
