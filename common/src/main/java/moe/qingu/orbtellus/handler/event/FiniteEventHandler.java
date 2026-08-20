@@ -29,6 +29,8 @@ package moe.qingu.orbtellus.handler.event;
 
 import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
 import moe.qingu.orbtellus.api.fluid.unit.QuantaUnit;
+import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
+import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifiers;
 import moe.qingu.orbtellus.mixin.finite.block.BlockLiquidMixin;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.block.Block;
@@ -207,7 +209,7 @@ public final class FiniteEventHandler {
                                           @Nonnull final IBlockState currentState,
                                           @Nonnull final IBlockState replacedState,
                                           @Nonnull final PlaceSource source,
-                                          @Nullable final Entity sourceEntity){
+                                          @Nullable final Entity sourceEntity){ //todo:目前的实现非常粗糙
         final Fluid fluid = FluidUtil.getFluid(currentState);
         if(fluid == null) return true;
         final Block block = currentState.getBlock();
@@ -217,9 +219,9 @@ public final class FiniteEventHandler {
             int quanta = FluidUtil.getFluidQuanta(world, pos,currentState);
             long QB = QuantaUnit.toQB(quanta);
             long canFillQB = 0L;
-            int curLayer = 0,canFillLayer = 0;
+            long curLayer = 0L,canFillLayer = 0L;
             final Block placeBlock = replacedState.getBlock();
-            ILaminarifer host = null;
+            ILaminarifer laminarifer = null;
 
             layeredHost:{
                 switch (source){
@@ -231,20 +233,20 @@ public final class FiniteEventHandler {
                 }
 
                 if(placeBlock instanceof ILaminarifer){
-                    host = (ILaminarifer) placeBlock;
+                    laminarifer = (ILaminarifer) placeBlock;
                 }else break layeredHost;
 
-                canFillQB = host.addAmountInQB(world,pos,replacedState,fluid,QB,false);
+                canFillQB = Laminarifers.addAmountInQB(laminarifer, world, pos, replacedState, fluid, QB, false, 0L);
                 if(canFillQB <=0L) {
                     canFillQB = 0L;
                     break layeredHost;
                 }
-                curLayer = host.getLayers(world,pos,replacedState,fluid);
-                canFillLayer = (int) (canFillQB/host.getAmountInQBPerLayer(world,pos,replacedState,fluid));
+                curLayer = laminarifer.getLayers(world,pos,replacedState,fluid,null);
+                canFillLayer = Math.floorDiv(canFillQB,laminarifer.getAmountInQBPerLayer(world,pos,replacedState,fluid,null));
                 if(QB>=canFillQB+ QBUnit.QUANTA_VOLUME) break layeredHost; //在最后的时候再处理
                 IBlockState quantaState = null;
                 if(source == PlaceSource.FALLING_BLOCK){
-                    if(!(host instanceof IBlockStateLaminarifer)){
+                    if(!(laminarifer instanceof IBlockStateLaminarifer)){
                         canFillQB = 0L;
                         canFillLayer = 0;
                         break layeredHost;
@@ -254,7 +256,7 @@ public final class FiniteEventHandler {
                         canFillLayer = 0;
                         break layeredHost;
                     }
-                    quantaState = ((IBlockStateLaminarifer)host).getLayerState(replacedState,fluid,curLayer+canFillLayer);
+                    quantaState = ((IBlockStateLaminarifer)laminarifer).getLayerState(replacedState,fluid,null,curLayer+canFillLayer);
                     if(quantaState == null){
                         canFillQB = 0L;
                         canFillLayer = 0;
@@ -264,7 +266,7 @@ public final class FiniteEventHandler {
 
                 switch (source) {
                     case PLAYER:
-                        host.addLayer(world,pos,replacedState,fluid,canFillLayer,true);
+                        laminarifer.addLayer(world,pos,replacedState,fluid,null,canFillLayer,true,0L,null, BlockFlagModifiers.KEEP);
                         break;
                     case FALLING_BLOCK:
                         ((EntityFallingBlockAccessor)sourceEntity).setFallTile(quantaState);
@@ -290,11 +292,11 @@ public final class FiniteEventHandler {
             if(canFillLayer>0){
                 switch (source) {
                     case PLAYER:
-                        host.addLayer(world,pos,replacedState,fluid,canFillLayer,true);
+                        laminarifer.addLayer(world,pos,replacedState,fluid,null,canFillLayer,true,0L,null,BlockFlagModifiers.KEEP);
                         break;
                     case FALLING_BLOCK:
                         if(sourceEntity == null) break;
-                        IBlockState quantaState = ((IBlockStateLaminarifer)host).getLayerState(replacedState,fluid,curLayer+canFillLayer);
+                        IBlockState quantaState = ((IBlockStateLaminarifer)laminarifer).getLayerState(replacedState,fluid,null,curLayer+canFillLayer);
                         if(quantaState == null) break;
                         ((EntityFallingBlockAccessor)sourceEntity).setFallTile(quantaState);
                         break;

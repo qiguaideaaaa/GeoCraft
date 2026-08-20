@@ -27,6 +27,7 @@
 
 package moe.qingu.orbtellus.world.gen;
 
+import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifier;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -126,16 +127,17 @@ public class OrbTellusPostPopulatingGenerator implements IWorldGenerator {
         Block block = state.getBlock();
         if(block instanceof IBlockSoil){
             IBlockSoil soil = (IBlockSoil) block;
-            if(waterFlag) return soil.getLayerState(state,FluidRegistry.WATER,4);
+            if(waterFlag) return soil.getLayerState(state,FluidRegistry.WATER,null,4L);
             if(!biome.canRain()) return null;
-            return soil.getLayerState(state,FluidRegistry.WATER,
-                    (int)MathHelper.clamp(4*biome.getRainfall()+1,0,soil.getMaxStableHumidity(state)));
+            return soil.getLayerState(state,FluidRegistry.WATER,null,
+                    (int)MathHelper.clamp(4f*biome.getRainfall()+1,0f,soil.getMaxStableHumidity(state)));
         }
         if(block instanceof ILaminarifer){ //之前已经处理过本身为流体的可能性，这里一定不会是流体
             ILaminarifer permeable = (ILaminarifer) block;
-            int maxQuanta = permeable.getMaxLayers(world,pos,state,FluidRegistry.WATER);
+            long maxQuanta = permeable.getMaxLayers(world,pos,state,FluidRegistry.WATER,null);
             if(waterFlag){
-                permeable.addLayer(world,pos,state,FluidRegistry.WATER,maxQuanta, Constants.BlockFlags.DEFAULT_AND_RERENDER,Constants.BlockFlags.NO_OBSERVERS | Constants.BlockFlags.NO_RERENDER);
+                permeable.addLayer(world,pos,state,FluidRegistry.WATER,null, maxQuanta, true, 0L, null,
+                        BlockFlagModifier.build(Constants.BlockFlags.DEFAULT_AND_RERENDER, Constants.BlockFlags.NO_OBSERVERS | Constants.BlockFlags.NO_RERENDER));
                 shouldContinue = true;
                 return null;
             }

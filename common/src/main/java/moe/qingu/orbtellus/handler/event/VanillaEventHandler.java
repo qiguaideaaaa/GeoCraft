@@ -28,6 +28,8 @@
 package moe.qingu.orbtellus.handler.event;
 
 import moe.qingu.orbtellus.api.fluid.unit.MillibucketUnit;
+import moe.qingu.orbtellus.api.laminarifer.Laminarifers;
+import moe.qingu.orbtellus.api.util.modifier.BlockFlagModifiers;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
@@ -103,13 +105,14 @@ public final class VanillaEventHandler {
         }
     }
 
+    // todo: 实现很粗糙
     public static boolean onBlockReplaced(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState currentState, @Nonnull IBlockState replacedState, @Nonnull FiniteEventHandler.PlaceSource source, @Nullable Entity sourceEntity){
         final Fluid fluid = FluidUtil.getFluid(currentState);
         if(fluid == null) return true;
         final Block block = currentState.getBlock();
         if(block instanceof BlockLiquid){
             int quanta = FluidUtil.getFluidQuanta(world, pos,currentState);
-            int curQuanta,canFillQuanta;
+            long curQuanta,canFillQuanta;
             Block placeBlock = replacedState.getBlock();
             ILaminarifer permeable;
 
@@ -126,8 +129,8 @@ public final class VanillaEventHandler {
                     permeable = (ILaminarifer) placeBlock;
                 }else break permeable;
 
-                curQuanta = permeable.getLayers(world,pos,replacedState,fluid);
-                canFillQuanta = permeable.addLayer(world,pos,replacedState,fluid,quanta,false);
+                curQuanta = permeable.getLayers(world,pos,replacedState,fluid,null);
+                canFillQuanta = permeable.addLayer(world,pos,replacedState,fluid,null,quanta,false,0L,null, BlockFlagModifiers.KEEP);
                 if(canFillQuanta <=0) {
                     break permeable;
                 }
@@ -139,7 +142,7 @@ public final class VanillaEventHandler {
                     if(!(sourceEntity instanceof EntityFallingBlock)){
                         break permeable;
                     }
-                    quantaState = ((IBlockStateLaminarifer)permeable).getLayerState(replacedState,fluid,curQuanta+canFillQuanta);
+                    quantaState = ((IBlockStateLaminarifer)permeable).getLayerState(replacedState,fluid,null,curQuanta+canFillQuanta);
                     if(quantaState == null){
                         break permeable;
                     }
@@ -147,7 +150,7 @@ public final class VanillaEventHandler {
 
                 switch (source) {
                     case PLAYER:
-                        permeable.addLayer(world,pos,replacedState,fluid,quanta,true);
+                        permeable.addLayer(world,pos,replacedState,fluid,null,quanta,true,0L,null,BlockFlagModifiers.KEEP);
                         break;
                     case FALLING_BLOCK:
                         ((EntityFallingBlockAccessor)sourceEntity).setFallTile(quantaState);
@@ -162,7 +165,7 @@ public final class VanillaEventHandler {
             long amount = FluidMixinUtil.getQBForBlockFluidBase(currentState);
             long canFillAmount;
             Block placeBlock = replacedState.getBlock();
-            ILaminarifer permeable;
+            ILaminarifer laminarifer;
 
             permeable:{
                 switch (source){
@@ -175,17 +178,17 @@ public final class VanillaEventHandler {
                 }
 
                 if(placeBlock instanceof ILaminarifer){
-                    permeable = (ILaminarifer) placeBlock;
+                    laminarifer = (ILaminarifer) placeBlock;
                 }else break permeable;
 
-                canFillAmount = permeable.addAmountInQB(world,pos,replacedState,fluid,amount,false);
+                canFillAmount = Laminarifers.addAmountInQB(laminarifer,world,pos,replacedState,fluid,amount,false,0L);
                 if(canFillAmount <=0) {
                     break permeable;
                 }
 
                 switch (source) {
                     case PLAYER:
-                        permeable.addAmountInQB(world,pos,replacedState,fluid,amount,true);
+                        Laminarifers.addAmountInQB(laminarifer,world,pos,replacedState,fluid,amount,true,0L);
                         break;
                     default: {
                         break permeable;
